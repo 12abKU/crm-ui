@@ -13,6 +13,7 @@ import Sidebar from './components/Sidebar'
 import Register from './pages/Register'
 import { T } from './constants/theme'
 import Conversations from './pages/Conversations'
+import Calls from './pages/Calls'
 
 
 const PrivateLayout = ({ children }) => {
@@ -42,6 +43,8 @@ export default function App() {
         <Route path="/profile" element={<PrivateLayout><Profile /></PrivateLayout>} />
         <Route path="/settings" element={<PrivateLayout><Settings /></PrivateLayout>} />
         <Route path="/conversations" element={<PrivateLayout><Conversations /></PrivateLayout>} />
+        <Route path="/calls" element={<PrivateLayout><Calls /></PrivateLayout>} />
+
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

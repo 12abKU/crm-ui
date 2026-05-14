@@ -4,6 +4,9 @@ import { T, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
+import CallWidget from '../components/voice/CallWidget'
+import CallLogTable from '../components/voice/CallLogTable'
+
 
 const timeAgo = (str) => {
     if (!str) return '—'
@@ -26,8 +29,37 @@ export default function ContactProfile() {
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
 
+    const [activeCall, setActiveCall] = useState(null)
+    const [callLogs, setCallLogs] = useState([])
+    const [logsLoading, setLogsLoading] = useState(false)
+    const [callPage, setCallPage] = useState(0)
+    const [callTotal, setCallTotal] = useState(0)
+    const [callTotalPages, setCallTotalPages] = useState(0)
+
+    // ── Load call logs with pagination ────────────────────────
+    const loadCalls = async (p = 0) => {
+        if (!id) return
+        setLogsLoading(true)
+        try {
+            const r = await api.get(`/api/voice/logs/contact/${id}?page=${p}&size=5`)
+            setCallLogs(r.data.content)
+            setCallTotal(r.data.totalElements)
+            setCallTotalPages(r.data.totalPages)
+            setCallPage(p)
+        } catch {
+            setCallLogs([])
+        } finally {
+            setLogsLoading(false)
+        }
+    }
+
+    useEffect(() => { loadCalls(0) }, [id])
+
     useEffect(() => {
-        api.get(`/api/contacts/${id}/profile`).then(r => setProfile(r.data)).catch(() => setProfile(null)).finally(() => setLoading(false))
+        api.get(`/api/contacts/${id}/profile`)
+            .then(r => setProfile(r.data))
+            .catch(() => setProfile(null))
+            .finally(() => setLoading(false))
     }, [id])
 
     if (loading) return (
@@ -92,6 +124,7 @@ export default function ContactProfile() {
                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>Back to Contacts
                 </button>
 
+                {/* Header card */}
                 <div className="rounded-2xl p-6 mb-6 flex items-start justify-between gap-6"
                     style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                     <div className="flex items-center gap-5">
@@ -113,12 +146,62 @@ export default function ContactProfile() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">call</span>Call</button>
-                        <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">mail</span>Email</button>
-                        <button className="crm-btn-primary flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal</button>
+                        <button
+                            onClick={() => profile?.phone && setActiveCall(profile)}
+                            disabled={!profile?.phone}
+                            className="crm-btn-ghost flex items-center gap-2 text-sm"
+                            title={!profile?.phone ? 'No phone number' : `Call ${fullName}`}>
+                            <span className="material-symbols-outlined text-[16px]">call</span>Call
+                        </button>
+                        <button className="crm-btn-ghost flex items-center gap-2 text-sm">
+                            <span className="material-symbols-outlined text-[16px]">mail</span>Email
+                        </button>
+                        <button className="crm-btn-primary flex items-center gap-2 text-sm">
+                            <span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal
+                        </button>
                     </div>
                 </div>
 
+                {/* Call History */}
+                <div className="rounded-2xl p-6 mb-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                    <div className="flex items-center justify-between mb-5">
+                        <h3 className="text-sm font-bold" style={{ color: T.textPrimary }}>Call History</h3>
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{ background: T.primaryDim, color: T.primaryText }}>
+                            {callTotal}
+                        </span>
+                    </div>
+
+                    <CallLogTable logs={callLogs} loading={logsLoading} compact />
+
+                    {/* Pagination */}
+                    {callTotalPages > 1 && (
+                        <div className="flex items-center justify-between pt-4 mt-4"
+                            style={{ borderTop: `1px solid ${T.border}` }}>
+                            <p className="text-[11px]" style={{ color: T.textMuted }}>
+                                {callTotal} total · page {callPage + 1} of {callTotalPages}
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    disabled={callPage === 0}
+                                    onClick={() => loadCalls(callPage - 1)}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40"
+                                    style={{ background: T.surfaceRaised, color: T.textSecondary }}>
+                                    ← Prev
+                                </button>
+                                <button
+                                    disabled={callPage >= callTotalPages - 1}
+                                    onClick={() => loadCalls(callPage + 1)}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-40"
+                                    style={{ background: T.surfaceRaised, color: T.textSecondary }}>
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Main grid */}
                 <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-2 flex flex-col gap-6">
                         <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -134,7 +217,10 @@ export default function ContactProfile() {
                         <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                             <div className="flex items-center justify-between mb-5">
                                 <h3 className="text-sm font-bold" style={{ color: T.textPrimary }}>Open Deals</h3>
-                                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: T.primaryDim, color: T.primaryText }}>{profile.openDeals?.length || 0}</span>
+                                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                                    style={{ background: T.primaryDim, color: T.primaryText }}>
+                                    {profile.openDeals?.length || 0}
+                                </span>
                             </div>
                             {profile.openDeals?.length > 0 ? (
                                 <div className="flex flex-col gap-3">
@@ -144,8 +230,10 @@ export default function ContactProfile() {
                                             <div key={d.id} className="flex items-center justify-between p-4 rounded-xl"
                                                 style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: T.primaryDim }}>
-                                                        <span className="material-symbols-outlined text-[18px]" style={{ color: T.primary }}>handshake</span>
+                                                    <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                                                        style={{ background: T.primaryDim }}>
+                                                        <span className="material-symbols-outlined text-[18px]"
+                                                            style={{ color: T.primary }}>handshake</span>
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{d.title}</p>
@@ -153,7 +241,9 @@ export default function ContactProfile() {
                                                             style={{ background: s.badgeBg, color: s.badgeColor }}>{d.stage}</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm font-black" style={{ color: T.primaryText }}>₹{(d.amount || 0).toLocaleString()}</p>
+                                                <p className="text-sm font-black" style={{ color: T.primaryText }}>
+                                                    ₹{(d.amount || 0).toLocaleString()}
+                                                </p>
                                             </div>
                                         )
                                     })}
@@ -171,8 +261,10 @@ export default function ContactProfile() {
                                     { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: T.successDim, color: T.success },
                                     { icon: 'event_note', label: 'Activities', value: profile.recentActivities?.length || 0, bg: T.secondaryDim, color: T.secondaryText },
                                 ].map(({ icon, label, value, bg, color }) => (
-                                    <div key={label} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: T.surfaceRaised }}>
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: bg }}>
+                                    <div key={label} className="flex items-center gap-3 p-3 rounded-xl"
+                                        style={{ background: T.surfaceRaised }}>
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                                            style={{ background: bg }}>
                                             <span className="material-symbols-outlined text-[18px]" style={{ color }}>{icon}</span>
                                         </div>
                                         <div>
@@ -192,8 +284,10 @@ export default function ContactProfile() {
                                         const s = ACTIVITY_STYLES[a.type] || ACTIVITY_STYLES.NOTE
                                         return (
                                             <div key={a.id} className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
-                                                    <span className="material-symbols-outlined text-[15px]" style={{ color: s.color }}>{s.icon}</span>
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                                    style={{ background: s.bg }}>
+                                                    <span className="material-symbols-outlined text-[15px]"
+                                                        style={{ color: s.color }}>{s.icon}</span>
                                                 </div>
                                                 <div className="flex-1">
                                                     <p className="text-[12px] font-semibold" style={{ color: T.textPrimary }}>{a.subject}</p>
@@ -208,6 +302,18 @@ export default function ContactProfile() {
                     </div>
                 </div>
             </main>
+
+            {/* Call Widget */}
+            {activeCall && (
+                <CallWidget
+                    contact={activeCall}
+                    onClose={() => setActiveCall(null)}
+                    onCallComplete={() => {
+                        setActiveCall(null)
+                        loadCalls(0)
+                    }}
+                />
+            )}
         </div>
     )
 }
