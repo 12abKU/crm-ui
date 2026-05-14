@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import RoleBadge from './RoleBadge'
-import api from '../../api'
+import api, { extractApiErrorMessage } from '../../api'
 
 export default function ProfileForm() {
     const [name, setName] = useState(localStorage.getItem('name') || '')
@@ -23,7 +23,7 @@ export default function ProfileForm() {
             setStatus({ type: 'success', msg: 'Profile updated successfully' })
             setCurrentPassword('')
         } catch (err) {
-            setStatus({ type: 'error', msg: err.response?.data?.message || 'Update failed' })
+            setStatus({ type: 'error', msg: extractApiErrorMessage(err, 'Update failed') })
         } finally {
             setLoading(false)
         }

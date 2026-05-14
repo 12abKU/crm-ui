@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import { setCredentials } from '../store/authSlice'
 
 export default function Login() {
@@ -18,7 +18,7 @@ export default function Login() {
             const { data } = await api.post('/api/auth/login', form)
             dispatch(setCredentials(data))
             navigate('/')
-        } catch (err) { setError(err.response?.data?.message || 'Login failed') }
+        } catch (err) { setError(extractApiErrorMessage(err, 'Login failed')) }
         finally { setLoading(false) }
     }
 

@@ -15,6 +15,7 @@ import { T } from './constants/theme'
 import Conversations from './pages/Conversations'
 import Calls from './pages/Calls'
 import { useSelector } from 'react-redux'
+import ApiErrorToast from './components/ui/ApiErrorToast'
 
 
 const PrivateLayout = ({ children }) => {
@@ -31,6 +32,7 @@ const PrivateLayout = ({ children }) => {
 export default function App() {
   return (
     <BrowserRouter>
+      <ApiErrorToast />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

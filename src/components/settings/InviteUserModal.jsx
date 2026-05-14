@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { T } from '../../constants/theme'
+import { extractApiErrorMessage } from '../../api'
 
 export default function InviteUserModal({ onClose, onSubmit, allowAdminRole = false }) {
     const [form, setForm] = useState({ name: '', email: '', password: '', role: 'AGENT' })
@@ -16,7 +17,7 @@ export default function InviteUserModal({ onClose, onSubmit, allowAdminRole = fa
             await onSubmit(form)
             onClose()
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Failed to create user')
+            setError(extractApiErrorMessage(err, 'Failed to create user'))
         } finally {
             setLoading(false)
         }

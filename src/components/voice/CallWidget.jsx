@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { T, SHADOW } from '../../constants/theme'
 import { twilioService } from '../../services/twilioService'
-import api from '../../api'
+import api, { extractApiErrorMessage } from '../../api'
 
 const fmt = (s) => {
     const m = Math.floor(s / 60).toString().padStart(2, '0')
@@ -70,7 +70,7 @@ function classifyError(err) {
     }
     return {
         title: 'Call failed',
-        detail: msg || 'An unexpected error occurred. Please try again.',
+        detail: extractApiErrorMessage(err, msg || 'An unexpected error occurred. Please try again.'),
         icon: 'call_end',
         color: T.error,
         bg: T.errorDim,

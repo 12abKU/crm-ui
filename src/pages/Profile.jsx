@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import { signOut, updateProfileSession } from '../store/authSlice'
 
 // Outside component — prevents focus loss on keystroke
@@ -57,7 +57,7 @@ export default function Profile() {
             dispatch(updateProfileSession(r.data))
             setProfile(r.data); setSuccess('Profile updated successfully')
             setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }))
-        } catch (err) { setError(err.response?.data?.message || err.response?.data || 'Update failed') }
+        } catch (err) { setError(extractApiErrorMessage(err, 'Update failed')) }
         finally { setSaving(false) }
     }
 

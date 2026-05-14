@@ -51,7 +51,7 @@ export const twilioService = {
         // ✅ Grab CallSid immediately after connect — it's available right on the call object
         const sid = call.parameters?.CallSid
         if (sid) {
-            api.patch(`/api/voice/call/${callLog.id}/sid`, { callSid: sid }).catch(() => { })
+            api.patch(`/api/voice/call/${callLog.id}/sid`, { callSid: sid }, { suppressErrorToast: true }).catch(() => { })
         }
 
         call.on('ringing', () => onStateChange?.('ringing'))
@@ -63,7 +63,7 @@ export const twilioService = {
             if (acceptSid && acceptSid !== sid) {
                 await api.patch(`/api/voice/call/${callLog.id}/sid`, {
                     callSid: acceptSid,
-                }).catch(() => { })
+                }, { suppressErrorToast: true }).catch(() => { })
             }
         })
 

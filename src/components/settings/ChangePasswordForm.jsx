@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
-import api from '../../api'
+import api, { extractApiErrorMessage } from '../../api'
 
 export default function ChangePasswordForm() {
     const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirm: '' })
@@ -29,7 +29,7 @@ export default function ChangePasswordForm() {
             setStatus({ type: 'success', msg: 'Password updated successfully' })
             setForm({ currentPassword: '', newPassword: '', confirm: '' })
         } catch (err) {
-            setStatus({ type: 'error', msg: err.response?.data?.message || 'Failed to update password' })
+            setStatus({ type: 'error', msg: extractApiErrorMessage(err, 'Failed to update password') })
         } finally {
             setLoading(false)
         }

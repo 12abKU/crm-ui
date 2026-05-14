@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import { setCredentials } from '../store/authSlice'
 
 export default function Register() {
@@ -18,7 +18,7 @@ export default function Register() {
             const { data } = await api.post('/api/auth/register', form)
             dispatch(setCredentials(data))
             navigate('/')
-        } catch (err) { setError(err.response?.data?.message || 'Registration failed') }
+        } catch (err) { setError(extractApiErrorMessage(err, 'Registration failed')) }
         finally { setLoading(false) }
     }
 
