@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import ProfileForm from './ProfileForm'
@@ -11,7 +12,7 @@ export default function AdminSettings() {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [showInvite, setShowInvite] = useState(false)
-    const currentUserId = Number(localStorage.getItem('userId'))
+    const currentUserId = Number(useSelector(state => state.auth.userId))
 
     const load = () => {
         setLoading(true)
@@ -20,7 +21,10 @@ export default function AdminSettings() {
             .finally(() => setLoading(false))
     }
 
-    useEffect(() => { load() }, [])
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        load()
+    }, [])
 
     const createUser = async (form) => {
         await api.post('/api/management/users', { ...form, role: 'AGENT' })

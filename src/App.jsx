@@ -14,10 +14,11 @@ import Register from './pages/Register'
 import { T } from './constants/theme'
 import Conversations from './pages/Conversations'
 import Calls from './pages/Calls'
+import { useSelector } from 'react-redux'
 
 
 const PrivateLayout = ({ children }) => {
-  const token = localStorage.getItem('token')
+  const token = useSelector(state => state.auth.token)
   if (!token) return <Navigate to="/login" />
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>

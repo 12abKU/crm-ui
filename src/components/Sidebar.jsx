@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
 import api from '../api'
 
 export default function Sidebar() {
     const navigate = useNavigate()
-    const name = localStorage.getItem('name') || 'User'
-    const role = localStorage.getItem('role') || 'AGENT'
+    const { name, role } = useSelector(state => state.auth)
     const [userHover, setUserHover] = useState(false)
     const [overdue, setOverdue] = useState(0)
 

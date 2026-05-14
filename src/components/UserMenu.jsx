@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import RoleBadge from './settings/RoleBadge'
+import { signOut as signOutSession } from '../store/authSlice'
 
 export default function UserMenu() {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
-    const name = localStorage.getItem('name') || 'User'
-    const role = localStorage.getItem('role') || 'AGENT'
+    const { name, role } = useSelector(state => state.auth)
 
     useEffect(() => {
         const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -17,7 +19,7 @@ export default function UserMenu() {
     }, [])
 
     const signOut = () => {
-        localStorage.clear()
+        dispatch(signOutSession())
         navigate('/login')
     }
 

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
+import { signOut, updateProfileSession } from '../store/authSlice'
 
 // Outside component — prevents focus loss on keystroke
 const InputField = ({ label, type = 'text', value, onChange, placeholder, required, rightSlot }) => (
@@ -26,6 +28,7 @@ const EyeToggle = ({ show, onToggle }) => (
 
 export default function Profile() {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -51,7 +54,7 @@ export default function Profile() {
         setSaving(true)
         try {
             const r = await api.put('/api/user/profile', { name: form.name, email: form.email, currentPassword: form.currentPassword, newPassword: form.newPassword || null })
-            localStorage.setItem('name', r.data.name)
+            dispatch(updateProfileSession(r.data))
             setProfile(r.data); setSuccess('Profile updated successfully')
             setForm(f => ({ ...f, currentPassword: '', newPassword: '', confirmPassword: '' }))
         } catch (err) { setError(err.response?.data?.message || err.response?.data || 'Update failed') }
@@ -75,7 +78,7 @@ export default function Profile() {
                         <h2 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>My Profile</h2>
                         <p className="text-sm mt-1" style={{ color: T.textMuted }}>Manage your personal information and password</p>
                     </div>
-                    <button onClick={() => { localStorage.clear(); window.location.href = '/login' }}
+                    <button onClick={() => { dispatch(signOut()); navigate('/login') }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
                         style={{ color: T.error, border: `1px solid ${T.errorDim}` }}
                         onMouseEnter={e => e.currentTarget.style.background = T.errorDim}

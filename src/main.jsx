@@ -7,9 +7,13 @@ import '@fontsource/manrope/800.css'
 import './index.css'
 import App from './App.jsx'
 import SkeletonTheme from './components/skeletons/SkeletonTheme.jsx'
+import { Provider } from 'react-redux'
+import { store } from './store'
 
 createRoot(document.getElementById('root')).render(
-    <SkeletonTheme>
-        <App />
-    </SkeletonTheme>
+    <Provider store={store}>
+        <SkeletonTheme>
+            <App />
+        </SkeletonTheme>
+    </Provider>
 )

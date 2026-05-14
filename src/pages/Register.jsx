@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import api from '../api'
+import { setCredentials } from '../store/authSlice'
 
 export default function Register() {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const [form, setForm] = useState({ name: '', email: '', password: '', role: 'AGENT' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -13,9 +16,7 @@ export default function Register() {
         e.preventDefault(); setLoading(true); setError('')
         try {
             const { data } = await api.post('/api/auth/register', form)
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('name', data.name)
-            localStorage.setItem('role', data.role)
+            dispatch(setCredentials(data))
             navigate('/')
         } catch (err) { setError(err.response?.data?.message || 'Registration failed') }
         finally { setLoading(false) }

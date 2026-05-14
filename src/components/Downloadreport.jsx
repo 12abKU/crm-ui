@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 
 // ─── CSV ─────────────────────────────────────────────────────────────────────
-function downloadCSV(stats) {
-    const name = localStorage.getItem('name') || 'User'
+function downloadCSV(stats, name) {
     const date = new Date().toLocaleDateString('en-IN')
 
     const rows = [
@@ -41,8 +41,7 @@ function downloadCSV(stats) {
 }
 
 // ─── PDF ─────────────────────────────────────────────────────────────────────
-function downloadPDF(stats) {
-    const name = localStorage.getItem('name') || 'User'
+function downloadPDF(stats, name) {
     const date = new Date().toLocaleDateString('en-IN')
     const fmt = (n) => Number(n || 0).toLocaleString('en-IN')
 
@@ -126,6 +125,7 @@ function downloadPDF(stats) {
 export default function DownloadReport({ stats }) {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
+    const name = useSelector(state => state.auth.name)
 
     useEffect(() => {
         const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -165,7 +165,7 @@ export default function DownloadReport({ stats }) {
                     </p>
 
                     <button
-                        onClick={() => { downloadPDF(stats); setOpen(false) }}
+                        onClick={() => { downloadPDF(stats, name); setOpen(false) }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
                         style={{ color: '#0b1c30', cursor: 'pointer' }}
                     >
@@ -177,7 +177,7 @@ export default function DownloadReport({ stats }) {
                     <div style={{ height: '1px', background: '#eff4ff', margin: '0 12px' }} />
 
                     <button
-                        onClick={() => { downloadCSV(stats); setOpen(false) }}
+                        onClick={() => { downloadCSV(stats, name); setOpen(false) }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
                         style={{ color: '#0b1c30', cursor: 'pointer' }}
                     >

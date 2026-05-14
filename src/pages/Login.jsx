@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import api from '../api'
+import { setCredentials } from '../store/authSlice'
 
 export default function Login() {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
     const [form, setForm] = useState({ email: '', password: '' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -13,11 +16,7 @@ export default function Login() {
         e.preventDefault(); setLoading(true); setError('')
         try {
             const { data } = await api.post('/api/auth/login', form)
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('name', data.name)
-            localStorage.setItem('role', data.role)
-            localStorage.setItem('userId', data.id)
-            localStorage.setItem('email', data.email)
+            dispatch(setCredentials(data))
             navigate('/')
         } catch (err) { setError(err.response?.data?.message || 'Login failed') }
         finally { setLoading(false) }
