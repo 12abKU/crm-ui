@@ -9,7 +9,7 @@ export default function EntityAvatar({ label = '', index = 0, rounded = 'full', 
     const shape = rounded === 'xl' ? 'rounded-xl' : 'rounded-full'
 
     return (
-        <div className={`w-10 h-10 ${shape} flex items-center justify-center font-bold text-sm flex-shrink-0`}
+        <div className={`w-10 h-10 ${shape} flex items-center justify-center font-bold text-sm shrink-0`}
             style={{ background, color }}>
             {label.charAt(0).toUpperCase()}
         </div>

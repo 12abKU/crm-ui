@@ -33,7 +33,7 @@ export default function AccountProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <div className="flex items-center gap-4 mb-8">
                     <Skeleton circle width={64} height={64} />
                     <div>
@@ -84,7 +84,7 @@ export default function AccountProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <button onClick={() => navigate('/accounts')}
                     className="flex items-center gap-2 mb-6 text-sm font-semibold hover:underline"
                     style={{ color: T.primary }}>
@@ -114,7 +114,7 @@ export default function AccountProfile() {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                         <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">call</span>Call</button>
                         <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">mail</span>Email</button>
                         <button className="crm-btn-primary flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal</button>
@@ -150,7 +150,7 @@ export default function AccountProfile() {
                                             onClick={() => navigate(`/contacts/${c.id}`)}
                                             onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
                                             onMouseLeave={e => e.currentTarget.style.background = T.surfaceRaised}>
-                                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                                                 style={{ background: AVATARS[i % 4], color: AVATAR_COLORS_LIST[i % 4] }}>
                                                 {c.firstName.charAt(0)}
                                             </div>
@@ -208,7 +208,7 @@ export default function AccountProfile() {
                                     { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: T.successDim, color: T.success },
                                 ].map(({ icon, label, value, bg, color }) => (
                                     <div key={label} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: T.surfaceRaised }}>
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: bg }}>
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg }}>
                                             <span className="material-symbols-outlined text-[18px]" style={{ color }}>{icon}</span>
                                         </div>
                                         <div>
@@ -228,7 +228,7 @@ export default function AccountProfile() {
                                         const s = ACTIVITY_STYLES[a.type] || ACTIVITY_STYLES.NOTE
                                         return (
                                             <div key={a.id} className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: s.bg }}>
                                                     <span className="material-symbols-outlined text-[15px]" style={{ color: s.color }}>{s.icon}</span>
                                                 </div>
                                                 <div className="flex-1">

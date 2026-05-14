@@ -59,7 +59,7 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                 style={{ width: 1000, boxShadow: SHADOW.xl }}>
 
                 {/* ── Vertical icon sidebar ── */}
-                <div className="flex flex-col items-center py-5 gap-1 flex-shrink-0"
+                <div className="flex flex-col items-center py-5 gap-1 shrink-0"
                     style={{
                         width: 56,
                         background: T.sidebar,
@@ -111,11 +111,11 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                     style={{ background: T.surface }}>
 
                     {/* Header */}
-                    <div className="px-6 pt-5 pb-4 flex-shrink-0"
+                    <div className="px-6 pt-5 pb-4 shrink-0"
                         style={{ borderBottom: `1px solid ${T.border}` }}>
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                                     style={{ background: s.badgeBg }}>
                                     <span className="material-symbols-outlined text-[17px]"
                                         style={{ color: s.badgeColor }}>handshake</span>
@@ -133,7 +133,7 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                                     )}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1 shrink-0">
                                 <button onClick={() => onDelete(deal.id)}
                                     className="p-1.5 rounded-lg transition-colors"
                                     style={{ color: T.textMuted }}

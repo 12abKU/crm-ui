@@ -15,7 +15,7 @@ export default function EmailBubble({ email }) {
 
     return (
         <div className={`flex gap-2.5 mb-5 ${isReceived ? 'flex-row' : 'flex-row-reverse'}`}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] flex-shrink-0 mt-1"
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] shrink-0 mt-1"
                 style={{ background: isReceived ? T.secondaryDim : T.primaryDim, color: isReceived ? T.secondary : T.primary }}>
                 {initial}
             </div>

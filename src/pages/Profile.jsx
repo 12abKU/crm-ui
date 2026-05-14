@@ -90,7 +90,7 @@ export default function Profile() {
                 {/* Header card */}
                 <div className="rounded-2xl p-6 mb-6 flex items-center gap-5"
                     style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white flex-shrink-0"
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white shrink-0"
                         style={{ background: T.primary }}>
                         {profile?.name?.charAt(0).toUpperCase()}
                     </div>

@@ -35,7 +35,7 @@ export default function DealCard({ deal, isDragging, onDragStart, onDragEnd, onR
                 <p className="text-[15px] font-bold leading-snug" style={{ color: T.textPrimary }}>{deal.title}</p>
                 <button
                     onClick={e => { e.stopPropagation(); onRemove() }}
-                    className="material-symbols-outlined text-[15px] opacity-0 group-hover:opacity-100 p-1 rounded flex-shrink-0"
+                    className="material-symbols-outlined text-[15px] opacity-0 group-hover:opacity-100 p-1 rounded shrink-0"
                     style={{ color: T.textMuted }}
                     onMouseEnter={e => { e.currentTarget.style.color = T.error; e.currentTarget.style.background = T.errorDim }}
                     onMouseLeave={e => { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent' }}>

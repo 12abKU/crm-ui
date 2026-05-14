@@ -42,7 +42,7 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                             onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? T.surface : T.surfaceRaised}>
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+                                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                                         style={{ background: T.primaryDim, color: T.primary }}>
                                         {u.name?.charAt(0).toUpperCase()}
                                     </div>

@@ -50,7 +50,7 @@ export default function UserMenu() {
 
                     {/* Header */}
                     <div className="px-4 py-4 flex items-center gap-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                             style={{ background: T.primary, color: T.textInverse }}>
                             {name.charAt(0).toUpperCase()}
                         </div>

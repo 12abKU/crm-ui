@@ -58,7 +58,7 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>{d.title}</p>
                                         {isCurrent && (
-                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
                                                 style={{ background: T.primary, color: '#fff' }}>Current</span>
                                         )}
                                     </div>
@@ -71,7 +71,7 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
                                     </div>
                                 </div>
                                 {d.amount > 0 && (
-                                    <p className="text-sm font-black flex-shrink-0" style={{ color: T.primary }}>
+                                    <p className="text-sm font-black shrink-0" style={{ color: T.primary }}>
                                         ₹{d.amount.toLocaleString()}
                                     </p>
                                 )}

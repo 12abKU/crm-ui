@@ -102,7 +102,7 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
                         style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
 
                         {/* Direction icon */}
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                             style={{ background: isOut ? T.primaryDim : T.secondaryDim }}>
                             <span className="material-symbols-outlined text-[18px]"
                                 style={{ color: isOut ? T.primary : T.secondary }}>
@@ -122,7 +122,7 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
                         </div>
 
                         {/* Duration */}
-                        <div className="text-right flex-shrink-0">
+                        <div className="text-right shrink-0">
                             <p className="text-sm font-black" style={{ color: T.textPrimary }}>
                                 {fmt(log.durationSeconds)}
                             </p>
@@ -131,12 +131,12 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
 
                         {/* Outcome / status badge */}
                         {outcome ? (
-                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
                                 style={{ background: outcome.bg, color: outcome.color }}>
                                 {outcome.label}
                             </span>
                         ) : (
-                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
                                 style={{ background: status.bg, color: status.color }}>
                                 {log.status?.replace('_', ' ')}
                             </span>
@@ -145,7 +145,7 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
                         {/* Recording */}
                         {log.recordingUrl && (
                             <a href={log.recordingUrl} target="_blank" rel="noreferrer"
-                                className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
                                 style={{ background: T.primaryDim, color: T.primary }}>
                                 <span className="material-symbols-outlined text-[16px]">play_arrow</span>
                             </a>
@@ -153,7 +153,7 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
 
                         {/* Notes button — clickable, shows popover */}
                         {log.notes && (
-                            <div className="relative flex-shrink-0">
+                            <div className="relative shrink-0">
                                 <button
                                     onClick={() => setOpenNote(noteOpen ? null : log.id)}
                                     className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"

@@ -39,7 +39,7 @@ function EmailBubble({ email }) {
         <div className={`flex gap-2.5 mb-5 ${isReceived ? 'flex-row' : 'flex-row-reverse'}`}>
 
             {/* Avatar */}
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] flex-shrink-0 mt-1"
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] shrink-0 mt-1"
                 style={{
                     background: isReceived ? T.secondaryDim : T.primaryDim,
                     color: isReceived ? T.secondary : T.primary,
@@ -247,7 +247,7 @@ export default function DealPanelConversation({ deal }) {
         <div className="flex flex-col h-full overflow-hidden">
 
             {/* Top bar */}
-            <div className="px-5 py-2.5 flex items-center justify-between flex-shrink-0"
+            <div className="px-5 py-2.5 flex items-center justify-between shrink-0"
                 style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
@@ -274,7 +274,7 @@ export default function DealPanelConversation({ deal }) {
             </div>
 
             {/* Contact + count bar */}
-            <div className="px-5 py-2 flex items-center gap-2 flex-shrink-0"
+            <div className="px-5 py-2 flex items-center gap-2 shrink-0"
                 style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
                 <span className="material-symbols-outlined text-[13px]"
                     style={{ color: T.textMuted }}>person</span>

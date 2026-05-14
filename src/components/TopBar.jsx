@@ -132,7 +132,7 @@ export default function TopBar() {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                                                 onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0"
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
                                                     style={{ background: T.primaryDim, color: T.primary }}>
                                                     {a.name.charAt(0).toUpperCase()}
                                                 </div>
@@ -144,7 +144,7 @@ export default function TopBar() {
                                                         {a.industry || a.website || 'Account'}
                                                     </p>
                                                 </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto flex-shrink-0"
+                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
                                                     style={{ color: T.textMuted }}>arrow_forward</span>
                                             </button>
                                         ))}
@@ -162,7 +162,7 @@ export default function TopBar() {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                                                 onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0"
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
                                                     style={{ background: T.secondaryDim, color: T.secondaryText }}>
                                                     {c.firstName.charAt(0).toUpperCase()}
                                                 </div>
@@ -174,7 +174,7 @@ export default function TopBar() {
                                                         {c.designation || 'Contact'}{c.account ? ` · ${c.account.name}` : ''}
                                                     </p>
                                                 </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto flex-shrink-0"
+                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
                                                     style={{ color: T.textMuted }}>arrow_forward</span>
                                             </button>
                                         ))}
@@ -192,7 +192,7 @@ export default function TopBar() {
                                                 className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                                                 onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                                     style={{ background: T.tertiaryDim }}>
                                                     <span className="material-symbols-outlined text-[15px]"
                                                         style={{ color: T.tertiaryText }}>handshake</span>
@@ -205,7 +205,7 @@ export default function TopBar() {
                                                         {d.stage}{d.account ? ` · ${d.account.name}` : ''}{d.amount ? ` · ₹${d.amount.toLocaleString()}` : ''}
                                                     </p>
                                                 </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto flex-shrink-0"
+                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
                                                     style={{ color: T.textMuted }}>arrow_forward</span>
                                             </button>
                                         ))}
@@ -227,7 +227,7 @@ export default function TopBar() {
                                                     className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                                                     onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
                                                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                                         style={{ background: T.primaryDim }}>
                                                         <span className="material-symbols-outlined text-[15px]"
                                                             style={{ color: typeColors[a.type] || T.primary }}>
@@ -242,7 +242,7 @@ export default function TopBar() {
                                                             {a.type}{a.account ? ` · ${a.account.name}` : ''}{a.contact ? ` · ${a.contact.firstName} ${a.contact.lastName}` : ''}
                                                         </p>
                                                     </div>
-                                                    <span className="material-symbols-outlined text-[14px] ml-auto flex-shrink-0"
+                                                    <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
                                                         style={{ color: T.textMuted }}>arrow_forward</span>
                                                 </button>
                                             )

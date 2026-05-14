@@ -34,7 +34,7 @@ export default function InlineEdit({ value, onSave, options, placeholder = '—'
             onMouseLeave={() => setHovering(false)}
             onClick={() => setEditing(true)}>
             {children ?? <span style={{ color: value ? T.textSecondary : T.textMuted }}>{value || placeholder}</span>}
-            <span className="material-symbols-outlined flex-shrink-0"
+            <span className="material-symbols-outlined shrink-0"
                 style={{ fontSize: 13, color: T.primary, opacity: hovering ? 1 : 0, transition: 'opacity 0.15s' }}>
                 edit
             </span>

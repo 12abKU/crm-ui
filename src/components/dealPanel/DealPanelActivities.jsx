@@ -56,14 +56,14 @@ export default function DealPanelActivities({ activities, loading }) {
                                 {!isLast && (
                                     <div className="absolute left-4 top-8 bottom-0 w-px" style={{ background: T.border }} />
                                 )}
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10"
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10"
                                     style={{ background: st.bg }}>
                                     <span className="material-symbols-outlined text-[14px]" style={{ color: st.color }}>{st.icon}</span>
                                 </div>
                                 <div className="flex-1 pb-5 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
                                         <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{a.subject}</p>
-                                        <span className="text-[11px] flex-shrink-0" style={{ color: T.textMuted }}>{timeAgo(a.createdAt)}</span>
+                                        <span className="text-[11px] shrink-0" style={{ color: T.textMuted }}>{timeAgo(a.createdAt)}</span>
                                     </div>
                                     {a.description && (
                                         <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary }}>{a.description}</p>

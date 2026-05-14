@@ -30,7 +30,7 @@ export default function Sidebar() {
             {/* Logo */}
             <div className="px-6 pt-7 pb-5">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: T.primary }}>
                         <span className="material-symbols-outlined filled text-white text-[18px]">dataset</span>
                     </div>
@@ -57,7 +57,7 @@ export default function Sidebar() {
                                 <span className="flex-1">{label}</span>
                                 {/* overdue badge on Activities */}
                                 {to === '/activities' && overdue > 0 && (
-                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
+                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
                                         style={{ background: '#DC2626', color: '#fff' }}>
                                         {overdue > 99 ? '99+' : overdue}
                                     </span>
@@ -95,7 +95,7 @@ export default function Sidebar() {
                 onMouseLeave={() => setUserHover(false)}
                 className="px-4 py-4 flex items-center gap-3 w-full text-left transition-colors"
                 style={{ borderTop: `1px solid ${T.sidebarBorder}`, background: userHover ? T.sidebarHover : 'transparent' }}>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                     style={{ background: T.primary, color: T.textInverse }}>
                     {name.charAt(0).toUpperCase()}
                 </div>

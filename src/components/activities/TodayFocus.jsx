@@ -19,7 +19,7 @@ function FocusTaskCard({ activity, accent }) {
                     <span className="material-symbols-outlined text-[11px]">{s.icon}</span>
                     {activity.type}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
                     style={{ background: ss.bg, color: ss.color }}>
                     {ss.label}
                 </span>

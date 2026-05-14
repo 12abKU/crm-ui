@@ -13,7 +13,7 @@ export default function ContactRow({ contact, selected, onClick, emailCount }) {
             }}
             onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = T.surfaceHigh }}
             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}>
-            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                 style={{ background: isActive ? T.primaryDim : T.surfaceHigh, color: isActive ? T.primary : T.textSecondary }}>
                 {initial}
             </div>
@@ -22,7 +22,7 @@ export default function ContactRow({ contact, selected, onClick, emailCount }) {
                 <p className="text-[11px] truncate" style={{ color: T.textMuted }}>{contact.email || 'No email'}</p>
             </div>
             {emailCount != null && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
                     style={{ background: isActive ? T.primary : T.surfaceHigh, color: isActive ? '#fff' : T.textMuted }}>
                     {emailCount}
                 </span>

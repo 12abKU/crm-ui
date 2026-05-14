@@ -25,7 +25,7 @@ export default function Settings() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1100px] mx-auto">
+            <main className="p-8 max-w-275 mx-auto">
                 <PageHeader
                     icon={meta.icon}
                     title={meta.label}

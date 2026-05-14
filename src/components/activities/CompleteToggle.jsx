@@ -10,7 +10,7 @@ export default function CompleteToggle({ activityId, completed, onToggle }) {
             title={completed ? 'Mark incomplete' : 'Mark complete'}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
+            className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
             style={{
                 borderColor: completed ? T.success : hovered ? T.success : T.border,
                 background: completed ? T.success : hovered ? 'rgba(22,163,74,0.15)' : 'transparent',

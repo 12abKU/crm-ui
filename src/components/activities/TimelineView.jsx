@@ -57,7 +57,7 @@ export default function TimelineView({ activities, loading, onComplete, onOutcom
                                 <div key={activity.id} className="flex gap-3 items-start relative"
                                     style={{ opacity: activity.completed ? 0.6 : 1 }}>
                                     {!isLast && <div className="absolute left-4 top-8 bottom-0 w-px" style={{ background: T.border }} />}
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10"
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10"
                                         style={{ background: activity.completed ? T.successDim || 'rgba(22,163,74,0.10)' : s.bg }}>
                                         <span className="material-symbols-outlined text-[14px]"
                                             style={{ color: activity.completed ? T.success : s.color }}>
@@ -90,7 +90,7 @@ export default function TimelineView({ activities, loading, onComplete, onOutcom
                                                     <OutcomePicker activityId={activity.id} type={activity.type} current={activity.outcome} onSave={onOutcome} />
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                            <div className="flex flex-col items-end gap-1.5 shrink-0">
                                                 <span className="text-[11px]" style={{ color: status === 'overdue' ? T.error : T.textMuted }}>
                                                     {fmtScheduled(activity.scheduledAt || activity.createdAt)}
                                                 </span>

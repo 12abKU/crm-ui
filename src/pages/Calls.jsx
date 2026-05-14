@@ -63,7 +63,7 @@ export default function Calls() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <PageHeader
                     title="Calls"
                     subtitle="Voice call history and logs"

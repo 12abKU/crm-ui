@@ -58,7 +58,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             <td className="px-4 py-3.5">
                 {activity.account ? (
                     <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black flex-shrink-0"
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
                             style={{ background: T.primaryDim, color: T.primaryText }}>
                             {activity.account.name.charAt(0).toUpperCase()}
                         </div>

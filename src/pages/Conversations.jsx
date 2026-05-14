@@ -81,9 +81,9 @@ export default function Conversations() {
         <div className="flex flex-col h-screen overflow-hidden">
             <TopBar />
             <div className="flex flex-1 min-h-0 overflow-hidden">
-                <div className="w-72 flex-shrink-0 flex flex-col border-r overflow-hidden"
+                <div className="w-72 shrink-0 flex flex-col border-r overflow-hidden"
                     style={{ background: T.surface, borderColor: T.border }}>
-                    <div className="px-5 pt-6 pb-4 flex-shrink-0">
+                    <div className="px-5 pt-6 pb-4 shrink-0">
                         <h2 className="text-lg font-black mb-3" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>
                             Conversations
                         </h2>
@@ -129,12 +129,12 @@ export default function Conversations() {
                     </div>
 
                     {!statusLoading && (
-                        <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: `1px solid ${T.border}` }}>
+                        <div className="px-4 py-3 shrink-0" style={{ borderTop: `1px solid ${T.border}` }}>
                             {gmailStatus?.connected ? (
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
-                                        <p className="text-[11px] font-semibold truncate max-w-[140px]" style={{ color: T.textSecondary }}>
+                                        <p className="text-[11px] font-semibold truncate max-w-35" style={{ color: T.textSecondary }}>
                                             {gmailStatus.email}
                                         </p>
                                     </div>
@@ -176,7 +176,7 @@ export default function Conversations() {
                         </div>
                     ) : (
                         <>
-                            <div className="px-6 py-4 flex items-center gap-4 flex-shrink-0"
+                            <div className="px-6 py-4 flex items-center gap-4 shrink-0"
                                 style={{ background: T.surface, borderBottom: `1px solid ${T.border}` }}>
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
                                     style={{ background: T.primaryDim, color: T.primary }}>

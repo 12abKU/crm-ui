@@ -28,7 +28,7 @@ export default function SearchableSelect({ label, value, onChange, options = [],
                 className="crm-select w-full flex items-center justify-between gap-2 text-left"
                 style={{ opacity: disabled ? 0.4 : 1, cursor: disabled ? 'not-allowed' : 'pointer', color: selectedLabel ? T.textPrimary : T.textMuted, paddingRight: 10, minWidth: isToolbar ? 200 : undefined }}>
                 <span className="truncate text-sm">{selectedLabel || placeholder}</span>
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                     {selectedLabel && !disabled && (
                         <span onClick={e => { e.stopPropagation(); onChange(''); setSearch('') }}
                             className="material-symbols-outlined text-[15px]" style={{ color: T.textMuted }}>close</span>

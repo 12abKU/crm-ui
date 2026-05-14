@@ -65,7 +65,7 @@ export default function ContactProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <div className="flex items-center gap-4 mb-8">
                     <Skeleton circle width={64} height={64} />
                     <div>
@@ -117,7 +117,7 @@ export default function ContactProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <button onClick={() => navigate('/contacts')}
                     className="flex items-center gap-2 mb-6 text-sm font-semibold hover:underline"
                     style={{ color: T.primary }}>
@@ -128,7 +128,7 @@ export default function ContactProfile() {
                 <div className="rounded-2xl p-6 mb-6 flex items-start justify-between gap-6"
                     style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                     <div className="flex items-center gap-5">
-                        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black flex-shrink-0"
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black shrink-0"
                             style={{ background: AVATARS[av], color: AVATAR_COLORS_LIST[av] }}>
                             {profile.firstName.charAt(0).toUpperCase()}
                         </div>
@@ -145,7 +145,7 @@ export default function ContactProfile() {
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                         <button
                             onClick={() => profile?.phone && setActiveCall(profile)}
                             disabled={!profile?.phone}
@@ -263,7 +263,7 @@ export default function ContactProfile() {
                                 ].map(({ icon, label, value, bg, color }) => (
                                     <div key={label} className="flex items-center gap-3 p-3 rounded-xl"
                                         style={{ background: T.surfaceRaised }}>
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                             style={{ background: bg }}>
                                             <span className="material-symbols-outlined text-[18px]" style={{ color }}>{icon}</span>
                                         </div>
@@ -284,7 +284,7 @@ export default function ContactProfile() {
                                         const s = ACTIVITY_STYLES[a.type] || ACTIVITY_STYLES.NOTE
                                         return (
                                             <div key={a.id} className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                                <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                                                     style={{ background: s.bg }}>
                                                     <span className="material-symbols-outlined text-[15px]"
                                                         style={{ color: s.color }}>{s.icon}</span>

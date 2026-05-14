@@ -122,7 +122,7 @@ export default function Deals() {
     return (
         <div className="flex flex-col flex-1 min-h-0">
             <TopBar />
-            <main className="flex flex-col flex-1 min-h-0 px-8 pt-6 pb-0 max-w-[1440px] mx-auto w-full">
+            <main className="flex flex-col flex-1 min-h-0 px-8 pt-6 pb-0 max-w-360 mx-auto w-full">
                 <PageHeader
                     title="Deals Pipeline"
                     subtitle={`${filteredDeals.length} deals${q ? ` matching "${search}"` : ''}`}
@@ -145,12 +145,12 @@ export default function Deals() {
                         const isOver = overStage === stage
 
                         return (
-                            <div key={stage} className="flex-shrink-0 w-72 flex flex-col min-h-0"
+                            <div key={stage} className="shrink-0 w-72 flex flex-col min-h-0"
                                 onDragOver={e => e.preventDefault()}
                                 onDragEnter={() => setOverStage(stage)}
                                 onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setOverStage(null) }}
                                 onDrop={e => onDropStage(e, stage)}>
-                                <div className="rounded-t-2xl px-4 py-3 flex-shrink-0"
+                                <div className="rounded-t-2xl px-4 py-3 shrink-0"
                                     style={{ background: T.surface, border: `1px solid ${T.border}`, borderBottom: `2px solid ${stageStyle.accent}` }}>
                                     <div className="flex items-center justify-between mb-1">
                                         <div className="flex items-center gap-2">

@@ -33,14 +33,14 @@ export default function RecentActivityList({ activities, loading }) {
         const rowBg = ROW_COLORS[i % ROW_COLORS.length]
         return (
             <div key={activity.id} className="flex items-start gap-4 py-4 px-3 rounded-xl mb-1" style={{ background: rowBg }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: s.bg }}>
                     <span className="material-symbols-outlined text-[18px]" style={{ color: s.color }}>{s.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{activity.subject}</p>
                     {meta && <p className="text-[12px] mt-0.5 truncate" style={{ color: T.textMuted }}>{meta}</p>}
                 </div>
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold flex-shrink-0"
+                <span className="px-3 py-1 rounded-full text-[11px] font-semibold shrink-0"
                     style={{ background: T.surfaceRaised, color: T.textSecondary }}>
                     {timeAgo(activity.createdAt)}
                 </span>

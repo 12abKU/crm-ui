@@ -21,7 +21,7 @@ export default function Dashboard() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-[1440px] mx-auto">
+            <main className="p-8 max-w-360 mx-auto">
                 <section className="mb-8 flex justify-between items-end">
                     <div>
                         <h2 className="text-4xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>

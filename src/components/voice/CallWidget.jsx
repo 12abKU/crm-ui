@@ -83,7 +83,7 @@ function ErrorBanner({ error, onDismiss }) {
     return (
         <div className="mx-4 mt-3 mb-1 px-4 py-3 rounded-2xl flex items-start gap-3"
             style={{ background: error.bg, border: `1px solid ${error.color}22` }}>
-            <span className="material-symbols-outlined text-[20px] flex-shrink-0 mt-0.5"
+            <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5"
                 style={{ color: error.color }}>{error.icon}</span>
             <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-black" style={{ color: error.color }}>{error.title}</p>
@@ -196,7 +196,7 @@ export default function CallWidget({ contact, onClose, onCallComplete }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
-            <div className="w-[340px] rounded-3xl overflow-hidden shadow-2xl"
+            <div className="w-85 rounded-3xl overflow-hidden shadow-2xl"
                 style={{ background: T.surface, border: `1px solid ${T.border}`, boxShadow: SHADOW.xl }}>
 
                 {/* Header */}
