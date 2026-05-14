@@ -1,0 +1,110 @@
+import { useState, useEffect } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { T, NAV_LINKS } from '../constants/theme'
+import api from '../api'
+
+export default function Sidebar() {
+    const navigate = useNavigate()
+    const name = localStorage.getItem('name') || 'User'
+    const role = localStorage.getItem('role') || 'AGENT'
+    const [userHover, setUserHover] = useState(false)
+    const [overdue, setOverdue] = useState(0)
+
+
+    useEffect(() => {
+        api.get('/api/activities/badge')
+            .then(r => setOverdue(r.data.overdue ?? 0))
+            .catch(() => { })
+        // poll every 5 minutes
+        const interval = setInterval(() => {
+            api.get('/api/activities/badge')
+                .then(r => setOverdue(r.data.overdue ?? 0))
+                .catch(() => { })
+        }, 300000)
+        return () => clearInterval(interval)
+    }, [])
+
+
+    return (
+        <aside className="crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50">
+            {/* Logo */}
+            <div className="px-6 pt-7 pb-5">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: T.primary }}>
+                        <span className="material-symbols-outlined filled text-white text-[18px]">dataset</span>
+                    </div>
+                    <div>
+                        <h1 className="text-[16px] font-black leading-tight" style={{ color: T.textInverse }}>Inventive CRM</h1>
+                        <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: T.sidebarText }}>Enterprise Edition</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Nav */}
+            <nav className="flex-1 flex flex-col gap-0.5 px-3 overflow-y-auto">
+                {NAV_LINKS.map(({ to, icon, label }) => (
+                    <NavLink key={to} to={to} end={to === '/'}
+                        className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
+                        style={({ isActive }) => ({
+                            background: isActive ? 'rgba(255,255,255,0.10)' : 'transparent',
+                            color: isActive ? '#FFFFFF' : T.sidebarText,
+                            fontWeight: isActive ? 700 : 500,
+                        })}>
+                        {({ isActive }) => (
+                            <>
+                                <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>{icon}</span>
+                                <span className="flex-1">{label}</span>
+                                {/* overdue badge on Activities */}
+                                {to === '/activities' && overdue > 0 && (
+                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
+                                        style={{ background: '#DC2626', color: '#fff' }}>
+                                        {overdue > 99 ? '99+' : overdue}
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </NavLink>
+                ))}
+            </nav>
+
+            {/* Create New */}
+            <div className="px-4 py-4">
+                <button onClick={() => navigate('/accounts')}
+                    className="crm-btn-primary w-full flex items-center justify-center gap-2 rounded-xl text-sm">
+                    <span className="material-symbols-outlined text-[17px]">add_circle</span>
+                    Create New
+                </button>
+            </div>
+
+            {/* Bottom links — Support only, Settings is already in NAV_LINKS */}
+            <div className="flex flex-col gap-0.5 px-3 py-3" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
+                <button
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-colors"
+                    style={{ color: T.sidebarText }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.sidebarHover; e.currentTarget.style.color = T.sidebarTextHover }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
+                    <span className="material-symbols-outlined text-[18px]">contact_support</span>
+                    <span style={{ fontWeight: 500 }}>Support</span>
+                </button>
+            </div>
+
+            {/* User — clicking goes to /settings */}
+            <button onClick={() => navigate('/settings')}
+                onMouseEnter={() => setUserHover(true)}
+                onMouseLeave={() => setUserHover(false)}
+                className="px-4 py-4 flex items-center gap-3 w-full text-left transition-colors"
+                style={{ borderTop: `1px solid ${T.sidebarBorder}`, background: userHover ? T.sidebarHover : 'transparent' }}>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+                    style={{ background: T.primary, color: T.textInverse }}>
+                    {name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate" style={{ color: T.textInverse }}>{name}</p>
+                    <p className="text-[11px]" style={{ color: T.sidebarText }}>{role}</p>
+                </div>
+                {userHover && <span className="material-symbols-outlined text-[15px]" style={{ color: T.sidebarText }}>settings</span>}
+            </button>
+        </aside>
+    )
+}

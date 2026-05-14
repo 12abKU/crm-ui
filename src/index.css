@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+* {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+}
+
+body {
+    background-color: #F0EBE3;
+    color: #1E293B;
+    -webkit-font-smoothing: antialiased;
+}
+
+button {
+    cursor: pointer;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #E8DDD4;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #94A3B8;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2563EB;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Kanban horizontal scrollbar — taller and darker so it's obvious */
+.kanban-scroll::-webkit-scrollbar {
+    height: 12px;
+}
+
+.kanban-scroll::-webkit-scrollbar-track {
+    background: #C4B9AF;
+    border-radius: 10px;
+    margin: 0 4px;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 10px;
+    border: 2px solid #C4B9AF;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+    background: #2563EB;
+}
+
+/* ── Sidebar ── */
+.crm-sidebar {
+    background-color: #1E293B !important;
+}
+
+/* ── Inputs ── */
+.crm-input {
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E8DDD4;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+    color: #1E293B;
+    outline: none;
+    transition: border 0.15s, box-shadow 0.15s;
+}
+
+.crm-input:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.crm-input::placeholder {
+    color: #94A3B8;
+}
+
+/* ── Select ── */
+.crm-select {
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E8DDD4;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+    color: #1E293B;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    transition: border 0.15s, box-shadow 0.15s;
+}
+
+.crm-select:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.crm-select option {
+    background: #FFFFFF;
+    color: #1E293B;
+}
+
+/* ── Buttons ── */
+.crm-btn-primary {
+    background: #2563EB;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.crm-btn-primary:hover {
+    background: #1D4ED8;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.crm-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.crm-btn-ghost {
+    background: #FFFFFF;
+    color: #64748B;
+    border: 1px solid #E8DDD4;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.crm-btn-ghost:hover {
+    background: #F8F5F1;
+    border-color: #D4C9BE;
+}
+
+/* ── Badge ── */
+.crm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Manrope', sans-serif;
+}
+
+/* ── Table ── */
+.crm-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+.crm-table th {
+    padding: 14px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94A3B8;
+    background: #F8F5F1;
+    border-bottom: 1px solid #E8DDD4;
+}
+
+.crm-table td {
+    padding: 14px 24px;
+    font-size: 14px;
+    border-bottom: 1px solid #F0EBE3;
+}
+
+.crm-sidebar nav a:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+}
