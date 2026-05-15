@@ -10,6 +10,7 @@ import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
 import DealPanel from '../components/dealPanel/DealPanel'
 import DealCard from '../components/deals/DealCard'
+import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
 const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
@@ -29,26 +30,25 @@ export default function Deals() {
     const highlightRef = useRef(null)
 
     const userId = useSelector(state => state.auth.userId)
+    const role = useSelector(state => state.auth.role)
+    const can = usePermissions(['DEALS_CREATE', 'DEALS_EDIT', 'DEALS_DELETE', 'DEALS_ASSIGN'])
+
+    const isAgent = role === 'AGENT'
 
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
 
     const load = async () => {
-        // fetch own deals + deals assigned to me, merge, deduplicate by id
-        const [ownRes, assignedRes] = await Promise.all([
-            api.get('/api/deals/all'),
-            api.get('/api/deals/assigned-to-me'),
-        ])
-        const own = (ownRes.data ?? []).map(d => ({ ...d, _assignedToMe: false }))
-        const assigned = (assignedRes.data ?? [])
-            // exclude any that are also self-created (owner = me)
-            .filter(d => String(d.owner?.id) !== String(userId))
-            .map(d => ({ ...d, _assignedToMe: true }))
+        // Centralized — all deals in one call
+        const res = await api.get('/api/deals/all')
+        const all = res.data ?? []
+        // mark which deals are assigned to me (for agents)
+        setDeals(all.map(d => ({
+            ...d,
+            _assignedToMe: d.assignedTo?.id === userId || d.assignedTo?.id === Number(userId)
+                || d.owner?.id === userId || d.owner?.id === Number(userId),
+        })))
 
-        // merge: own first, then assigned-only
-        const ownIds = new Set(own.map(d => d.id))
-        const merged = [...own, ...assigned.filter(d => !ownIds.has(d.id))]
-        setDeals(merged)
     }
 
     useEffect(() => {
@@ -95,7 +95,12 @@ export default function Deals() {
         load()
     }
 
-    const onDragStart = (deal) => { dragDeal.current = deal; setDraggingId(deal.id) }
+    const onDragStart = (deal) => {
+        // Agents can only drag deals assigned to them
+        if (isAgent && !deal._assignedToMe) return
+        dragDeal.current = deal
+        setDraggingId(deal.id)
+    }
 
     const onDropStage = async (e, stage) => {
         e.preventDefault()
@@ -104,6 +109,8 @@ export default function Deals() {
         setOverStage(null)
         dragDeal.current = null
         if (!deal || deal.stage === stage) return
+        // Double-check agent can only move assigned deals
+        if (isAgent && !deal._assignedToMe) return
 
         setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage } : d))
         try {
@@ -141,9 +148,11 @@ export default function Deals() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search deals..." />
-                            <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[18px]">add</span>Add Deal
-                            </button>
+                            {can.DEALS_CREATE && (
+                                <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">add</span>Add Deal
+                                </button>
+                            )}
                         </>
                     }
                 />
@@ -188,6 +197,9 @@ export default function Deals() {
                                     }}>
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === highlightId
+                                        // Agents can only drag deals assigned to them or owned by them
+                                        const canDrag = !isAgent || deal._assignedToMe
+                                        const canDelete = can.DEALS_DELETE && (!isAgent || deal._assignedToMe)
                                         return (
                                             <div key={deal.id} ref={isHighlighted ? highlightRef : null}>
                                                 <DealCard
@@ -195,9 +207,10 @@ export default function Deals() {
                                                     isDragging={draggingId === deal.id}
                                                     highlighted={isHighlighted}
                                                     assignedToMe={deal._assignedToMe}
-                                                    onDragStart={() => onDragStart(deal)}
+                                                    draggable={canDrag}
+                                                    onDragStart={() => canDrag && onDragStart(deal)}
                                                     onDragEnd={onDragEndCard}
-                                                    onRemove={() => remove(deal.id)}
+                                                    onRemove={canDelete ? () => remove(deal.id) : null}
                                                     onClick={() => setSelectedDeal(deal)}
                                                     onAssigned={(updated) => {
                                                         setDeals(prev => prev.map(d =>
@@ -206,6 +219,7 @@ export default function Deals() {
                                                                 : d
                                                         ))
                                                     }}
+                                                    canAssign={can.DEALS_ASSIGN}
                                                 />
                                             </div>
                                         )
@@ -213,7 +227,9 @@ export default function Deals() {
                                     {stageDeals.length === 0 && !isOver && (
                                         <div className="flex flex-col items-center py-8 gap-2 pointer-events-none">
                                             <span className="material-symbols-outlined text-[24px]" style={{ color: T.border }}>drag_indicator</span>
-                                            <p className="text-[11px]" style={{ color: T.textMuted }}>Drop deals here</p>
+                                            <p className="text-[11px]" style={{ color: T.textMuted }}>
+                                                {isAgent ? 'No deals here' : 'Drop deals here'}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -224,23 +240,30 @@ export default function Deals() {
             </main>
 
             {selectedDeal && (
-                <DealPanel deal={selectedDeal} onClose={() => setSelectedDeal(null)} onDelete={(id) => remove(id)} />
+                <DealPanel
+                    deal={selectedDeal}
+                    onClose={() => setSelectedDeal(null)}
+                    onDelete={can.DEALS_DELETE ? (id) => remove(id) : null}
+                    canEdit={can.DEALS_EDIT}
+                />
             )}
 
-            <SlideForm title="Add Deal" open={open} onClose={() => { setOpen(false); resetForm() }} onSubmit={submit}>
-                <Input label="Deal Title *" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Logistics Software Deal" required />
-                <Input label="Amount (₹)" type="number" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="500000" />
-                <Select label="Stage" value={form.stage} onChange={e => set('stage', e.target.value)}>
-                    {STAGES.map(stage => <option key={stage} value={stage}>{STAGE_LABELS[stage]}</option>)}
-                </Select>
-                <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={e => set('expectedCloseDate', e.target.value)} />
-                <SearchableSelect label="Account" value={form.accountId} onChange={onAccountChange}
-                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
-                <SearchableSelect label="Contact" value={form.contactId} onChange={v => set('contactId', v)}
-                    options={filteredContacts}
-                    placeholder={form.accountId ? 'Select contact' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingContacts} />
-            </SlideForm>
+            {can.DEALS_CREATE && (
+                <SlideForm title="Add Deal" open={open} onClose={() => { setOpen(false); resetForm() }} onSubmit={submit}>
+                    <Input label="Deal Title *" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Logistics Software Deal" required />
+                    <Input label="Amount (₹)" type="number" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="500000" />
+                    <Select label="Stage" value={form.stage} onChange={e => set('stage', e.target.value)}>
+                        {STAGES.map(stage => <option key={stage} value={stage}>{STAGE_LABELS[stage]}</option>)}
+                    </Select>
+                    <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={e => set('expectedCloseDate', e.target.value)} />
+                    <SearchableSelect label="Account" value={form.accountId} onChange={onAccountChange}
+                        options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
+                    <SearchableSelect label="Contact" value={form.contactId} onChange={v => set('contactId', v)}
+                        options={filteredContacts}
+                        placeholder={form.accountId ? 'Select contact' : 'Select account first'}
+                        disabled={!form.accountId} loading={loadingContacts} />
+                </SlideForm>
+            )}
         </div>
     )
 }

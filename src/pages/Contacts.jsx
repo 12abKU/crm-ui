@@ -14,6 +14,7 @@ import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
+import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
 
@@ -24,6 +25,8 @@ export default function Contacts() {
     const [accounts, setAccounts] = useState([])
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
+
+    const can = usePermissions(['CONTACTS_CREATE', 'CONTACTS_EDIT', 'CONTACTS_DELETE'])
 
     const fetchContacts = useCallback(async ({ page, size, search }) => {
         const params = new URLSearchParams({ page, size })
@@ -70,6 +73,7 @@ export default function Contacts() {
     }
 
     const updateField = async (id, field, value) => {
+        if (!can.CONTACTS_EDIT) return
         const c = contacts.find(x => x.id === id)
         await api.put(`/api/contacts/${id}`, {
             firstName: c.firstName, lastName: c.lastName, email: c.email,
@@ -77,6 +81,9 @@ export default function Contacts() {
         })
         setContacts(p => p.map(x => x.id === id ? { ...x, [field]: value } : x))
     }
+
+    const headers = ['Name', 'Email', 'Phone', 'Designation', 'Account']
+    if (can.CONTACTS_DELETE) headers.push('')
 
     return (
         <div>
@@ -88,15 +95,17 @@ export default function Contacts() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
-                            <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[18px]">add</span>Add Contact
-                            </button>
+                            {can.CONTACTS_CREATE && (
+                                <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">add</span>Add Contact
+                                </button>
+                            )}
                         </>
                     }
                 />
 
                 <TableShell
-                    headers={['Name', 'Email', 'Phone', 'Designation', 'Account', '']}
+                    headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     <tbody>
@@ -134,13 +143,13 @@ export default function Contacts() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.email} placeholder="Add" onSave={v => updateField(c.id, 'email', v)} />
+                                        <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.phone} placeholder="Add" onSave={v => updateField(c.id, 'phone', v)} />
+                                        <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.designation} placeholder="Add" onSave={v => updateField(c.id, 'designation', v)} />
+                                        <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
                                     </td>
                                     <td className="px-6 py-4">
                                         {c.account && (
@@ -150,26 +159,30 @@ export default function Contacts() {
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <DeleteIconButton onClick={e => remove(c.id, e)} />
-                                    </td>
+                                    {can.CONTACTS_DELETE && (
+                                        <td className="px-6 py-4">
+                                            <DeleteIconButton onClick={e => remove(c.id, e)} />
+                                        </td>
+                                    )}
                                 </tr>
                             )
                         })}
-                        {!loading && contacts.length === 0 && <EmptyTableRow colSpan={6} icon="groups" title="No contacts yet" />}
+                        {!loading && contacts.length === 0 && <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />}
                     </tbody>
                 </TableShell>
             </main>
 
-            <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />
-                <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" />
-                <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" />
-                <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
-                <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" />
-                <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
-                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
-            </SlideForm>
+            {can.CONTACTS_CREATE && (
+                <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
+                    <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />
+                    <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" />
+                    <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" />
+                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
+                    <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" />
+                    <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
+                        options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
+                </SlideForm>
+            )}
         </div>
     )
 }

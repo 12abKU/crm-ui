@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { T, STAGE_LABELS, STAGE_STYLES, SHADOW } from '../../constants/theme'
 import api from '../../api'
 import DealPanelOverview from './DealPanelOverview'
@@ -17,11 +18,19 @@ const TABS = [
     { id: 'deals', icon: 'handshake', label: 'Deals' },
 ]
 
-export default function DealPanel({ deal, onClose, onDelete }) {
+export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
     const [activeTab, setActiveTab] = useState('overview')
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const s = STAGE_STYLES[deal.stage]
+
+    const role = useSelector(state => state.auth.role)
+    const userId = useSelector(state => state.auth.userId)
+
+    const isAgent = role === 'AGENT'
+    const isAssignedToMe = deal.assignedTo?.id === Number(userId) || deal.assignedTo?.id === userId
+        || deal.owner?.id === Number(userId) || deal.owner?.id === userId
+    const canDelete = !isAgent  // only admin / super_admin
 
     useEffect(() => {
         setLoading(true)
@@ -37,7 +46,14 @@ export default function DealPanel({ deal, onClose, onDelete }) {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'overview': return <DealPanelOverview deal={deal} />
+            case 'overview': return (
+                <DealPanelOverview
+                    deal={deal}
+                    isAgent={isAgent}
+                    isAssignedToMe={isAssignedToMe}
+                    canEdit={canEdit}
+                />
+            )
             case 'account': return <DealPanelAccount deal={deal} />
             case 'conversation': return <DealPanelConversation deal={deal} />
             case 'activities': return <DealPanelActivities activities={activities} loading={loading} />
@@ -58,7 +74,7 @@ export default function DealPanel({ deal, onClose, onDelete }) {
             <div className="fixed right-0 top-0 h-full z-50 flex overflow-hidden"
                 style={{ width: 1000, boxShadow: SHADOW.xl }}>
 
-                {/* ── Vertical icon sidebar ── */}
+                {/* Vertical icon sidebar */}
                 <div className="flex flex-col items-center py-5 gap-1 shrink-0"
                     style={{
                         width: 56,
@@ -90,15 +106,9 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                                     }
                                 }}>
                                 <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
-
-                                {/* Tooltip */}
                                 <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold
                                     pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
-                                    style={{
-                                        background: T.sidebar,
-                                        color: '#fff',
-                                        boxShadow: SHADOW.md,
-                                    }}>
+                                    style={{ background: T.sidebar, color: '#fff', boxShadow: SHADOW.md }}>
                                     {tab.label}
                                 </div>
                             </button>
@@ -106,13 +116,11 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                     })}
                 </div>
 
-                {/* ── Main content area ── */}
-                <div className="flex flex-col flex-1 overflow-hidden"
-                    style={{ background: T.surface }}>
+                {/* Main content area */}
+                <div className="flex flex-col flex-1 overflow-hidden" style={{ background: T.surface }}>
 
                     {/* Header */}
-                    <div className="px-6 pt-5 pb-4 shrink-0"
-                        style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <div className="px-6 pt-5 pb-4 shrink-0" style={{ borderBottom: `1px solid ${T.border}` }}>
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -121,26 +129,30 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                                         style={{ color: s.badgeColor }}>handshake</span>
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-base font-black truncate"
-                                        style={{ color: T.textPrimary }}>{deal.title}</h2>
+                                    <h2 className="text-base font-black truncate" style={{ color: T.textPrimary }}>
+                                        {deal.title}
+                                    </h2>
                                     {deal.account && (
                                         <p className="text-[12px]" style={{ color: T.textMuted }}>
-                                            <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">
-                                                business
-                                            </span>
+                                            <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">business</span>
                                             {deal.account.name}
                                         </p>
                                     )}
                                 </div>
                             </div>
+
                             <div className="flex items-center gap-1 shrink-0">
-                                <button onClick={() => onDelete(deal.id)}
-                                    className="p-1.5 rounded-lg transition-colors"
-                                    style={{ color: T.textMuted }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                    <span className="material-symbols-outlined text-[17px]">delete</span>
-                                </button>
+                                {/* Delete — hidden for agents */}
+                                {canDelete && onDelete && (
+                                    <button onClick={() => onDelete(deal.id)}
+                                        className="p-1.5 rounded-lg transition-colors"
+                                        style={{ color: T.textMuted }}
+                                        title="Delete deal"
+                                        onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                        <span className="material-symbols-outlined text-[17px]">delete</span>
+                                    </button>
+                                )}
                                 <button onClick={onClose}
                                     className="p-1.5 rounded-lg transition-colors"
                                     style={{ color: T.textMuted }}
@@ -163,17 +175,21 @@ export default function DealPanel({ deal, onClose, onDelete }) {
                                 </span>
                             )}
                             {deal.expectedCloseDate && (
-                                <span className="flex items-center gap-1 text-[11px]"
-                                    style={{ color: T.textMuted }}>
+                                <span className="flex items-center gap-1 text-[11px]" style={{ color: T.textMuted }}>
                                     <span className="material-symbols-outlined text-[12px]">schedule</span>
                                     Closes {deal.expectedCloseDate}
                                 </span>
                             )}
+                            {/* Agent assigned badge */}
+                            {isAgent && isAssignedToMe && (
+                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                    style={{ background: T.secondaryDim, color: T.secondaryText }}>
+                                    Assigned to you
+                                </span>
+                            )}
                         </div>
 
-                        {/* Active tab label */}
-                        <p className="text-[11px] font-bold uppercase tracking-widest mt-3"
-                            style={{ color: T.primary }}>
+                        <p className="text-[11px] font-bold uppercase tracking-widest mt-3" style={{ color: T.primary }}>
                             {TABS.find(t => t.id === activeTab)?.label}
                         </p>
                     </div>

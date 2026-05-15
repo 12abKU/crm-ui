@@ -1,14 +1,18 @@
 import { useSelector } from 'react-redux'
 
-// Usage: const can = usePermission()
-//        if (can('DEALS_CREATE')) { ... }
-//        <button disabled={!can('ACCOUNTS_DELETE')}>Delete</button>
+// Returns true if current user has the given permission string
+// e.g. usePermission('ACCOUNTS_CREATE')
+export default function usePermission(permission) {
+    const permissions = useSelector(state => state.auth.permissions ?? [])
+    const role = useSelector(state => state.auth.role)
+    if (role === 'SUPER_ADMIN') return true
+    return permissions.includes(permission)
+}
 
-export default function usePermission() {
-    const { role, permissions } = useSelector(state => state.auth)
-
-    return function can(permissionKey) {
-        if (role === 'SUPER_ADMIN') return true
-        return permissions.includes(permissionKey)
-    }
+// Helper to check multiple permissions at once
+export function usePermissions(permissionList) {
+    const permissions = useSelector(state => state.auth.permissions ?? [])
+    const role = useSelector(state => state.auth.role)
+    if (role === 'SUPER_ADMIN') return Object.fromEntries(permissionList.map(p => [p, true]))
+    return Object.fromEntries(permissionList.map(p => [p, permissions.includes(p)]))
 }
