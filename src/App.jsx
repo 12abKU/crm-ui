@@ -14,8 +14,26 @@ import Register from './pages/Register'
 import { T } from './constants/theme'
 import Conversations from './pages/Conversations'
 import Calls from './pages/Calls'
-import { useSelector } from 'react-redux'
 import ApiErrorToast from './components/ui/ApiErrorToast'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { setPermissions } from './store/authSlice'
+import api from './api'
+
+
+function PermissionLoader() {
+  const token = useSelector(state => state.auth.token)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (!token) return
+    api.get('/api/permissions/me')
+      .then(r => dispatch(setPermissions(r.data)))
+      .catch(() => { })
+  }, [token, dispatch])
+
+  return null
+}
 
 
 const PrivateLayout = ({ children }) => {
@@ -33,6 +51,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ApiErrorToast />
+      <PermissionLoader />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

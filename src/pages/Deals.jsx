@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { T, STAGES, STAGE_LABELS, STAGE_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
@@ -27,10 +28,28 @@ export default function Deals() {
     const dragDeal = useRef(null)
     const highlightRef = useRef(null)
 
+    const userId = useSelector(state => state.auth.userId)
+
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
 
-    const load = () => api.get('/api/deals/all').then(r => setDeals(r.data))
+    const load = async () => {
+        // fetch own deals + deals assigned to me, merge, deduplicate by id
+        const [ownRes, assignedRes] = await Promise.all([
+            api.get('/api/deals/all'),
+            api.get('/api/deals/assigned-to-me'),
+        ])
+        const own = (ownRes.data ?? []).map(d => ({ ...d, _assignedToMe: false }))
+        const assigned = (assignedRes.data ?? [])
+            // exclude any that are also self-created (owner = me)
+            .filter(d => String(d.owner?.id) !== String(userId))
+            .map(d => ({ ...d, _assignedToMe: true }))
+
+        // merge: own first, then assigned-only
+        const ownIds = new Set(own.map(d => d.id))
+        const merged = [...own, ...assigned.filter(d => !ownIds.has(d.id))]
+        setDeals(merged)
+    }
 
     useEffect(() => {
         load()
@@ -44,10 +63,7 @@ export default function Deals() {
     }, [highlightId, deals])
 
     const set = (key, value) => setForm(f => ({ ...f, [key]: value }))
-    const resetForm = () => {
-        setForm(EMPTY_FORM)
-        setFilteredContacts([])
-    }
+    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]) }
 
     const onAccountChange = async (accountId) => {
         setForm(f => ({ ...f, accountId, contactId: '' }))
@@ -104,11 +120,7 @@ export default function Deals() {
         }
     }
 
-    const onDragEndCard = () => {
-        setDraggingId(null)
-        setOverStage(null)
-        dragDeal.current = null
-    }
+    const onDragEndCard = () => { setDraggingId(null); setOverStage(null); dragDeal.current = null }
 
     const q = search.trim().toLowerCase()
     const filteredDeals = q
@@ -182,10 +194,18 @@ export default function Deals() {
                                                     deal={deal}
                                                     isDragging={draggingId === deal.id}
                                                     highlighted={isHighlighted}
+                                                    assignedToMe={deal._assignedToMe}
                                                     onDragStart={() => onDragStart(deal)}
                                                     onDragEnd={onDragEndCard}
                                                     onRemove={() => remove(deal.id)}
                                                     onClick={() => setSelectedDeal(deal)}
+                                                    onAssigned={(updated) => {
+                                                        setDeals(prev => prev.map(d =>
+                                                            d.id === updated.id
+                                                                ? { ...d, assignedTo: updated.assignedTo }
+                                                                : d
+                                                        ))
+                                                    }}
                                                 />
                                             </div>
                                         )
@@ -215,8 +235,8 @@ export default function Deals() {
                 </Select>
                 <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={e => set('expectedCloseDate', e.target.value)} />
                 <SearchableSelect label="Account" value={form.accountId} onChange={onAccountChange}
-                    options={accounts.map(account => ({ id: account.id, label: account.name }))} placeholder="Select account" />
-                <SearchableSelect label="Contact" value={form.contactId} onChange={value => set('contactId', value)}
+                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
+                <SearchableSelect label="Contact" value={form.contactId} onChange={v => set('contactId', v)}
                     options={filteredContacts}
                     placeholder={form.accountId ? 'Select contact' : 'Select account first'}
                     disabled={!form.accountId} loading={loadingContacts} />

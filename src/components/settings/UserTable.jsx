@@ -1,7 +1,14 @@
 import { T } from '../../constants/theme'
 import RoleBadge from './RoleBadge'
+import PermissionEditor from './PermissionEditor'
+import { useState } from 'react'
+
 
 export default function UserTable({ users, loading, currentUserId, canPromote, canDemote, canDelete, onPromote, onDemote, onDelete }) {
+
+    const [editingUser, setEditingUser] = useState(null)
+
+
     if (loading) {
         return (
             <div className="p-8 flex items-center justify-center gap-3">
@@ -59,7 +66,7 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                             </td>
                             <td className="px-6 py-4">
                                 {!isSuperAdmin && !isSelf && (
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center ">
                                         {canPromote && u.role === 'AGENT' && (
                                             <button onClick={() => onPromote(u.id)}
                                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
@@ -89,13 +96,36 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                                                 <span className="material-symbols-outlined text-[16px]">delete</span>
                                             </button>
                                         )}
+
+
+
                                     </div>
+
+
                                 )}
+
+                                <button onClick={() => setEditingUser(u)}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                                    style={{ background: T.primaryDim, color: T.primary }}>
+                                    <span className="material-symbols-outlined text-[13px]">shield</span>
+                                    Permissions
+                                </button>
                             </td>
                         </tr>
                     )
                 })}
             </tbody>
+
+            {editingUser && (
+                <PermissionEditor
+                    user={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onSaved={() => setEditingUser(null)}
+                />
+            )}
+
         </table>
+
+
     )
 }
