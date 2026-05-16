@@ -13,6 +13,7 @@ import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
+import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
 
@@ -22,6 +23,8 @@ export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+
+    const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
 
     const fetchAccounts = useCallback(async ({ page, size, search }) => {
         const params = new URLSearchParams({ page, size })
@@ -64,6 +67,7 @@ export default function Accounts() {
     }
 
     const updateField = async (id, field, value) => {
+        if (!can.ACCOUNTS_EDIT) return
         const a = accounts.find(x => x.id === id)
         await api.put(`/api/accounts/${id}`, {
             name: a.name, website: a.website, phone: a.phone,
@@ -71,6 +75,9 @@ export default function Accounts() {
         })
         setAccounts(p => p.map(x => x.id === id ? { ...x, [field]: value } : x))
     }
+
+    const headers = ['Company', 'Website', 'Phone', 'Industry', 'Employees', 'Tag', 'Contacts', 'Open Deals']
+    if (can.ACCOUNTS_DELETE) headers.push('')
 
     return (
         <div>
@@ -82,15 +89,17 @@ export default function Accounts() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
-                            <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[18px]">add</span>Add Account
-                            </button>
+                            {can.ACCOUNTS_CREATE && (
+                                <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">add</span>Add Account
+                                </button>
+                            )}
                         </>
                     }
                 />
 
                 <TableShell
-                    headers={['Company', 'Website', 'Phone', 'Industry', 'Employees', 'Tag', 'Contacts', 'Open Deals', '']}
+                    headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     <tbody>
@@ -129,19 +138,19 @@ export default function Accounts() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={a.website} placeholder="Add" onSave={v => updateField(a.id, 'website', v)} />
+                                        <InlineEdit value={a.website} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'website', v)} />
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={a.phone} placeholder="Add" onSave={v => updateField(a.id, 'phone', v)} />
+                                        <InlineEdit value={a.phone} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'phone', v)} />
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={a.industry} placeholder="Add" onSave={v => updateField(a.id, 'industry', v)} />
+                                        <InlineEdit value={a.industry} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'industry', v)} />
                                     </td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} onSave={v => updateField(a.id, 'employeeRange', v)} />
+                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
                                     </td>
                                     <td className="px-6 py-4">
-                                        <InlineEdit value={a.tag} placeholder="Add" options={TAGS} onSave={v => updateField(a.id, 'tag', v)}>
+                                        <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'tag', v)}>
                                             {a.tag && <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: tag.bg, color: tag.color }}>{a.tag}</span>}
                                         </InlineEdit>
                                     </td>
@@ -157,31 +166,35 @@ export default function Accounts() {
                                         <span className="text-sm font-bold" style={{ color: T.primaryText }}>₹{(a.openDealAmount ?? 0).toLocaleString()}</span>
                                         <p className="text-[11px]" style={{ color: T.textMuted }}>{a.openDealCount ?? 0} deals</p>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <DeleteIconButton onClick={e => remove(a.id, e)} />
-                                    </td>
+                                    {can.ACCOUNTS_DELETE && (
+                                        <td className="px-6 py-4">
+                                            <DeleteIconButton onClick={e => remove(a.id, e)} />
+                                        </td>
+                                    )}
                                 </tr>
                             )
                         })}
-                        {!loading && accounts.length === 0 && <EmptyTableRow colSpan={9} icon="business" title="No accounts yet" />}
+                        {!loading && accounts.length === 0 && <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />}
                     </tbody>
                 </TableShell>
             </main>
 
-            <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />
-                <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" />
-                <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
-                <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" />
-                <Select label="Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)}>
-                    <option value="">Select range</option>
-                    {EMPLOYEE_RANGES.map(r => <option key={r}>{r}</option>)}
-                </Select>
-                <Select label="Tag" value={form.tag} onChange={e => set('tag', e.target.value)}>
-                    <option value="">Select tag</option>
-                    {TAGS.map(t => <option key={t}>{t}</option>)}
-                </Select>
-            </SlideForm>
+            {can.ACCOUNTS_CREATE && (
+                <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
+                    <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />
+                    <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" />
+                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
+                    <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" />
+                    <Select label="Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)}>
+                        <option value="">Select range</option>
+                        {EMPLOYEE_RANGES.map(r => <option key={r}>{r}</option>)}
+                    </Select>
+                    <Select label="Tag" value={form.tag} onChange={e => set('tag', e.target.value)}>
+                        <option value="">Select tag</option>
+                        {TAGS.map(t => <option key={t}>{t}</option>)}
+                    </Select>
+                </SlideForm>
+            )}
         </div>
     )
 }

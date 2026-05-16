@@ -16,6 +16,8 @@ import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
 import TodayFocus from '../components/activities/TodayFocus'
 import api from '../api'
+import { useDispatch, useSelector } from 'react-redux'
+
 
 const PAGE_SIZE = 20
 const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', accountId: '', contactId: '', dealId: '' }
@@ -47,6 +49,11 @@ export default function Activities() {
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
     const initialLoad = useRef(true)
+
+
+    const role = useSelector(state => state.auth.role)
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+
 
     const loadAllTasks = useCallback(async () => {
         const r = await api.get('/api/activities/my-tasks')
@@ -328,6 +335,7 @@ export default function Activities() {
                                                     onUpdate={updateActivity}
                                                     onComplete={toggleComplete}
                                                     onOutcome={saveOutcome}
+                                                    showOwner={isAdmin}
                                                 />
                                             )
                                         })}

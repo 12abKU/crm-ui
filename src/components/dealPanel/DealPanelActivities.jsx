@@ -1,5 +1,10 @@
-import { T, ACTIVITY_STYLES } from '../../constants/theme'
+import { useState } from 'react'
+import { T, ACTIVITY_TYPES, ACTIVITY_STYLES } from '../../constants/theme'
 import Skeleton from 'react-loading-skeleton'
+import { IconPlus, IconX, IconCheck } from '@tabler/icons-react'
+import api from '../../api'
+
+const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '' }
 
 const timeAgo = (str) => {
     if (!str) return '—'
@@ -10,7 +15,48 @@ const timeAgo = (str) => {
     return d === 1 ? 'Yesterday' : `${d}d ago`
 }
 
-export default function DealPanelActivities({ activities, loading }) {
+export default function DealPanelActivities({ activities: initialActivities, loading, deal, onActivityAdded }) {
+    const [activities, setActivities] = useState(initialActivities ?? [])
+    const [adding, setAdding] = useState(false)
+    const [form, setForm] = useState(EMPTY_FORM)
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+
+    // sync if parent refreshes
+    if (initialActivities && initialActivities !== activities && !adding) {
+        setActivities(initialActivities)
+    }
+
+    const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+    const submit = async () => {
+        if (!form.subject.trim()) { setError('Subject is required'); return }
+        setSaving(true)
+        setError('')
+        try {
+            const res = await api.post('/api/activities', {
+                type: form.type,
+                subject: form.subject.trim(),
+                description: form.description.trim() || null,
+                scheduledAt: form.scheduledAt || null,
+                dealId: deal.id,
+                accountId: deal.account?.id || null,
+                contactId: deal.contact?.id || null,
+            })
+            const newActivity = res.data
+            setActivities(prev => [newActivity, ...prev])
+            setForm(EMPTY_FORM)
+            setAdding(false)
+            onActivityAdded?.()
+        } catch {
+            setError('Failed to save. Try again.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const cancel = () => { setForm(EMPTY_FORM); setAdding(false); setError('') }
+
     if (loading) return (
         <div className="px-7 py-6 flex flex-col gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -29,22 +75,130 @@ export default function DealPanelActivities({ activities, loading }) {
 
     return (
         <div className="px-7 py-6">
+            {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <p className="text-[11px] font-bold uppercase tracking-widest"
-                    style={{ color: T.textMuted }}>Activity Timeline</p>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                    style={{ background: T.primaryDim, color: T.primary }}>
-                    {activities.length} total
-                </span>
+                <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>
+                    Activity Timeline
+                </p>
+                <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        style={{ background: T.primaryDim, color: T.primary }}>
+                        {activities.length} total
+                    </span>
+                    <button
+                        onClick={() => setAdding(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors"
+                        style={{ background: T.primary, color: '#fff' }}
+                        onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                        onMouseLeave={e => e.currentTarget.style.background = T.primary}>
+                        <IconPlus size={13} />
+                        Add Activity
+                    </button>
+                </div>
             </div>
 
-            {activities.length === 0 ? (
+            {/* Inline add form */}
+            {adding && (
+                <div className="rounded-xl p-4 mb-5 flex flex-col gap-3"
+                    style={{ background: T.surfaceRaised, border: `1px solid ${T.primary}`, boxShadow: `0 0 0 3px ${T.primaryDim}` }}>
+                    <div className="flex items-center justify-between">
+                        <p className="text-[12px] font-bold" style={{ color: T.textPrimary }}>New Activity</p>
+                        <button onClick={cancel} style={{ color: T.textMuted }}
+                            onMouseEnter={e => e.currentTarget.style.color = T.error}
+                            onMouseLeave={e => e.currentTarget.style.color = T.textMuted}>
+                            <IconX size={15} />
+                        </button>
+                    </div>
+
+                    {/* Type pills */}
+                    <div className="flex gap-2 flex-wrap">
+                        {ACTIVITY_TYPES.map(t => {
+                            const st = ACTIVITY_STYLES[t]
+                            const active = form.type === t
+                            return (
+                                <button key={t}
+                                    onClick={() => set('type', t)}
+                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                                    style={{
+                                        background: active ? st.bg : T.surfaceHigh,
+                                        color: active ? st.color : T.textMuted,
+                                        border: active ? `1px solid ${st.color}` : `1px solid transparent`,
+                                    }}>
+                                    <span className="material-symbols-outlined text-[12px]">{st.icon}</span>
+                                    {t}
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    {/* Subject */}
+                    <div>
+                        <input
+                            autoFocus
+                            type="text"
+                            placeholder="Subject *"
+                            value={form.subject}
+                            onChange={e => set('subject', e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') submit() }}
+                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                            style={{
+                                background: T.surface,
+                                border: `1px solid ${error && !form.subject.trim() ? T.error : T.border}`,
+                                color: T.textPrimary,
+                            }}
+                        />
+                    </div>
+
+                    {/* Description */}
+                    <textarea
+                        rows={2}
+                        placeholder="Description (optional)"
+                        value={form.description}
+                        onChange={e => set('description', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
+                        style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }}
+                    />
+
+                    {/* Scheduled at */}
+                    <div>
+                        <label className="text-[11px] font-semibold mb-1 block" style={{ color: T.textMuted }}>
+                            Schedule (optional)
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={form.scheduledAt}
+                            onChange={e => set('scheduledAt', e.target.value)}
+                            className="px-3 py-2 rounded-lg text-sm outline-none"
+                            style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }}
+                        />
+                    </div>
+
+                    {error && <p className="text-[11px] font-semibold" style={{ color: T.error }}>{error}</p>}
+
+                    <div className="flex gap-2 justify-end pt-1">
+                        <button onClick={cancel}
+                            className="px-3 py-1.5 rounded-lg text-[12px] font-bold"
+                            style={{ background: T.surfaceHigh, color: T.textSecondary }}>
+                            Cancel
+                        </button>
+                        <button onClick={submit} disabled={saving}
+                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold"
+                            style={{ background: saving ? T.primaryDim : T.primary, color: saving ? T.primary : '#fff' }}>
+                            <IconCheck size={13} />
+                            {saving ? 'Saving...' : 'Save Activity'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Timeline list */}
+            {activities.length === 0 && !adding ? (
                 <div className="flex flex-col items-center py-12 gap-2">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: T.primaryDim }}>
                         <span className="material-symbols-outlined text-[22px]" style={{ color: T.primary }}>event_note</span>
                     </div>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>No activities yet</p>
-                    <p className="text-xs" style={{ color: T.textMuted }}>Activities linked to this deal appear here</p>
+                    <p className="text-xs" style={{ color: T.textMuted }}>Click "Add Activity" to log one against this deal</p>
                 </div>
             ) : (
                 <div className="flex flex-col">
@@ -68,17 +222,20 @@ export default function DealPanelActivities({ activities, loading }) {
                                     {a.description && (
                                         <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary }}>{a.description}</p>
                                     )}
-                                    <div className="flex items-center gap-2 mt-1.5">
+                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                                             style={{ background: st.bg, color: st.color }}>{a.type}</span>
+                                        {a.owner?.name && (
+                                            <span className="text-[11px]" style={{ color: T.textMuted }}>by {a.owner.name}</span>
+                                        )}
                                         {a.contact && (
                                             <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                                {a.contact.firstName} {a.contact.lastName}
+                                                · {a.contact.firstName} {a.contact.lastName}
                                             </span>
                                         )}
                                         {a.scheduledAt && (
                                             <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                                · {new Date(a.scheduledAt).toLocaleDateString()}
+                                                · {new Date(a.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         )}
                                     </div>

@@ -30,15 +30,19 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
     const isAgent = role === 'AGENT'
     const isAssignedToMe = deal.assignedTo?.id === Number(userId) || deal.assignedTo?.id === userId
         || deal.owner?.id === Number(userId) || deal.owner?.id === userId
-    const canDelete = !isAgent  // only admin / super_admin
+    const canDelete = !isAgent
 
-    useEffect(() => {
+    const loadProfile = () => {
         setLoading(true)
-        setProfile(null)
-        setActiveTab('overview')
         api.get(`/api/deals/${deal.id}/profile`)
             .then(r => setProfile(r.data))
             .finally(() => setLoading(false))
+    }
+
+    useEffect(() => {
+        setProfile(null)
+        setActiveTab('overview')
+        loadProfile()
     }, [deal.id])
 
     const activities = profile?.activities ?? []
@@ -56,7 +60,14 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
             )
             case 'account': return <DealPanelAccount deal={deal} />
             case 'conversation': return <DealPanelConversation deal={deal} />
-            case 'activities': return <DealPanelActivities activities={activities} loading={loading} />
+            case 'activities': return (
+                <DealPanelActivities
+                    activities={activities}
+                    loading={loading}
+                    deal={deal}
+                    onActivityAdded={loadProfile}
+                />
+            )
             case 'contacts': return <DealPanelContacts deal={deal} />
             case 'deals': return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
             default: return null
@@ -76,35 +87,15 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
 
                 {/* Vertical icon sidebar */}
                 <div className="flex flex-col items-center py-5 gap-1 shrink-0"
-                    style={{
-                        width: 56,
-                        background: T.sidebar,
-                        borderRight: `1px solid rgba(255,255,255,0.06)`,
-                    }}>
+                    style={{ width: 56, background: T.sidebar, borderRight: `1px solid rgba(255,255,255,0.06)` }}>
                     {TABS.map(tab => {
                         const isActive = activeTab === tab.id
                         return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                title={tab.label}
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label}
                                 className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all group"
-                                style={{
-                                    background: isActive ? T.sidebarActive : 'transparent',
-                                    color: isActive ? '#fff' : T.sidebarText,
-                                }}
-                                onMouseEnter={e => {
-                                    if (!isActive) {
-                                        e.currentTarget.style.background = T.sidebarHover
-                                        e.currentTarget.style.color = T.sidebarTextHover
-                                    }
-                                }}
-                                onMouseLeave={e => {
-                                    if (!isActive) {
-                                        e.currentTarget.style.background = 'transparent'
-                                        e.currentTarget.style.color = T.sidebarText
-                                    }
-                                }}>
+                                style={{ background: isActive ? T.sidebarActive : 'transparent', color: isActive ? '#fff' : T.sidebarText }}
+                                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.sidebarHover; e.currentTarget.style.color = T.sidebarTextHover } }}
+                                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText } }}>
                                 <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
                                 <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold
                                     pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
@@ -125,13 +116,10 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                                     style={{ background: s.badgeBg }}>
-                                    <span className="material-symbols-outlined text-[17px]"
-                                        style={{ color: s.badgeColor }}>handshake</span>
+                                    <span className="material-symbols-outlined text-[17px]" style={{ color: s.badgeColor }}>handshake</span>
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-base font-black truncate" style={{ color: T.textPrimary }}>
-                                        {deal.title}
-                                    </h2>
+                                    <h2 className="text-base font-black truncate" style={{ color: T.textPrimary }}>{deal.title}</h2>
                                     {deal.account && (
                                         <p className="text-[12px]" style={{ color: T.textMuted }}>
                                             <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">business</span>
@@ -142,20 +130,16 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                             </div>
 
                             <div className="flex items-center gap-1 shrink-0">
-                                {/* Delete — hidden for agents */}
                                 {canDelete && onDelete && (
                                     <button onClick={() => onDelete(deal.id)}
-                                        className="p-1.5 rounded-lg transition-colors"
-                                        style={{ color: T.textMuted }}
-                                        title="Delete deal"
+                                        className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }} title="Delete deal"
                                         onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
                                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
                                         <span className="material-symbols-outlined text-[17px]">delete</span>
                                     </button>
                                 )}
                                 <button onClick={onClose}
-                                    className="p-1.5 rounded-lg transition-colors"
-                                    style={{ color: T.textMuted }}
+                                    className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }}
                                     onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
                                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
                                     <span className="material-symbols-outlined text-[19px]">close</span>
@@ -163,7 +147,6 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                             </div>
                         </div>
 
-                        {/* Stage + amount + close date */}
                         <div className="flex items-center gap-3 mt-3">
                             <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
                                 style={{ background: s.badgeBg, color: s.badgeColor }}>
@@ -180,7 +163,6 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                                     Closes {deal.expectedCloseDate}
                                 </span>
                             )}
-                            {/* Agent assigned badge */}
                             {isAgent && isAssignedToMe && (
                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
                                     style={{ background: T.secondaryDim, color: T.secondaryText }}>

@@ -5,7 +5,7 @@ import CompleteToggle from './CompleteToggle'
 import OutcomePicker from './OutcomePicker'
 import { fmtScheduled, getStatus, STATUS_STYLES } from './activityUtils'
 
-export default function ActivityRow({ activity, highlighted, rowBg, onRemove, onUpdate, onComplete, onOutcome }) {
+export default function ActivityRow({ activity, highlighted, rowBg, onRemove, onUpdate, onComplete, onOutcome, showOwner }) {
     const [blink, setBlink] = useState(false)
     const rowRef = useRef(null)
     const s = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.NOTE
@@ -73,6 +73,20 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     </div>
                 ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
             </td>
+            {/* Admin only: who created this activity */}
+            {showOwner && (
+                <td className="px-4 py-3.5">
+                    {activity.owner ? (
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                                style={{ background: T.secondaryDim, color: T.secondaryText }}>
+                                {activity.owner.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <p className="text-[12px] font-semibold" style={{ color: T.textSecondary }}>{activity.owner.name}</p>
+                        </div>
+                    ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
+                </td>
+            )}
             <td className="px-4 py-3.5 text-[12px]"
                 style={{ color: status === 'overdue' ? T.error : T.textSecondary, fontWeight: status === 'overdue' ? 700 : 400 }}>
                 {fmtScheduled(activity.scheduledAt)}
