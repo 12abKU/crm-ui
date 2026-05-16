@@ -15,6 +15,34 @@ import api from '../api'
 
 const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
 
+// ─── Per-stage column background tints ───────────────────────────────────────
+// Each stage gets its own soft tinted background so columns are visually distinct.
+const STAGE_COLUMN_BG = {
+    NEW: 'rgba(120,113,108,0.05)',   // warm stone tint
+    QUALIFIED: 'rgba(37,99,235,0.05)',     // cool blue tint
+    PROPOSAL: 'rgba(83,141,141,0.05)',    // teal tint
+    WON: 'rgba(22,163,74,0.05)',     // green tint
+    LOST: 'rgba(220,38,38,0.04)',     // red tint
+}
+
+// ─── Per-stage header background (slightly stronger than column bg) ───────────
+const STAGE_HEADER_BG = {
+    NEW: 'rgba(120,113,108,0.10)',
+    QUALIFIED: 'rgba(37,99,235,0.08)',
+    PROPOSAL: 'rgba(83,141,141,0.08)',
+    WON: 'rgba(22,163,74,0.08)',
+    LOST: 'rgba(220,38,38,0.07)',
+}
+
+// ─── Column border colors (stage accent at low opacity) ──────────────────────
+const STAGE_COLUMN_BORDER = {
+    NEW: 'rgba(120,113,108,0.22)',
+    QUALIFIED: 'rgba(37,99,235,0.20)',
+    PROPOSAL: 'rgba(83,141,141,0.22)',
+    WON: 'rgba(22,163,74,0.22)',
+    LOST: 'rgba(220,38,38,0.18)',
+}
+
 export default function Deals() {
     const [deals, setDeals] = useState([])
     const [accounts, setAccounts] = useState([])
@@ -61,7 +89,6 @@ export default function Deals() {
 
     const setField = (key, value) => setForm(f => ({ ...f, [key]: value }))
     const setEvent = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
-
     const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]) }
 
     const onAccountChange = async (accountId) => {
@@ -96,7 +123,6 @@ export default function Deals() {
             setDraggingId(null); setOverStage(null); dragDeal.current = null; return
         }
         const deal = dragDeal.current
-
         if (isAgent) {
             const isOwner = String(deal.owner?.id) === String(userId)
             const isAssignee = (deal.assignees ?? []).some(u => String(u.id) === String(userId))
@@ -104,7 +130,6 @@ export default function Deals() {
                 setDraggingId(null); setOverStage(null); dragDeal.current = null; return
             }
         }
-
         setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage } : d))
         setDraggingId(null); setOverStage(null); dragDeal.current = null
         try {
@@ -141,59 +166,77 @@ export default function Deals() {
                     }
                 />
 
-                {/* Kanban board */}
-                <div className="flex gap-5 overflow-x-auto pb-4 kanban-scroll mt-6">
+                {/* ── Kanban board ─────────────────────────────────────── */}
+                <div className="flex gap-4 overflow-x-auto pb-4 kanban-scroll mt-6 items-start">
                     {STAGES.map(stage => {
                         const stageDeals = filtered.filter(d => d.stage === stage)
                         const style = STAGE_STYLES[stage]
                         const totalValue = stageDeals.reduce((s, d) => s + (d.amount ?? 0), 0)
                         const isOver = overStage === stage
+                        const colBg = STAGE_COLUMN_BG[stage]
+                        const headerBg = STAGE_HEADER_BG[stage]
+                        const colBorder = isOver ? style.accent : STAGE_COLUMN_BORDER[stage]
 
                         return (
                             <div key={stage}
-                                className="flex-shrink-0 w-72 flex flex-col rounded-2xl"
-                                style={{ background: T.surfaceRaised, border: `1px solid ${isOver ? style.accent : T.border}`, minHeight: 200, transition: 'border-color 0.15s' }}
+                                className="flex-shrink-0 w-[284px] flex flex-col rounded-2xl overflow-hidden"
+                                style={{
+                                    background: colBg,
+                                    border: `1.5px solid ${colBorder}`,
+                                    minHeight: 240,
+                                    boxShadow: isOver
+                                        ? `0 0 0 3px ${style.accent}22, 0 4px 16px rgba(0,0,0,0.08)`
+                                        : '0 2px 8px rgba(0,0,0,0.05)',
+                                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                                }}
                                 onDragOver={e => { e.preventDefault(); setOverStage(stage) }}
                                 onDragLeave={() => setOverStage(null)}
                                 onDrop={() => handleDrop(stage)}>
 
-                                {/* Column header */}
-                                <div className="px-4 pt-4 pb-3 flex items-center justify-between"
-                                    style={{ borderBottom: `2px solid ${style.accent}` }}>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: style.accent }}>
+                                {/* ── Column header ─────────────────────────────── */}
+                                <div className="px-4 py-3 flex items-center justify-between"
+                                    style={{
+                                        background: headerBg,
+                                        borderBottom: `2px solid ${style.accent}`,
+                                    }}>
+                                    <div className="flex items-center gap-2.5">
+                                        {/* Colored dot */}
+                                        <div className="w-2 h-2 rounded-full shrink-0"
+                                            style={{ background: style.accent }} />
+                                        <span className="text-[12px] font-black uppercase tracking-[0.12em]"
+                                            style={{ color: style.accent }}>
                                             {STAGE_LABELS[stage]}
                                         </span>
-                                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
-                                            style={{ background: style.badgeBg, color: style.badgeColor }}>
+                                        {/* Count pill */}
+                                        <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+                                            style={{
+                                                background: style.badgeBg,
+                                                color: style.badgeColor,
+                                                border: `1px solid ${style.accent}30`,
+                                            }}>
                                             {stageDeals.length}
                                         </span>
                                     </div>
                                     {totalValue > 0 && (
-                                        <span className="text-[11px] font-semibold" style={{ color: T.textMuted }}>
+                                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg"
+                                            style={{ background: style.badgeBg, color: style.badgeColor }}>
                                             ₹{Number(totalValue).toLocaleString('en-IN')}
                                         </span>
                                     )}
                                 </div>
 
-                                {/* Cards */}
-                                <div className="flex flex-col gap-3 p-3 flex-1">
+                                {/* ── Cards area ────────────────────────────────── */}
+                                <div className="flex flex-col gap-2.5 p-3 flex-1">
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === String(highlightId)
-
-                                        // Drag: admins always, agents only on their own/assigned deals
-                                        const canDrag = isAdminOrAbove || can.DEALS_EDIT ||
-                                            deal._isOwner ||
-                                            deal._assignedToMe
-
-                                        // Delete: admin needs DEALS_DELETE perm;
-                                        // agent needs DEALS_DELETE perm AND must be the owner (creator)
+                                        const canDrag = isAdminOrAbove || can.DEALS_EDIT || deal._isOwner || deal._assignedToMe
                                         const canDelete = can.DEALS_DELETE && (isAdminOrAbove || deal._isOwner)
 
                                         return (
                                             <div key={deal.id} ref={isHighlighted ? highlightRef : null}>
                                                 <DealCard
                                                     deal={deal}
+                                                    stage={stage}
                                                     isDragging={draggingId === deal.id}
                                                     draggable={canDrag}
                                                     onDragStart={() => { setDraggingId(deal.id); dragDeal.current = deal }}
@@ -219,9 +262,22 @@ export default function Deals() {
                                         )
                                     })}
 
+                                    {/* Empty state with drop hint */}
                                     {stageDeals.length === 0 && (
-                                        <div className="flex-1 flex items-center justify-center py-8">
-                                            <p className="text-[12px]" style={{ color: T.textMuted }}>No deals</p>
+                                        <div className="flex-1 flex flex-col items-center justify-center py-10 gap-2 rounded-xl mx-0.5"
+                                            style={{
+                                                border: `2px dashed ${isOver ? style.accent : style.accent + '30'}`,
+                                                background: isOver ? style.badgeBg : 'transparent',
+                                                transition: 'all 0.15s',
+                                            }}>
+                                            <span className="material-symbols-outlined text-[24px]"
+                                                style={{ color: isOver ? style.accent : style.accent + '50' }}>
+                                                inbox
+                                            </span>
+                                            <p className="text-[11px] font-semibold"
+                                                style={{ color: isOver ? style.accent : style.accent + '60' }}>
+                                                {isOver ? 'Drop here' : 'No deals'}
+                                            </p>
                                         </div>
                                     )}
                                 </div>

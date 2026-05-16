@@ -26,7 +26,9 @@ export default function Sidebar() {
 
 
     return (
-        <aside className="crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50">
+        <aside className="crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50"
+            style={{ background: T.sidebar }}
+        >
             {/* Logo */}
             <div className="px-6 pt-7 pb-5">
                 <div className="flex items-center gap-3">

@@ -51,7 +51,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     </p>
                 </InlineEdit>
                 {activity.description && (
-                    <p className="text-[11px] mt-0.5 truncate max-w-[180px]" style={{ color: T.textMuted }}>{activity.description}</p>
+                    <p className="text-[11px] mt-0.5 truncate max-w-45" style={{ color: T.textMuted }}>{activity.description}</p>
                 )}
                 <OutcomePicker activityId={activity.id} type={activity.type} current={activity.outcome} onSave={onOutcome} />
             </td>
