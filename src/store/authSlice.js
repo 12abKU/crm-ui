@@ -7,6 +7,8 @@ const readSession = () => ({
     userId: localStorage.getItem('userId') || '',
     email: localStorage.getItem('email') || '',
     permissions: JSON.parse(localStorage.getItem('permissions') || '[]'),
+    companyId: localStorage.getItem('companyId') || '',
+    companyName: localStorage.getItem('companyName') || '',
 })
 
 const persistSession = (session) => {
@@ -31,6 +33,9 @@ const authSlice = createSlice({
                 userId: action.payload.id || action.payload.userId || '',
                 email: action.payload.email || '',
                 permissions: action.payload.permissions || [],
+                // ✅ persist company info
+                companyId: action.payload.companyId ? String(action.payload.companyId) : '',
+                companyName: action.payload.companyName || '',
             }
             persistSession(session)
             Object.assign(state, session)
@@ -47,13 +52,19 @@ const authSlice = createSlice({
                 userId: action.payload.id ?? action.payload.userId ?? state.userId,
                 token: state.token,
                 permissions: state.permissions,
+                companyId: state.companyId,
+                companyName: state.companyName,
             }
             persistSession(updates)
             Object.assign(state, updates)
         },
         signOut: (state) => {
             localStorage.clear()
-            Object.assign(state, { token: '', name: 'User', role: 'AGENT', userId: '', email: '', permissions: [] })
+            Object.assign(state, {
+                token: '', name: 'User', role: 'AGENT',
+                userId: '', email: '', permissions: [],
+                companyId: '', companyName: '',
+            })
         },
     },
 })

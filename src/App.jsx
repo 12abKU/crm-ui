@@ -19,6 +19,7 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setPermissions } from './store/authSlice'
 import api from './api'
+import PlatformDashboard from './pages/PlatformDashboard'
 
 
 function PermissionLoader() {
@@ -36,9 +37,28 @@ function PermissionLoader() {
 }
 
 
-const PrivateLayout = ({ children }) => {
+// Layout for regular company users (ADMIN / AGENT)
+const CrmLayout = ({ children }) => {
   const token = useSelector(state => state.auth.token)
+  const role = useSelector(state => state.auth.role)
   if (!token) return <Navigate to="/login" />
+  // SUPER_ADMIN should never access CRM routes — redirect to platform
+  if (role === 'SUPER_ADMIN') return <Navigate to="/platform" />
+  return (
+    <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
+      <Sidebar />
+      <div className="pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
+    </div>
+  )
+}
+
+// Layout for SUPER_ADMIN platform routes
+const PlatformLayout = ({ children }) => {
+  const token = useSelector(state => state.auth.token)
+  const role = useSelector(state => state.auth.role)
+  if (!token) return <Navigate to="/login" />
+  // Regular users should never access platform routes
+  if (role !== 'SUPER_ADMIN') return <Navigate to="/" />
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
@@ -53,23 +73,38 @@ export default function App() {
       <ApiErrorToast />
       <PermissionLoader />
       <Routes>
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<PrivateLayout><Dashboard /></PrivateLayout>} />
-        <Route path="/accounts" element={<PrivateLayout><Accounts /></PrivateLayout>} />
-        <Route path="/accounts/:id" element={<PrivateLayout><AccountProfile /></PrivateLayout>} />
-        <Route path="/contacts" element={<PrivateLayout><Contacts /></PrivateLayout>} />
-        <Route path="/contacts/:id" element={<PrivateLayout><ContactProfile /></PrivateLayout>} />
-        <Route path="/deals" element={<PrivateLayout><Deals /></PrivateLayout>} />
-        <Route path="/activities" element={<PrivateLayout><Activities /></PrivateLayout>} />
-        <Route path="/profile" element={<PrivateLayout><Profile /></PrivateLayout>} />
-        <Route path="/settings" element={<PrivateLayout><Settings /></PrivateLayout>} />
-        <Route path="/conversations" element={<PrivateLayout><Conversations /></PrivateLayout>} />
-        <Route path="/calls" element={<PrivateLayout><Calls /></PrivateLayout>} />
 
+        {/* SUPER_ADMIN only — platform management */}
+        <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* CRM routes — ADMIN and AGENT only, SUPER_ADMIN gets redirected away */}
+        <Route path="/" element={<CrmLayout><Dashboard /></CrmLayout>} />
+        <Route path="/accounts" element={<CrmLayout><Accounts /></CrmLayout>} />
+        <Route path="/accounts/:id" element={<CrmLayout><AccountProfile /></CrmLayout>} />
+        <Route path="/contacts" element={<CrmLayout><Contacts /></CrmLayout>} />
+        <Route path="/contacts/:id" element={<CrmLayout><ContactProfile /></CrmLayout>} />
+        <Route path="/deals" element={<CrmLayout><Deals /></CrmLayout>} />
+        <Route path="/activities" element={<CrmLayout><Activities /></CrmLayout>} />
+        <Route path="/profile" element={<CrmLayout><Profile /></CrmLayout>} />
+        <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
+        <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
+        <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
+
+        {/* Fallback — SUPER_ADMIN lands on /platform, others on / */}
+        <Route path="*" element={<SmartRedirect />} />
       </Routes>
     </BrowserRouter>
   )
+}
+
+// Redirects to the right home based on role
+function SmartRedirect() {
+  const role = useSelector(state => state.auth.role)
+  const token = useSelector(state => state.auth.token)
+  if (!token) return <Navigate to="/login" />
+  if (role === 'SUPER_ADMIN') return <Navigate to="/platform" />
+  return <Navigate to="/" />
 }

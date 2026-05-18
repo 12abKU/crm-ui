@@ -104,8 +104,8 @@ export default function Activities() {
             }
             const r = await api.get(url)
             setActivities(r.data.content ?? [])
-            setTotalPages(r.data.totalPages)
-            setTotalElements(r.data.totalElements)
+            setTotalPages(r.data.totalPages ?? 0)        // ← guard
+            setTotalElements(r.data.totalElements ?? 0)  // ← guard
         } finally {
             setLoading(false)
             setLoadCount(c => c + 1)

@@ -2,10 +2,15 @@ import { T } from '../constants/theme'
 
 // Props: page (0-indexed), totalPages, totalElements, pageSize, onPage(newPage)
 export default function Pagination({ page, totalPages, totalElements, pageSize, onPage }) {
-    if (totalPages <= 1) return null
+    // Guard all inputs against NaN/undefined
+    const safePage = Number.isFinite(page) ? page : 0
+    const safeTotalPages = Number.isFinite(totalPages) ? totalPages : 0
+    const safeTotalElements = Number.isFinite(totalElements) ? totalElements : 0
 
-    const from = page * pageSize + 1
-    const to = Math.min((page + 1) * pageSize, totalElements)
+    if (safeTotalPages <= 1) return null
+
+    const from = safePage * pageSize + 1
+    const to = Math.min((safePage + 1) * pageSize, safeTotalElements)
 
     const btnBase = {
         display: 'flex', alignItems: 'center', gap: 4,
@@ -19,26 +24,25 @@ export default function Pagination({ page, totalPages, totalElements, pageSize, 
             style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
             <p className="text-[12px]" style={{ color: T.textMuted }}>
                 Showing <span style={{ color: T.textPrimary, fontWeight: 700 }}>{from}–{to}</span> of{' '}
-                <span style={{ color: T.textPrimary, fontWeight: 700 }}>{totalElements}</span>
+                <span style={{ color: T.textPrimary, fontWeight: 700 }}>{safeTotalElements}</span>
             </p>
 
             <div className="flex items-center gap-2">
                 <button
-                    disabled={page === 0}
-                    onClick={() => onPage(page - 1)}
+                    disabled={safePage === 0}
+                    onClick={() => onPage(safePage - 1)}
                     style={{
                         ...btnBase,
-                        background: page === 0 ? T.surfaceRaised : T.surface,
-                        color: page === 0 ? T.textMuted : T.textPrimary,
-                        cursor: page === 0 ? 'not-allowed' : 'pointer',
-                        opacity: page === 0 ? 0.5 : 1,
+                        background: safePage === 0 ? T.surfaceRaised : T.surface,
+                        color: safePage === 0 ? T.textMuted : T.textPrimary,
+                        cursor: safePage === 0 ? 'not-allowed' : 'pointer',
+                        opacity: safePage === 0 ? 0.5 : 1,
                     }}>
                     <span className="material-symbols-outlined text-[15px]">chevron_left</span>
                     Prev
                 </button>
 
-                {/* page numbers — show up to 5 around current */}
-                {getPageNumbers(page, totalPages).map((p, i) =>
+                {getPageNumbers(safePage, safeTotalPages).map((p, i) =>
                     p === '…' ? (
                         <span key={`ellipsis-${i}`} className="text-[13px]" style={{ color: T.textMuted, padding: '0 4px' }}>…</span>
                     ) : (
@@ -46,10 +50,10 @@ export default function Pagination({ page, totalPages, totalElements, pageSize, 
                             style={{
                                 ...btnBase,
                                 minWidth: 36, justifyContent: 'center',
-                                background: p === page ? T.primary : T.surface,
-                                color: p === page ? '#fff' : T.textPrimary,
-                                borderColor: p === page ? T.primary : T.border,
-                                fontWeight: p === page ? 700 : 600,
+                                background: p === safePage ? T.primary : T.surface,
+                                color: p === safePage ? '#fff' : T.textPrimary,
+                                borderColor: p === safePage ? T.primary : T.border,
+                                fontWeight: p === safePage ? 700 : 600,
                             }}>
                             {p + 1}
                         </button>
@@ -57,14 +61,14 @@ export default function Pagination({ page, totalPages, totalElements, pageSize, 
                 )}
 
                 <button
-                    disabled={page >= totalPages - 1}
-                    onClick={() => onPage(page + 1)}
+                    disabled={safePage >= safeTotalPages - 1}
+                    onClick={() => onPage(safePage + 1)}
                     style={{
                         ...btnBase,
-                        background: page >= totalPages - 1 ? T.surfaceRaised : T.surface,
-                        color: page >= totalPages - 1 ? T.textMuted : T.textPrimary,
-                        cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
-                        opacity: page >= totalPages - 1 ? 0.5 : 1,
+                        background: safePage >= safeTotalPages - 1 ? T.surfaceRaised : T.surface,
+                        color: safePage >= safeTotalPages - 1 ? T.textMuted : T.textPrimary,
+                        cursor: safePage >= safeTotalPages - 1 ? 'not-allowed' : 'pointer',
+                        opacity: safePage >= safeTotalPages - 1 ? 0.5 : 1,
                     }}>
                     Next
                     <span className="material-symbols-outlined text-[15px]">chevron_right</span>
@@ -75,6 +79,7 @@ export default function Pagination({ page, totalPages, totalElements, pageSize, 
 }
 
 function getPageNumbers(current, total) {
+    if (!Number.isFinite(current) || !Number.isFinite(total) || total <= 0) return []
     if (total <= 7) return Array.from({ length: total }, (_, i) => i)
     const pages = []
     if (current <= 3) {
