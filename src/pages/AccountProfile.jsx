@@ -27,7 +27,13 @@ export default function AccountProfile() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        api.get(`/api/accounts/${id}/profile`).then(r => setProfile(r.data)).catch(() => setProfile(null)).finally(() => setLoading(false))
+        const controller = new AbortController()
+        setLoading(true)
+        api.get(`/api/accounts/${id}/profile`, { signal: controller.signal, suppressErrorToast: true })
+            .then(r => setProfile(r.data))
+            .catch(err => { if (!controller.signal.aborted) setProfile(null) })
+            .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+        return () => controller.abort()
     }, [id])
 
     if (loading) return (
@@ -73,7 +79,7 @@ export default function AccountProfile() {
                         <span className="material-symbols-outlined text-[28px]" style={{ color: T.primary }}>business</span>
                     </div>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>Account not found</p>
-                    <button onClick={() => navigate('/accounts')} className="crm-btn-ghost text-sm">← Back</button>
+                    <button onClick={() => navigate(-1)} className="crm-btn-ghost text-sm">← Back</button>
                 </div>
             </div>
         </div>
@@ -85,7 +91,7 @@ export default function AccountProfile() {
         <div>
             <TopBar />
             <main className="p-8 max-w-360 mx-auto">
-                <button onClick={() => navigate('/accounts')}
+                <button onClick={() => navigate(-1)}
                     className="flex items-center gap-2 mb-6 text-sm font-semibold hover:underline"
                     style={{ color: T.primary }}>
                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>Back to Accounts

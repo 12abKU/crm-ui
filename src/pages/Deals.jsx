@@ -15,17 +15,14 @@ import api from '../api'
 
 const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
 
-// ─── Per-stage column background tints ───────────────────────────────────────
-// Each stage gets its own soft tinted background so columns are visually distinct.
 const STAGE_COLUMN_BG = {
-    NEW: 'rgba(120,113,108,0.05)',   // warm stone tint
-    QUALIFIED: 'rgba(37,99,235,0.05)',     // cool blue tint
-    PROPOSAL: 'rgba(83,141,141,0.05)',    // teal tint
-    WON: 'rgba(22,163,74,0.05)',     // green tint
-    LOST: 'rgba(220,38,38,0.04)',     // red tint
+    NEW: 'rgba(120,113,108,0.05)',
+    QUALIFIED: 'rgba(37,99,235,0.05)',
+    PROPOSAL: 'rgba(83,141,141,0.05)',
+    WON: 'rgba(22,163,74,0.05)',
+    LOST: 'rgba(220,38,38,0.04)',
 }
 
-// ─── Per-stage header background (slightly stronger than column bg) ───────────
 const STAGE_HEADER_BG = {
     NEW: 'rgba(120,113,108,0.10)',
     QUALIFIED: 'rgba(37,99,235,0.08)',
@@ -34,7 +31,6 @@ const STAGE_HEADER_BG = {
     LOST: 'rgba(220,38,38,0.07)',
 }
 
-// ─── Column border colors (stage accent at low opacity) ──────────────────────
 const STAGE_COLUMN_BORDER = {
     NEW: 'rgba(120,113,108,0.22)',
     QUALIFIED: 'rgba(37,99,235,0.20)',
@@ -123,18 +119,34 @@ export default function Deals() {
             setDraggingId(null); setOverStage(null); dragDeal.current = null; return
         }
         const deal = dragDeal.current
-        if (isAgent) {
+
+        // Agent without DEALS_EDIT permission: must be owner or assignee to drag
+        if (isAgent && !can.DEALS_EDIT) {
             const isOwner = String(deal.owner?.id) === String(userId)
             const isAssignee = (deal.assignees ?? []).some(u => String(u.id) === String(userId))
             if (!isOwner && !isAssignee) {
                 setDraggingId(null); setOverStage(null); dragDeal.current = null; return
             }
         }
+
+        // Optimistic update
         setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage } : d))
         setDraggingId(null); setOverStage(null); dragDeal.current = null
+
         try {
-            await api.put(`/api/deals/${deal.id}`, { ...deal, stage, accountId: deal.account?.id, contactId: deal.contact?.id })
-        } catch { load() }
+            // Send only the fields DealRequest expects — no nested objects
+            await api.put(`/api/deals/${deal.id}`, {
+                title: deal.title,
+                amount: deal.amount ?? null,
+                stage,
+                expectedCloseDate: deal.expectedCloseDate ?? null,
+                accountId: deal.account?.id ?? null,
+                contactId: deal.contact?.id ?? null,
+            })
+        } catch {
+            // Revert optimistic update on failure
+            load()
+        }
     }
 
     const q = search.toLowerCase()
@@ -200,14 +212,12 @@ export default function Deals() {
                                         borderBottom: `2px solid ${style.accent}`,
                                     }}>
                                     <div className="flex items-center gap-2.5">
-                                        {/* Colored dot */}
                                         <div className="w-2 h-2 rounded-full shrink-0"
                                             style={{ background: style.accent }} />
                                         <span className="text-[12px] font-black uppercase tracking-[0.12em]"
                                             style={{ color: style.accent }}>
                                             {STAGE_LABELS[stage]}
                                         </span>
-                                        {/* Count pill */}
                                         <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
                                             style={{
                                                 background: style.badgeBg,
@@ -229,6 +239,7 @@ export default function Deals() {
                                 <div className="flex flex-col gap-2.5 p-3 flex-1">
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === String(highlightId)
+                                        // Agent can drag if they have DEALS_EDIT OR are owner/assignee
                                         const canDrag = isAdminOrAbove || can.DEALS_EDIT || deal._isOwner || deal._assignedToMe
                                         const canDelete = can.DEALS_DELETE && (isAdminOrAbove || deal._isOwner)
 
@@ -262,7 +273,6 @@ export default function Deals() {
                                         )
                                     })}
 
-                                    {/* Empty state with drop hint */}
                                     {stageDeals.length === 0 && (
                                         <div className="flex-1 flex flex-col items-center justify-center py-10 gap-2 rounded-xl mx-0.5"
                                             style={{

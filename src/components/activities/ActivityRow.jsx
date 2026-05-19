@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { IconTrash } from '@tabler/icons-react'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES } from '../../constants/theme'
 import InlineEdit from '../InlineEdit'
 import CompleteToggle from './CompleteToggle'
@@ -6,6 +8,7 @@ import OutcomePicker from './OutcomePicker'
 import { fmtScheduled, getStatus, STATUS_STYLES } from './activityUtils'
 
 export default function ActivityRow({ activity, highlighted, rowBg, onRemove, onUpdate, onComplete, onOutcome, showOwner }) {
+    const navigate = useNavigate()
     const [blink, setBlink] = useState(false)
     const rowRef = useRef(null)
     const s = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.NOTE
@@ -23,19 +26,24 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
     }, [highlighted])
 
     return (
-        <tr ref={rowRef} className="group transition-all"
+        <tr ref={rowRef} className="group transition-all cursor-pointer"
             style={{
                 borderBottom: `1px solid ${T.borderSubtle}`,
                 background: blink ? 'rgba(37,99,235,0.18)' : activity.completed ? T.surfaceRaised : rowBg,
                 opacity: activity.completed ? 0.65 : 1,
                 transition: 'background 0.3s ease',
             }}
+            onClick={() => navigate(`/activities/${activity.id}`)}
             onMouseEnter={e => { if (!blink) e.currentTarget.style.background = T.surfaceHigh }}
             onMouseLeave={e => { if (!blink) e.currentTarget.style.background = activity.completed ? T.surfaceRaised : rowBg }}>
-            <td className="px-4 py-3.5">
+
+            {/* Complete toggle — stop propagation */}
+            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                 <CompleteToggle activityId={activity.id} completed={activity.completed} onToggle={onComplete} />
             </td>
-            <td className="px-4 py-3.5">
+
+            {/* Type badge — inline edit, stop propagation */}
+            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                 <InlineEdit value={activity.type} options={ACTIVITY_TYPES} onSave={v => onUpdate(activity.id, 'type', v)}>
                     <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold w-fit"
                         style={{ background: s.bg, color: s.color }}>
@@ -44,17 +52,26 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     </span>
                 </InlineEdit>
             </td>
+
+            {/* Subject + outcome — inline edit stops propagation, rest of td navigates */}
             <td className="px-4 py-3.5">
-                <InlineEdit value={activity.subject} placeholder="Add subject" onSave={v => onUpdate(activity.id, 'subject', v)}>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary, textDecoration: activity.completed ? 'line-through' : 'none' }}>
-                        {activity.subject}
-                    </p>
-                </InlineEdit>
+                <div onClick={e => e.stopPropagation()}>
+                    <InlineEdit value={activity.subject} placeholder="Add subject" onSave={v => onUpdate(activity.id, 'subject', v)}>
+                        <p className="text-sm font-semibold"
+                            style={{ color: T.primaryText, textDecoration: activity.completed ? 'line-through' : 'none' }}>
+                            {activity.subject}
+                        </p>
+                    </InlineEdit>
+                </div>
                 {activity.description && (
                     <p className="text-[11px] mt-0.5 truncate max-w-45" style={{ color: T.textMuted }}>{activity.description}</p>
                 )}
-                <OutcomePicker activityId={activity.id} type={activity.type} current={activity.outcome} onSave={onOutcome} />
+                <div onClick={e => e.stopPropagation()}>
+                    <OutcomePicker activityId={activity.id} type={activity.type} current={activity.outcome} onSave={onOutcome} />
+                </div>
             </td>
+
+            {/* Account / contact — their own navigate, stop row propagation */}
             <td className="px-4 py-3.5">
                 {activity.account ? (
                     <div className="flex items-center gap-2">
@@ -63,9 +80,15 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                             {activity.account.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[12px] font-semibold truncate" style={{ color: T.textPrimary }}>{activity.account.name}</p>
+                            <p className="text-[12px] font-semibold truncate cursor-pointer hover:underline"
+                                style={{ color: T.textPrimary }}
+                                onClick={e => { e.stopPropagation(); navigate(`/accounts/${activity.account.id}`) }}>
+                                {activity.account.name}
+                            </p>
                             {activity.contact && (
-                                <p className="text-[11px] truncate" style={{ color: T.textMuted }}>
+                                <p className="text-[11px] truncate cursor-pointer hover:underline"
+                                    style={{ color: T.textMuted }}
+                                    onClick={e => { e.stopPropagation(); navigate(`/contacts/${activity.contact.id}`) }}>
                                     {activity.contact.firstName} {activity.contact.lastName}
                                 </p>
                             )}
@@ -73,7 +96,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     </div>
                 ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
             </td>
-            {/* Admin only: who created this activity */}
+
             {showOwner && (
                 <td className="px-4 py-3.5">
                     {activity.owner ? (
@@ -87,21 +110,25 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
                 </td>
             )}
+
             <td className="px-4 py-3.5 text-[12px]"
                 style={{ color: status === 'overdue' ? T.error : T.textSecondary, fontWeight: status === 'overdue' ? 700 : 400 }}>
                 {fmtScheduled(activity.scheduledAt)}
             </td>
+
             <td className="px-4 py-3.5">
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
                     style={{ background: ss.bg, color: ss.color }}>{ss.label}</span>
             </td>
-            <td className="px-4 py-3.5">
+
+            {/* Delete — stop propagation */}
+            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
                 <button onClick={() => onRemove(activity.id)}
-                    className="material-symbols-outlined text-[17px] opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
                     style={{ color: T.textMuted }}
                     onMouseEnter={e => { e.currentTarget.style.color = T.error; e.currentTarget.style.background = T.errorDim }}
                     onMouseLeave={e => { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent' }}>
-                    delete
+                    <IconTrash size={17} stroke={1.8} />
                 </button>
             </td>
         </tr>

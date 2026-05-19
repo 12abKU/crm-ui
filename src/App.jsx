@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Accounts from './pages/Accounts'
@@ -20,29 +20,25 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setPermissions } from './store/authSlice'
 import api from './api'
 import PlatformDashboard from './pages/PlatformDashboard'
+import ActivityProfile from './pages/ActivityProfile'
 
 
 function PermissionLoader() {
   const token = useSelector(state => state.auth.token)
   const dispatch = useDispatch()
-
   useEffect(() => {
     if (!token) return
     api.get('/api/permissions/me')
       .then(r => dispatch(setPermissions(r.data)))
       .catch(() => { })
   }, [token, dispatch])
-
   return null
 }
 
-
-// Layout for regular company users (ADMIN / AGENT)
 const CrmLayout = ({ children }) => {
   const token = useSelector(state => state.auth.token)
   const role = useSelector(state => state.auth.role)
   if (!token) return <Navigate to="/login" />
-  // SUPER_ADMIN should never access CRM routes — redirect to platform
   if (role === 'SUPER_ADMIN') return <Navigate to="/platform" />
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
@@ -52,12 +48,10 @@ const CrmLayout = ({ children }) => {
   )
 }
 
-// Layout for SUPER_ADMIN platform routes
 const PlatformLayout = ({ children }) => {
   const token = useSelector(state => state.auth.token)
   const role = useSelector(state => state.auth.role)
   if (!token) return <Navigate to="/login" />
-  // Regular users should never access platform routes
   if (role !== 'SUPER_ADMIN') return <Navigate to="/" />
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
@@ -67,20 +61,24 @@ const PlatformLayout = ({ children }) => {
   )
 }
 
+// Forces remount when navigating between different /:id route types
+// e.g. /activities/5 → /accounts/1 gets a different key so React fully remounts
+function RouteKey({ prefix, children }) {
+  const { pathname } = useLocation()
+  const isMatch = pathname.startsWith(prefix)
+  return <div key={isMatch ? pathname : undefined} style={{ display: 'contents' }}>{children}</div>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <ApiErrorToast />
       <PermissionLoader />
       <Routes>
-        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* SUPER_ADMIN only — platform management */}
         <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
 
-        {/* CRM routes — ADMIN and AGENT only, SUPER_ADMIN gets redirected away */}
         <Route path="/" element={<CrmLayout><Dashboard /></CrmLayout>} />
         <Route path="/accounts" element={<CrmLayout><Accounts /></CrmLayout>} />
         <Route path="/accounts/:id" element={<CrmLayout><AccountProfile /></CrmLayout>} />
@@ -88,19 +86,18 @@ export default function App() {
         <Route path="/contacts/:id" element={<CrmLayout><ContactProfile /></CrmLayout>} />
         <Route path="/deals" element={<CrmLayout><Deals /></CrmLayout>} />
         <Route path="/activities" element={<CrmLayout><Activities /></CrmLayout>} />
+        <Route path="/activities/:id" element={<CrmLayout><ActivityProfile /></CrmLayout>} />
         <Route path="/profile" element={<CrmLayout><Profile /></CrmLayout>} />
         <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
 
-        {/* Fallback — SUPER_ADMIN lands on /platform, others on / */}
         <Route path="*" element={<SmartRedirect />} />
       </Routes>
     </BrowserRouter>
   )
 }
 
-// Redirects to the right home based on role
 function SmartRedirect() {
   const role = useSelector(state => state.auth.role)
   const token = useSelector(state => state.auth.token)
