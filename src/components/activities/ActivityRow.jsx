@@ -133,4 +133,4 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             </td>
         </tr>
     )
-}
+} 

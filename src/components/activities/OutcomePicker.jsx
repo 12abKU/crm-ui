@@ -46,7 +46,7 @@ export default function OutcomePicker({ activityId, type, current, onSave }) {
 
             {open && createPortal(
                 <div ref={dropRef}
-                    className="fixed rounded-xl shadow-xl py-1 min-w-[160px]"
+                    className="fixed rounded-xl shadow-xl py-1 min-w-40"
                     style={{
                         top: pos.top, left: pos.left, zIndex: 9999,
                         background: T.surface, border: `1px solid ${T.border}`,

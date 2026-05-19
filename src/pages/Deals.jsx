@@ -191,7 +191,7 @@ export default function Deals() {
 
                         return (
                             <div key={stage}
-                                className="flex-shrink-0 w-[284px] flex flex-col rounded-2xl overflow-hidden"
+                                className="shrink-0 w-71 flex flex-col rounded-2xl overflow-hidden"
                                 style={{
                                     background: colBg,
                                     border: `1.5px solid ${colBorder}`,

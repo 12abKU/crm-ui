@@ -26,7 +26,6 @@ export default function DealCard({
     const assignedByName = deal.owner?.name ?? 'Admin'
     const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? '—'
 
-    // Stage accent for left border stripe
     const stageStyle = STAGE_STYLES[stage] ?? STAGE_STYLES['NEW']
 
     useEffect(() => {
@@ -41,7 +40,6 @@ export default function DealCard({
         return () => clearTimeout(timer)
     }, [highlighted])
 
-    // Is the close date overdue?
     const isOverdue = deal.expectedCloseDate && !['WON', 'LOST'].includes(stage)
         && new Date(deal.expectedCloseDate) < new Date()
 
@@ -67,20 +65,17 @@ export default function DealCard({
                     boxShadow: isDragging
                         ? '0 12px 32px rgba(0,0,0,0.20)'
                         : hovered
-                            ? `0 4px 16px rgba(0,0,0,0.10), 0 0 0 0px ${stageStyle.accent}20`
+                            ? `0 4px 16px rgba(0,0,0,0.10)`
                             : '0 1px 4px rgba(0,0,0,0.06)',
                     opacity: isDragging ? 0.5 : 1,
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease',
                 }}>
 
-                {/* ── Colored left accent stripe ────────────────────── */}
                 <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
                     style={{ background: stageStyle.accent }} />
 
-                {/* ── Card body ─────────────────────────────────────── */}
                 <div className="pl-4 pr-3 pt-3 pb-3">
 
-                    {/* Agent assigned banner */}
                     {isAgent && assignedToMe && (
                         <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg mb-2.5"
                             style={{ background: T.secondaryFaint, border: `1px solid ${T.secondaryDim}` }}>
@@ -91,7 +86,6 @@ export default function DealCard({
                         </div>
                     )}
 
-                    {/* Admin: created by */}
                     {isAdminOrAbove && (
                         <div className="flex items-center gap-1 mb-2">
                             <span className="material-symbols-outlined text-[11px]" style={{ color: T.textMuted }}>person</span>
@@ -101,19 +95,16 @@ export default function DealCard({
                         </div>
                     )}
 
-                    {/* Deal title */}
                     <p className="text-[13px] font-extrabold leading-snug mb-1.5" style={{ color: T.textPrimary }}>
                         {deal.title}
                     </p>
 
-                    {/* Amount — prominent */}
                     {deal.amount != null && (
                         <p className="text-[15px] font-black mb-2.5" style={{ color: stageStyle.accent }}>
                             ₹{Number(deal.amount).toLocaleString('en-IN')}
                         </p>
                     )}
 
-                    {/* ── Meta row: account + date ──────────────────── */}
                     <div className="flex flex-col gap-1.5 mb-1">
                         {deal.account?.name && (
                             <div className="flex items-center gap-1.5">
@@ -136,33 +127,50 @@ export default function DealCard({
                             </div>
                         )}
 
-                        {/* Assignees */}
-                        {assigneeNames.length > 0 && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.textMuted }}>group</span>
-                                <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                    {assigneeNames.slice(0, 2).join(', ')}
-                                    {assigneeNames.length > 2 && ` +${assigneeNames.length - 2}`}
+                        {/* Assignees — avatar bubbles + names */}
+                        {isAdminOrAbove && assignees.length > 0 && (
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <div className="flex -space-x-1.5">
+                                    {assignees.slice(0, 3).map((u, i) => (
+                                        <div key={u.id}
+                                            title={u.name}
+                                            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ring-1 ring-white"
+                                            style={{
+                                                background: T.primaryDim,
+                                                color: T.primary,
+                                                zIndex: 3 - i,
+                                            }}>
+                                            {u.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    ))}
+                                    {assignees.length > 3 && (
+                                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ring-1 ring-white"
+                                            style={{ background: T.surfaceHigh, color: T.textMuted }}>
+                                            +{assignees.length - 3}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[11px] font-semibold truncate" style={{ color: T.textSecondary }}>
+                                    {assigneeNames.slice(0, 2).join(', ')}{assignees.length > 2 && ` +${assignees.length - 2}`}
                                 </span>
                             </div>
                         )}
                     </div>
 
-                    {/* ── Footer: assign + delete ───────────────────── */}
-                    {(isAdminOrAbove && canAssign) || onRemove ? (
+                    {((isAdminOrAbove && canAssign) || onRemove) && (
                         <div className="flex items-center justify-between pt-2.5 mt-1"
                             style={{ borderTop: `1px solid ${T.border}` }}>
                             {isAdminOrAbove && canAssign ? (
                                 <button
                                     onClick={e => { e.stopPropagation(); setAssignOpen(true) }}
                                     className="flex items-center gap-1.5 text-[11px] font-bold transition-colors px-2 py-1 rounded-lg"
-                                    style={{ color: assigneeNames.length > 0 ? T.secondary : T.textMuted, background: 'transparent' }}
+                                    style={{ color: assignees.length > 0 ? T.primary : T.textMuted, background: 'transparent' }}
                                     onMouseEnter={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.color = T.primary }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = assigneeNames.length > 0 ? T.secondary : T.textMuted }}>
-                                    {assigneeNames.length > 0
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = assignees.length > 0 ? T.primary : T.textMuted }}>
+                                    {assignees.length > 0
                                         ? <IconUserCheck size={12} />
                                         : <IconUserPlus size={12} />}
-                                    {assigneeNames.length > 0 ? `${assigneeNames.length} assigned` : 'Assign'}
+                                    {assignees.length > 0 ? `${assignees.length} assigned` : 'Assign'}
                                 </button>
                             ) : <span />}
 
@@ -177,7 +185,7 @@ export default function DealCard({
                                 </button>
                             )}
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </div>
 
