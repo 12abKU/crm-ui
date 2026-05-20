@@ -1,4 +1,6 @@
-import { IconArrowLeft, IconTrash, IconClock } from '@tabler/icons-react'
+// src/components/platform/CompanyDetail.jsx
+import { useState } from 'react'
+import { IconArrowLeft, IconTrash, IconClock, IconUsers, IconPlug } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import TopBar from '../TopBar'
 import TrialBadge from './TrialBadge'
@@ -6,8 +8,14 @@ import CompanyControls from './CompanyControls'
 import CompanyStatsGrid from './CompanyStatsGrid'
 import CompanyNotes from './CompanyNotes'
 import CompanyUsersTable from './CompanyUsersTable'
+import IntegrationsPanel from './IntegrationsPanel'
 import { TrialModal, DeleteCompanyModal, AddUserModal, ResetPasswordModal } from './CompanyModals'
 import { daysLeft } from './platformConstants'
+
+const TABS = [
+    { id: 'overview', label: 'Overview', Icon: IconUsers },
+    { id: 'integrations', label: 'Integrations', Icon: IconPlug },
+]
 
 export default function CompanyDetail({
     company, companyStats, companyUsers, usersLoading,
@@ -24,6 +32,7 @@ export default function CompanyDetail({
     onImpersonate, onResetPassword, onDeleteUser, onChangeRole,
     onRefreshUsers,
 }) {
+    const [tab, setTab] = useState('overview')
     const days = daysLeft(company.trialEndsAt)
     const trialExpired = company.status === 'TRIAL' && company.trialEndsAt && days <= 0
 
@@ -79,21 +88,38 @@ export default function CompanyDetail({
 
                 <CompanyStatsGrid stats={companyStats} />
 
-                <CompanyNotes
-                    notes={notes} onChange={onNotesChange}
-                    saving={notesSaving} saved={notesSaved}
-                />
+                <CompanyNotes notes={notes} onChange={onNotesChange} saving={notesSaving} saved={notesSaved} />
 
-                <CompanyUsersTable
-                    users={companyUsers} loading={usersLoading}
-                    updating={updating} impersonating={impersonating}
-                    onRefresh={onRefreshUsers}
-                    onAddUser={() => { setFormError(''); setShowAddUser(true) }}
-                    onImpersonate={onImpersonate}
-                    onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
-                    onDeleteUser={onDeleteUser}
-                    onChangeRole={onChangeRole}
-                />
+                {/* Tabs */}
+                <div className="flex items-center gap-1 p-1 rounded-xl mb-5"
+                    style={{ background: T.surface, border: `1px solid ${T.border}`, width: 'fit-content' }}>
+                    {TABS.map(({ id, label, Icon }) => (
+                        <button key={id} onClick={() => setTab(id)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all"
+                            style={{
+                                background: tab === id ? T.primary : 'transparent',
+                                color: tab === id ? '#fff' : T.textMuted,
+                            }}>
+                            <Icon size={15} />
+                            {label}
+                        </button>
+                    ))}
+                </div>
+
+                {tab === 'overview' ? (
+                    <CompanyUsersTable
+                        users={companyUsers} loading={usersLoading}
+                        updating={updating} impersonating={impersonating}
+                        onRefresh={onRefreshUsers}
+                        onAddUser={() => { setFormError(''); setShowAddUser(true) }}
+                        onImpersonate={onImpersonate}
+                        onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
+                        onDeleteUser={onDeleteUser}
+                        onChangeRole={onChangeRole}
+                    />
+                ) : (
+                    <IntegrationsPanel companyId={company.id} />
+                )}
             </main>
 
             {/* Modals */}
