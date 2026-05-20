@@ -1,27 +1,47 @@
 // src/components/platform/IntegrationsPanel.jsx
 import { useEffect, useState } from 'react'
-import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 
-const Field = ({ label, type = 'text', value, onChange, placeholder, monospace }) => (
-    <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</label>
-        <input
-            type={type}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className="px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={{
-                background: T.surfaceRaised,
-                border: `1px solid ${T.border}`,
-                color: T.textPrimary,
-                fontFamily: monospace ? 'monospace' : undefined,
-            }}
-        />
-    </div>
-)
+
+
+const Field = ({ label, type = 'text', value, onChange, placeholder, monospace }) => {
+    const [show, setShow] = useState(false)
+    const isPassword = type === 'password'
+
+    return (
+        <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</label>
+            <div className="relative">
+                <input
+                    type={isPassword && !show ? 'password' : 'text'}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none pr-9"
+                    style={{
+                        background: T.surfaceRaised,
+                        border: `1px solid ${T.border}`,
+                        color: T.textPrimary,
+                        fontFamily: monospace ? 'monospace' : undefined,
+                    }}
+                />
+                {isPassword && (
+                    <button
+                        type="button"
+                        onClick={() => setShow(p => !p)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                        style={{ color: T.textMuted }}
+                    >
+                        {show ? <IconEyeOff size={15} /> : <IconEye size={15} />}
+                    </button>
+                )}
+            </div>
+        </div>
+    )
+}
+
 
 const Section = ({ icon: Icon, title, color, configured, children, onSave, onClear, saving, error, success }) => (
     <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -128,13 +148,7 @@ export default function IntegrationsPanel({ companyId }) {
     const saveTwilio = async () => {
         setTwilioSaving(true); setTwilioError(''); setTwilioSuccess('')
         try {
-            // Only send non-masked values (skip if still showing masked *****)
-            const payload = {}
-            Object.entries(twilio).forEach(([k, v]) => {
-                if (v && !v.includes('****')) payload[k] = v
-                else if (v === '') payload[k] = ''
-            })
-            await api.patch(`/api/platform/companies/${companyId}/integrations/twilio`, payload)
+            await api.patch(`/api/platform/companies/${companyId}/integrations/twilio`, twilio)
             setTwilioConfigured(true)
             setTwilioSuccess('Twilio settings saved.')
             setTimeout(() => setTwilioSuccess(''), 3000)
@@ -142,6 +156,7 @@ export default function IntegrationsPanel({ companyId }) {
             setTwilioError(e?.response?.data?.message || 'Save failed')
         } finally { setTwilioSaving(false) }
     }
+
 
     const clearTwilio = async () => {
         if (!confirm('Clear Twilio config? Company will use platform defaults.')) return
@@ -160,12 +175,7 @@ export default function IntegrationsPanel({ companyId }) {
     const saveGoogle = async () => {
         setGoogleSaving(true); setGoogleError(''); setGoogleSuccess('')
         try {
-            const payload = {}
-            Object.entries(google).forEach(([k, v]) => {
-                if (v && !v.includes('****')) payload[k] = v
-                else if (v === '') payload[k] = ''
-            })
-            await api.patch(`/api/platform/companies/${companyId}/integrations/google`, payload)
+            await api.patch(`/api/platform/companies/${companyId}/integrations/google`, google)
             setGoogleConfigured(true)
             setGoogleSuccess('Google settings saved.')
             setTimeout(() => setGoogleSuccess(''), 3000)
@@ -173,6 +183,7 @@ export default function IntegrationsPanel({ companyId }) {
             setGoogleError(e?.response?.data?.message || 'Save failed')
         } finally { setGoogleSaving(false) }
     }
+
 
     const clearGoogle = async () => {
         if (!confirm('Clear Google config? Company will use platform defaults.')) return
