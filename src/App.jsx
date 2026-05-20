@@ -21,6 +21,7 @@ import { setPermissions } from './store/authSlice'
 import api from './api'
 import PlatformDashboard from './pages/PlatformDashboard'
 import ActivityProfile from './pages/ActivityProfile'
+import AgentProfile from './pages/AgentProfile'
 
 
 function PermissionLoader() {
@@ -91,6 +92,8 @@ export default function App() {
         <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
+        <Route path="/team/:id" element={<CrmLayout><AgentProfile /></CrmLayout>} />
+
 
         <Route path="*" element={<SmartRedirect />} />
       </Routes>

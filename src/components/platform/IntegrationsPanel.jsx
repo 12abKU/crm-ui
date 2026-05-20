@@ -19,6 +19,7 @@ const Field = ({ label, type = 'text', value, onChange, placeholder, monospace }
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
+                    autoComplete="new-password"  // ← this tricks browser into not autofilling
                     className="w-full px-3 py-2.5 rounded-xl text-sm outline-none pr-9"
                     style={{
                         background: T.surfaceRaised,
