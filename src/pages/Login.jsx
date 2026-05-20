@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
@@ -11,15 +11,39 @@ export default function Login() {
     const [form, setForm] = useState({ email: '', password: '' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [rateLimited, setRateLimited] = useState(false)
+
+    // Show reason if user was force-logged-out (suspended company, expired trial)
+    useEffect(() => {
+        const reason = sessionStorage.getItem('logoutReason')
+        if (reason) {
+            setError(reason)
+            sessionStorage.removeItem('logoutReason')
+        }
+    }, [])
 
     const submit = async (e) => {
-        e.preventDefault(); setLoading(true); setError('')
+        e.preventDefault()
+        if (rateLimited) return
+        setLoading(true)
+        setError('')
         try {
             const { data } = await api.post('/api/auth/login', form)
             dispatch(setCredentials(data))
             navigate('/')
-        } catch (err) { setError(extractApiErrorMessage(err, 'Login failed')) }
-        finally { setLoading(false) }
+        } catch (err) {
+            const status = err?.response?.status
+            if (status === 429) {
+                setRateLimited(true)
+                setError('Too many login attempts. Please wait a minute and try again.')
+                // Auto-clear rate limit block after 60 seconds
+                setTimeout(() => setRateLimited(false), 60000)
+            } else {
+                setError(extractApiErrorMessage(err, 'Login failed'))
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -46,8 +70,11 @@ export default function Login() {
 
                     {error && (
                         <div className="px-4 py-3 rounded-xl text-sm mb-4 flex items-center gap-2"
-                            style={{ background: T.errorDim, color: T.error }}>
-                            <span className="material-symbols-outlined text-[16px]">error</span>{error}
+                            style={{ background: rateLimited ? T.warningDim ?? T.errorDim : T.errorDim, color: rateLimited ? T.warning ?? T.error : T.error }}>
+                            <span className="material-symbols-outlined text-[16px]">
+                                {rateLimited ? 'timer' : 'error'}
+                            </span>
+                            {error}
                         </div>
                     )}
 
@@ -63,8 +90,9 @@ export default function Login() {
                                     className="crm-input" placeholder={placeholder} required />
                             </div>
                         ))}
-                        <button type="submit" disabled={loading} className="crm-btn-primary w-full mt-2 py-3">
-                            {loading ? 'Signing in...' : 'Sign in'}
+                        <button type="submit" disabled={loading || rateLimited} className="crm-btn-primary w-full mt-2 py-3"
+                            style={rateLimited ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
+                            {loading ? 'Signing in...' : rateLimited ? 'Too many attempts...' : 'Sign in'}
                         </button>
                     </form>
 

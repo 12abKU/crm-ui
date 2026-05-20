@@ -9,6 +9,11 @@ const api = axios.create({
 export const extractApiErrorMessage = (err, fallback = 'Something went wrong. Please try again.') => {
     if (err?.userMessage) return err.userMessage
 
+    // Handle 429 rate limit explicitly
+    if (err?.response?.status === 429) {
+        return 'Too many attempts. Please wait a minute and try again.'
+    }
+
     const data = err?.response?.data
     if (data) {
         const fields = data.fields && typeof data.fields === 'object'
@@ -48,11 +53,22 @@ api.interceptors.response.use(
         const requestUrl = err.config?.url || ''
         const isAuthEndpoint = requestUrl.includes('/api/auth/')
 
+        // 401 — sign out silently
         if (status === 401 && !isAuthEndpoint) {
             store.dispatch(signOut())
             window.location.href = '/login'
+            return Promise.reject(err) // ← return early, no toast
         }
 
+        // 403 — company suspended/trial expired → sign out with reason shown on login page
+        if (status === 403 && !isAuthEndpoint) {
+            store.dispatch(signOut())
+            sessionStorage.setItem('logoutReason', message)
+            window.location.href = '/login'
+            return Promise.reject(err) // ← return early, no toast
+        }
+
+        // All other errors — show global toast (but not for auth endpoints)
         if (!isAuthEndpoint && !err.config?.suppressErrorToast && typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('crm-api-error', {
                 detail: { message, status }
@@ -62,5 +78,4 @@ api.interceptors.response.use(
         return Promise.reject(err)
     }
 )
-
 export default api
