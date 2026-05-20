@@ -71,7 +71,7 @@ export default function DealCard({
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease',
                 }}>
 
-                <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+                <div className="absolute left-0 top-0 bottom-0 w-0.75 rounded-l-xl"
                     style={{ background: stageStyle.accent }} />
 
                 <div className="pl-4 pr-3 pt-3 pb-3">

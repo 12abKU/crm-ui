@@ -1,27 +1,29 @@
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import RoleBadge from './RoleBadge'
 import api, { extractApiErrorMessage } from '../../api'
+import { updateProfileSession } from '../../store/authSlice'
 
 export default function ProfileForm() {
-    const [name, setName] = useState(localStorage.getItem('name') || '')
-    const [email, setEmail] = useState(localStorage.getItem('email') || '')
-    const [currentPassword, setCurrentPassword] = useState('')
+    const dispatch = useDispatch()
+    const auth = useSelector(state => state.auth)
+
+    const [name, setName] = useState(auth.name || '')
+    const [email, setEmail] = useState(auth.email || '')
     const [status, setStatus] = useState(null)
     const [loading, setLoading] = useState(false)
-    const role = localStorage.getItem('role') || 'AGENT'
+    const role = auth.role || 'AGENT'
 
     const submit = async (e) => {
         e.preventDefault()
         setLoading(true)
         setStatus(null)
         try {
-            const res = await api.put('/api/user/profile', { name, email, currentPassword })
-            localStorage.setItem('name', res.data.name)
-            localStorage.setItem('email', res.data.email)
+            const res = await api.put('/api/user/profile/info', { name, email })
+            dispatch(updateProfileSession({ name: res.data.name, email: res.data.email }))
             setStatus({ type: 'success', msg: 'Profile updated successfully' })
-            setCurrentPassword('')
         } catch (err) {
             setStatus({ type: 'error', msg: extractApiErrorMessage(err, 'Update failed') })
         } finally {
@@ -58,8 +60,7 @@ export default function ProfileForm() {
                     <div key={label} className="flex flex-col gap-1.5">
                         <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>{label}</label>
                         <input className="crm-input" type={type} placeholder={placeholder}
-                            value={value} onChange={e => onChange(e.target.value)}
-                            required={label.includes('Password')} />
+                            value={value} onChange={e => onChange(e.target.value)} />
                     </div>
                 ))}
                 <button type="submit" disabled={loading} className="crm-btn-primary w-fit flex items-center gap-2">

@@ -4,6 +4,11 @@ import { T, TAG_COLORS, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme
 import TopBar from '../components/TopBar'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
+import InlineEdit from '../components/InlineEdit'
+import AddDealSlideForm from '../components/deals/AddDealSlideForm'
+import { useSelector } from 'react-redux'
+import { usePermissions } from '../hooks/usePermission'
+
 
 const timeAgo = (str) => {
     if (!str) return '—'
@@ -25,6 +30,13 @@ export default function AccountProfile() {
     const navigate = useNavigate()
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [dealFormOpen, setDealFormOpen] = useState(false)
+
+    const role = useSelector(state => state.auth.role)
+    const can = usePermissions(['DEALS_CREATE'])
+    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
+
+
 
     useEffect(() => {
         const controller = new AbortController()
@@ -35,6 +47,16 @@ export default function AccountProfile() {
             .finally(() => { if (!controller.signal.aborted) setLoading(false) })
         return () => controller.abort()
     }, [id])
+
+    const updateField = async (field, value) => {
+        await api.put(`/api/accounts/${id}`, {
+            name: profile.name, website: profile.website, phone: profile.phone,
+            industry: profile.industry, employeeRange: profile.employeeRange, tag: profile.tag,
+            [field]: value
+        })
+        setProfile(p => ({ ...p, [field]: value }))
+    }
+
 
     if (loading) return (
         <div>
@@ -107,7 +129,9 @@ export default function AccountProfile() {
                         </div>
                         <div>
                             <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{profile.name}</h1>
+                                <InlineEdit value={profile.name} onSave={v => updateField('name', v)} placeholder="Account name">
+                                    <h1 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{profile.name}</h1>
+                                </InlineEdit>
                                 {profile.tag && <span className="px-3 py-1 rounded-full text-[11px] font-bold" style={{ background: tag.bg, color: tag.color }}>{profile.tag}</span>}
                             </div>
                             {profile.industry && <p className="text-sm mt-1" style={{ color: T.textMuted }}>{profile.industry}</p>}
@@ -121,9 +145,12 @@ export default function AccountProfile() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">call</span>Call</button>
                         <button className="crm-btn-ghost flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">mail</span>Email</button>
-                        <button className="crm-btn-primary flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal</button>
+                        {canCreateDeal && (
+                            <button onClick={() => setDealFormOpen(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
+                                <span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -250,6 +277,17 @@ export default function AccountProfile() {
                     </div>
                 </div>
             </main>
+
+            <AddDealSlideForm
+                open={dealFormOpen}
+                onClose={() => setDealFormOpen(false)}
+                onSuccess={() => {
+                    setDealFormOpen(false)
+                    // re-fetch profile to refresh open deals list
+                    api.get(`/api/accounts/${id}/profile`).then(r => setProfile(r.data))
+                }}
+                prefillAccount={{ id: profile.id, name: profile.name }}
+            />
         </div>
     )
 }

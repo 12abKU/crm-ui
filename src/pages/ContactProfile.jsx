@@ -6,6 +6,10 @@ import api from '../api'
 import Skeleton from 'react-loading-skeleton'
 import CallWidget from '../components/voice/CallWidget'
 import CallLogTable from '../components/voice/CallLogTable'
+import InlineEdit from '../components/InlineEdit'
+import AddDealSlideForm from '../components/deals/AddDealSlideForm'
+import { useSelector } from 'react-redux'
+import { usePermissions } from '../hooks/usePermission'
 
 
 const timeAgo = (str) => {
@@ -36,6 +40,14 @@ export default function ContactProfile() {
     const [callTotal, setCallTotal] = useState(0)
     const [callTotalPages, setCallTotalPages] = useState(0)
 
+    const [dealFormOpen, setDealFormOpen] = useState(false)
+
+
+    const role = useSelector(state => state.auth.role)
+    const can = usePermissions(['DEALS_CREATE'])
+    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
+
+
     // ── Load call logs with pagination ────────────────────────
     const loadCalls = async (p = 0) => {
         if (!id) return
@@ -51,6 +63,15 @@ export default function ContactProfile() {
         } finally {
             setLogsLoading(false)
         }
+    }
+
+    const updateField = async (field, value) => {
+        await api.put(`/api/contacts/${id}`, {
+            firstName: profile.firstName, lastName: profile.lastName, email: profile.email,
+            phone: profile.phone, designation: profile.designation, accountId: profile.account?.id || null,
+            [field]: value
+        })
+        setProfile(p => ({ ...p, [field]: value }))
     }
 
     useEffect(() => { loadCalls(0) }, [id])
@@ -135,7 +156,14 @@ export default function ContactProfile() {
                             {profile.firstName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{fullName}</h1>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <InlineEdit value={profile.firstName} onSave={v => updateField('firstName', v)} placeholder="First name">
+                                    <h1 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{profile.firstName}</h1>
+                                </InlineEdit>
+                                <InlineEdit value={profile.lastName} onSave={v => updateField('lastName', v)} placeholder="Last name">
+                                    <h1 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{profile.lastName}</h1>
+                                </InlineEdit>
+                            </div>
                             {profile.designation && <p className="text-sm mt-0.5" style={{ color: T.textMuted }}>{profile.designation}</p>}
                             {profile.account && (
                                 <button onClick={() => navigate(`/accounts/${profile.account.id}`)}
@@ -158,9 +186,12 @@ export default function ContactProfile() {
                         <button className="crm-btn-ghost flex items-center gap-2 text-sm">
                             <span className="material-symbols-outlined text-[16px]">mail</span>Email
                         </button>
-                        <button className="crm-btn-primary flex items-center gap-2 text-sm">
-                            <span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal
-                        </button>
+                        {canCreateDeal && (
+                            <button onClick={() => setDealFormOpen(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
+                                <span className="material-symbols-outlined text-[16px]">handshake</span>Add Deal
+                            </button>
+                        )}
+
                     </div>
                 </div>
 
@@ -304,6 +335,17 @@ export default function ContactProfile() {
                     </div>
                 </div>
             </main>
+
+            <AddDealSlideForm
+                open={dealFormOpen}
+                onClose={() => setDealFormOpen(false)}
+                onSuccess={() => {
+                    setDealFormOpen(false)
+                    api.get(`/api/contacts/${id}/profile`).then(r => setProfile(r.data))
+                }}
+                prefillAccount={profile.account ? { id: profile.account.id, name: profile.account.name } : undefined}
+                prefillContact={{ id: profile.id, name: `${profile.firstName} ${profile.lastName || ''}`.trim() }}
+            />
 
             {/* Call Widget */}
             {activeCall && (

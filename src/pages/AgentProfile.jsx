@@ -44,11 +44,15 @@ export default function AgentProfile() {
         <div>
             <TopBar />
             <main className="p-8 max-w-5xl mx-auto">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 text-sm font-semibold"
-                    style={{ color: T.textMuted }}>
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back to Dashboard
+                <button onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 mb-6 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                    style={{ background: T.surfaceHigh, color: T.textSecondary, border: `1px solid ${T.border}` }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.color = T.primaryText }}
+                    onMouseLeave={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textSecondary }}>
+                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Back
                 </button>
+
 
                 {/* Header */}
                 <div className="rounded-2xl p-6 mb-5 flex items-center gap-6"

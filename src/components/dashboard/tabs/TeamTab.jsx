@@ -51,8 +51,12 @@ export default function TeamTab({ data, onAgentClick }) {
                                     </td>
                                     <td className="py-3 px-3" style={{ color: T.textPrimary }}>{fmt(a.contacts)}</td>
                                     <td className="py-3 px-3">
-                                        <span className="material-symbols-outlined text-[16px]" style={{ color: T.textMuted }}>arrow_forward</span>
+                                        <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                                            style={{ background: T.surfaceHigh, border: `1px solid ${T.border}` }}>
+                                            <span className="material-symbols-outlined text-[14px]" style={{ color: T.textMuted }}>arrow_forward</span>
+                                        </div>
                                     </td>
+
                                 </tr>
                             ))}
                         </tbody>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import TopBar from '../TopBar'
@@ -24,7 +24,8 @@ const TABS = [
 export default function AdminDashboard() {
     const name = useSelector(s => s.auth.name)
     const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState('summary')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const activeTab = searchParams.get('tab') || 'summary'
     const [summary, setSummary] = useState(null)
     const [tabData, setTabData] = useState({})
     const [loading, setLoading] = useState(true)
@@ -35,6 +36,9 @@ export default function AdminDashboard() {
             .then(r => setSummary(r.data))
             .catch(() => { })
             .finally(() => setLoading(false))
+    }, [])
+    useEffect(() => {
+        if (activeTab !== 'summary') loadTab(activeTab)
     }, [])
 
     const loadTab = useCallback(async (tab) => {
@@ -48,7 +52,7 @@ export default function AdminDashboard() {
     }, [tabData])
 
     const handleTab = (key) => {
-        setActiveTab(key)
+        setSearchParams({ tab: key })
         loadTab(key)
     }
 
