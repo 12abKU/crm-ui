@@ -23,6 +23,7 @@ import PlatformDashboard from './pages/PlatformDashboard'
 import ActivityProfile from './pages/ActivityProfile'
 import AgentProfile from './pages/AgentProfile'
 import PlatformProfile from './pages/PlatformProfile'
+import Support from './pages/Support'
 
 
 function PermissionLoader() {
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
         <Route path="/team/:id" element={<CrmLayout><AgentProfile /></CrmLayout>} />
+        <Route path="/support" element={<CrmLayout><Support /></CrmLayout>} />
 
 
         <Route path="*" element={<SmartRedirect />} />

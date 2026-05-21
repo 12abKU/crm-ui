@@ -127,16 +127,23 @@ export default function Sidebar() {
             )}
 
             {/* Support — only for CRM users */}
+            {/* Support — only for CRM users */}
             {!isSuperAdmin && (
                 <div className="flex flex-col gap-0.5 px-3 py-3" style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
-                    <button
+                    <NavLink to="/support"
                         className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-colors"
-                        style={{ color: T.sidebarText }}
-                        onMouseEnter={e => { e.currentTarget.style.background = T.sidebarHover; e.currentTarget.style.color = T.sidebarTextHover }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
-                        <span className="material-symbols-outlined text-[18px]">contact_support</span>
-                        <span style={{ fontWeight: 500 }}>Support</span>
-                    </button>
+                        style={({ isActive }) => ({
+                            background: isActive ? 'rgba(255,255,255,0.10)' : 'transparent',
+                            color: isActive ? '#FFFFFF' : T.sidebarText,
+                            fontWeight: isActive ? 700 : 500,
+                        })}>
+                        {({ isActive }) => (
+                            <>
+                                <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>contact_support</span>
+                                <span>Support</span>
+                            </>
+                        )}
+                    </NavLink>
                 </div>
             )}
 

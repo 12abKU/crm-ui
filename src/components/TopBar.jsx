@@ -265,20 +265,29 @@ export default function TopBar() {
             </div>
 
             <div className="flex items-center gap-1 ml-6">
-                {['notifications', 'help'].map((icon) => (
-                    <div key={icon} className="relative">
-                        <button className="p-2 rounded-full transition-colors"
-                            style={{ color: T.textMuted }}
-                            onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                            <span className="material-symbols-outlined text-[22px]">{icon}</span>
-                        </button>
-                        {icon === 'notifications' && (
-                            <span className="absolute top-2 right-2 w-2 h-2 rounded-full border-2"
-                                style={{ background: T.primary, borderColor: T.bg }} />
-                        )}
-                    </div>
-                ))}
+                {/* Notifications */}
+                <div className="relative">
+                    <button className="p-2 rounded-full transition-colors"
+                        style={{ color: T.textMuted }}
+                        onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                        <span className="material-symbols-outlined text-[22px]">notifications</span>
+                    </button>
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full border-2"
+                        style={{ background: T.primary, borderColor: T.bg }} />
+                </div>
+
+                {/* Help → Support page */}
+                <button
+                    onClick={() => navigate('/support')}
+                    className="p-2 rounded-full transition-colors"
+                    style={{ color: T.textMuted }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}
+                    title="Support">
+                    <span className="material-symbols-outlined text-[22px]">help</span>
+                </button>
+
                 <div className="w-px h-6 mx-3" style={{ background: T.border }} />
                 <UserMenu />
             </div>

@@ -74,25 +74,134 @@ const PALETTE = {
 
 
 // Theme 29: Canary & Charcoal (High Contrast Clean)
+// export const T = {
+//     bg: '#FAFAFA', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+//     surfaceHigh: '#EBEBEB', border: '#D6D6D6', borderSubtle: '#F2F2F2',
+//     textPrimary: '#1A1A1A', textSecondary: '#4D4D4D', textMuted: '#808080',
+//     textInverse: '#FFFFFF',
+//     primary: '#EAB308', primaryHover: '#CA8A04', primaryDim: 'rgba(234,179,8,0.15)',
+//     primaryFaint: 'rgba(234,179,8,0.07)', primaryText: '#CA8A04',
+//     secondary: '#1A1A1A', secondaryDim: 'rgba(26,26,26,0.12)',
+//     secondaryFaint: 'rgba(26,26,26,0.06)', secondaryText: '#1A1A1A',
+//     tertiary: '#737373', tertiaryDim: 'rgba(115,115,115,0.12)',
+//     tertiaryFaint: 'rgba(115,115,115,0.06)', tertiaryText: '#737373',
+//     neutral: '#404040', neutralDim: 'rgba(64,64,64,0.12)', neutralText: '#404040',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#EAB308', warningDim: 'rgba(234,179,8,0.12)',
+//     sidebar: '#1A1A1A', sidebarRaised: '#262626', sidebarHover: 'rgba(255,255,255,0.05)',
+//     sidebarBorder: 'rgba(255,255,255,0.07)', sidebarText: '#A3A3A3',
+//     sidebarTextHover: '#FFFFFF', sidebarActive: '#EAB308',
+// }
+
+// ── ACTIVE THEME: Indigo & Slate (Modern Professional) ───────────────────────────────
 export const T = {
-    bg: '#FAFAFA', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
-    surfaceHigh: '#EBEBEB', border: '#D6D6D6', borderSubtle: '#F2F2F2',
-    textPrimary: '#1A1A1A', textSecondary: '#4D4D4D', textMuted: '#808080',
+    bg: '#EFF6FF', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+    surfaceHigh: '#DBEAFE', border: '#BFDBFE', borderSubtle: '#DBEAFE',
+    textPrimary: '#0A1628', textSecondary: '#1E3A8A', textMuted: '#2563EB',
     textInverse: '#FFFFFF',
-    primary: '#EAB308', primaryHover: '#CA8A04', primaryDim: 'rgba(234,179,8,0.15)',
-    primaryFaint: 'rgba(234,179,8,0.07)', primaryText: '#CA8A04',
-    secondary: '#1A1A1A', secondaryDim: 'rgba(26,26,26,0.12)',
-    secondaryFaint: 'rgba(26,26,26,0.06)', secondaryText: '#1A1A1A',
-    tertiary: '#737373', tertiaryDim: 'rgba(115,115,115,0.12)',
-    tertiaryFaint: 'rgba(115,115,115,0.06)', tertiaryText: '#737373',
-    neutral: '#404040', neutralDim: 'rgba(64,64,64,0.12)', neutralText: '#404040',
+    primary: '#2563EB', primaryHover: '#1D4ED8', primaryDim: 'rgba(37,99,235,0.15)',
+    primaryFaint: 'rgba(37,99,235,0.07)', primaryText: '#1D4ED8',
+    secondary: '#0A1628', secondaryDim: 'rgba(10,22,40,0.10)',
+    secondaryFaint: 'rgba(10,22,40,0.05)', secondaryText: '#0A1628',
+    tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
+    tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
+    neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
-    warning: '#EAB308', warningDim: 'rgba(234,179,8,0.12)',
-    sidebar: '#1A1A1A', sidebarRaised: '#262626', sidebarHover: 'rgba(255,255,255,0.05)',
-    sidebarBorder: 'rgba(255,255,255,0.07)', sidebarText: '#A3A3A3',
-    sidebarTextHover: '#FFFFFF', sidebarActive: '#EAB308',
+    warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+    sidebar: '#0A1628', sidebarRaised: '#112240', sidebarHover: 'rgba(147,197,253,0.08)',
+    sidebarBorder: 'rgba(147,197,253,0.10)', sidebarText: '#93C5FD',
+    sidebarTextHover: '#DBEAFE', sidebarActive: '#3B82F6',
 }
+
+// Theme 7: Graphite & Sky
+// export const T = {
+//     bg: '#F8FAFC', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+//     surfaceHigh: '#F1F5F9', border: '#CBD5E1', borderSubtle: '#E2E8F0',
+//     textPrimary: '#0F172A', textSecondary: '#334155', textMuted: '#64748B',
+//     textInverse: '#FFFFFF',
+//     primary: '#0EA5E9', primaryHover: '#0284C7', primaryDim: 'rgba(14,165,233,0.15)',
+//     primaryFaint: 'rgba(14,165,233,0.07)', primaryText: '#0284C7',
+//     secondary: '#1B1D24', secondaryDim: 'rgba(27,29,36,0.10)',
+//     secondaryFaint: 'rgba(27,29,36,0.05)', secondaryText: '#1B1D24',
+//     tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
+//     tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
+//     neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+//     sidebar: '#1B1D24', sidebarRaised: '#272A35', sidebarHover: 'rgba(125,211,252,0.08)',
+//     sidebarBorder: 'rgba(125,211,252,0.10)', sidebarText: '#7DD3FC',
+//     sidebarTextHover: '#E0F2FE', sidebarActive: '#38BDF8',
+// }
+
+// Theme 10: Steel & Tangerine
+// export const T = {
+//     bg: '#FFF7ED', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+//     surfaceHigh: '#FFEDD5', border: '#FED7AA', borderSubtle: '#FFEDD5',
+//     textPrimary: '#0C0A08', textSecondary: '#7C2D12', textMuted: '#EA580C',
+//     textInverse: '#FFFFFF',
+//     primary: '#EA580C', primaryHover: '#C2410C', primaryDim: 'rgba(234,88,12,0.15)',
+//     primaryFaint: 'rgba(234,88,12,0.07)', primaryText: '#C2410C',
+//     secondary: '#1A1E2A', secondaryDim: 'rgba(26,30,42,0.10)',
+//     secondaryFaint: 'rgba(26,30,42,0.05)', secondaryText: '#1A1E2A',
+//     tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
+//     tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
+//     neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+//     sidebar: '#1A1E2A', sidebarRaised: '#272D3F', sidebarHover: 'rgba(253,186,116,0.08)',
+//     sidebarBorder: 'rgba(253,186,116,0.10)', sidebarText: '#FDBA74',
+//     sidebarTextHover: '#FFEDD5', sidebarActive: '#FB923C',
+// }
+
+
+// Theme 11: Nordic Frost
+// export const T = {
+//     bg: '#F0FDFF', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+//     surfaceHigh: '#CFFAFE', border: '#A5F3FC', borderSubtle: '#CFFAFE',
+//     textPrimary: '#083344', textSecondary: '#164E63', textMuted: '#06B6D4',
+//     textInverse: '#FFFFFF',
+//     primary: '#06B6D4', primaryHover: '#0891B2', primaryDim: 'rgba(6,182,212,0.15)',
+//     primaryFaint: 'rgba(6,182,212,0.07)', primaryText: '#0891B2',
+//     secondary: '#1C2B3A', secondaryDim: 'rgba(28,43,58,0.10)',
+//     secondaryFaint: 'rgba(28,43,58,0.05)', secondaryText: '#1C2B3A',
+//     tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
+//     tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
+//     neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+//     sidebar: '#1C2B3A', sidebarRaised: '#2A3F52', sidebarHover: 'rgba(165,243,252,0.08)',
+//     sidebarBorder: 'rgba(165,243,252,0.10)', sidebarText: '#A5F3FC',
+//     sidebarTextHover: '#CFFAFE', sidebarActive: '#67E8F9',
+// }
+
+
+// Theme 14: Obsidian & Gold
+// export const T = {
+//     bg: '#FFFDF5', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+//     surfaceHigh: '#FEF9C3', border: '#FDE68A', borderSubtle: '#FEF9C3',
+//     textPrimary: '#0A0A0A', textSecondary: '#4A3700', textMuted: '#A16207',
+//     textInverse: '#FFFFFF',
+//     primary: '#F59E0B', primaryHover: '#D97706', primaryDim: 'rgba(245,158,11,0.15)',
+//     primaryFaint: 'rgba(245,158,11,0.07)', primaryText: '#D97706',
+//     secondary: '#0F0F0F', secondaryDim: 'rgba(15,15,15,0.10)',
+//     secondaryFaint: 'rgba(15,15,15,0.05)', secondaryText: '#0F0F0F',
+//     tertiary: '#78716C', tertiaryDim: 'rgba(120,113,108,0.12)',
+//     tertiaryFaint: 'rgba(120,113,108,0.06)', tertiaryText: '#78716C',
+//     neutral: '#44403C', neutralDim: 'rgba(68,64,60,0.12)', neutralText: '#44403C',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+//     sidebar: '#0F0F0F', sidebarRaised: '#1A1A1A', sidebarHover: 'rgba(252,211,77,0.08)',
+//     sidebarBorder: 'rgba(252,211,77,0.10)', sidebarText: '#FCD34D',
+//     sidebarTextHover: '#FEF9C3', sidebarActive: '#FBBF24',
+// }
+
+
 
 
 // ── Typography ──────────────────────────────────────────────
