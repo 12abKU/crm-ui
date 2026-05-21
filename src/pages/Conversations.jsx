@@ -183,9 +183,18 @@ export default function Conversations() {
                                     {selectedContact.firstName.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-black" style={{ color: T.textPrimary }}>
-                                        {selectedContact.firstName} {selectedContact.lastName}
-                                    </p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-sm font-black" style={{ color: T.textPrimary }}>
+                                            {selectedContact.firstName} {selectedContact.lastName}
+                                        </p>
+                                        {selectedContact.account?.name && (
+                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                style={{ background: T.surfaceHigh, color: T.textMuted, border: `1px solid ${T.borderSubtle}` }}>
+                                                <span className="material-symbols-outlined text-[11px]">business</span>
+                                                {selectedContact.account.name}
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-[12px]" style={{ color: T.textMuted }}>
                                         {selectedContact.email || 'No email address'}
                                     </p>

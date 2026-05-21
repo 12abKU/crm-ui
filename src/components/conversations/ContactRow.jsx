@@ -20,6 +20,13 @@ export default function ContactRow({ contact, selected, onClick, emailCount }) {
             <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>{name}</p>
                 <p className="text-[11px] truncate" style={{ color: T.textMuted }}>{contact.email || 'No email'}</p>
+                {contact.account?.name && (
+                    <p className="text-[10px] truncate mt-0.5 flex items-center gap-0.5" style={{ color: T.textMuted, opacity: 0.7 }}>
+                        <span className="material-symbols-outlined text-[9px]">business</span>
+                        {contact.account.name}
+                    </p>
+                )}
+
             </div>
             {emailCount != null && (
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
