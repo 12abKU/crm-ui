@@ -1,6 +1,6 @@
-﻿import {
+import {
     IconBuilding, IconCircleCheck, IconBan, IconUsers,
-    IconClock, IconBook, IconCurrencyRupee,
+    IconClock, IconBook, IconCurrencyRupee, IconAddressBook,
 } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 
@@ -14,19 +14,54 @@ export default function PlatformStatsGrid({ stats }) {
         { icon: <IconBan size={18} />, label: 'Suspended', value: stats.suspendedCompanies, accent: '#DC2626' },
         { icon: <IconUsers size={18} />, label: 'Total Users', value: stats.totalUsers, accent: T.superAdminColor },
         { icon: <IconBuilding size={18} />, label: 'Total Accounts', value: stats.totalAccounts ?? 0, accent: '#0891b2' },
-        { icon: <IconBook size={18} />, label: 'Total Contacts', value: stats.totalContacts ?? 0, accent: '#16a34a' },
+        { icon: <IconAddressBook size={18} />, label: 'Total Contacts', value: stats.totalContacts ?? 0, accent: '#16a34a' },
         { icon: <IconCurrencyRupee size={18} />, label: 'Total Deals', value: stats.totalDeals ?? 0, accent: T.superAdminColor },
     ]
 
     return (
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
             {cards.map(({ icon, label, value, accent }) => (
-                <div key={label} className="rounded-2xl p-5"
-                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                        style={{ background: accent + '18', color: accent }}>{icon}</div>
-                    <p className="text-2xl font-black" style={{ color: T.textPrimary }}>{value ?? '—'}</p>
-                    <p className="text-[11px] font-semibold mt-0.5" style={{ color: T.textMuted }}>{label}</p>
+                <div key={label}
+                    style={{
+                        background: T.surface,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: 18,
+                        padding: '18px 20px',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        transition: 'transform 0.15s, box-shadow 0.15s',
+                        cursor: 'default',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-2px)'
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.09)'
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'none'
+                        e.currentTarget.style.boxShadow = 'none'
+                    }}
+                >
+                    {/* Accent bar on left edge */}
+                    <div style={{
+                        position: 'absolute', left: 0, top: '20%', bottom: '20%',
+                        width: 3, borderRadius: '0 3px 3px 0',
+                        background: accent,
+                    }} />
+
+                    <div style={{
+                        width: 36, height: 36, borderRadius: 12,
+                        background: accent + '18', color: accent,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: 12,
+                    }}>
+                        {icon}
+                    </div>
+                    <p style={{ fontSize: 26, fontWeight: 900, color: T.textPrimary, margin: 0, lineHeight: 1, letterSpacing: '-0.02em' }}>
+                        {value ?? '—'}
+                    </p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: T.textMuted, margin: '5px 0 0', letterSpacing: '0.02em' }}>
+                        {label}
+                    </p>
                 </div>
             ))}
         </div>

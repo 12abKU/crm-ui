@@ -1,5 +1,6 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import UserMenu from './UserMenu'
 import api from '../api'
@@ -55,6 +56,8 @@ function SectionLabel({ label, count }) {
 
 export default function TopBar() {
     const navigate = useNavigate()
+    const { role } = useSelector(state => state.auth)
+    const isSuperAdmin = role === 'SUPER_ADMIN'
     const [query, setQuery] = useState('')
     // ── State (unchanged) ─────────────────────────────────────
     const [results, setResults] = useState({ accounts: [], contacts: [], deals: [], activities: [] })
@@ -118,7 +121,8 @@ export default function TopBar() {
                 backdropFilter: 'blur(8px)',
             }}>
 
-            {/* ── Search bar ────────────────────────────── */}
+            {/* ── Search bar — hidden for SUPER_ADMIN ─────── */}
+            {!isSuperAdmin && (
             <div className="relative w-full max-w-lg" ref={ref}>
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px]"
                     style={{ color: open ? T.primary : T.textMuted }}>search</span>
@@ -270,34 +274,40 @@ export default function TopBar() {
                     </div>
                 )}
             </div>
+            )}
 
             {/* ── Right actions ─────────────────────────── */}
-            <div className="flex items-center gap-1 ml-6 shrink-0">
-                {/* Notifications */}
-                <div className="relative">
-                    <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
-                        style={{ color: T.textMuted }}
-                        onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                        <span className="material-symbols-outlined text-[20px]">notifications</span>
-                    </button>
-                    {/* Dot badge */}
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
-                        style={{ background: T.primary, borderColor: T.avatarBorderColor }} />
-                </div>
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+                {/* Notifications & Support — hidden for SUPER_ADMIN */}
+                {!isSuperAdmin && (
+                    <>
+                        {/* Notifications */}
+                        <div className="relative">
+                            <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
+                                style={{ color: T.textMuted }}
+                                onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                <span className="material-symbols-outlined text-[20px]">notifications</span>
+                            </button>
+                            {/* Dot badge */}
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
+                                style={{ background: T.primary, borderColor: T.avatarBorderColor }} />
+                        </div>
 
-                {/* Help / Support */}
-                <button onClick={() => navigate('/support')}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
-                    style={{ color: T.textMuted }}
-                    onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}
-                    title="Support">
-                    <span className="material-symbols-outlined text-[20px]">help</span>
-                </button>
+                        {/* Help / Support */}
+                        <button onClick={() => navigate('/support')}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
+                            style={{ color: T.textMuted }}
+                            onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}
+                            title="Support">
+                            <span className="material-symbols-outlined text-[20px]">help</span>
+                        </button>
 
-                {/* Divider */}
-                <div className="w-px h-6 mx-2" style={{ background: T.border }} />
+                        {/* Divider */}
+                        <div className="w-px h-6 mx-2" style={{ background: T.border }} />
+                    </>
+                )}
 
                 {/* User menu */}
                 <UserMenu />

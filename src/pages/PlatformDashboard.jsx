@@ -1,53 +1,75 @@
-﻿import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
-import { IconPlus } from '@tabler/icons-react'
+import { IconPlus, IconBuilding, IconUsers, IconCircleCheck, IconClock, IconBan, IconAddressBook, IconCurrencyRupee, IconArrowUpRight } from '@tabler/icons-react'
 import CompanyDetail from '../components/platform/CompanyDetail'
 import CompaniesTable from '../components/platform/CompaniesTable'
 import ExpiringTrialsBanner from '../components/platform/ExpiringTrialsBanner'
-import PlatformStatsGrid from '../components/platform/PlatformStatsGrid'
 import { AddCompanyModal } from '../components/platform/CompanyModals'
+
+// ── Dot grid SVG background ─────────────────────────────────────────────────
+const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.07)'/%3E%3C/svg%3E")`
+
+// ── Stat card for hero ──────────────────────────────────────────────────────
+function HeroStat({ icon, value, label, accent, delay = 0 }) {
+    return (
+        <div style={{
+            flex: 1, padding: '20px 18px',
+            background: 'rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 18,
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 12,
+            transition: 'transform 0.2s, background 0.2s',
+            cursor: 'default',
+            animation: `fadeSlideUp 0.5s ease ${delay}s both`,
+        }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; e.currentTarget.style.transform = 'translateY(-3px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'none' }}
+        >
+            <div style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: accent + '28', border: `1px solid ${accent}40`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent,
+            }}>{icon}</div>
+            <div>
+                <p style={{ fontSize: 28, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1, letterSpacing: '-0.03em' }}>{value ?? '—'}</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.50)', margin: '5px 0 0', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{label}</p>
+            </div>
+        </div>
+    )
+}
 
 export default function PlatformDashboard() {
     const navigate = useNavigate()
+    const { name } = useSelector(state => state.auth)
 
-    // ── Global data ──────────────────────────────────────────────────────────
+    // ── State (all functionality unchanged) ──────────────────────────────────
     const [stats, setStats] = useState(null)
     const [companies, setCompanies] = useState([])
     const [expiringTrials, setExpiringTrials] = useState([])
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(null)
-
-    // ── Company detail ───────────────────────────────────────────────────────
     const [selectedCompany, setSelectedCompany] = useState(null)
     const [companyUsers, setCompanyUsers] = useState([])
     const [companyStats, setCompanyStats] = useState(null)
     const [usersLoading, setUsersLoading] = useState(false)
-
-    // ── Notes ────────────────────────────────────────────────────────────────
     const [notes, setNotes] = useState('')
     const [notesSaving, setNotesSaving] = useState(false)
     const [notesSaved, setNotesSaved] = useState(false)
     const notesTimer = useRef(null)
-
-    // ── Impersonate ──────────────────────────────────────────────────────────
     const [impersonating, setImpersonating] = useState(null)
-
-    // ── List filters ─────────────────────────────────────────────────────────
     const [searchQ, setSearchQ] = useState('')
     const [filterStatus, setFilterStatus] = useState('ALL')
     const [filterPlan, setFilterPlan] = useState('ALL')
-
-    // ── Modal state ──────────────────────────────────────────────────────────
     const [showAddUser, setShowAddUser] = useState(false)
     const [showResetPw, setShowResetPw] = useState(null)
     const [showAddCompany, setShowAddCompany] = useState(false)
     const [showTrialModal, setShowTrialModal] = useState(false)
     const [showDeleteCompany, setShowDeleteCompany] = useState(false)
-
-    // ── Form state ───────────────────────────────────────────────────────────
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT' })
     const [newPw, setNewPw] = useState('')
     const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
@@ -57,7 +79,7 @@ export default function PlatformDashboard() {
     const [formSaving, setFormSaving] = useState(false)
     const [formError, setFormError] = useState('')
 
-    // ── Data loaders ─────────────────────────────────────────────────────────
+    // ── Data loaders (unchanged) ─────────────────────────────────────────────
     const loadData = async () => {
         setLoading(true)
         try {
@@ -97,11 +119,9 @@ export default function PlatformDashboard() {
         return matchQ && matchStatus && matchPlan
     }), [companies, searchQ, filterStatus, filterPlan])
 
-    // ── Actions ──────────────────────────────────────────────────────────────
+    // ── Actions (unchanged) ──────────────────────────────────────────────────
     const handleNotesChange = (val) => {
-        setNotes(val)
-        setNotesSaved(false)
-        clearTimeout(notesTimer.current)
+        setNotes(val); setNotesSaved(false); clearTimeout(notesTimer.current)
         notesTimer.current = setTimeout(async () => {
             setNotesSaving(true)
             try {
@@ -118,21 +138,11 @@ export default function PlatformDashboard() {
         try {
             const r = await api.post(`/api/platform/companies/${selectedCompany.id}/impersonate/${user.id}`)
             const data = r.data
-            const payload = JSON.stringify({
-                token: data.token,
-                name: data.name,
-                role: data.role,
-                userId: String(data.userId),
-                email: data.email,
-                companyId: String(data.companyId),
-                companyName: data.companyName,
-                permissions: data.permissions ? JSON.parse(data.permissions) : [],
-            })
+            const payload = JSON.stringify({ token: data.token, name: data.name, role: data.role, userId: String(data.userId), email: data.email, companyId: String(data.companyId), companyName: data.companyName, permissions: data.permissions ? JSON.parse(data.permissions) : [] })
             sessionStorage.setItem('crm_impersonate', payload)
             window.open('/', '_blank')
-        } catch (e) {
-            alert(e?.response?.data?.message || 'Failed to impersonate user')
-        } finally { setImpersonating(null) }
+        } catch (e) { alert(e?.response?.data?.message || 'Failed to impersonate user') }
+        finally { setImpersonating(null) }
     }
 
     const updateStatus = async (id, status) => {
@@ -176,9 +186,8 @@ export default function PlatformDashboard() {
             api.get('/api/platform/stats').then(r => setStats(r.data))
             api.get('/api/platform/companies/expiring-trials?days=7').then(r => setExpiringTrials(r.data ?? []))
             setShowTrialModal(false)
-        } catch (e) {
-            setFormError(e?.response?.data?.message || 'Failed')
-        } finally { setFormSaving(false) }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed') }
+        finally { setFormSaving(false) }
     }
 
     const changeUserRole = async (userId, role) => {
@@ -210,9 +219,8 @@ export default function PlatformDashboard() {
             if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users + 1 }))
             setShowAddUser(false)
             setNewUser({ name: '', email: '', password: '', role: 'AGENT' })
-        } catch (e) {
-            setFormError(e?.response?.data?.message || 'Failed to create user')
-        } finally { setFormSaving(false) }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed to create user') }
+        finally { setFormSaving(false) }
     }
 
     const submitResetPw = async () => {
@@ -221,9 +229,8 @@ export default function PlatformDashboard() {
         try {
             await api.patch(`/api/platform/users/${showResetPw.id}/reset-password`, { password: newPw })
             setShowResetPw(null); setNewPw('')
-        } catch (e) {
-            setFormError(e?.response?.data?.message || 'Failed')
-        } finally { setFormSaving(false) }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed') }
+        finally { setFormSaving(false) }
     }
 
     const submitAddCompany = async () => {
@@ -235,9 +242,8 @@ export default function PlatformDashboard() {
             await loadData()
             setShowAddCompany(false)
             setNewCompany({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
-        } catch (e) {
-            setFormError(e?.response?.data?.message || 'Failed')
-        } finally { setFormSaving(false) }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed') }
+        finally { setFormSaving(false) }
     }
 
     const submitDeleteCompany = async () => {
@@ -247,9 +253,8 @@ export default function PlatformDashboard() {
             setSelectedCompany(null)
             await loadData()
             setShowDeleteCompany(false)
-        } catch (e) {
-            setFormError(e?.response?.data?.message || 'Failed to delete')
-        } finally { setFormSaving(false) }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed to delete') }
+        finally { setFormSaving(false) }
     }
 
     // ── Company detail view ──────────────────────────────────────────────────
@@ -286,35 +291,152 @@ export default function PlatformDashboard() {
         )
     }
 
-    // ── Companies list view ──────────────────────────────────────────────────
-    return (
-        <div>
-            <TopBar />
-            <main className="p-8 max-w-6xl mx-auto">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-black" style={{ color: T.textPrimary }}>Platform Dashboard</h1>
-                        <p className="text-sm mt-1" style={{ color: T.textMuted }}>Manage all companies and subscriptions</p>
-                    </div>
-                    <button onClick={() => { setFormError(''); setShowAddCompany(true) }}
-                        className="flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl"
-                        style={{ background: T.primary, color: '#fff' }}>
-                        <IconPlus size={15} /> New Company
-                    </button>
-                </div>
+    const initial = (name || 'P').charAt(0).toUpperCase()
 
+    return (
+        <div style={{ background: T.bg, minHeight: '100vh' }}>
+            <style>{`
+                @keyframes fadeSlideUp {
+                    from { opacity: 0; transform: translateY(14px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes pulseRing {
+                    0%, 100% { opacity: 0.6; transform: scale(1); }
+                    50%      { opacity: 1;   transform: scale(1.06); }
+                }
+            `}</style>
+            <TopBar />
+
+            {/* ════════════════════════════════════════════════════
+                HERO — tall, rich, layered
+            ════════════════════════════════════════════════════ */}
+            <div style={{
+                background: `linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
+                backgroundImage: `${DOT_GRID}, linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
+                position: 'relative', overflow: 'hidden', paddingBottom: 40,
+            }}>
+                {/* Glow orbs */}
+                <div style={{ position: 'absolute', top: -80, right: -80, width: 340, height: 340, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(80px)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: -60, left: '25%', width: 240, height: 240, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(60px)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: 40, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', filter: 'blur(40px)', pointerEvents: 'none' }} />
+
+                <div style={{ maxWidth: 1120, margin: '0 auto', padding: '44px 36px 0', position: 'relative', zIndex: 1 }}>
+
+                    {/* ── Top row: identity + button ─────────────── */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 40 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+                            {/* Avatar with pulse ring */}
+                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                                <div style={{
+                                    position: 'absolute', inset: -6, borderRadius: '50%',
+                                    border: `2px solid ${T.avatarGlow}`,
+                                    animation: 'pulseRing 3s ease-in-out infinite',
+                                }} />
+                                <div style={{
+                                    width: 72, height: 72, borderRadius: '50%',
+                                    background: `linear-gradient(135deg, ${T.avatarGradFrom}, ${T.avatarGradTo})`,
+                                    boxShadow: `0 0 32px ${T.avatarGlow}`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 30, fontWeight: 900, color: '#fff',
+                                }}>
+                                    {initial}
+                                </div>
+                            </div>
+
+                            <div>
+                                {/* Role badge */}
+                                <div style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                                    background: T.heroBadgeBg,
+                                    border: `1px solid ${T.heroBadgeBorder}`,
+                                    borderRadius: 999, padding: '4px 12px', marginBottom: 10,
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 12, color: T.heroBadgeText }}>shield_person</span>
+                                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', color: T.heroBadgeText, textTransform: 'uppercase' }}>
+                                        Super Admin · Platform Control
+                                    </span>
+                                </div>
+                                <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                                    Platform Dashboard
+                                </h1>
+                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.50)', margin: '8px 0 0', fontWeight: 500 }}>
+                                    Manage all companies, subscriptions & platform health
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* CTA */}
+                        <button
+                            onClick={() => { setFormError(''); setShowAddCompany(true) }}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+                                background: T.primary, color: '#fff', border: 'none',
+                                borderRadius: 14, padding: '12px 22px',
+                                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                boxShadow: `0 6px 24px ${T.avatarGlow}`,
+                                transition: 'transform 0.18s, box-shadow 0.18s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${T.avatarGlow}` }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 24px ${T.avatarGlow}` }}
+                        >
+                            <IconPlus size={16} strokeWidth={2.5} />
+                            New Company
+                        </button>
+                    </div>
+
+                    {/* ── Stat cards row ─────────────────────────── */}
+                    {stats && (
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            <HeroStat icon={<IconBuilding size={16} />} value={stats.totalCompanies} label="Companies" accent="#60A5FA" delay={0} />
+                            <HeroStat icon={<IconCircleCheck size={16} />} value={stats.activeCompanies} label="Active" accent="#4ADE80" delay={0.06} />
+                            <HeroStat icon={<IconClock size={16} />} value={stats.trialCompanies ?? 0} label="On Trial" accent="#FBBF24" delay={0.12} />
+                            <HeroStat icon={<IconBan size={16} />} value={stats.suspendedCompanies} label="Suspended" accent="#F87171" delay={0.18} />
+                            <HeroStat icon={<IconUsers size={16} />} value={stats.totalUsers} label="Users" accent={T.superAdminLight ?? '#A78BFA'} delay={0.24} />
+                            <HeroStat icon={<IconAddressBook size={16} />} value={stats.totalContacts ?? 0} label="Contacts" accent="#34D399" delay={0.30} />
+                            <HeroStat icon={<IconCurrencyRupee size={16} />} value={stats.totalDeals ?? 0} label="Deals" accent="#F472B6" delay={0.36} />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ════════════════════════════════════════════════════
+                MAIN CONTENT
+            ════════════════════════════════════════════════════ */}
+            <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 36px 60px' }}>
+
+                {/* Expiring trials banner */}
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 
-                <PlatformStatsGrid stats={stats} />
+                {/* Section header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 4, height: 22, borderRadius: 4, background: T.primary }} />
+                        <h2 style={{ fontSize: 16, fontWeight: 800, color: T.textPrimary, margin: 0 }}>All Companies</h2>
+                        {!loading && (
+                            <span style={{
+                                fontSize: 11, fontWeight: 700, padding: '2px 10px',
+                                borderRadius: 999, background: T.primaryDim, color: T.primary,
+                            }}>{filteredCompanies.length}</span>
+                        )}
+                    </div>
+                </div>
 
-                <CompaniesTable
-                    companies={companies} filteredCompanies={filteredCompanies}
-                    loading={loading}
-                    searchQ={searchQ} setSearchQ={setSearchQ}
-                    filterStatus={filterStatus} setFilterStatus={setFilterStatus}
-                    filterPlan={filterPlan} setFilterPlan={setFilterPlan}
-                    onManage={loadCompanyDetail}
-                />
+                {/* Companies table */}
+                <div style={{
+                    background: T.surface, borderRadius: 20,
+                    border: `1px solid ${T.border}`,
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
+                    overflow: 'hidden',
+                }}>
+                    <CompaniesTable
+                        companies={companies} filteredCompanies={filteredCompanies}
+                        loading={loading}
+                        searchQ={searchQ} setSearchQ={setSearchQ}
+                        filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+                        filterPlan={filterPlan} setFilterPlan={setFilterPlan}
+                        onManage={loadCompanyDetail}
+                    />
+                </div>
             </main>
 
             {showAddCompany && (

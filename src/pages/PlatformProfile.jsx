@@ -1,10 +1,46 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api, { extractApiErrorMessage } from '../api'
 import { signOut, updateProfileSession } from '../store/authSlice'
+
+// ── Dot grid SVG ────────────────────────────────────────────────────────────
+const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E")`
+
+// ── Styled input wrapper ─────────────────────────────────────────────────────
+function FormField({ label, children }) {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <label style={{
+                fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                letterSpacing: '0.09em', color: T.textMuted,
+            }}>{label}</label>
+            {children}
+        </div>
+    )
+}
+
+// ── Status banner ────────────────────────────────────────────────────────────
+function StatusBanner({ status }) {
+    if (!status) return null
+    const ok = status.type === 'success'
+    return (
+        <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '12px 16px', borderRadius: 12, marginBottom: 22,
+            background: ok ? T.successDim : T.errorDim,
+            border: `1px solid ${ok ? T.success + '35' : T.error + '35'}`,
+            color: ok ? T.success : T.error, fontSize: 13, fontWeight: 600,
+        }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
+                {ok ? 'check_circle' : 'error'}
+            </span>
+            {status.msg}
+        </div>
+    )
+}
 
 export default function PlatformProfile() {
     const navigate = useNavigate()
@@ -13,14 +49,10 @@ export default function PlatformProfile() {
 
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
-
-    // profile form
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [profileSaving, setProfileSaving] = useState(false)
     const [profileStatus, setProfileStatus] = useState(null)
-
-    // password form
     const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' })
     const [pwSaving, setPwSaving] = useState(false)
     const [pwStatus, setPwStatus] = useState(null)
@@ -28,18 +60,12 @@ export default function PlatformProfile() {
 
     useEffect(() => {
         api.get('/api/user/profile')
-            .then(r => {
-                setProfile(r.data)
-                setName(r.data.name)
-                setEmail(r.data.email)
-            })
+            .then(r => { setProfile(r.data); setName(r.data.name); setEmail(r.data.email) })
             .finally(() => setLoading(false))
     }, [])
 
     const saveProfile = async (e) => {
-        e.preventDefault()
-        setProfileSaving(true)
-        setProfileStatus(null)
+        e.preventDefault(); setProfileSaving(true); setProfileStatus(null)
         try {
             const r = await api.put('/api/user/profile/info', { name, email })
             dispatch(updateProfileSession({ name: r.data.name, email: r.data.email }))
@@ -47,198 +73,268 @@ export default function PlatformProfile() {
             setProfileStatus({ type: 'success', msg: 'Profile updated successfully' })
         } catch (err) {
             setProfileStatus({ type: 'error', msg: extractApiErrorMessage(err, 'Update failed') })
-        } finally {
-            setProfileSaving(false)
-        }
+        } finally { setProfileSaving(false) }
     }
 
     const savePw = async (e) => {
         e.preventDefault()
-        if (pwForm.newPassword !== pwForm.confirm) {
-            setPwStatus({ type: 'error', msg: 'New passwords do not match' })
-            return
-        }
-        if (pwForm.newPassword.length < 6) {
-            setPwStatus({ type: 'error', msg: 'Password must be at least 6 characters' })
-            return
-        }
-        setPwSaving(true)
-        setPwStatus(null)
+        if (pwForm.newPassword !== pwForm.confirm) { setPwStatus({ type: 'error', msg: 'New passwords do not match' }); return }
+        if (pwForm.newPassword.length < 6) { setPwStatus({ type: 'error', msg: 'Password must be at least 6 characters' }); return }
+        setPwSaving(true); setPwStatus(null)
         try {
-            await api.put('/api/user/profile', {
-                name, email,
-                currentPassword: pwForm.currentPassword,
-                newPassword: pwForm.newPassword,
-            })
+            await api.put('/api/user/profile', { name, email, currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword })
             setPwStatus({ type: 'success', msg: 'Password updated successfully' })
             setPwForm({ currentPassword: '', newPassword: '', confirm: '' })
         } catch (err) {
             setPwStatus({ type: 'error', msg: extractApiErrorMessage(err, 'Failed to update password') })
-        } finally {
-            setPwSaving(false)
-        }
+        } finally { setPwSaving(false) }
     }
 
     const togglePw = (key) => setShowPw(s => ({ ...s, [key]: !s[key] }))
 
     if (loading) return (
-        <div>
+        <div style={{ background: T.bg, minHeight: '100vh' }}>
             <TopBar />
-            <div className="flex items-center justify-center h-96">
-                <div className="w-8 h-8 rounded-full border-2 animate-spin"
-                    style={{ borderColor: T.primary, borderTopColor: 'transparent' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', border: `3px solid ${T.primary}`, borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
             </div>
         </div>
     )
 
+    const initial = (name || 'P').charAt(0).toUpperCase()
+
     return (
-        <div>
+        <div style={{ background: T.bg, minHeight: '100vh' }}>
+            <style>{`
+                @keyframes pulseRing {
+                    0%, 100% { opacity: 0.5; transform: scale(1); }
+                    50%      { opacity: 1;   transform: scale(1.08); }
+                }
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(12px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
             <TopBar />
-            <main className="p-8 max-w-2xl mx-auto">
 
-                {/* Page header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h2 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>
-                            Platform Admin Profile
-                        </h2>
-                        <p className="text-sm mt-1" style={{ color: T.textMuted }}>
-                            Manage your Super Admin account
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => { dispatch(signOut()); navigate('/login') }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-                        style={{ color: T.error, border: `1px solid ${T.errorDim}` }}
-                        onMouseEnter={e => e.currentTarget.style.background = T.errorDim}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <span className="material-symbols-outlined text-[16px]">logout</span>
-                        Sign out
-                    </button>
-                </div>
+            {/* ══════════════════════════════════════════════════
+                HERO — identity banner
+            ══════════════════════════════════════════════════ */}
+            <div style={{
+                background: `linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
+                backgroundImage: `${DOT_GRID}, linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
+                position: 'relative', overflow: 'hidden',
+            }}>
+                {/* Glow orbs */}
+                <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(70px)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: -40, left: '35%', width: 220, height: 220, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(55px)', pointerEvents: 'none' }} />
 
-                {/* Avatar card */}
-                <div className="rounded-2xl p-6 mb-6 flex items-center gap-5"
-                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black shrink-0"
-                        style={{ background: T.primary, color: '#fff' }}>
-                        {name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-black" style={{ color: T.textPrimary }}>{profile?.name}</h3>
-                        <p className="text-sm mt-0.5" style={{ color: T.textMuted }}>{profile?.email}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
-                                style={{ background: T.primaryDim, color: T.primaryText }}>
-                                <span className="material-symbols-outlined text-[12px]">shield_person</span>
-                                SUPER_ADMIN
-                            </span>
-                            <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                Platform Administrator
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 36px 44px', position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28 }}>
 
-                {/* Profile form */}
-                <div className="rounded-2xl p-6 mb-4"
-                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <h4 className="text-sm font-bold mb-5" style={{ color: T.textPrimary }}>Personal Information</h4>
-
-                    {profileStatus && (
-                        <div className="px-4 py-3 rounded-xl text-sm font-medium mb-4 flex items-center gap-2"
-                            style={{
-                                background: profileStatus.type === 'success' ? T.successDim : T.errorDim,
-                                color: profileStatus.type === 'success' ? T.success : T.error,
-                            }}>
-                            <span className="material-symbols-outlined text-[16px]">
-                                {profileStatus.type === 'success' ? 'check_circle' : 'error'}
-                            </span>
-                            {profileStatus.msg}
-                        </div>
-                    )}
-
-                    <form onSubmit={saveProfile} className="flex flex-col gap-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            {[
-                                { label: 'Full Name', value: name, setter: setName, type: 'text', placeholder: 'Your name' },
-                                { label: 'Email Address', value: email, setter: setEmail, type: 'email', placeholder: 'admin@platform.com' },
-                            ].map(({ label, value, setter, type, placeholder }) => (
-                                <div key={label} className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold uppercase tracking-widest"
-                                        style={{ color: T.textMuted }}>{label}</label>
-                                    <input className="crm-input" type={type} placeholder={placeholder}
-                                        value={value} onChange={e => setter(e.target.value)} />
+                        {/* Left: avatar + identity */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+                            {/* Avatar */}
+                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                                <div style={{
+                                    position: 'absolute', inset: -7, borderRadius: '50%',
+                                    border: `2px solid ${T.avatarGlow}`,
+                                    animation: 'pulseRing 3.5s ease-in-out infinite',
+                                }} />
+                                <div style={{
+                                    width: 80, height: 80, borderRadius: '50%',
+                                    background: `linear-gradient(135deg, ${T.avatarGradFrom}, ${T.avatarGradTo})`,
+                                    boxShadow: `0 0 40px ${T.avatarGlow}`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 34, fontWeight: 900, color: '#fff',
+                                }}>
+                                    {initial}
                                 </div>
-                            ))}
-                        </div>
-                        <div className="flex justify-end">
-                            <button type="submit" disabled={profileSaving} className="crm-btn-primary flex items-center gap-2">
-                                {profileSaving
-                                    ? <><div className="w-4 h-4 rounded-full border-2 animate-spin"
-                                        style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />Saving...</>
-                                    : <><span className="material-symbols-outlined text-[16px]">save</span>Save Changes</>
-                                }
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                                {/* Online indicator */}
+                                <div style={{
+                                    position: 'absolute', bottom: 3, right: 3,
+                                    width: 14, height: 14, borderRadius: '50%',
+                                    background: '#4ADE80',
+                                    border: `2px solid ${T.heroBgFrom}`,
+                                }} />
+                            </div>
 
-                {/* Password form */}
-                <div className="rounded-2xl p-6"
-                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <h4 className="text-sm font-bold mb-5" style={{ color: T.textPrimary }}>Change Password</h4>
-
-                    {pwStatus && (
-                        <div className="px-4 py-3 rounded-xl text-sm font-medium mb-4 flex items-center gap-2"
-                            style={{
-                                background: pwStatus.type === 'success' ? T.successDim : T.errorDim,
-                                color: pwStatus.type === 'success' ? T.success : T.error,
-                            }}>
-                            <span className="material-symbols-outlined text-[16px]">
-                                {pwStatus.type === 'success' ? 'check_circle' : 'error'}
-                            </span>
-                            {pwStatus.msg}
-                        </div>
-                    )}
-
-                    <form onSubmit={savePw} className="flex flex-col gap-4">
-                        {[
-                            { key: 'current', field: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
-                            { key: 'new', field: 'newPassword', label: 'New Password', placeholder: 'Min 6 characters' },
-                            { key: 'confirm', field: 'confirm', label: 'Confirm New Password', placeholder: 'Repeat new password' },
-                        ].map(({ key, field, label, placeholder }) => (
-                            <div key={key} className="flex flex-col gap-1.5">
-                                <label className="text-[11px] font-bold uppercase tracking-widest"
-                                    style={{ color: T.textMuted }}>{label}</label>
-                                <div className="relative">
-                                    <input
-                                        className="crm-input w-full"
-                                        type={showPw[key] ? 'text' : 'password'}
-                                        placeholder={placeholder}
-                                        style={{ paddingRight: 40 }}
-                                        value={pwForm[field]}
-                                        onChange={e => setPwForm(f => ({ ...f, [field]: e.target.value }))}
-                                        required
-                                    />
-                                    <button type="button" onClick={() => togglePw(key)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px]"
-                                        style={{ color: showPw[key] ? T.primary : T.textMuted }}>
-                                        {showPw[key] ? 'visibility' : 'visibility_off'}
-                                    </button>
+                            {/* Name + meta */}
+                            <div>
+                                {/* Badge */}
+                                <div style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                                    background: T.heroBadgeBg, border: `1px solid ${T.heroBadgeBorder}`,
+                                    borderRadius: 999, padding: '4px 12px', marginBottom: 10,
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 11, color: T.heroBadgeText }}>shield_person</span>
+                                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', color: T.heroBadgeText, textTransform: 'uppercase' }}>Super Admin</span>
+                                </div>
+                                <h1 style={{ fontSize: 30, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                                    {profile?.name}
+                                </h1>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)' }}>mail</span>
+                                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>{profile?.email}</span>
+                                    <span style={{ color: 'rgba(255,255,255,0.20)', fontSize: 12 }}>·</span>
+                                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.40)', fontWeight: 500 }}>Platform Administrator</span>
                                 </div>
                             </div>
-                        ))}
-                        <div className="flex justify-end">
-                            <button type="submit" disabled={pwSaving} className="crm-btn-primary flex items-center gap-2">
-                                {pwSaving
-                                    ? <><div className="w-4 h-4 rounded-full border-2 animate-spin"
-                                        style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />Updating...</>
-                                    : <><span className="material-symbols-outlined text-[16px]">lock</span>Update Password</>
-                                }
-                            </button>
                         </div>
-                    </form>
+
+                        {/* Right: sign out */}
+                        <button
+                            onClick={() => { dispatch(signOut()); navigate('/login') }}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+                                background: 'rgba(220,38,38,0.18)',
+                                border: '1px solid rgba(220,38,38,0.30)',
+                                color: '#FCA5A5', borderRadius: 13,
+                                padding: '10px 20px', fontSize: 13, fontWeight: 600,
+                                cursor: 'pointer', transition: 'background 0.15s, transform 0.15s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.28)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.18)'; e.currentTarget.style.transform = 'none' }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
+                            Sign out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════
+                FORMS — side by side layout
+            ══════════════════════════════════════════════════ */}
+            <main style={{ maxWidth: 900, margin: '0 auto', padding: '36px 36px 60px' }}>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+                    {/* ── Personal Info Card ─────────────────────── */}
+                    <div style={{
+                        background: T.surface, borderRadius: 22,
+                        border: `1px solid ${T.border}`,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                        overflow: 'hidden',
+                        animation: 'fadeUp 0.45s ease both',
+                    }}>
+                        {/* Card header strip */}
+                        <div style={{
+                            padding: '18px 24px 16px',
+                            borderBottom: `1px solid ${T.borderSubtle}`,
+                            background: T.surfaceRaised,
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: 11,
+                                    background: T.primaryDim, border: `1px solid ${T.border}`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.primary,
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 17 }}>person</span>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: 13, fontWeight: 800, color: T.textPrimary, margin: 0 }}>Personal Info</p>
+                                    <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>Update name & email</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            <StatusBanner status={profileStatus} />
+                            <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                <FormField label="Full Name">
+                                    <input className="crm-input" type="text" placeholder="Your name"
+                                        value={name} onChange={e => setName(e.target.value)} />
+                                </FormField>
+                                <FormField label="Email Address">
+                                    <input className="crm-input" type="email" placeholder="admin@platform.com"
+                                        value={email} onChange={e => setEmail(e.target.value)} />
+                                </FormField>
+                                <div style={{ paddingTop: 4 }}>
+                                    <button type="submit" disabled={profileSaving} className="crm-btn-primary"
+                                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                        {profileSaving
+                                            ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />Saving...</>
+                                            : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Save Changes</>
+                                        }
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* ── Change Password Card ──────────────────── */}
+                    <div style={{
+                        background: T.surface, borderRadius: 22,
+                        border: `1px solid ${T.border}`,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                        overflow: 'hidden',
+                        animation: 'fadeUp 0.55s ease both',
+                    }}>
+                        {/* Card header strip */}
+                        <div style={{
+                            padding: '18px 24px 16px',
+                            borderBottom: `1px solid ${T.borderSubtle}`,
+                            background: T.surfaceRaised,
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: 11,
+                                    background: T.primaryDim, border: `1px solid ${T.border}`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.primary,
+                                }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 17 }}>lock</span>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: 13, fontWeight: 800, color: T.textPrimary, margin: 0 }}>Change Password</p>
+                                    <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>Set a new secure password</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            <StatusBanner status={pwStatus} />
+                            <form onSubmit={savePw} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                {[
+                                    { key: 'current', field: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
+                                    { key: 'new', field: 'newPassword', label: 'New Password', placeholder: 'Minimum 6 characters' },
+                                    { key: 'confirm', field: 'confirm', label: 'Confirm New Password', placeholder: 'Repeat new password' },
+                                ].map(({ key, field, label, placeholder }) => (
+                                    <FormField key={key} label={label}>
+                                        <div style={{ position: 'relative' }}>
+                                            <input className="crm-input w-full"
+                                                type={showPw[key] ? 'text' : 'password'}
+                                                placeholder={placeholder}
+                                                style={{ paddingRight: 44, width: '100%' }}
+                                                value={pwForm[field]}
+                                                onChange={e => setPwForm(f => ({ ...f, [field]: e.target.value }))}
+                                                required
+                                            />
+                                            <button type="button" onClick={() => togglePw(key)}
+                                                className="material-symbols-outlined"
+                                                style={{
+                                                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                                                    fontSize: 17, background: 'none', border: 'none', cursor: 'pointer',
+                                                    color: showPw[key] ? T.primary : T.textMuted, transition: 'color 0.15s',
+                                                }}>
+                                                {showPw[key] ? 'visibility' : 'visibility_off'}
+                                            </button>
+                                        </div>
+                                    </FormField>
+                                ))}
+                                <div style={{ paddingTop: 4 }}>
+                                    <button type="submit" disabled={pwSaving} className="crm-btn-primary"
+                                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                                        {pwSaving
+                                            ? <><div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />Updating...</>
+                                            : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>lock</span>Update Password</>
+                                        }
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
             </main>
         </div>
