@@ -11,6 +11,7 @@ export default function UserMenu() {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
     const { name, role } = useSelector(state => state.auth)
+    const isSuperAdmin = role === 'SUPER_ADMIN'
 
     useEffect(() => {
         const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -23,10 +24,26 @@ export default function UserMenu() {
         navigate('/login')
     }
 
-    const menuItems = [
-        { icon: 'manage_accounts', label: 'My Profile', action: () => { navigate('/profile'); setOpen(false) } },
-        { icon: 'settings', label: 'Settings', action: () => { navigate('/settings'); setOpen(false) } },
-    ]
+    const menuItems = isSuperAdmin
+        ? [
+            {
+                icon: 'manage_accounts',
+                label: 'My Profile',
+                action: () => { navigate('/platform/profile'); setOpen(false) }
+            },
+        ]
+        : [
+            {
+                icon: 'manage_accounts',
+                label: 'My Profile',
+                action: () => { navigate('/profile'); setOpen(false) }
+            },
+            {
+                icon: 'settings',
+                label: 'Settings',
+                action: () => { navigate('/settings'); setOpen(false) }
+            },
+        ]
 
     return (
         <div className="relative" ref={ref}>

@@ -69,6 +69,21 @@ export default function Sidebar() {
                                 </>
                             )}
                         </NavLink>
+
+                        <NavLink to="/platform/profile"
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
+                            style={({ isActive }) => ({
+                                background: isActive ? 'rgba(255,255,255,0.10)' : 'transparent',
+                                color: isActive ? '#FFFFFF' : T.sidebarText,
+                                fontWeight: isActive ? 700 : 500,
+                            })}>
+                            {({ isActive }) => (
+                                <>
+                                    <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>manage_accounts</span>
+                                    <span className="flex-1">My Profile</span>
+                                </>
+                            )}
+                        </NavLink>
                     </>
                 ) : (
                     // ── CRM users (ADMIN / AGENT) see CRM nav ──
@@ -127,7 +142,7 @@ export default function Sidebar() {
 
             {/* User footer */}
             <button
-                onClick={() => navigate(isSuperAdmin ? '/platform' : '/settings')}
+                onClick={() => navigate(isSuperAdmin ? '/platform/profile' : '/settings')}
                 onMouseEnter={() => setUserHover(true)}
                 onMouseLeave={() => setUserHover(false)}
                 className="px-4 py-4 flex items-center gap-3 w-full text-left transition-colors"
@@ -144,7 +159,7 @@ export default function Sidebar() {
                 </div>
                 {userHover && (
                     <span className="material-symbols-outlined text-[15px]" style={{ color: T.sidebarText }}>
-                        {isSuperAdmin ? 'person' : 'settings'}
+                        {isSuperAdmin ? 'manage_accounts' : 'settings'}
                     </span>
                 )}
             </button>

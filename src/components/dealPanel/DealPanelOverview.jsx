@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { T, STAGE_LABELS, STAGE_STYLES, STAGES } from '../../constants/theme'
 import { useSelector } from 'react-redux'
 import api from '../../api'
@@ -8,6 +9,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
     const [stage, setStage] = useState(deal.stage)
     const [saving, setSaving] = useState(false)
     const [stageError, setStageError] = useState(null)
+    const navigate = useNavigate()
 
     const role = useSelector(state => state.auth.role)
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
@@ -36,13 +38,9 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
         }
     }
 
-    const baseFields = [
-        { label: 'Amount', value: deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—' },
-        { label: 'Expected Close', value: deal.expectedCloseDate || '—' },
-        { label: 'Account', value: deal.account?.name || '—' },
-        { label: 'Contact', value: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName}` : '—' },
-        { label: 'Created', value: deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '—' },
-    ]
+    const contactName = deal.contact
+        ? `${deal.contact.firstName} ${deal.contact.lastName}`
+        : '—'
 
     return (
         <div className="px-7 py-6">
@@ -105,18 +103,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 </div>
             )}
 
-            {/* Agent locked notice
-            {isAgent && !isAssignedToMe && (
-                <div className="mb-5 px-4 py-3 rounded-xl flex items-center gap-2"
-                    style={{ background: T.warningDim, border: `1px solid ${T.warning}` }}>
-                    <span className="material-symbols-outlined text-[16px]" style={{ color: T.warning }}>lock</span>
-                    <p className="text-[12px] font-semibold" style={{ color: T.warning }}>
-                        This deal is not assigned to you. You can view it but cannot make changes.
-                    </p>
-                </div>
-            )} */}
-
-            {/* Admin/SuperAdmin: Created by block */}
+            {/* Created by */}
             {isAdminOrAbove && deal.owner && (
                 <div className="mb-5 px-4 py-3 rounded-xl flex items-center gap-3"
                     style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
@@ -131,7 +118,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 </div>
             )}
 
-            {/* Assignees block */}
+            {/* Assignees */}
             <div className="mb-5 px-4 py-3 rounded-xl"
                 style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>
@@ -161,12 +148,48 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 Deal Details
             </p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                {baseFields.map(({ label, value }) => (
-                    <div key={label}>
-                        <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>{label}</p>
-                        <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{value}</p>
-                    </div>
-                ))}
+                <div>
+                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Amount</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                        {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—'}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Expected Close</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                        {deal.expectedCloseDate || '—'}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Account</p>
+                    {deal.account ? (
+                        <button onClick={() => navigate(`/accounts/${deal.account.id}`)}
+                            className="text-sm font-semibold hover:underline text-left"
+                            style={{ color: T.primary }}>
+                            {deal.account.name}
+                        </button>
+                    ) : (
+                        <p className="text-sm font-semibold" style={{ color: T.border }}>—</p>
+                    )}
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Contact</p>
+                    {deal.contact ? (
+                        <button onClick={() => navigate(`/contacts/${deal.contact.id}`)}
+                            className="text-sm font-semibold hover:underline text-left"
+                            style={{ color: T.primary }}>
+                            {contactName}
+                        </button>
+                    ) : (
+                        <p className="text-sm font-semibold" style={{ color: T.border }}>—</p>
+                    )}
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Created</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                        {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '—'}
+                    </p>
+                </div>
             </div>
         </div>
     )

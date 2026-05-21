@@ -22,6 +22,7 @@ import api from './api'
 import PlatformDashboard from './pages/PlatformDashboard'
 import ActivityProfile from './pages/ActivityProfile'
 import AgentProfile from './pages/AgentProfile'
+import PlatformProfile from './pages/PlatformProfile'
 
 
 function PermissionLoader() {
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
+        <Route path="/platform/profile" element={<PlatformLayout><PlatformProfile /></PlatformLayout>} />
 
         <Route path="/" element={<CrmLayout><Dashboard /></CrmLayout>} />
         <Route path="/accounts" element={<CrmLayout><Accounts /></CrmLayout>} />
