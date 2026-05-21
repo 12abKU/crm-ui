@@ -7,7 +7,6 @@ import SlideForm from '../components/SlideForm'
 import Pagination from '../components/Pagination'
 import SearchableSelect from '../components/SearchableSelect'
 import { Input, Select } from '../components/FormField'
-import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import ActivityRow from '../components/activities/ActivityRow'
@@ -16,18 +15,19 @@ import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
 import TodayFocus from '../components/activities/TodayFocus'
 import api from '../api'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-
+// ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
 const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', accountId: '', contactId: '', dealId: '' }
 const VIEW_MODES = [
-    { mode: 'table', icon: 'table_rows', label: 'All Activities' },
-    { mode: 'tasks', icon: 'checklist', label: 'My Tasks' },
-    { mode: 'timeline', icon: 'timeline', label: 'Timeline' },
+    { mode: 'table',    icon: 'table_rows', label: 'All Activities' },
+    { mode: 'tasks',    icon: 'checklist',  label: 'My Tasks' },
+    { mode: 'timeline', icon: 'timeline',   label: 'Timeline' },
 ]
 
 export default function Activities() {
+    // ── State (unchanged) ──────────────────────────────────────
     const [activities, setActivities] = useState([])
     const [accounts, setAccounts] = useState([])
     const [page, setPage] = useState(0)
@@ -50,11 +50,10 @@ export default function Activities() {
     const highlightId = new URLSearchParams(location.search).get('highlight')
     const initialLoad = useRef(true)
 
-
     const role = useSelector(state => state.auth.role)
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
-
+    // ── Data handlers (all unchanged) ─────────────────────────
     const loadAllTasks = useCallback(async () => {
         const r = await api.get('/api/activities/my-tasks')
         setAllTasks(r.data ?? [])
@@ -104,8 +103,8 @@ export default function Activities() {
             }
             const r = await api.get(url)
             setActivities(r.data.content ?? [])
-            setTotalPages(r.data.totalPages ?? 0)        // ← guard
-            setTotalElements(r.data.totalElements ?? 0)  // ← guard
+            setTotalPages(r.data.totalPages ?? 0)
+            setTotalElements(r.data.totalElements ?? 0)
         } finally {
             setLoading(false)
             setLoadCount(c => c + 1)
@@ -114,9 +113,7 @@ export default function Activities() {
 
     useEffect(() => {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadAllTasks()
-
         if (highlightId) {
             api.get(`/api/activities/position/${highlightId}?size=${PAGE_SIZE}`)
                 .then(r => { const p = r.data.page ?? 0; setPage(p); loadPage(p, '') })
@@ -135,25 +132,13 @@ export default function Activities() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search])
 
-    const resetForm = () => {
-        setForm(EMPTY_FORM)
-        setFilteredContacts([])
-        setFilteredDeals([])
-    }
-
+    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]) }
     const goToPage = (p) => { setPage(p); loadPage(p, filterAccountId, search) }
-
-    const onFilterChange = (accountId) => {
-        setFilterAccountId(accountId)
-        setSearch('')
-        setPage(0)
-        loadPage(0, accountId, '')
-    }
+    const onFilterChange = (accountId) => { setFilterAccountId(accountId); setSearch(''); setPage(0); loadPage(0, accountId, '') }
 
     const onFormAccountChange = async (accountId) => {
         setForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
-        setFilteredContacts([])
-        setFilteredDeals([])
+        setFilteredContacts([]); setFilteredDeals([])
         if (!accountId) return
         setLoadingRelated(true)
         try {
@@ -173,9 +158,7 @@ export default function Activities() {
             contactId: form.contactId || null,
             dealId: form.dealId || null
         })
-        setOpen(false)
-        resetForm()
-        setPage(0)
+        setOpen(false); resetForm(); setPage(0)
         loadPage(0, filterAccountId, search)
     }
 
@@ -192,10 +175,8 @@ export default function Activities() {
     const updateActivity = async (id, field, value) => {
         const activity = activities.find(x => x.id === id)
         await api.put(`/api/activities/${id}`, {
-            type: activity.type,
-            subject: activity.subject,
-            description: activity.description,
-            scheduledAt: activity.scheduledAt,
+            type: activity.type, subject: activity.subject,
+            description: activity.description, scheduledAt: activity.scheduledAt,
             [field]: value,
         })
         setActivities(prev => prev.map(x => x.id === id ? { ...x, [field]: value } : x))
@@ -216,42 +197,86 @@ export default function Activities() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
-                <PageHeader
-                    title="Activities"
-                    subtitle={
-                        <>
-                            {totalElements} logged
-                            {stats.overdue > 0 && (
-                                <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                    style={{ background: 'rgba(220,38,38,0.10)', color: '#DC2626' }}>
-                                    {stats.overdue} overdue
-                                </span>
-                            )}
-                        </>
-                    }
-                    actions={
-                        <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[18px]">add</span>Log Activity
-                        </button>
-                    }
-                />
+            <main className="p-8">
 
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                    <ActivityStatCard icon="warning" label="Overdue" value={loading ? '—' : stats.overdue}
-                        sub="need follow-up" loading={loading} accent="#DC2626" />
-                    <ActivityStatCard icon="today" label="Due today" value={loading ? '—' : stats.dueToday}
-                        sub="scheduled today" loading={loading} accent="#D97706" />
-                    <ActivityStatCard icon="task_alt" label="Completed" value={loading ? '—' : stats.done}
-                        sub="on this page" loading={loading} accent={T.success} />
-                    <ActivityStatCard icon="pending_actions" label="Pending" value={loading ? '—' : stats.pending}
-                        sub="scheduled, open" loading={loading} />
+                {/* ── Hero Banner ──────────────────────────── */}
+                <div className="relative rounded-3xl overflow-hidden mb-7"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 120,
+                    }}>
+                    {/* Orbs */}
+                    <div style={{
+                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -20, left: '45%', width: 140, height: 140,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+
+                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                style={{
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: '#93C5FD' }}>event_note</span>
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Activities
+                                </h2>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <p className="text-sm" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                        {totalElements} logged
+                                    </p>
+                                    {stats.overdue > 0 && (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                            style={{ background: 'rgba(220,38,38,0.25)', color: '#FCA5A5' }}>
+                                            {stats.overdue} overdue
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={() => setOpen(true)}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
+                            style={{
+                                background: 'rgba(255,255,255,0.12)',
+                                border: '1px solid rgba(255,255,255,0.22)',
+                                color: '#fff',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                            <span className="material-symbols-outlined text-[18px]">add</span>
+                            Log Activity
+                        </button>
+                    </div>
                 </div>
 
+                {/* ── Stat cards ───────────────────────────── */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                    <ActivityStatCard icon="warning"         label="Overdue"   value={loading ? '—' : stats.overdue}   sub="need follow-up"    loading={loading} accent="#DC2626" />
+                    <ActivityStatCard icon="today"           label="Due today"  value={loading ? '—' : stats.dueToday}  sub="scheduled today"   loading={loading} accent="#D97706" />
+                    <ActivityStatCard icon="task_alt"        label="Completed"  value={loading ? '—' : stats.done}      sub="on this page"      loading={loading} accent={T.success} />
+                    <ActivityStatCard icon="pending_actions" label="Pending"    value={loading ? '—' : stats.pending}   sub="scheduled, open"   loading={loading} />
+                </div>
+
+                {/* ── Today focus ──────────────────────────── */}
                 <TodayFocus overdue={overdueList} upcoming={upcomingList} loading={loading} />
 
+                {/* ── Toolbar ──────────────────────────────── */}
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                    <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                    {/* View mode switcher */}
+                    <div className="flex items-center gap-1 p-1 rounded-xl"
+                        style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                         {VIEW_MODES.map(({ mode, icon, label }) => (
                             <button key={mode} onClick={() => setViewMode(mode)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all"
@@ -265,6 +290,7 @@ export default function Activities() {
                         ))}
                     </div>
 
+                    {/* Filters (unchanged logic) */}
                     {viewMode !== 'tasks' && (
                         <div className="flex items-center gap-2 flex-wrap">
                             <SearchInput
@@ -273,7 +299,8 @@ export default function Activities() {
                                 placeholder="Search activities..."
                                 minWidth={200}
                             />
-                            <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                            <div className="flex items-center gap-1 p-1 rounded-xl"
+                                style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                 {['ALL', ...ACTIVITY_TYPES].map(type => {
                                     const isActive = typeFilter === type
                                     const s = ACTIVITY_STYLES[type]
@@ -297,10 +324,12 @@ export default function Activities() {
                     )}
                 </div>
 
+                {/* ── Main content (unchanged logic) ─────── */}
                 {viewMode === 'tasks' ? (
                     <MyTasksPanel onComplete={toggleComplete} onOutcome={saveOutcome} />
                 ) : (
-                    <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                    <div className="rounded-2xl overflow-hidden"
+                        style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                         {viewMode === 'table' ? (
                             <>
                                 <table className="w-full text-left">
@@ -355,6 +384,7 @@ export default function Activities() {
                 )}
             </main>
 
+            {/* SlideForm (unchanged) */}
             <SlideForm title="Log Activity" open={open}
                 onClose={() => { setOpen(false); resetForm() }}
                 onSubmit={submit}>

@@ -1,18 +1,25 @@
 import { useNavigate } from 'react-router-dom'
 import { T } from '../../constants/theme'
 
+const InfoCard = ({ label, children }) => (
+    <div className="flex flex-col gap-1.5 p-3.5 rounded-xl" style={{ background: T.borderSubtle }}>
+        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
+        <div className="text-sm font-semibold">{children}</div>
+    </div>
+)
+
 export default function DealPanelAccount({ deal }) {
     const navigate = useNavigate()
     const acc = deal.account
 
     if (!acc) return (
         <div className="px-7 py-16 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
                 style={{ background: T.primaryDim }}>
-                <span className="material-symbols-outlined text-[22px]"
+                <span className="material-symbols-outlined filled text-[26px]"
                     style={{ color: T.primary }}>business</span>
             </div>
-            <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>No account linked</p>
+            <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No account linked</p>
         </div>
     )
 
@@ -21,95 +28,93 @@ export default function DealPanelAccount({ deal }) {
         : null
 
     return (
-        <div className="px-7 py-6">
-            {/* Account header — clickable → account profile */}
-            <button
-                onClick={() => navigate(`/accounts/${acc.id}`)}
-                className="w-full flex items-center gap-3 mb-6 p-4 rounded-xl text-left transition-colors"
-                style={{ background: T.surfaceRaised }}
-                onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
-                onMouseLeave={e => e.currentTarget.style.background = T.surfaceRaised}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shrink-0"
-                    style={{ background: T.primaryDim, color: T.primary }}>
+        <div className="px-6 py-5 flex flex-col gap-5">
+
+            {/* Account hero card — clickable → account profile (unchanged nav logic) */}
+            <button onClick={() => navigate(`/accounts/${acc.id}`)}
+                className="w-full flex items-center gap-4 p-5 rounded-2xl text-left transition-all duration-150"
+                style={{
+                    background: `linear-gradient(135deg, ${T.primaryDim} 0%, ${T.primaryFaint} 100%)`,
+                    border: `1.5px solid ${T.primary}25`,
+                }}
+                onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = `${T.primary}50`
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = `0 6px 20px ${T.primary}15`
+                }}
+                onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = `${T.primary}25`
+                    e.currentTarget.style.transform = 'none'
+                    e.currentTarget.style.boxShadow = 'none'
+                }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shrink-0"
+                    style={{ background: T.primary, color: '#fff', boxShadow: `0 4px 12px ${T.primary}40` }}>
                     {acc.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black" style={{ color: T.textPrimary }}>{acc.name}</p>
+                    <p className="text-base font-black" style={{ color: T.textPrimary }}>{acc.name}</p>
                     {acc.website && (
-                        <p className="text-[12px] truncate" style={{ color: T.primary }}>{acc.website}</p>
+                        <p className="text-[12px] truncate mt-0.5" style={{ color: T.primary }}>{acc.website}</p>
                     )}
                 </div>
-                <span className="material-symbols-outlined text-[16px] shrink-0" style={{ color: T.textMuted }}>
+                <span className="material-symbols-outlined text-[18px] shrink-0" style={{ color: T.primary }}>
                     arrow_forward
                 </span>
             </button>
 
-            <p className="text-[11px] font-bold uppercase tracking-widest mb-4"
-                style={{ color: T.textMuted }}>Basic Information</p>
+            {/* Basic info grid */}
+            <div>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
+                    Basic Information
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    <InfoCard label="Company Name">
+                        <button onClick={() => navigate(`/accounts/${acc.id}`)}
+                            className="hover:underline text-left font-bold"
+                            style={{ color: acc.name ? T.primary : T.textMuted }}>
+                            {acc.name || 'Not provided'}
+                        </button>
+                    </InfoCard>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                {/* Company Name */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Company Name</p>
-                    <button onClick={() => navigate(`/accounts/${acc.id}`)}
-                        className="text-sm font-semibold hover:underline text-left"
-                        style={{ color: acc.name ? T.primary : T.border }}>
-                        {acc.name || 'Not provided'}
-                    </button>
-                </div>
+                    <InfoCard label="Website">
+                        {websiteUrl ? (
+                            <a href={websiteUrl} target="_blank" rel="noreferrer"
+                                className="hover:underline flex items-center gap-1 w-fit font-bold"
+                                style={{ color: T.primary }}>
+                                <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+                                {acc.website}
+                            </a>
+                        ) : <span style={{ color: T.textMuted }}>Not provided</span>}
+                    </InfoCard>
 
-                {/* Website */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Website</p>
-                    {websiteUrl ? (
-                        <a href={websiteUrl} target="_blank" rel="noreferrer"
-                            className="text-sm font-semibold hover:underline flex items-center gap-1 w-fit"
-                            style={{ color: T.primary }}>
-                            <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                            {acc.website}
-                        </a>
-                    ) : (
-                        <p className="text-sm font-semibold" style={{ color: T.border }}>Not provided</p>
-                    )}
-                </div>
+                    <InfoCard label="Phone">
+                        {acc.phone ? (
+                            <a href={`tel:${acc.phone}`}
+                                className="hover:underline flex items-center gap-1 w-fit font-bold"
+                                style={{ color: T.primary }}>
+                                <span className="material-symbols-outlined text-[13px]">call</span>
+                                {acc.phone}
+                            </a>
+                        ) : <span style={{ color: T.textMuted }}>Not provided</span>}
+                    </InfoCard>
 
-                {/* Phone */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Phone</p>
-                    {acc.phone ? (
-                        <a href={`tel:${acc.phone}`}
-                            className="text-sm font-semibold hover:underline flex items-center gap-1 w-fit"
-                            style={{ color: T.primary }}>
-                            <span className="material-symbols-outlined text-[13px]">call</span>
-                            {acc.phone}
-                        </a>
-                    ) : (
-                        <p className="text-sm font-semibold" style={{ color: T.border }}>Not provided</p>
-                    )}
-                </div>
+                    <InfoCard label="Industry">
+                        <span style={{ color: acc.industry ? T.textPrimary : T.textMuted }}>
+                            {acc.industry || 'Not provided'}
+                        </span>
+                    </InfoCard>
 
-                {/* Industry */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Industry</p>
-                    <p className="text-sm font-semibold" style={{ color: acc.industry ? T.textPrimary : T.border }}>
-                        {acc.industry || 'Not provided'}
-                    </p>
-                </div>
+                    <InfoCard label="Employees">
+                        <span style={{ color: acc.employeeRange ? T.textPrimary : T.textMuted }}>
+                            {acc.employeeRange || 'Not provided'}
+                        </span>
+                    </InfoCard>
 
-                {/* Employees */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Employees</p>
-                    <p className="text-sm font-semibold" style={{ color: acc.employeeRange ? T.textPrimary : T.border }}>
-                        {acc.employeeRange || 'Not provided'}
-                    </p>
-                </div>
-
-                {/* Tag */}
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Tag</p>
-                    <p className="text-sm font-semibold" style={{ color: acc.tag ? T.textPrimary : T.border }}>
-                        {acc.tag || 'Not provided'}
-                    </p>
+                    <InfoCard label="Tag">
+                        <span style={{ color: acc.tag ? T.textPrimary : T.textMuted }}>
+                            {acc.tag || 'Not provided'}
+                        </span>
+                    </InfoCard>
                 </div>
             </div>
         </div>

@@ -89,21 +89,65 @@ export default function Contacts() {
         <div>
             <TopBar />
             <main className="p-8 max-w-360 mx-auto">
-                <PageHeader
-                    title="Contacts"
-                    subtitle={`${totalElements} people`}
-                    actions={
-                        <>
+
+                {/* ── Hero Banner ─────────────────────────────── */}
+                <div className="relative rounded-3xl overflow-hidden mb-7"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 120,
+                    }}>
+                    <div style={{
+                        position: 'absolute', top: -40, right: -40, width: 200, height: 200,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -20, left: '35%', width: 140, height: 140,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                style={{
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: '#93C5FD' }}>groups</span>
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Contacts
+                                </h2>
+                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                    {loading ? 'Loading…' : `${totalElements} people in your network`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
                             {can.CONTACTS_CREATE && (
-                                <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">add</span>Add Contact
+                                <button onClick={() => setOpen(true)}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.12)',
+                                        border: '1px solid rgba(255,255,255,0.22)',
+                                        color: '#fff',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                                    <span className="material-symbols-outlined text-[18px]">add</span>
+                                    Add Contact
                                 </button>
                             )}
-                        </>
-                    }
-                />
+                        </div>
+                    </div>
+                </div>
 
+                {/* ── Table ─────────────────────────────────────── */}
                 <TableShell
                     headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
@@ -128,37 +172,63 @@ export default function Contacts() {
                         ) : contacts.map((c, i) => {
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                             return (
-                                <tr key={c.id} className="group transition-colors"
+                                <tr key={c.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                    onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
-                                    onMouseLeave={e => e.currentTarget.style.background = rowBg}>
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = T.surfaceHigh
+                                        e.currentTarget.style.transform = 'translateX(2px)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = rowBg
+                                        e.currentTarget.style.transform = 'none'
+                                    }}>
+
+                                    {/* Name + Avatar */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <EntityAvatar label={c.firstName} index={i} />
-                                            <p className="text-sm font-semibold cursor-pointer hover:underline"
-                                                style={{ color: T.primaryText }}
-                                                onClick={() => navigate(`/contacts/${c.id}`)}>
-                                                {c.firstName} {c.lastName}
-                                            </p>
+                                            <div>
+                                                <p className="text-sm font-bold cursor-pointer hover:underline"
+                                                    style={{ color: T.primaryText }}
+                                                    onClick={() => navigate(`/contacts/${c.id}`)}>
+                                                    {c.firstName} {c.lastName}
+                                                </p>
+                                                {c.designation && (
+                                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
+                                                        {c.designation}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
+
+                                    {/* Email */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
                                     </td>
+
+                                    {/* Phone */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
                                     </td>
+
+                                    {/* Designation */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
                                     </td>
+
+                                    {/* Account badge */}
                                     <td className="px-6 py-4">
                                         {c.account && (
-                                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                                                style={{ background: T.surfaceHigh, color: T.textSecondary }}>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+                                                style={{ background: T.primaryFaint, color: T.primaryText, border: `1px solid ${T.primary}20` }}>
+                                                <span className="material-symbols-outlined text-[11px]">business</span>
                                                 {c.account.name}
                                             </span>
                                         )}
                                     </td>
+
+                                    {/* Delete */}
                                     {can.CONTACTS_DELETE && (
                                         <td className="px-6 py-4">
                                             <DeleteIconButton onClick={e => remove(c.id, e)} />
@@ -167,11 +237,14 @@ export default function Contacts() {
                                 </tr>
                             )
                         })}
-                        {!loading && contacts.length === 0 && <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />}
+                        {!loading && contacts.length === 0 && (
+                            <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />
+                        )}
                     </tbody>
                 </TableShell>
             </main>
 
+            {/* ── Slide Form ─────────────────────────────────── */}
             {can.CONTACTS_CREATE && (
                 <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
                     <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />

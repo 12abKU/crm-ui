@@ -5,6 +5,14 @@ import { useSelector } from 'react-redux'
 import api from '../../api'
 import { extractApiErrorMessage } from '../../api'
 
+// ── Shared InfoCard ───────────────────────────────────────────
+const InfoCard = ({ label, children }) => (
+    <div className="flex flex-col gap-1.5 p-3.5 rounded-xl" style={{ background: T.borderSubtle }}>
+        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
+        <div className="text-sm font-semibold" style={{ color: T.textPrimary }}>{children}</div>
+    </div>
+)
+
 export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit }) {
     const [stage, setStage] = useState(deal.stage)
     const [saving, setSaving] = useState(false)
@@ -17,6 +25,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
     const canChangeStage = canEdit || (isAgent && isAssignedToMe)
     const assignees = deal.assignees ?? []
 
+    // ── Stage change handler (unchanged) ──────────────────────
     const handleStageChange = async (newStage) => {
         if (newStage === stage) return
         setStageError(null)
@@ -42,40 +51,48 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
         ? `${deal.contact.firstName} ${deal.contact.lastName}`
         : '—'
 
+    const currentStyle = STAGE_STYLES[stage]
+
     return (
-        <div className="px-7 py-6">
-            {/* Stage banner */}
-            <div className="flex items-center justify-between mb-6 p-4 rounded-xl"
-                style={{ background: T.surfaceRaised }}>
+        <div className="px-6 py-5 flex flex-col gap-5">
+
+            {/* ── Stage + Value Hero Card ──────────────── */}
+            <div className="flex items-center justify-between p-5 rounded-2xl"
+                style={{
+                    background: `linear-gradient(135deg, ${currentStyle.badgeBg} 0%, ${T.surface} 100%)`,
+                    border: `1.5px solid ${currentStyle.accent}30`,
+                    boxShadow: `0 2px 12px ${currentStyle.accent}12`,
+                }}>
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: STAGE_STYLES[stage].badgeBg }}>
-                        <span className="material-symbols-outlined text-[20px]"
-                            style={{ color: STAGE_STYLES[stage].badgeColor }}>handshake</span>
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                        style={{ background: currentStyle.badgeBg, border: `1.5px solid ${currentStyle.accent}30` }}>
+                        <span className="material-symbols-outlined filled text-[20px]"
+                            style={{ color: currentStyle.accent }}>handshake</span>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>
-                            Current Stage
-                        </p>
-                        <p className="text-base font-black" style={{ color: STAGE_STYLES[stage].badgeColor }}>
+                        <p className="text-[10px] font-black uppercase tracking-widest"
+                            style={{ color: currentStyle.accent }}>Current Stage</p>
+                        <p className="text-base font-black mt-0.5" style={{ color: currentStyle.badgeColor }}>
                             {STAGE_LABELS[stage]}
                         </p>
                     </div>
                 </div>
                 {deal.amount > 0 && (
                     <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>Deal Value</p>
-                        <p className="text-base font-black" style={{ color: T.primary }}>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>
+                            Deal Value
+                        </p>
+                        <p className="text-xl font-black mt-0.5" style={{ color: T.primary }}>
                             ₹{deal.amount.toLocaleString()}
                         </p>
                     </div>
                 )}
             </div>
 
-            {/* Stage changer */}
+            {/* ── Stage changer (unchanged logic) ─────── */}
             {canChangeStage && (
-                <div className="mb-6">
-                    <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: T.textMuted }}>
                         {isAgent ? 'Move Stage' : 'Change Stage'}
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -85,31 +102,35 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                             return (
                                 <button key={st} disabled={saving}
                                     onClick={() => handleStageChange(st)}
-                                    className="px-3 py-1.5 rounded-full text-[12px] font-bold transition-all"
+                                    className="px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all"
                                     style={{
                                         background: isActive ? ss.badgeBg : T.surfaceRaised,
                                         color: isActive ? ss.badgeColor : T.textMuted,
                                         border: `1.5px solid ${isActive ? ss.accent : T.border}`,
                                         opacity: saving ? 0.6 : 1,
                                         cursor: saving ? 'not-allowed' : 'pointer',
+                                        transform: isActive ? 'scale(1.04)' : 'scale(1)',
                                     }}>
                                     {STAGE_LABELS[st]}
                                 </button>
                             )
                         })}
-                        {saving && <span className="text-[12px] font-medium self-center" style={{ color: T.textMuted }}>Saving…</span>}
+                        {saving && <span className="text-[12px] self-center" style={{ color: T.textMuted }}>Saving…</span>}
                     </div>
                     {stageError && <p className="text-[12px] font-semibold mt-2" style={{ color: T.error }}>{stageError}</p>}
                 </div>
             )}
 
-            {/* Created by */}
+            {/* ── Created by (unchanged logic) ─────────── */}
             {isAdminOrAbove && deal.owner && (
-                <div className="mb-5 px-4 py-3 rounded-xl flex items-center gap-3"
-                    style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
-                    <span className="material-symbols-outlined text-[16px]" style={{ color: T.textMuted }}>person_add</span>
+                <div className="flex items-center gap-3 p-4 rounded-xl"
+                    style={{ background: T.borderSubtle, border: `1px solid ${T.border}` }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                        style={{ background: T.primaryDim, color: T.primary }}>
+                        {deal.owner.name.charAt(0).toUpperCase()}
+                    </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>Created by</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Created by</p>
                         <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
                             {deal.owner.name}
                             <span className="ml-2 text-[11px] font-normal" style={{ color: T.textMuted }}>({deal.owner.role})</span>
@@ -118,10 +139,9 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 </div>
             )}
 
-            {/* Assignees */}
-            <div className="mb-5 px-4 py-3 rounded-xl"
-                style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>
+            {/* ── Assignees (unchanged logic) ──────────── */}
+            <div className="p-4 rounded-xl" style={{ background: T.borderSubtle, border: `1px solid ${T.border}` }}>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
                     {assignees.length > 0 ? `Assigned to (${assignees.length})` : 'Assigned to'}
                 </p>
                 {assignees.length === 0 ? (
@@ -129,8 +149,8 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 ) : (
                     <div className="flex flex-col gap-2">
                         {assignees.map(u => (
-                            <div key={u.id} className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                            <div key={u.id} className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                                     style={{ background: T.primaryDim, color: T.primary }}>
                                     {u.name.charAt(0).toUpperCase()}
                                 </div>
@@ -144,51 +164,45 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 )}
             </div>
 
-            <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: T.textMuted }}>
-                Deal Details
-            </p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Amount</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—'}
-                    </p>
-                </div>
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Expected Close</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {deal.expectedCloseDate || '—'}
-                    </p>
-                </div>
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Account</p>
-                    {deal.account ? (
-                        <button onClick={() => navigate(`/accounts/${deal.account.id}`)}
-                            className="text-sm font-semibold hover:underline text-left"
-                            style={{ color: T.primary }}>
-                            {deal.account.name}
-                        </button>
-                    ) : (
-                        <p className="text-sm font-semibold" style={{ color: T.border }}>—</p>
-                    )}
-                </div>
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Contact</p>
-                    {deal.contact ? (
-                        <button onClick={() => navigate(`/contacts/${deal.contact.id}`)}
-                            className="text-sm font-semibold hover:underline text-left"
-                            style={{ color: T.primary }}>
-                            {contactName}
-                        </button>
-                    ) : (
-                        <p className="text-sm font-semibold" style={{ color: T.border }}>—</p>
-                    )}
-                </div>
-                <div>
-                    <p className="text-[11px] font-semibold mb-0.5" style={{ color: T.textMuted }}>Created</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '—'}
-                    </p>
+            {/* ── Deal details grid ─────────────────────── */}
+            <div>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
+                    Deal Details
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    <InfoCard label="Amount">
+                        <span style={{ color: deal.amount > 0 ? T.primary : T.textMuted }}>
+                            {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—'}
+                        </span>
+                    </InfoCard>
+                    <InfoCard label="Expected Close">
+                        <span style={{ color: deal.expectedCloseDate ? T.textPrimary : T.textMuted }}>
+                            {deal.expectedCloseDate || '—'}
+                        </span>
+                    </InfoCard>
+                    <InfoCard label="Account">
+                        {deal.account ? (
+                            <button onClick={() => navigate(`/accounts/${deal.account.id}`)}
+                                className="hover:underline text-left font-bold"
+                                style={{ color: T.primary }}>
+                                {deal.account.name}
+                            </button>
+                        ) : <span style={{ color: T.textMuted }}>—</span>}
+                    </InfoCard>
+                    <InfoCard label="Contact">
+                        {deal.contact ? (
+                            <button onClick={() => navigate(`/contacts/${deal.contact.id}`)}
+                                className="hover:underline text-left font-bold"
+                                style={{ color: T.primary }}>
+                                {contactName}
+                            </button>
+                        ) : <span style={{ color: T.textMuted }}>—</span>}
+                    </InfoCard>
+                    <InfoCard label="Created">
+                        <span style={{ color: deal.createdAt ? T.textPrimary : T.textMuted }}>
+                            {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '—'}
+                        </span>
+                    </InfoCard>
                 </div>
             </div>
         </div>

@@ -28,28 +28,114 @@ function AgentDashboard() {
         <div>
             <TopBar />
             <main className="p-8 max-w-360 mx-auto">
-                <section className="mb-8">
-                    <h2 className="text-4xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>
-                        Welcome back, {name}
-                    </h2>
-                    <p className="text-base mt-2" style={{ color: T.textSecondary }}>
-                        Here's what's happening with your accounts today.
-                    </p>
+
+                {/* ── Hero Welcome Banner ──────────────────────────── */}
+                <section className="relative rounded-3xl overflow-hidden mb-8"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 148,
+                    }}>
+                    {/* Decorative orbs */}
+                    <div style={{
+                        position: 'absolute', top: -50, right: -50, width: 220, height: 220,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -30, left: '40%', width: 160, height: 160,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.15) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+
+                    <div className="relative px-10 py-8 flex items-center justify-between gap-6">
+                        <div>
+                            <p className="text-sm font-bold mb-1" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                Good day 👋
+                            </p>
+                            <h2 className="text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                Welcome back, {name}
+                            </h2>
+                            <p className="text-sm mt-1.5" style={{ color: 'rgba(147,197,253,0.75)' }}>
+                                Here's what's happening with your accounts today.
+                            </p>
+                        </div>
+
+                        {/* Quick stat chips */}
+                        <div className="flex items-center gap-3 shrink-0">
+                            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                                style={{
+                                    background: 'rgba(255,255,255,0.08)',
+                                    border: '1px solid rgba(255,255,255,0.13)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[16px]"
+                                    style={{ color: '#86EFAC' }}>handshake</span>
+                                <span className="text-sm font-bold" style={{ color: '#fff' }}>
+                                    {loading ? '—' : fmt(stats?.activeDeals)} Deals
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+                                style={{
+                                    background: 'rgba(255,255,255,0.08)',
+                                    border: '1px solid rgba(255,255,255,0.13)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[16px]"
+                                    style={{ color: '#93C5FD' }}>groups</span>
+                                <span className="text-sm font-bold" style={{ color: '#fff' }}>
+                                    {loading ? '—' : fmt(stats?.totalContacts)} Contacts
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </section>
+
+                {/* ── Stat Cards Row 1 ─────────────────────────────── */}
                 <div className="grid grid-cols-3 gap-5 mb-5">
-                    <DashboardStatCard icon="handshake" label="Active Deals" value={fmt(stats?.activeDeals)} sub="Open pipeline" loading={loading} />
-                    <DashboardStatCard icon="payments" label="Revenue Won" value={`₹${fmt(stats?.totalRevenue)}`} sub="From won deals" loading={loading} />
-                    <DashboardStatCard icon="business" label="Total Accounts" value={fmt(stats?.totalAccounts)} sub="All time" loading={loading} />
+                    <DashboardStatCard icon="handshake" label="Active Deals"   value={fmt(stats?.activeDeals)}   sub="Open pipeline"  loading={loading} />
+                    <DashboardStatCard icon="payments"  label="Revenue Won"    value={`₹${fmt(stats?.totalRevenue)}`} sub="From won deals" loading={loading} />
+                    <DashboardStatCard icon="business"  label="Total Accounts" value={fmt(stats?.totalAccounts)} sub="All time"        loading={loading} />
                 </div>
+
+                {/* ── Stat Cards Row 2 ─────────────────────────────── */}
                 <div className="grid grid-cols-3 gap-5 mb-8">
-                    <DashboardStatCard icon="groups" label="Contacts" value={fmt(stats?.totalContacts)} sub="In your network" loading={loading} />
-                    <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(stats?.newContactsThisMonth)} sub="This month" loading={loading} />
-                    <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(stats?.newDealsThisMonth)} sub="This month" loading={loading} />
+                    <DashboardStatCard icon="groups"     label="Contacts"       value={fmt(stats?.totalContacts)}      sub="In your network" loading={loading} />
+                    <DashboardStatCard icon="person_add" label="New Contacts"   value={fmt(stats?.newContactsThisMonth)} sub="This month"    loading={loading} />
+                    <DashboardStatCard icon="task_alt"   label="New Deals"      value={fmt(stats?.newDealsThisMonth)}  sub="This month"      loading={loading} />
                 </div>
-                <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <h3 className="text-base font-bold mb-5" style={{ color: T.textPrimary }}>Recent Activity</h3>
-                    <RecentActivityList activities={stats?.recentActivities} loading={loading} />
+
+                {/* ── Recent Activity Card ──────────────────────────── */}
+                <div className="rounded-2xl overflow-hidden"
+                    style={{
+                        background: T.surface,
+                        border: `1px solid ${T.border}`,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                    }}>
+                    {/* Card header */}
+                    <div className="flex items-center justify-between px-6 py-4"
+                        style={{ borderBottom: `1px solid ${T.border}`, background: T.primaryFaint }}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                                style={{ background: T.primaryDim }}>
+                                <span className="material-symbols-outlined filled text-[17px]"
+                                    style={{ color: T.primary }}>event_note</span>
+                            </div>
+                            <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>
+                                Recent Activity
+                            </h3>
+                        </div>
+                        {stats?.recentActivities?.length > 0 && (
+                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+                                style={{ background: T.primaryDim, color: T.primaryText }}>
+                                {stats.recentActivities.length} activities
+                            </span>
+                        )}
+                    </div>
+                    <div className="p-4">
+                        <RecentActivityList activities={stats?.recentActivities} loading={loading} />
+                    </div>
                 </div>
+
             </main>
         </div>
     )

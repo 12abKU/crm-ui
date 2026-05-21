@@ -4,6 +4,7 @@ import Skeleton from 'react-loading-skeleton'
 import { IconPlus, IconX, IconCheck } from '@tabler/icons-react'
 import api from '../../api'
 
+// ── Constants (unchanged) ──────────────────────────────────────
 const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '' }
 
 const timeAgo = (str) => {
@@ -22,13 +23,14 @@ export default function DealPanelActivities({ activities: initialActivities, loa
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
 
-    // sync if parent refreshes
+    // Sync if parent refreshes (unchanged)
     if (initialActivities && initialActivities !== activities && !adding) {
         setActivities(initialActivities)
     }
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+    // ── Submit handler (unchanged) ─────────────────────────────
     const submit = async () => {
         if (!form.subject.trim()) { setError('Subject is required'); return }
         setSaving(true)
@@ -58,7 +60,7 @@ export default function DealPanelActivities({ activities: initialActivities, loa
     const cancel = () => { setForm(EMPTY_FORM); setAdding(false); setError('') }
 
     if (loading) return (
-        <div className="px-7 py-6 flex flex-col gap-6">
+        <div className="px-6 py-5 flex flex-col gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex gap-3 items-start">
                     <Skeleton circle width={32} height={32} />
@@ -74,33 +76,36 @@ export default function DealPanelActivities({ activities: initialActivities, loa
     )
 
     return (
-        <div className="px-7 py-6">
-            {/* Header */}
+        <div className="px-6 py-5">
+
+            {/* ── Header ──────────────────────────────── */}
             <div className="flex items-center justify-between mb-4">
-                <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>
-                    Activity Timeline
-                </p>
                 <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>
+                        Activity Timeline
+                    </p>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                         style={{ background: T.primaryDim, color: T.primary }}>
-                        {activities.length} total
+                        {activities.length}
                     </span>
-                    <button
-                        onClick={() => setAdding(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors"
-                        style={{ background: T.primary, color: '#fff' }}
-                        onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                        onMouseLeave={e => e.currentTarget.style.background = T.primary}>
-                        <IconPlus size={13} />
-                        Add Activity
-                    </button>
                 </div>
+                <button onClick={() => setAdding(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all"
+                    style={{ background: T.primary, color: '#fff', boxShadow: `0 2px 8px ${T.primary}40` }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.primaryHover; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}50` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = T.primary; e.currentTarget.style.boxShadow = `0 2px 8px ${T.primary}40` }}>
+                    <IconPlus size={13} />Add Activity
+                </button>
             </div>
 
-            {/* Inline add form */}
+            {/* ── Inline add form (all inputs/logic unchanged) ─ */}
             {adding && (
-                <div className="rounded-xl p-4 mb-5 flex flex-col gap-3"
-                    style={{ background: T.surfaceRaised, border: `1px solid ${T.primary}`, boxShadow: `0 0 0 3px ${T.primaryDim}` }}>
+                <div className="rounded-2xl p-4 mb-5 flex flex-col gap-3"
+                    style={{
+                        background: T.primaryFaint,
+                        border: `1.5px solid ${T.primary}40`,
+                        boxShadow: `0 0 0 3px ${T.primaryDim}`,
+                    }}>
                     <div className="flex items-center justify-between">
                         <p className="text-[12px] font-bold" style={{ color: T.textPrimary }}>New Activity</p>
                         <button onClick={cancel} style={{ color: T.textMuted }}
@@ -110,19 +115,18 @@ export default function DealPanelActivities({ activities: initialActivities, loa
                         </button>
                     </div>
 
-                    {/* Type pills */}
+                    {/* Type pills (unchanged) */}
                     <div className="flex gap-2 flex-wrap">
                         {ACTIVITY_TYPES.map(t => {
                             const st = ACTIVITY_STYLES[t]
                             const active = form.type === t
                             return (
-                                <button key={t}
-                                    onClick={() => set('type', t)}
+                                <button key={t} onClick={() => set('type', t)}
                                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-all"
                                     style={{
-                                        background: active ? st.bg : T.surfaceHigh,
+                                        background: active ? st.bg : T.surface,
                                         color: active ? st.color : T.textMuted,
-                                        border: active ? `1px solid ${st.color}` : `1px solid transparent`,
+                                        border: active ? `1px solid ${st.color}` : `1px solid ${T.border}`,
                                     }}>
                                     <span className="material-symbols-outlined text-[12px]">{st.icon}</span>
                                     {t}
@@ -131,53 +135,38 @@ export default function DealPanelActivities({ activities: initialActivities, loa
                         })}
                     </div>
 
-                    {/* Subject */}
-                    <div>
-                        <input
-                            autoFocus
-                            type="text"
-                            placeholder="Subject *"
-                            value={form.subject}
-                            onChange={e => set('subject', e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') submit() }}
-                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                            style={{
-                                background: T.surface,
-                                border: `1px solid ${error && !form.subject.trim() ? T.error : T.border}`,
-                                color: T.textPrimary,
-                            }}
-                        />
-                    </div>
+                    {/* Subject (unchanged) */}
+                    <input autoFocus type="text" placeholder="Subject *"
+                        value={form.subject} onChange={e => set('subject', e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') submit() }}
+                        className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${error && !form.subject.trim() ? T.error : T.border}`,
+                            color: T.textPrimary,
+                        }} />
 
-                    {/* Description */}
-                    <textarea
-                        rows={2}
-                        placeholder="Description (optional)"
-                        value={form.description}
-                        onChange={e => set('description', e.target.value)}
+                    {/* Description (unchanged) */}
+                    <textarea rows={2} placeholder="Description (optional)"
+                        value={form.description} onChange={e => set('description', e.target.value)}
                         className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
-                        style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }}
-                    />
+                        style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }} />
 
-                    {/* Scheduled at */}
+                    {/* Scheduled at (unchanged) */}
                     <div>
                         <label className="text-[11px] font-semibold mb-1 block" style={{ color: T.textMuted }}>
                             Schedule (optional)
                         </label>
-                        <input
-                            type="datetime-local"
-                            value={form.scheduledAt}
+                        <input type="datetime-local" value={form.scheduledAt}
                             onChange={e => set('scheduledAt', e.target.value)}
                             className="px-3 py-2 rounded-lg text-sm outline-none"
-                            style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }}
-                        />
+                            style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }} />
                     </div>
 
                     {error && <p className="text-[11px] font-semibold" style={{ color: T.error }}>{error}</p>}
 
                     <div className="flex gap-2 justify-end pt-1">
-                        <button onClick={cancel}
-                            className="px-3 py-1.5 rounded-lg text-[12px] font-bold"
+                        <button onClick={cancel} className="px-3 py-1.5 rounded-lg text-[12px] font-bold"
                             style={{ background: T.surfaceHigh, color: T.textSecondary }}>
                             Cancel
                         </button>
@@ -191,14 +180,18 @@ export default function DealPanelActivities({ activities: initialActivities, loa
                 </div>
             )}
 
-            {/* Timeline list */}
+            {/* ── Timeline list ───────────────────────── */}
             {activities.length === 0 && !adding ? (
-                <div className="flex flex-col items-center py-12 gap-2">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: T.primaryDim }}>
-                        <span className="material-symbols-outlined text-[22px]" style={{ color: T.primary }}>event_note</span>
+                <div className="flex flex-col items-center py-12 gap-3">
+                    <div className="w-13 h-13 rounded-2xl flex items-center justify-center"
+                        style={{ width: 52, height: 52, background: T.primaryDim }}>
+                        <span className="material-symbols-outlined filled text-[22px]"
+                            style={{ color: T.primary }}>event_note</span>
                     </div>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>No activities yet</p>
-                    <p className="text-xs" style={{ color: T.textMuted }}>Click "Add Activity" to log one against this deal</p>
+                    <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No activities yet</p>
+                    <p className="text-xs text-center" style={{ color: T.textMuted }}>
+                        Click "Add Activity" to log one against this deal
+                    </p>
                 </div>
             ) : (
                 <div className="flex flex-col">
@@ -207,26 +200,39 @@ export default function DealPanelActivities({ activities: initialActivities, loa
                         const isLast = i === activities.length - 1
                         return (
                             <div key={a.id} className="flex gap-3 items-start relative">
+                                {/* Vertical connector line */}
                                 {!isLast && (
-                                    <div className="absolute left-4 top-8 bottom-0 w-px" style={{ background: T.border }} />
+                                    <div className="absolute left-4 top-8 bottom-0 w-px"
+                                        style={{ background: T.border }} />
                                 )}
+                                {/* Icon */}
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10"
                                     style={{ background: st.bg }}>
-                                    <span className="material-symbols-outlined text-[14px]" style={{ color: st.color }}>{st.icon}</span>
+                                    <span className="material-symbols-outlined filled text-[14px]"
+                                        style={{ color: st.color }}>{st.icon}</span>
                                 </div>
+                                {/* Content */}
                                 <div className="flex-1 pb-5 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
-                                        <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{a.subject}</p>
-                                        <span className="text-[11px] shrink-0" style={{ color: T.textMuted }}>{timeAgo(a.createdAt)}</span>
+                                        <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                                            {a.subject}
+                                        </p>
+                                        <span className="text-[11px] shrink-0" style={{ color: T.textMuted }}>
+                                            {timeAgo(a.createdAt)}
+                                        </span>
                                     </div>
                                     {a.description && (
-                                        <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary }}>{a.description}</p>
+                                        <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary }}>
+                                            {a.description}
+                                        </p>
                                     )}
                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                                             style={{ background: st.bg, color: st.color }}>{a.type}</span>
                                         {a.owner?.name && (
-                                            <span className="text-[11px]" style={{ color: T.textMuted }}>by {a.owner.name}</span>
+                                            <span className="text-[11px]" style={{ color: T.textMuted }}>
+                                                by {a.owner.name}
+                                            </span>
                                         )}
                                         {a.contact && (
                                             <span className="text-[11px]" style={{ color: T.textMuted }}>

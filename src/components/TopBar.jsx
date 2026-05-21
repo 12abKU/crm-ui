@@ -4,6 +4,7 @@ import { T } from '../constants/theme'
 import UserMenu from './UserMenu'
 import api from '../api'
 
+// ── Highlight helper (unchanged) ──────────────────────────────
 function highlight(text, query) {
     if (!query || !text) return text
     const idx = text.toLowerCase().indexOf(query.toLowerCase())
@@ -19,26 +20,58 @@ function highlight(text, query) {
     )
 }
 
+// ── Result row component ───────────────────────────────────────
+function ResultRow({ icon, iconBg, iconColor, title, subtitle, query, onClick, isLast }) {
+    return (
+        <button onClick={onClick}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-100 group"
+            style={{ borderBottom: isLast ? 'none' : `1px solid ${T.borderSubtle}` }}
+            onMouseEnter={e => e.currentTarget.style.background = T.primaryFaint}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs"
+                style={{ background: iconBg, color: iconColor }}>
+                {icon}
+            </div>
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>{title}</p>
+                <p className="text-[11px] truncate mt-0.5" style={{ color: T.textMuted }}>{subtitle}</p>
+            </div>
+            <span className="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                style={{ color: T.primary }}>arrow_forward</span>
+        </button>
+    )
+}
+
+// ── Section label ─────────────────────────────────────────────
+function SectionLabel({ label, count }) {
+    return (
+        <div className="px-4 pt-3 pb-1.5 flex items-center justify-between">
+            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                style={{ background: T.primaryDim, color: T.primary }}>{count}</span>
+        </div>
+    )
+}
+
 export default function TopBar() {
     const navigate = useNavigate()
     const [query, setQuery] = useState('')
-    // ✅ FIX: activities added to initial state
+    // ── State (unchanged) ─────────────────────────────────────
     const [results, setResults] = useState({ accounts: [], contacts: [], deals: [], activities: [] })
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
     const inputRef = useRef(null)
 
-    // close on outside click
+    // ── Close on outside click (unchanged) ─────────────────────
     useEffect(() => {
         const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
         document.addEventListener('mousedown', h)
         return () => document.removeEventListener('mousedown', h)
     }, [])
 
-    // debounced search
+    // ── Debounced search (unchanged) ───────────────────────────
     useEffect(() => {
-        // ✅ FIX: activities added here too
         if (!query.trim()) { setResults({ accounts: [], contacts: [], deals: [], activities: [] }); setOpen(false); return }
         const t = setTimeout(async () => {
             setLoading(true)
@@ -57,7 +90,6 @@ export default function TopBar() {
                     .filter(d => d.title.toLowerCase().includes(ql) || (d.account?.name || '').toLowerCase().includes(ql))
                     .slice(0, 5)
                 const activities = actRes.data ?? []
-
                 setResults({ accounts, contacts, deals, activities })
                 setOpen(true)
             } finally {
@@ -75,78 +107,86 @@ export default function TopBar() {
         navigate(path)
     }
 
+    const typeIcons = { CALL: 'call', EMAIL: 'mail', MEETING: 'groups', NOTE: 'sticky_note_2' }
+    const typeColors = { CALL: T.primary, EMAIL: '#10b981', MEETING: '#8b5cf6', NOTE: '#f59e0b' }
+
     return (
         <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-40"
-            style={{ background: T.bg, borderBottom: `1px solid ${T.border}` }}>
+            style={{
+                background: T.bg,
+                borderBottom: `1px solid ${T.border}`,
+                backdropFilter: 'blur(8px)',
+            }}>
 
+            {/* ── Search bar ────────────────────────────── */}
             <div className="relative w-full max-w-lg" ref={ref}>
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px]"
-                    style={{ color: T.textMuted }}>search</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px]"
+                    style={{ color: open ? T.primary : T.textMuted }}>search</span>
                 <input
                     ref={inputRef}
-                    className="w-full pl-10 pr-4 py-2.5 text-sm outline-none rounded-full"
+                    className="w-full pl-10 pr-10 py-2.5 text-sm outline-none rounded-xl"
                     style={{
                         background: T.surface,
                         color: T.textPrimary,
-                        border: `1px solid ${open ? T.primary : T.border}`,
-                        boxShadow: open ? `0 0 0 3px ${T.primaryDim}` : '0 1px 3px rgba(0,0,0,0.04)',
-                        transition: 'border-color 0.15s, box-shadow 0.15s'
+                        border: `1.5px solid ${open ? T.primary : T.border}`,
+                        boxShadow: open ? `0 0 0 3px ${T.primaryDim}` : '0 1px 4px rgba(0,0,0,0.05)',
+                        transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
-                    placeholder="Search deals, contacts, or accounts..."
+                    placeholder="Search deals, contacts, accounts..."
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     onFocus={() => { if (totalResults > 0) setOpen(true) }}
                 />
                 {query && (
-                    <button onClick={() => { setQuery(''); setOpen(false); inputRef.current?.focus() }}
-                        className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-[16px]"
-                        style={{ color: T.textMuted }}>close</button>
+                    <button
+                        onClick={() => { setQuery(''); setOpen(false); inputRef.current?.focus() }}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition-all"
+                        style={{ background: T.surfaceHigh, color: T.textMuted }}
+                        onMouseEnter={e => e.currentTarget.style.background = T.border}
+                        onMouseLeave={e => e.currentTarget.style.background = T.surfaceHigh}>
+                        <span className="material-symbols-outlined text-[12px]">close</span>
+                    </button>
                 )}
 
-                {/* Dropdown */}
+                {/* ── Dropdown ─────────────────────────── */}
                 {open && (
                     <div className="absolute left-0 right-0 mt-2 rounded-2xl overflow-hidden z-50"
-                        style={{ background: T.surface, border: `1px solid ${T.border}`, boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+                        style={{
+                            background: T.surface,
+                            border: `1.5px solid ${T.border}`,
+                            boxShadow: '0 16px 48px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+                        }}>
 
                         {loading ? (
-                            <div className="flex items-center justify-center gap-2 py-6">
+                            <div className="flex items-center justify-center gap-2.5 py-7">
                                 <div className="w-4 h-4 rounded-full border-2 animate-spin"
                                     style={{ borderColor: T.primary, borderTopColor: 'transparent' }} />
-                                <span className="text-xs" style={{ color: T.textMuted }}>Searching...</span>
+                                <span className="text-xs font-medium" style={{ color: T.textMuted }}>Searching...</span>
                             </div>
                         ) : totalResults === 0 ? (
-                            <div className="py-8 text-center">
-                                <span className="material-symbols-outlined text-[32px] block mb-2" style={{ color: T.border }}>search_off</span>
-                                <p className="text-sm" style={{ color: T.textMuted }}>No results for "<strong>{query}</strong>"</p>
+                            <div className="py-10 text-center">
+                                <span className="material-symbols-outlined text-[36px] block mb-2"
+                                    style={{ color: T.border }}>search_off</span>
+                                <p className="text-sm font-medium" style={{ color: T.textMuted }}>
+                                    No results for "<strong>{query}</strong>"
+                                </p>
                             </div>
                         ) : (
-                            <div style={{ maxHeight: 440, overflowY: 'auto' }}>
+                            <div style={{ maxHeight: 460, overflowY: 'auto' }}>
 
                                 {/* Accounts */}
                                 {results.accounts.length > 0 && (
                                     <div>
-                                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest"
-                                            style={{ color: T.textMuted }}>Accounts</p>
-                                        {results.accounts.map(a => (
-                                            <button key={a.id} onClick={() => go(`/accounts/${a.id}`)}
-                                                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                                                onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0"
-                                                    style={{ background: T.primaryDim, color: T.primary }}>
-                                                    {a.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
-                                                        {highlight(a.name, query)}
-                                                    </p>
-                                                    <p className="text-xs truncate" style={{ color: T.textMuted }}>
-                                                        {a.industry || a.website || 'Account'}
-                                                    </p>
-                                                </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
-                                                    style={{ color: T.textMuted }}>arrow_forward</span>
-                                            </button>
+                                        <SectionLabel label="Accounts" count={results.accounts.length} />
+                                        {results.accounts.map((a, i) => (
+                                            <ResultRow key={a.id}
+                                                icon={a.name.charAt(0).toUpperCase()}
+                                                iconBg={T.primaryDim} iconColor={T.primary}
+                                                title={highlight(a.name, query)}
+                                                subtitle={a.industry || a.website || 'Account'}
+                                                onClick={() => go(`/accounts/${a.id}`)}
+                                                isLast={i === results.accounts.length - 1}
+                                            />
                                         ))}
                                     </div>
                                 )}
@@ -154,29 +194,19 @@ export default function TopBar() {
                                 {/* Contacts */}
                                 {results.contacts.length > 0 && (
                                     <div>
-                                        {results.accounts.length > 0 && <div style={{ borderTop: `1px solid ${T.borderSubtle}` }} />}
-                                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest"
-                                            style={{ color: T.textMuted }}>Contacts</p>
-                                        {results.contacts.map(c => (
-                                            <button key={c.id} onClick={() => go(`/contacts/${c.id}`)}
-                                                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                                                onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
-                                                    style={{ background: T.secondaryDim, color: T.secondaryText }}>
-                                                    {c.firstName.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
-                                                        {highlight(`${c.firstName} ${c.lastName}`, query)}
-                                                    </p>
-                                                    <p className="text-xs truncate" style={{ color: T.textMuted }}>
-                                                        {c.designation || 'Contact'}{c.account ? ` · ${c.account.name}` : ''}
-                                                    </p>
-                                                </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
-                                                    style={{ color: T.textMuted }}>arrow_forward</span>
-                                            </button>
+                                        {results.accounts.length > 0 && (
+                                            <div style={{ height: 1, background: T.border, margin: '4px 0' }} />
+                                        )}
+                                        <SectionLabel label="Contacts" count={results.contacts.length} />
+                                        {results.contacts.map((c, i) => (
+                                            <ResultRow key={c.id}
+                                                icon={c.firstName.charAt(0).toUpperCase()}
+                                                iconBg={T.secondaryDim} iconColor={T.secondaryText}
+                                                title={highlight(`${c.firstName} ${c.lastName}`, query)}
+                                                subtitle={`${c.designation || 'Contact'}${c.account ? ` · ${c.account.name}` : ''}`}
+                                                onClick={() => go(`/contacts/${c.id}`)}
+                                                isLast={i === results.contacts.length - 1}
+                                            />
                                         ))}
                                     </div>
                                 )}
@@ -184,30 +214,19 @@ export default function TopBar() {
                                 {/* Deals */}
                                 {results.deals.length > 0 && (
                                     <div>
-                                        {(results.accounts.length > 0 || results.contacts.length > 0) && <div style={{ borderTop: `1px solid ${T.borderSubtle}` }} />}
-                                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest"
-                                            style={{ color: T.textMuted }}>Deals</p>
-                                        {results.deals.map(d => (
-                                            <button key={d.id} onClick={() => go(`/deals?highlight=${d.id}`)}
-                                                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                                                onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                                    style={{ background: T.tertiaryDim }}>
-                                                    <span className="material-symbols-outlined text-[15px]"
-                                                        style={{ color: T.tertiaryText }}>handshake</span>
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
-                                                        {highlight(d.title, query)}
-                                                    </p>
-                                                    <p className="text-xs truncate" style={{ color: T.textMuted }}>
-                                                        {d.stage}{d.account ? ` · ${d.account.name}` : ''}{d.amount ? ` · ₹${d.amount.toLocaleString()}` : ''}
-                                                    </p>
-                                                </div>
-                                                <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
-                                                    style={{ color: T.textMuted }}>arrow_forward</span>
-                                            </button>
+                                        {(results.accounts.length > 0 || results.contacts.length > 0) && (
+                                            <div style={{ height: 1, background: T.border, margin: '4px 0' }} />
+                                        )}
+                                        <SectionLabel label="Deals" count={results.deals.length} />
+                                        {results.deals.map((d, i) => (
+                                            <ResultRow key={d.id}
+                                                icon={<span className="material-symbols-outlined filled text-[15px]">handshake</span>}
+                                                iconBg={T.tertiaryDim} iconColor={T.tertiaryText}
+                                                title={highlight(d.title, query)}
+                                                subtitle={`${d.stage}${d.account ? ` · ${d.account.name}` : ''}${d.amount ? ` · ₹${d.amount.toLocaleString()}` : ''}`}
+                                                onClick={() => go(`/deals?highlight=${d.id}`)}
+                                                isLast={i === results.deals.length - 1}
+                                            />
                                         ))}
                                     </div>
                                 )}
@@ -215,48 +234,36 @@ export default function TopBar() {
                                 {/* Activities */}
                                 {results.activities.length > 0 && (
                                     <div>
-                                        {(results.accounts.length > 0 || results.contacts.length > 0 || results.deals.length > 0) &&
-                                            <div style={{ borderTop: `1px solid ${T.borderSubtle}` }} />}
-                                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest"
-                                            style={{ color: T.textMuted }}>Activities</p>
-                                        {results.activities.map(a => {
-                                            const typeColors = { CALL: T.primary, EMAIL: '#10b981', MEETING: '#8b5cf6', NOTE: '#f59e0b' }
-                                            const typeIcons = { CALL: 'call', EMAIL: 'mail', MEETING: 'groups', NOTE: 'sticky_note_2' }
-                                            return (
-                                                <button key={a.id} onClick={() => go(`/activities?highlight=${a.id}`)}
-                                                    className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                                                    onMouseEnter={e => e.currentTarget.style.background = T.surfaceRaised}
-                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                                                        style={{ background: T.primaryDim }}>
-                                                        <span className="material-symbols-outlined text-[15px]"
-                                                            style={{ color: typeColors[a.type] || T.primary }}>
-                                                            {typeIcons[a.type] || 'event_note'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
-                                                            {highlight(a.subject, query)}
-                                                        </p>
-                                                        <p className="text-xs truncate" style={{ color: T.textMuted }}>
-                                                            {a.type}{a.account ? ` · ${a.account.name}` : ''}{a.contact ? ` · ${a.contact.firstName} ${a.contact.lastName}` : ''}
-                                                        </p>
-                                                    </div>
-                                                    <span className="material-symbols-outlined text-[14px] ml-auto shrink-0"
-                                                        style={{ color: T.textMuted }}>arrow_forward</span>
-                                                </button>
-                                            )
-                                        })}
+                                        {(results.accounts.length > 0 || results.contacts.length > 0 || results.deals.length > 0) && (
+                                            <div style={{ height: 1, background: T.border, margin: '4px 0' }} />
+                                        )}
+                                        <SectionLabel label="Activities" count={results.activities.length} />
+                                        {results.activities.map((a, i) => (
+                                            <ResultRow key={a.id}
+                                                icon={<span className="material-symbols-outlined filled text-[15px]">{typeIcons[a.type] || 'event_note'}</span>}
+                                                iconBg={T.primaryDim} iconColor={typeColors[a.type] || T.primary}
+                                                title={highlight(a.subject, query)}
+                                                subtitle={`${a.type}${a.account ? ` · ${a.account.name}` : ''}${a.contact ? ` · ${a.contact.firstName} ${a.contact.lastName}` : ''}`}
+                                                onClick={() => go(`/activities?highlight=${a.id}`)}
+                                                isLast={i === results.activities.length - 1}
+                                            />
+                                        ))}
                                     </div>
                                 )}
 
-                                {/* Footer hint */}
-                                <div className="px-4 py-2.5 flex items-center gap-1.5"
-                                    style={{ borderTop: `1px solid ${T.borderSubtle}`, background: T.surfaceRaised }}>
-                                    <span className="material-symbols-outlined text-[13px]" style={{ color: T.textMuted }}>info</span>
-                                    <p className="text-[11px]" style={{ color: T.textMuted }}>
-                                        {totalResults} result{totalResults !== 1 ? 's' : ''} — click to navigate
-                                    </p>
+                                {/* Footer */}
+                                <div className="px-4 py-2.5 flex items-center justify-between"
+                                    style={{ borderTop: `1px solid ${T.border}`, background: T.borderSubtle }}>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[12px]" style={{ color: T.textMuted }}>info</span>
+                                        <p className="text-[11px]" style={{ color: T.textMuted }}>
+                                            {totalResults} result{totalResults !== 1 ? 's' : ''} — click to navigate
+                                        </p>
+                                    </div>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{ background: T.primaryDim, color: T.primary }}>
+                                        ↵ to select
+                                    </span>
                                 </div>
                             </div>
                         )}
@@ -264,31 +271,35 @@ export default function TopBar() {
                 )}
             </div>
 
-            <div className="flex items-center gap-1 ml-6">
+            {/* ── Right actions ─────────────────────────── */}
+            <div className="flex items-center gap-1 ml-6 shrink-0">
                 {/* Notifications */}
                 <div className="relative">
-                    <button className="p-2 rounded-full transition-colors"
+                    <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
                         style={{ color: T.textMuted }}
                         onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                        <span className="material-symbols-outlined text-[22px]">notifications</span>
+                        <span className="material-symbols-outlined text-[20px]">notifications</span>
                     </button>
-                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full border-2"
+                    {/* Dot badge */}
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
                         style={{ background: T.primary, borderColor: T.bg }} />
                 </div>
 
-                {/* Help → Support page */}
-                <button
-                    onClick={() => navigate('/support')}
-                    className="p-2 rounded-full transition-colors"
+                {/* Help / Support */}
+                <button onClick={() => navigate('/support')}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
                     style={{ color: T.textMuted }}
                     onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}
                     title="Support">
-                    <span className="material-symbols-outlined text-[22px]">help</span>
+                    <span className="material-symbols-outlined text-[20px]">help</span>
                 </button>
 
-                <div className="w-px h-6 mx-3" style={{ background: T.border }} />
+                {/* Divider */}
+                <div className="w-px h-6 mx-2" style={{ background: T.border }} />
+
+                {/* User menu */}
                 <UserMenu />
             </div>
         </header>

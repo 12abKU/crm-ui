@@ -9,13 +9,14 @@ import DealPanelActivities from './DealPanelActivities'
 import DealPanelContacts from './DealPanelContacts'
 import DealPanelDeals from './DealPanelDeals'
 
+// ── Tab config (unchanged) ─────────────────────────────────────
 const TABS = [
-    { id: 'overview', icon: 'dashboard', label: 'Overview' },
-    { id: 'account', icon: 'business', label: 'Account Details' },
-    { id: 'conversation', icon: 'forum', label: 'Conversations' },
-    { id: 'activities', icon: 'event_note', label: 'Activities' },
-    { id: 'contacts', icon: 'person', label: 'Contacts' },
-    { id: 'deals', icon: 'handshake', label: 'Deals' },
+    { id: 'overview',      icon: 'dashboard',     label: 'Overview' },
+    { id: 'account',       icon: 'business',       label: 'Account Details' },
+    { id: 'conversation',  icon: 'forum',          label: 'Conversations' },
+    { id: 'activities',    icon: 'event_note',     label: 'Activities' },
+    { id: 'contacts',      icon: 'person',         label: 'Contacts' },
+    { id: 'deals',         icon: 'handshake',      label: 'Deals' },
 ]
 
 export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
@@ -32,6 +33,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
         || deal.owner?.id === Number(userId) || deal.owner?.id === userId
     const canDelete = !isAgent
 
+    // ── Data loading (unchanged) ─────────────────────────────
     const loadProfile = () => {
         setLoading(true)
         api.get(`/api/deals/${deal.id}/profile`)
@@ -48,6 +50,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
 
+    // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {
         switch (activeTab) {
             case 'overview': return (
@@ -58,9 +61,9 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                     canEdit={canEdit}
                 />
             )
-            case 'account': return <DealPanelAccount deal={deal} />
+            case 'account':      return <DealPanelAccount deal={deal} />
             case 'conversation': return <DealPanelConversation deal={deal} />
-            case 'activities': return (
+            case 'activities':   return (
                 <DealPanelActivities
                     activities={activities}
                     loading={loading}
@@ -69,7 +72,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                 />
             )
             case 'contacts': return <DealPanelContacts deal={deal} />
-            case 'deals': return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
+            case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
             default: return null
         }
     }
@@ -78,28 +81,49 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
         <>
             {/* Backdrop */}
             <div className="fixed inset-0 z-40 backdrop-blur-sm"
-                style={{ background: 'rgba(15,23,42,0.5)' }}
+                style={{ background: 'rgba(10,22,40,0.60)' }}
                 onClick={onClose} />
 
             {/* Panel */}
             <div className="fixed right-0 top-0 h-full z-50 flex overflow-hidden"
-                style={{ width: 1000, boxShadow: SHADOW.xl }}>
+                style={{ width: 1000, boxShadow: '0 0 60px rgba(0,0,0,0.30)' }}>
 
-                {/* Vertical icon sidebar */}
-                <div className="flex flex-col items-center py-5 gap-1 shrink-0"
-                    style={{ width: 56, background: T.sidebar, borderRight: `1px solid rgba(255,255,255,0.06)` }}>
+                {/* ── Vertical icon sidebar ──────────────── */}
+                <div className="flex flex-col items-center pt-5 pb-4 gap-1 shrink-0"
+                    style={{
+                        width: 60,
+                        background: T.sidebar,
+                        borderRight: `1px solid rgba(147,197,253,0.08)`,
+                    }}>
+                    {/* Close button at top */}
+                    <button onClick={onClose}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-all"
+                        style={{ color: 'rgba(147,197,253,0.50)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.15)'; e.currentTarget.style.color = '#F87171' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.50)' }}>
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+
+                    {/* Divider */}
+                    <div className="w-8 mb-2" style={{ height: 1, background: 'rgba(147,197,253,0.10)' }} />
+
                     {TABS.map(tab => {
                         const isActive = activeTab === tab.id
                         return (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label}
                                 className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all group"
-                                style={{ background: isActive ? T.sidebarActive : 'transparent', color: isActive ? '#fff' : T.sidebarText }}
-                                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.sidebarHover; e.currentTarget.style.color = T.sidebarTextHover } }}
-                                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText } }}>
-                                <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
-                                <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold
+                                style={{
+                                    background: isActive ? 'rgba(147,197,253,0.15)' : 'transparent',
+                                    color: isActive ? '#93C5FD' : 'rgba(147,197,253,0.45)',
+                                    borderLeft: isActive ? '2px solid #60A5FA' : '2px solid transparent',
+                                }}
+                                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(147,197,253,0.08)'; e.currentTarget.style.color = '#93C5FD' } }}
+                                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.45)' } }}>
+                                <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>{tab.icon}</span>
+                                {/* Tooltip */}
+                                <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-[11px] font-bold
                                     pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
-                                    style={{ background: T.sidebar, color: '#fff', boxShadow: SHADOW.md }}>
+                                    style={{ background: '#0A1628', color: '#DBEAFE', boxShadow: '0 4px 16px rgba(0,0,0,0.25)', border: '1px solid rgba(147,197,253,0.12)' }}>
                                     {tab.label}
                                 </div>
                             </button>
@@ -107,76 +131,96 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                     })}
                 </div>
 
-                {/* Main content area */}
+                {/* ── Main content area ─────────────────── */}
                 <div className="flex flex-col flex-1 overflow-hidden" style={{ background: T.surface }}>
 
-                    {/* Header */}
-                    <div className="px-6 pt-5 pb-4 shrink-0" style={{ borderBottom: `1px solid ${T.border}` }}>
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                                    style={{ background: s.badgeBg }}>
-                                    <span className="material-symbols-outlined text-[17px]" style={{ color: s.badgeColor }}>handshake</span>
+                    {/* ── Header banner ─────────────────── */}
+                    <div className="shrink-0 relative overflow-hidden"
+                        style={{
+                            background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 60%, #0d2d5e 100%)`,
+                            borderBottom: `1px solid rgba(147,197,253,0.10)`,
+                        }}>
+                        {/* Orb */}
+                        <div style={{
+                            position: 'absolute', top: -30, right: -30, width: 140, height: 140,
+                            borderRadius: '50%',
+                            background: 'radial-gradient(circle, rgba(37,99,235,0.30) 0%, transparent 70%)',
+                            pointerEvents: 'none',
+                        }} />
+
+                        <div className="relative px-6 pt-5 pb-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                        style={{
+                                            background: 'rgba(255,255,255,0.12)',
+                                            border: '1px solid rgba(255,255,255,0.18)',
+                                        }}>
+                                        <span className="material-symbols-outlined filled text-[18px]"
+                                            style={{ color: s.accent ?? '#93C5FD' }}>handshake</span>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h2 className="text-base font-black truncate" style={{ color: '#fff' }}>
+                                            {deal.title}
+                                        </h2>
+                                        {deal.account && (
+                                            <p className="text-[12px] mt-0.5" style={{ color: 'rgba(147,197,253,0.75)' }}>
+                                                <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">business</span>
+                                                {deal.account.name}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="min-w-0">
-                                    <h2 className="text-base font-black truncate" style={{ color: T.textPrimary }}>{deal.title}</h2>
-                                    {deal.account && (
-                                        <p className="text-[12px]" style={{ color: T.textMuted }}>
-                                            <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">business</span>
-                                            {deal.account.name}
-                                        </p>
+
+                                {/* Header actions */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    {canDelete && onDelete && (
+                                        <button onClick={() => onDelete(deal.id)}
+                                            className="p-1.5 rounded-lg transition-all" title="Delete deal"
+                                            style={{ color: 'rgba(147,197,253,0.50)' }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.18)'; e.currentTarget.style.color = '#F87171' }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.50)' }}>
+                                            <span className="material-symbols-outlined text-[17px]">delete</span>
+                                        </button>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-1 shrink-0">
-                                {canDelete && onDelete && (
-                                    <button onClick={() => onDelete(deal.id)}
-                                        className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }} title="Delete deal"
-                                        onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                        <span className="material-symbols-outlined text-[17px]">delete</span>
-                                    </button>
-                                )}
-                                <button onClick={onClose}
-                                    className="p-1.5 rounded-lg transition-colors" style={{ color: T.textMuted }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                    <span className="material-symbols-outlined text-[19px]">close</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 mt-3">
-                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                                style={{ background: s.badgeBg, color: s.badgeColor }}>
-                                {STAGE_LABELS[deal.stage]}
-                            </span>
-                            {deal.amount > 0 && (
-                                <span className="text-sm font-black" style={{ color: T.primary }}>
-                                    ₹{deal.amount.toLocaleString()}
-                                </span>
-                            )}
-                            {deal.expectedCloseDate && (
-                                <span className="flex items-center gap-1 text-[11px]" style={{ color: T.textMuted }}>
-                                    <span className="material-symbols-outlined text-[12px]">schedule</span>
-                                    Closes {deal.expectedCloseDate}
-                                </span>
-                            )}
-                            {isAgent && isAssignedToMe && (
+                            {/* Meta badges row */}
+                            <div className="flex items-center gap-2.5 mt-3 flex-wrap">
                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                                    style={{ background: T.secondaryDim, color: T.secondaryText }}>
-                                    Assigned to you
+                                    style={{ background: s.badgeBg, color: s.badgeColor }}>
+                                    {STAGE_LABELS[deal.stage]}
                                 </span>
-                            )}
-                        </div>
+                                {deal.amount > 0 && (
+                                    <span className="text-sm font-black" style={{ color: '#93C5FD' }}>
+                                        ₹{deal.amount.toLocaleString()}
+                                    </span>
+                                )}
+                                {deal.expectedCloseDate && (
+                                    <span className="flex items-center gap-1 text-[11px]"
+                                        style={{ color: 'rgba(147,197,253,0.65)' }}>
+                                        <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                        Closes {deal.expectedCloseDate}
+                                    </span>
+                                )}
+                                {isAgent && isAssignedToMe && (
+                                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                        style={{ background: 'rgba(255,255,255,0.12)', color: '#DBEAFE' }}>
+                                        Assigned to you
+                                    </span>
+                                )}
+                            </div>
 
-                        <p className="text-[11px] font-bold uppercase tracking-widest mt-3" style={{ color: T.primary }}>
-                            {TABS.find(t => t.id === activeTab)?.label}
-                        </p>
+                            {/* Active tab label */}
+                            <p className="text-[10px] font-black uppercase tracking-widest mt-3"
+                                style={{ color: 'rgba(147,197,253,0.55)' }}>
+                                {TABS.find(t => t.id === activeTab)?.label}
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Scrollable tab content */}
+                    {/* ── Scrollable tab content ─────────── */}
                     <div className="flex-1 overflow-y-auto">
                         {renderContent()}
                     </div>

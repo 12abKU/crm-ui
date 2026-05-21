@@ -83,21 +83,66 @@ export default function Accounts() {
         <div>
             <TopBar />
             <main className="p-8 max-w-360 mx-auto">
-                <PageHeader
-                    title="Accounts"
-                    subtitle={`${totalElements} companies`}
-                    actions={
-                        <>
+
+                {/* ── Hero Banner ─────────────────────────────── */}
+                <div className="relative rounded-3xl overflow-hidden mb-7"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 120,
+                    }}>
+                    {/* Orbs */}
+                    <div style={{
+                        position: 'absolute', top: -40, right: -40, width: 200, height: 200,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -20, left: '35%', width: 140, height: 140,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                style={{
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: '#93C5FD' }}>business</span>
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Accounts
+                                </h2>
+                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                    {loading ? 'Loading…' : `${totalElements} companies in your CRM`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
                             {can.ACCOUNTS_CREATE && (
-                                <button onClick={() => setOpen(true)} className="crm-btn-primary flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px]">add</span>Add Account
+                                <button onClick={() => setOpen(true)}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.12)',
+                                        border: '1px solid rgba(255,255,255,0.22)',
+                                        color: '#fff',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                                    <span className="material-symbols-outlined text-[18px]">add</span>
+                                    Add Account
                                 </button>
                             )}
-                        </>
-                    }
-                />
+                        </div>
+                    </div>
+                </div>
 
+                {/* ── Table ───────────────────────────────────── */}
                 <TableShell
                     headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
@@ -123,49 +168,91 @@ export default function Accounts() {
                             const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                             return (
-                                <tr key={a.id} className="group transition-colors"
+                                <tr key={a.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                    onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
-                                    onMouseLeave={e => e.currentTarget.style.background = rowBg}>
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = T.surfaceHigh
+                                        e.currentTarget.style.transform = 'translateX(2px)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = rowBg
+                                        e.currentTarget.style.transform = 'none'
+                                    }}>
+
+                                    {/* Company name + avatar */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <EntityAvatar label={a.name} rounded="xl" variant="primary" />
-                                            <span className="text-sm font-semibold cursor-pointer hover:underline"
-                                                style={{ color: T.primaryText }}
-                                                onClick={() => navigate(`/accounts/${a.id}`)}>
-                                                {a.name}
-                                            </span>
+                                            <div>
+                                                <span className="text-sm font-bold cursor-pointer hover:underline"
+                                                    style={{ color: T.primaryText }}
+                                                    onClick={() => navigate(`/accounts/${a.id}`)}>
+                                                    {a.name}
+                                                </span>
+                                                {a.industry && (
+                                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>{a.industry}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
+
+                                    {/* Website */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={a.website} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'website', v)} />
                                     </td>
+
+                                    {/* Phone */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={a.phone} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'phone', v)} />
                                     </td>
+
+                                    {/* Industry */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={a.industry} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'industry', v)} />
                                     </td>
+
+                                    {/* Employees */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
                                         <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
                                     </td>
+
+                                    {/* Tag */}
                                     <td className="px-6 py-4">
                                         <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'tag', v)}>
-                                            {a.tag && <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: tag.bg, color: tag.color }}>{a.tag}</span>}
+                                            {a.tag && (
+                                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                                    style={{ background: tag.bg, color: tag.color }}>
+                                                    {a.tag}
+                                                </span>
+                                            )}
                                         </InlineEdit>
                                     </td>
+
+                                    {/* Contacts */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: T.secondaryDim }}>
-                                                <span className="material-symbols-outlined text-[13px]" style={{ color: T.secondaryText }}>groups</span>
+                                            <div className="w-6 h-6 rounded-full flex items-center justify-center"
+                                                style={{ background: T.secondaryDim }}>
+                                                <span className="material-symbols-outlined text-[13px]"
+                                                    style={{ color: T.secondaryText }}>groups</span>
                                             </div>
-                                            <span className="text-sm font-bold" style={{ color: T.textPrimary }}>{a.contactCount ?? 0}</span>
+                                            <span className="text-sm font-bold" style={{ color: T.textPrimary }}>
+                                                {a.contactCount ?? 0}
+                                            </span>
                                         </div>
                                     </td>
+
+                                    {/* Open Deals */}
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-bold" style={{ color: T.primaryText }}>₹{(a.openDealAmount ?? 0).toLocaleString()}</span>
-                                        <p className="text-[11px]" style={{ color: T.textMuted }}>{a.openDealCount ?? 0} deals</p>
+                                        <span className="text-sm font-bold block" style={{ color: T.primaryText }}>
+                                            ₹{(a.openDealAmount ?? 0).toLocaleString()}
+                                        </span>
+                                        <p className="text-[11px]" style={{ color: T.textMuted }}>
+                                            {a.openDealCount ?? 0} deals
+                                        </p>
                                     </td>
+
+                                    {/* Delete */}
                                     {can.ACCOUNTS_DELETE && (
                                         <td className="px-6 py-4">
                                             <DeleteIconButton onClick={e => remove(a.id, e)} />
@@ -174,11 +261,14 @@ export default function Accounts() {
                                 </tr>
                             )
                         })}
-                        {!loading && accounts.length === 0 && <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />}
+                        {!loading && accounts.length === 0 && (
+                            <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />
+                        )}
                     </tbody>
                 </TableShell>
             </main>
 
+            {/* ── Slide Form ───────────────────────────────── */}
             {can.ACCOUNTS_CREATE && (
                 <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
                     <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />

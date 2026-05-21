@@ -2,17 +2,26 @@ import { useEffect, useState } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import Pagination from '../components/Pagination'
-import PageHeader from '../components/ui/PageHeader'
 import CallLogTable from '../components/voice/CallLogTable'
 import CallWidget from '../components/voice/CallWidget'
 import CallStatCard from '../components/voice/CallStatCard'
 import QuickDialerModal from '../components/voice/QuickDialerModal'
 import api from '../api'
 
+// ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
 const FILTERS = ['ALL', 'OUTBOUND', 'INBOUND', 'ANSWERED', 'MISSED']
 
+const FILTER_META = {
+    ALL:      { icon: 'call',           color: T.primary },
+    OUTBOUND: { icon: 'call_made',      color: '#2563EB' },
+    INBOUND:  { icon: 'call_received',  color: '#16A34A' },
+    ANSWERED: { icon: 'phone_in_talk',  color: '#0891B2' },
+    MISSED:   { icon: 'phone_missed',   color: '#DC2626' },
+}
+
 export default function Calls() {
+    // ── State (unchanged) ──────────────────────────────────────
     const [logs, setLogs] = useState([])
     const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -24,6 +33,7 @@ export default function Calls() {
     const [dialNumber, setDialNumber] = useState('')
     const [activeCall, setActiveCall] = useState(null)
 
+    // ── Data handlers (unchanged) ──────────────────────────────
     const loadLogs = (p = 0, f = filter) => {
         setLoading(true)
         api.get(`/api/voice/logs?page=${p}&size=${PAGE_SIZE}&filter=${f}`)
@@ -63,54 +73,111 @@ export default function Calls() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
-                <PageHeader
-                    title="Calls"
-                    subtitle="Voice call history and logs"
-                    actions={
-                        <button onClick={() => setShowDialer(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
-                            <span className="material-symbols-outlined text-[17px]">add_call</span>
+            <main className="p-8">
+
+                {/* ── Hero Banner ──────────────────────────── */}
+                <div className="relative rounded-3xl overflow-hidden mb-7"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 120,
+                    }}>
+                    {/* Orbs */}
+                    <div style={{
+                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -20, left: '45%', width: 130, height: 130,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+
+                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                style={{
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: '#93C5FD' }}>call</span>
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Calls
+                                </h2>
+                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                    Voice call history and logs
+                                </p>
+                            </div>
+                        </div>
+                        <button onClick={() => setShowDialer(true)}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
+                            style={{
+                                background: 'rgba(255,255,255,0.12)',
+                                border: '1px solid rgba(255,255,255,0.22)',
+                                color: '#fff',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                            <span className="material-symbols-outlined text-[18px]">add_call</span>
                             New Call
                         </button>
-                    }
-                />
-
-                <div className="grid grid-cols-4 gap-4 mb-8">
-                    <CallStatCard icon="call" label="Total Calls"
-                        value={stats?.total ?? '—'} bg={T.primaryDim} color={T.primary} />
-                    <CallStatCard icon="call_received" label="Answered"
-                        value={stats?.answered ?? '—'} bg={T.successDim} color={T.success} />
-                    <CallStatCard icon="schedule" label="Talk Time"
-                        value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
-                    <CallStatCard icon="avg_pace" label="Avg Duration"
-                        value={stats ? `${stats.avgDurationSeconds}s` : '—'} bg={T.warningDim} color={T.warning} />
+                    </div>
                 </div>
 
-                <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <div className="flex items-center justify-between mb-5">
+                {/* ── Stat cards ───────────────────────────── */}
+                <div className="grid grid-cols-4 gap-4 mb-7">
+                    <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '—'}                      bg={T.primaryDim}  color={T.primary} />
+                    <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '—'}                   bg={T.successDim}  color={T.success} />
+                    <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
+                    <CallStatCard icon="avg_pace"  label="Avg Duration"  value={stats ? `${stats.avgDurationSeconds}s` : '—'} bg={T.warningDim} color={T.warning} />
+                </div>
+
+                {/* ── Call logs card ──────────────────────── */}
+                <div className="rounded-2xl overflow-hidden"
+                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+
+                    {/* Card header */}
+                    <div className="px-6 py-4 flex items-center justify-between flex-wrap gap-3"
+                        style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
                         <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined filled text-[18px]"
+                                style={{ color: T.primary }}>list_alt</span>
                             <h3 className="text-sm font-bold" style={{ color: T.textPrimary }}>Call Logs</h3>
                             {!loading && (
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
                                     style={{ background: T.primaryDim, color: T.primary }}>
                                     {totalElements}
                                 </span>
                             )}
                         </div>
-                        <div className="flex gap-1">
-                            {FILTERS.map(item => (
-                                <button key={item} onClick={() => handleFilterChange(item)}
-                                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                                    style={{
-                                        background: filter === item ? T.primaryDim : 'transparent',
-                                        color: filter === item ? T.primary : T.textMuted,
-                                    }}>
-                                    {item}
-                                </button>
-                            ))}
+
+                        {/* Filter pills */}
+                        <div className="flex items-center gap-1 p-1 rounded-xl"
+                            style={{ background: T.bg, border: `1px solid ${T.border}` }}>
+                            {FILTERS.map(item => {
+                                const meta = FILTER_META[item]
+                                const isActive = filter === item
+                                return (
+                                    <button key={item} onClick={() => handleFilterChange(item)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                        style={{
+                                            background: isActive ? T.primary : 'transparent',
+                                            color: isActive ? '#fff' : T.textMuted,
+                                        }}>
+                                        <span className="material-symbols-outlined text-[12px]">{meta.icon}</span>
+                                        {item.charAt(0) + item.slice(1).toLowerCase()}
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
 
+                    {/* Table + Pagination (unchanged) */}
                     <CallLogTable logs={logs} loading={loading} />
 
                     {totalPages > 1 && (
@@ -125,6 +192,7 @@ export default function Calls() {
                 </div>
             </main>
 
+            {/* QuickDialerModal (unchanged) */}
             {showDialer && !activeCall && (
                 <QuickDialerModal
                     number={dialNumber}
@@ -134,6 +202,7 @@ export default function Calls() {
                 />
             )}
 
+            {/* CallWidget (unchanged) */}
             {activeCall && (
                 <CallWidget
                     contact={activeCall}

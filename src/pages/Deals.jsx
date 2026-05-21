@@ -13,30 +13,31 @@ import DealCard from '../components/deals/DealCard'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
+// ── Constants (unchanged) ──────────────────────────────────────
 const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
 
 const STAGE_COLUMN_BG = {
-    NEW: 'rgba(120,113,108,0.05)',
-    QUALIFIED: 'rgba(37,99,235,0.05)',
+    NEW:      'rgba(120,113,108,0.05)',
+    QUALIFIED:'rgba(37,99,235,0.05)',
     PROPOSAL: 'rgba(83,141,141,0.05)',
-    WON: 'rgba(22,163,74,0.05)',
-    LOST: 'rgba(220,38,38,0.04)',
+    WON:      'rgba(22,163,74,0.05)',
+    LOST:     'rgba(220,38,38,0.04)',
 }
 
 const STAGE_HEADER_BG = {
-    NEW: 'rgba(120,113,108,0.10)',
-    QUALIFIED: 'rgba(37,99,235,0.08)',
+    NEW:      'rgba(120,113,108,0.10)',
+    QUALIFIED:'rgba(37,99,235,0.08)',
     PROPOSAL: 'rgba(83,141,141,0.08)',
-    WON: 'rgba(22,163,74,0.08)',
-    LOST: 'rgba(220,38,38,0.07)',
+    WON:      'rgba(22,163,74,0.08)',
+    LOST:     'rgba(220,38,38,0.07)',
 }
 
 const STAGE_COLUMN_BORDER = {
-    NEW: 'rgba(120,113,108,0.22)',
-    QUALIFIED: 'rgba(37,99,235,0.20)',
+    NEW:      'rgba(120,113,108,0.22)',
+    QUALIFIED:'rgba(37,99,235,0.20)',
     PROPOSAL: 'rgba(83,141,141,0.22)',
-    WON: 'rgba(22,163,74,0.22)',
-    LOST: 'rgba(220,38,38,0.18)',
+    WON:      'rgba(22,163,74,0.22)',
+    LOST:     'rgba(220,38,38,0.18)',
 }
 
 export default function Deals() {
@@ -120,7 +121,6 @@ export default function Deals() {
         }
         const deal = dragDeal.current
 
-        // Agent without DEALS_EDIT permission: must be owner or assignee to drag
         if (isAgent && !can.DEALS_EDIT) {
             const isOwner = String(deal.owner?.id) === String(userId)
             const isAssignee = (deal.assignees ?? []).some(u => String(u.id) === String(userId))
@@ -129,12 +129,10 @@ export default function Deals() {
             }
         }
 
-        // Optimistic update
         setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage } : d))
         setDraggingId(null); setOverStage(null); dragDeal.current = null
 
         try {
-            // Send only the fields DealRequest expects — no nested objects
             await api.put(`/api/deals/${deal.id}`, {
                 title: deal.title,
                 amount: deal.amount ?? null,
@@ -144,7 +142,6 @@ export default function Deals() {
                 contactId: deal.contact?.id ?? null,
             })
         } catch {
-            // Revert optimistic update on failure
             load()
         }
     }
@@ -158,35 +155,108 @@ export default function Deals() {
         ? `${deals.length} deal${deals.length !== 1 ? 's' : ''} assigned to you`
         : `${deals.length} deal${deals.length !== 1 ? 's' : ''} · Kanban board`
 
+    // ── Pipeline totals for summary strip
+    const pipelineTotals = STAGES.map(stage => ({
+        stage,
+        count: filtered.filter(d => d.stage === stage).length,
+        value: filtered.filter(d => d.stage === stage).reduce((s, d) => s + (d.amount ?? 0), 0),
+        style: STAGE_STYLES[stage],
+    }))
+
     return (
         <div>
             <TopBar />
             <main className="p-8">
-                <PageHeader
-                    icon="handshake"
-                    title="Deals"
-                    subtitle={subtitleText}
-                    actions={
-                        <div className="flex gap-2 items-center">
+
+                {/* ── Hero Banner ──────────────────────────── */}
+                <div className="relative rounded-3xl overflow-hidden mb-7"
+                    style={{
+                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        minHeight: 120,
+                    }}>
+                    <div style={{
+                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        pointerEvents: 'none',
+                    }} />
+
+                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                                style={{
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: '#93C5FD' }}>handshake</span>
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Deals
+                                </h2>
+                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                    {subtitleText}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search deals..." />
                             {can.DEALS_CREATE && (
-                                <button className="crm-btn-primary flex items-center gap-2" onClick={() => setOpen(true)}>
-                                    <span className="material-symbols-outlined text-[16px]">add</span>New Deal
+                                <button onClick={() => setOpen(true)}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.12)',
+                                        border: '1px solid rgba(255,255,255,0.22)',
+                                        color: '#fff',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                                    <span className="material-symbols-outlined text-[18px]">add</span>
+                                    New Deal
                                 </button>
                             )}
                         </div>
-                    }
-                />
+                    </div>
+                </div>
 
-                {/* ── Kanban board ─────────────────────────────────────── */}
-                <div className="flex gap-4 overflow-x-auto pb-4 kanban-scroll mt-6 items-start">
+                {/* ── Pipeline summary strip ───────────────── */}
+                <div className="grid grid-cols-5 gap-3 mb-6">
+                    {pipelineTotals.map(({ stage, count, value, style }) => (
+                        <div key={stage}
+                            className="rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
+                            style={{
+                                background: T.surface,
+                                border: `1.5px solid ${style.accent}30`,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                            }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest"
+                                    style={{ color: style.accent }}>{STAGE_LABELS[stage]}</span>
+                                <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
+                                    style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
+                            </div>
+                            <p className="text-base font-black" style={{ color: T.textPrimary }}>
+                                {value > 0 ? `₹${Number(value).toLocaleString('en-IN')}` : '—'}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* ── Kanban board ─────────────────────────── */}
+                <div className="flex gap-4 overflow-x-auto pb-4 kanban-scroll items-start">
                     {STAGES.map(stage => {
                         const stageDeals = filtered.filter(d => d.stage === stage)
                         const style = STAGE_STYLES[stage]
                         const totalValue = stageDeals.reduce((s, d) => s + (d.amount ?? 0), 0)
                         const isOver = overStage === stage
                         const colBg = STAGE_COLUMN_BG[stage]
-                        const headerBg = STAGE_HEADER_BG[stage]
                         const colBorder = isOver ? style.accent : STAGE_COLUMN_BORDER[stage]
 
                         return (
@@ -197,22 +267,22 @@ export default function Deals() {
                                     border: `1.5px solid ${colBorder}`,
                                     minHeight: 240,
                                     boxShadow: isOver
-                                        ? `0 0 0 3px ${style.accent}22, 0 4px 16px rgba(0,0,0,0.08)`
-                                        : '0 2px 8px rgba(0,0,0,0.05)',
+                                        ? `0 0 0 3px ${style.accent}22, 0 4px 20px rgba(0,0,0,0.10)`
+                                        : '0 2px 10px rgba(0,0,0,0.05)',
                                     transition: 'border-color 0.15s, box-shadow 0.15s',
                                 }}
                                 onDragOver={e => { e.preventDefault(); setOverStage(stage) }}
                                 onDragLeave={() => setOverStage(null)}
                                 onDrop={() => handleDrop(stage)}>
 
-                                {/* ── Column header ─────────────────────────────── */}
-                                <div className="px-4 py-3 flex items-center justify-between"
+                                {/* Column header */}
+                                <div className="px-4 py-3.5 flex items-center justify-between"
                                     style={{
-                                        background: headerBg,
+                                        background: STAGE_HEADER_BG[stage],
                                         borderBottom: `2px solid ${style.accent}`,
                                     }}>
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-2 h-2 rounded-full shrink-0"
+                                        <div className="w-2.5 h-2.5 rounded-full shrink-0"
                                             style={{ background: style.accent }} />
                                         <span className="text-[12px] font-black uppercase tracking-[0.12em]"
                                             style={{ color: style.accent }}>
@@ -235,11 +305,10 @@ export default function Deals() {
                                     )}
                                 </div>
 
-                                {/* ── Cards area ────────────────────────────────── */}
+                                {/* Cards area */}
                                 <div className="flex flex-col gap-2.5 p-3 flex-1">
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === String(highlightId)
-                                        // Agent can drag if they have DEALS_EDIT OR are owner/assignee
                                         const canDrag = isAdminOrAbove || can.DEALS_EDIT || deal._isOwner || deal._assignedToMe
                                         const canDelete = can.DEALS_DELETE && (isAdminOrAbove || deal._isOwner)
 
@@ -297,7 +366,7 @@ export default function Deals() {
                 </div>
             </main>
 
-            {/* Create Deal slide form */}
+            {/* Create Deal slide form (unchanged) */}
             <SlideForm open={open} onClose={() => { setOpen(false); resetForm() }} title="New Deal" onSubmit={submit}>
                 <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required />
                 <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} />
@@ -322,7 +391,7 @@ export default function Deals() {
                 />
             </SlideForm>
 
-            {/* Deal panel */}
+            {/* Deal panel (unchanged) */}
             {selectedDeal && (
                 <DealPanel
                     deal={selectedDeal}
