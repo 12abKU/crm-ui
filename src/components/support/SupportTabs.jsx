@@ -60,7 +60,7 @@ export default function SupportTabs({ tab, setTab, badge, isAdmin }) {
                         {Icon && <Icon size={15} style={{ opacity: active ? 1 : 0.7 }} />}
                         {t.label}
                         {t.badge && (
-                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-black flex items-center justify-center min-w-[18px]"
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-black flex items-center justify-center min-w-4.5"
                                 style={{
                                     background: active ? 'rgba(255,255,255,0.25)' : '#DC2626',
                                     color: '#fff',
