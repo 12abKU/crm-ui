@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, STAGE_STYLES } from '../../constants/theme'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
@@ -54,7 +54,7 @@ export default function DealCard({
                 onMouseLeave={() => setHovered(false)}
                 className="rounded-xl cursor-pointer active:cursor-grabbing select-none overflow-hidden relative"
                 style={{
-                    background: blink ? 'rgba(37,99,235,0.14)' : T.surface,
+                    background: blink ? '' : T.surface,
                     border: isDragging
                         ? `1.5px solid ${T.primary}`
                         : assignedToMe

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T } from '../constants/theme'
 import UserMenu from './UserMenu'
@@ -108,7 +108,7 @@ export default function TopBar() {
     }
 
     const typeIcons = { CALL: 'call', EMAIL: 'mail', MEETING: 'groups', NOTE: 'sticky_note_2' }
-    const typeColors = { CALL: T.primary, EMAIL: '#10b981', MEETING: '#8b5cf6', NOTE: '#f59e0b' }
+    const typeColors = { CALL: T.primary, EMAIL: T.activityEmail, MEETING: T.activityMeeting, NOTE: T.activityNote }
 
     return (
         <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-40"
@@ -283,7 +283,7 @@ export default function TopBar() {
                     </button>
                     {/* Dot badge */}
                     <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
-                        style={{ background: T.primary, borderColor: T.bg }} />
+                        style={{ background: T.primary, borderColor: T.avatarBorderColor }} />
                 </div>
 
                 {/* Help / Support */}

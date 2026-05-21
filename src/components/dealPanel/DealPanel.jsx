@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, STAGE_LABELS, STAGE_STYLES, SHADOW } from '../../constants/theme'
 import api from '../../api'
@@ -93,19 +93,19 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                     style={{
                         width: 60,
                         background: T.sidebar,
-                        borderRight: `1px solid rgba(147,197,253,0.08)`,
+                        borderRight: `1px solid ${T.sidebarBorder}`,
                     }}>
                     {/* Close button at top */}
                     <button onClick={onClose}
                         className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-all"
-                        style={{ color: 'rgba(147,197,253,0.50)' }}
+                        style={{ color: T.heroSubText }}
                         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.15)'; e.currentTarget.style.color = '#F87171' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.50)' }}>
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
                         <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
 
                     {/* Divider */}
-                    <div className="w-8 mb-2" style={{ height: 1, background: 'rgba(147,197,253,0.10)' }} />
+                    <div className="w-8 mb-2" style={{ height: 1, background: T.sidebarBorder }} />
 
                     {TABS.map(tab => {
                         const isActive = activeTab === tab.id
@@ -113,17 +113,17 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label}
                                 className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all group"
                                 style={{
-                                    background: isActive ? 'rgba(147,197,253,0.15)' : 'transparent',
-                                    color: isActive ? '#93C5FD' : 'rgba(147,197,253,0.45)',
-                                    borderLeft: isActive ? '2px solid #60A5FA' : '2px solid transparent',
+                                    background: isActive ? T.sidebarHover : 'transparent',
+                                    color: isActive ? T.sidebarActiveText : T.sidebarText,
+                                    borderLeft: isActive ? '2px solid ${T.sidebarActiveText}' : '2px solid transparent',
                                 }}
-                                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(147,197,253,0.08)'; e.currentTarget.style.color = '#93C5FD' } }}
-                                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.45)' } }}>
+                                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.sidebarBorder; e.currentTarget.style.color = T.sidebarActiveText } }}
+                                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText } }}>
                                 <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>{tab.icon}</span>
                                 {/* Tooltip */}
                                 <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-[11px] font-bold
                                     pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
-                                    style={{ background: '#0A1628', color: '#DBEAFE', boxShadow: '0 4px 16px rgba(0,0,0,0.25)', border: '1px solid rgba(147,197,253,0.12)' }}>
+                                    style={{ background: '#0A1628', color: '#DBEAFE', boxShadow: '0 4px 16px rgba(0,0,0,0.25)', border: '1px solid ${T.sidebarBorder}' }}>
                                     {tab.label}
                                 </div>
                             </button>
@@ -137,14 +137,14 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                     {/* ── Header banner ─────────────────── */}
                     <div className="shrink-0 relative overflow-hidden"
                         style={{
-                            background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 60%, #0d2d5e 100%)`,
-                            borderBottom: `1px solid rgba(147,197,253,0.10)`,
+                            background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
+                            borderBottom: `1px solid ${T.sidebarBorder}`,
                         }}>
                         {/* Orb */}
                         <div style={{
                             position: 'absolute', top: -30, right: -30, width: 140, height: 140,
                             borderRadius: '50%',
-                            background: 'radial-gradient(circle, rgba(37,99,235,0.30) 0%, transparent 70%)',
+                            background: 'radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)',
                             pointerEvents: 'none',
                         }} />
 
@@ -153,18 +153,18 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                         style={{
-                                            background: 'rgba(255,255,255,0.12)',
+                                            background: T.heroBadgeBg,
                                             border: '1px solid rgba(255,255,255,0.18)',
                                         }}>
                                         <span className="material-symbols-outlined filled text-[18px]"
-                                            style={{ color: s.accent ?? '#93C5FD' }}>handshake</span>
+                                            style={{ color: s.accent ?? T.sidebarActiveText }}>handshake</span>
                                     </div>
                                     <div className="min-w-0">
                                         <h2 className="text-base font-black truncate" style={{ color: '#fff' }}>
                                             {deal.title}
                                         </h2>
                                         {deal.account && (
-                                            <p className="text-[12px] mt-0.5" style={{ color: 'rgba(147,197,253,0.75)' }}>
+                                            <p className="text-[12px] mt-0.5" style={{ color: T.heroSubText }}>
                                                 <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">business</span>
                                                 {deal.account.name}
                                             </p>
@@ -177,9 +177,9 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                                     {canDelete && onDelete && (
                                         <button onClick={() => onDelete(deal.id)}
                                             className="p-1.5 rounded-lg transition-all" title="Delete deal"
-                                            style={{ color: 'rgba(147,197,253,0.50)' }}
+                                            style={{ color: T.heroSubText }}
                                             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.18)'; e.currentTarget.style.color = '#F87171' }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(147,197,253,0.50)' }}>
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
                                             <span className="material-symbols-outlined text-[17px]">delete</span>
                                         </button>
                                     )}
@@ -193,20 +193,20 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                                     {STAGE_LABELS[deal.stage]}
                                 </span>
                                 {deal.amount > 0 && (
-                                    <span className="text-sm font-black" style={{ color: '#93C5FD' }}>
+                                    <span className="text-sm font-black" style={{ color: T.sidebarActiveText }}>
                                         ₹{deal.amount.toLocaleString()}
                                     </span>
                                 )}
                                 {deal.expectedCloseDate && (
                                     <span className="flex items-center gap-1 text-[11px]"
-                                        style={{ color: 'rgba(147,197,253,0.65)' }}>
+                                        style={{ color: T.heroSubText }}>
                                         <span className="material-symbols-outlined text-[12px]">schedule</span>
                                         Closes {deal.expectedCloseDate}
                                     </span>
                                 )}
                                 {isAgent && isAssignedToMe && (
                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                                        style={{ background: 'rgba(255,255,255,0.12)', color: '#DBEAFE' }}>
+                                        style={{ background: T.heroBadgeBg, color: '#DBEAFE' }}>
                                         Assigned to you
                                     </span>
                                 )}
@@ -214,7 +214,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
 
                             {/* Active tab label */}
                             <p className="text-[10px] font-black uppercase tracking-widest mt-3"
-                                style={{ color: 'rgba(147,197,253,0.55)' }}>
+                                style={{ color: T.heroSubText }}>
                                 {TABS.find(t => t.id === activeTab)?.label}
                             </p>
                         </div>

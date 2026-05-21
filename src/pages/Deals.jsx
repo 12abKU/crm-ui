@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, STAGES, STAGE_LABELS, STAGE_STYLES } from '../constants/theme'
@@ -18,7 +18,7 @@ const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '',
 
 const STAGE_COLUMN_BG = {
     NEW:      'rgba(120,113,108,0.05)',
-    QUALIFIED:'rgba(37,99,235,0.05)',
+    QUALIFIED:T.primaryFaint,
     PROPOSAL: 'rgba(83,141,141,0.05)',
     WON:      'rgba(22,163,74,0.05)',
     LOST:     'rgba(220,38,38,0.04)',
@@ -26,7 +26,7 @@ const STAGE_COLUMN_BG = {
 
 const STAGE_HEADER_BG = {
     NEW:      'rgba(120,113,108,0.10)',
-    QUALIFIED:'rgba(37,99,235,0.08)',
+    QUALIFIED:T.primaryFaint,
     PROPOSAL: 'rgba(83,141,141,0.08)',
     WON:      'rgba(22,163,74,0.08)',
     LOST:     'rgba(220,38,38,0.07)',
@@ -34,7 +34,7 @@ const STAGE_HEADER_BG = {
 
 const STAGE_COLUMN_BORDER = {
     NEW:      'rgba(120,113,108,0.22)',
-    QUALIFIED:'rgba(37,99,235,0.20)',
+    QUALIFIED:T.primaryDim,
     PROPOSAL: 'rgba(83,141,141,0.22)',
     WON:      'rgba(22,163,74,0.22)',
     LOST:     'rgba(220,38,38,0.18)',
@@ -171,19 +171,19 @@ export default function Deals() {
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 220, height: 220,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
 
@@ -195,13 +195,13 @@ export default function Deals() {
                                     border: '1px solid rgba(255,255,255,0.18)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: '#93C5FD' }}>handshake</span>
+                                    style={{ color: T.sidebarActiveText }}>handshake</span>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Deals
                                 </h2>
-                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                     {subtitleText}
                                 </p>
                             </div>
@@ -212,12 +212,12 @@ export default function Deals() {
                                 <button onClick={() => setOpen(true)}
                                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
                                     style={{
-                                        background: 'rgba(255,255,255,0.12)',
+                                        background: T.heroBadgeBg,
                                         border: '1px solid rgba(255,255,255,0.22)',
                                         color: '#fff',
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
                                     <span className="material-symbols-outlined text-[18px]">add</span>
                                     New Deal
                                 </button>

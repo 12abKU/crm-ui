@@ -1,4 +1,4 @@
-import { IconBuilding, IconBook, IconCurrencyRupee, IconUsers } from '@tabler/icons-react'
+﻿import { IconBuilding, IconBook, IconCurrencyRupee, IconUsers } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 
 export default function CompanyStatsGrid({ stats }) {
@@ -7,7 +7,7 @@ export default function CompanyStatsGrid({ stats }) {
     const cards = [
         { icon: <IconBuilding size={16} />, label: 'Accounts', value: stats.accounts, color: T.primary },
         { icon: <IconBook size={16} />, label: 'Contacts', value: stats.contacts, color: '#16a34a' },
-        { icon: <IconCurrencyRupee size={16} />, label: 'Deals', value: stats.deals, color: '#7c3aed' },
+        { icon: <IconCurrencyRupee size={16} />, label: 'Deals', value: stats.deals, color: T.superAdminColor },
         { icon: <IconUsers size={16} />, label: 'Users', value: stats.users, color: '#D97706' },
     ]
 

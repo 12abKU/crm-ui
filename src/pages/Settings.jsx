@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux'
+﻿import { useSelector } from 'react-redux'
 import TopBar from '../components/TopBar'
 import AgentSettings from '../components/settings/AgentSettings'
 import AdminSettings from '../components/settings/AdminSettings'
@@ -11,8 +11,8 @@ const ROLE_META = {
         icon: 'shield_person',
         label: 'Super Admin Settings',
         description: 'Full control over users, roles, and system configuration',
-        accent: '#7C3AED',
-        accentBg: 'rgba(139,92,246,0.12)',
+        accent: T.superAdminColor,
+        accentBg: T.superAdminDim,
         gradient: 'linear-gradient(135deg, #1e1033 0%, #2d1b69 55%, #1a0f40 100%)',
     },
     ADMIN: {
@@ -21,7 +21,7 @@ const ROLE_META = {
         description: 'Manage your team agents and your own profile',
         accent: T.primary,
         accentBg: T.primaryDim,
-        gradient: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+        gradient: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
     },
     AGENT: {
         icon: 'manage_accounts',
@@ -34,7 +34,7 @@ const ROLE_META = {
 }
 
 const ROLE_BADGE = {
-    SUPER_ADMIN: { bg: 'rgba(139,92,246,0.20)', color: '#A78BFA', label: 'Super Admin' },
+    SUPER_ADMIN: { bg: T.superAdminDim, color: T.superAdminLight, label: 'Super Admin' },
     ADMIN:       { bg: T.primaryDim,             color: T.primary,  label: 'Admin' },
     AGENT:       { bg: T.successDim,             color: T.success,  label: 'Agent' },
 }
@@ -97,7 +97,7 @@ export default function Settings() {
                         {/* Role badge */}
                         <span className="px-4 py-2 rounded-xl text-sm font-black shrink-0"
                             style={{
-                                background: 'rgba(255,255,255,0.12)',
+                                background: T.heroBadgeBg,
                                 color: '#fff',
                                 border: '1px solid rgba(255,255,255,0.20)',
                                 letterSpacing: '0.02em',

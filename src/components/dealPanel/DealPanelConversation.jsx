@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 import Skeleton from 'react-loading-skeleton'
@@ -219,7 +219,7 @@ export default function DealPanelConversation({ deal }) {
                 style={{
                     background: T.primary, color: '#fff',
                     opacity: connecting ? 0.7 : 1,
-                    boxShadow: '0 4px 14px rgba(37,99,235,0.3)'
+                    boxShadow: '0 4px 14px 4D'
                 }}>
                 <span className="material-symbols-outlined text-[16px]">mail</span>
                 {connecting ? 'Redirecting to Google...' : 'Connect Gmail'}
@@ -250,7 +250,7 @@ export default function DealPanelConversation({ deal }) {
             <div className="px-5 py-2.5 flex items-center justify-between shrink-0"
                 style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
+                    <div className="w-2 h-2 rounded-full" style={{ background: T.onlineDot }} />
                     <p className="text-[12px] font-semibold" style={{ color: T.textSecondary }}>
                         {status?.email}
                     </p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { T, TAG_COLORS, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -171,20 +171,20 @@ export default function AccountProfile() {
                 {/* ── Hero Profile Banner ───────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-6"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 150,
                     }}>
                     {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -50, right: -50, width: 220, height: 220,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -30, left: '45%', width: 150, height: 150,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: `radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
 
@@ -204,7 +204,7 @@ export default function AccountProfile() {
                             <div>
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <InlineEdit value={profile.name} onSave={v => updateField('name', v)} placeholder="Account name">
-                                        <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
+                                        <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                             {profile.name}
                                         </h1>
                                     </InlineEdit>
@@ -214,14 +214,14 @@ export default function AccountProfile() {
                                     )}
                                 </div>
                                 {profile.industry && (
-                                    <p className="text-sm mt-1" style={{ color: 'rgba(147,197,253,0.85)' }}>
+                                    <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                         {profile.industry}
                                     </p>
                                 )}
                                 {profile.website && (
                                     <a href={`https://${profile.website}`} target="_blank" rel="noreferrer"
                                         className="text-sm font-semibold mt-1 flex items-center gap-1 hover:underline w-fit"
-                                        style={{ color: 'rgba(147,197,253,0.90)' }}>
+                                        style={{ color: T.heroSubText }}>
                                         <span className="material-symbols-outlined text-[13px]">link</span>
                                         {profile.website}
                                     </a>
@@ -232,11 +232,7 @@ export default function AccountProfile() {
                         {/* Right: action buttons */}
                         <div className="flex items-center gap-2.5 shrink-0">
                             <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.20)',
-                                    color: '#fff',
-                                }}
+                                style={{ background: T.heroBadgeBg, color: T.sidebarActiveText, border: `1px solid ${T.heroBadgeBorder}` }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
                                 <span className="material-symbols-outlined text-[16px]">mail</span>Email
@@ -245,10 +241,9 @@ export default function AccountProfile() {
                                 <button onClick={() => setDealFormOpen(true)}
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
                                     style={{
-                                        background: T.primary,
-                                        border: '1px solid rgba(255,255,255,0.20)',
+                                        background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                         color: '#fff',
-                                        boxShadow: `0 4px 14px ${T.primary}60`,
+                                        boxShadow: `0 6px 20px ${T.avatarGlow}`,
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
                                     onMouseLeave={e => e.currentTarget.style.background = T.primary}>
@@ -262,8 +257,8 @@ export default function AccountProfile() {
                 {/* ── 3-column Quick Stats Bar ──────────────── */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                     {[
-                        { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: 'rgba(37,99,235,0.12)', color: '#2563EB' },
-                        { icon: 'groups', label: 'Contacts', value: profile.contactCount, bg: 'rgba(83,141,141,0.14)', color: '#538D8D' },
+                        { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: T.primaryDim, color: T.chartBlue },
+                        { icon: 'groups', label: 'Contacts', value: profile.contactCount, bg: 'rgba(83,141,141,0.14)', color: T.chartTeal },
                         { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: 'rgba(22,163,74,0.12)', color: '#16A34A' },
                     ].map(({ icon, label, value, bg, color }) => (
                         <div key={label}
@@ -423,7 +418,7 @@ export default function AccountProfile() {
                                                     <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>{timeAgo(a.createdAt)}</p>
                                                 </div>
                                                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0"
-                                                    style={{ background: s.bg, color: s.color }}>{a.type}</span>
+                                                    style={{ background: T.onlineDot, borderColor: T.avatarBorderColor }}>{a.type}</span>
                                             </div>
                                         )
                                     })}

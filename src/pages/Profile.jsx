@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
@@ -82,20 +82,20 @@ export default function Profile() {
                 {/* ── Hero Banner ───────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 130,
                     }}>
                     {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '40%', width: 120, height: 120,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.10) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
 
@@ -104,28 +104,28 @@ export default function Profile() {
                             {/* Avatar */}
                             <div className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
                                 style={{
-                                    background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                                    background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     color: '#fff',
-                                    boxShadow: `0 6px 20px ${T.primary}50`,
+                                    boxShadow: `0 6px 20px ${T.avatarGlow}`,
                                 }}>
                                 {profile?.name?.charAt(0).toUpperCase()}
                                 {/* Online dot */}
                                 <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2"
-                                    style={{ background: '#22C55E', borderColor: '#0d2d5e' }} />
+                                    style={{ background: T.onlineDot, borderColor: '' }} />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     {profile?.name}
                                 </h2>
-                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                     {profile?.email}
                                 </p>
                                 <div className="flex items-center gap-2 mt-2">
                                     <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                                        style={{ background: 'rgba(37,99,235,0.30)', color: '#93C5FD', border: '1px solid rgba(147,197,253,0.20)' }}>
+                                        style={{ background: '', color: T.sidebarActiveText, border: `1px solid ` }}>
                                         {profile?.role}
                                     </span>
-                                    <span className="text-[11px]" style={{ color: 'rgba(147,197,253,0.65)' }}>
+                                    <span className="text-[11px]" style={{ color: T.heroSubText }}>
                                         Member since {profile?.createdAt
                                             ? new Date(profile.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
                                             : '—'}
@@ -138,12 +138,12 @@ export default function Profile() {
                         <button onClick={() => { dispatch(signOut()); navigate('/login') }}
                             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0"
                             style={{
-                                background: 'rgba(239,68,68,0.15)',
-                                color: '#FCA5A5',
+                                background: T.errorDim,
+                                color: T.errorLight,
                                 border: '1px solid rgba(239,68,68,0.25)',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}>
+                            onMouseEnter={e => e.currentTarget.style.background = `rgba(239,68,68,0.25)`}
+                            onMouseLeave={e => e.currentTarget.style.background = T.errorDim}>
                             <span className="material-symbols-outlined text-[16px]">logout</span>
                             Sign out
                         </button>

@@ -1,4 +1,4 @@
-import {
+﻿import {
     IconBuilding, IconCircleCheck, IconBan, IconUsers,
     IconClock, IconBook, IconCurrencyRupee,
 } from '@tabler/icons-react'
@@ -12,10 +12,10 @@ export default function PlatformStatsGrid({ stats }) {
         { icon: <IconCircleCheck size={18} />, label: 'Active', value: stats.activeCompanies, accent: '#16a34a' },
         { icon: <IconClock size={18} />, label: 'On Trial', value: stats.trialCompanies ?? 0, accent: '#D97706' },
         { icon: <IconBan size={18} />, label: 'Suspended', value: stats.suspendedCompanies, accent: '#DC2626' },
-        { icon: <IconUsers size={18} />, label: 'Total Users', value: stats.totalUsers, accent: '#7c3aed' },
+        { icon: <IconUsers size={18} />, label: 'Total Users', value: stats.totalUsers, accent: T.superAdminColor },
         { icon: <IconBuilding size={18} />, label: 'Total Accounts', value: stats.totalAccounts ?? 0, accent: '#0891b2' },
         { icon: <IconBook size={18} />, label: 'Total Contacts', value: stats.totalContacts ?? 0, accent: '#16a34a' },
-        { icon: <IconCurrencyRupee size={18} />, label: 'Total Deals', value: stats.totalDeals ?? 0, accent: '#7c3aed' },
+        { icon: <IconCurrencyRupee size={18} />, label: 'Total Deals', value: stats.totalDeals ?? 0, accent: T.superAdminColor },
     ]
 
     return (

@@ -10,9 +10,9 @@ const CHANNELS = [
         sub: 'We respond within 24 hours',
         action: 'mailto:support@inventivecrm.com',
         actionLabel: 'Send Email',
-        gradient: 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(37,99,235,0.04))',
-        iconBg: 'rgba(37,99,235,0.15)',
-        iconColor: '#2563EB',
+        gradient: `linear-gradient(135deg, ${T.primaryDim}, ${T.primaryFaint})`,
+        iconBg: '',
+        iconColor: T.chartBlue,
         available: true,
     },
     {

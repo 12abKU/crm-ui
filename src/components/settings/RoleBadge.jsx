@@ -1,7 +1,7 @@
-import { T } from '../../constants/theme'
+﻿import { T } from '../../constants/theme'
 
 const ROLE_STYLES = {
-    SUPER_ADMIN: { bg: 'rgba(139,92,246,0.12)', color: '#7C3AED', label: 'Super Admin' },
+    SUPER_ADMIN: { bg: T.superAdminDim, color: T.superAdminColor, label: 'Super Admin' },
     ADMIN: { bg: T.primaryDim, color: T.primary, label: 'Admin' },
     AGENT: { bg: T.successDim, color: T.success, label: 'Agent' },
 }

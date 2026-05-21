@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconTrash } from '@tabler/icons-react'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES } from '../../constants/theme'
@@ -29,7 +29,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
         <tr ref={rowRef} className="group transition-all cursor-pointer"
             style={{
                 borderBottom: `1px solid ${T.borderSubtle}`,
-                background: blink ? 'rgba(37,99,235,0.18)' : activity.completed ? T.surfaceRaised : rowBg,
+                background: blink ? T.primaryDim : activity.completed ? T.surfaceRaised : rowBg,
                 opacity: activity.completed ? 0.65 : 1,
                 transition: 'background 0.3s ease',
             }}

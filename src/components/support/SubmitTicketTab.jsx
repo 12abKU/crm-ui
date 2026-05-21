@@ -1,4 +1,4 @@
-import { T } from '../../constants/theme'
+﻿import { T } from '../../constants/theme'
 import { IconSend, IconTicket, IconCircleCheckFilled, IconAlertCircle } from '@tabler/icons-react'
 
 const PRIORITY_OPTIONS = [
@@ -36,7 +36,7 @@ export default function SubmitTicketTab({
                     }}>
                     {/* Top green bar */}
                     <div className="h-1.5 w-full"
-                        style={{ background: 'linear-gradient(90deg, #16A34A, #22C55E)' }} />
+                        style={{ background: 'linear-gradient(90deg, #16A34A, )' }} />
                     <div className="p-12 flex flex-col items-center gap-5 text-center">
                         <div className="w-20 h-20 rounded-full flex items-center justify-center"
                             style={{

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -172,7 +172,7 @@ export default function Conversations() {
                             {gmailStatus?.connected ? (
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
+                                        <div className="w-2 h-2 rounded-full" style={{ background: T.onlineDot }} />
                                         <p className="text-[11px] font-semibold truncate max-w-35"
                                             style={{ color: T.textSecondary }}>
                                             {gmailStatus.email}
@@ -241,7 +241,7 @@ export default function Conversations() {
                                 }}>
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                                     style={{
-                                        background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                                        background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                         color: '#fff',
                                     }}>
                                     {selectedContact.firstName.charAt(0).toUpperCase()}

@@ -1,4 +1,4 @@
-import { IconCalendar } from '@tabler/icons-react'
+﻿import { IconCalendar } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { Modal, InputField } from './PlatformModal'
 import { daysLeft } from './platformConstants'

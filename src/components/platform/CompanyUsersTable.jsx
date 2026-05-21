@@ -69,7 +69,7 @@ export default function CompanyUsersTable({
                                     <td className="px-5 py-3.5">
                                         {u.role === 'SUPER_ADMIN' ? (
                                             <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full w-fit"
-                                                style={{ background: 'rgba(234,179,8,0.15)', color: '#ca8a04' }}>
+                                                style={{ background: T.superAdminDim, color: T.superAdminColor }}>
                                                 <IconCrown size={10} /> SUPER_ADMIN
                                             </span>
                                         ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, ACTIVITY_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -32,32 +32,32 @@ function AgentDashboard() {
                 {/* ── Hero Welcome Banner ──────────────────────────── */}
                 <section className="relative rounded-3xl overflow-hidden mb-8"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 148,
                     }}>
                     {/* Decorative orbs */}
                     <div style={{
                         position: 'absolute', top: -50, right: -50, width: 220, height: 220,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -30, left: '40%', width: 160, height: 160,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.15) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
 
                     <div className="relative px-10 py-8 flex items-center justify-between gap-6">
                         <div>
-                            <p className="text-sm font-bold mb-1" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                            <p className="text-sm font-bold mb-1" style={{ color: T.heroSubText }}>
                                 Good day 👋
                             </p>
                             <h2 className="text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 Welcome back, {name}
                             </h2>
-                            <p className="text-sm mt-1.5" style={{ color: 'rgba(147,197,253,0.75)' }}>
+                            <p className="text-sm mt-1.5" style={{ color: T.heroSubText }}>
                                 Here's what's happening with your accounts today.
                             </p>
                         </div>
@@ -70,7 +70,7 @@ function AgentDashboard() {
                                     border: '1px solid rgba(255,255,255,0.13)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[16px]"
-                                    style={{ color: '#86EFAC' }}>handshake</span>
+                                    style={{ color: T.successLight }}>handshake</span>
                                 <span className="text-sm font-bold" style={{ color: '#fff' }}>
                                     {loading ? '—' : fmt(stats?.activeDeals)} Deals
                                 </span>
@@ -81,7 +81,7 @@ function AgentDashboard() {
                                     border: '1px solid rgba(255,255,255,0.13)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[16px]"
-                                    style={{ color: '#93C5FD' }}>groups</span>
+                                    style={{ color: T.sidebarActiveText }}>groups</span>
                                 <span className="text-sm font-bold" style={{ color: '#fff' }}>
                                     {loading ? '—' : fmt(stats?.totalContacts)} Contacts
                                 </span>

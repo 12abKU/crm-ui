@@ -1,4 +1,4 @@
-import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
+﻿import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
 import { Empty, fmt, fmtK } from './DashboardWidgets'
 
 // ── BarChart ───────────────────────────────────────────────────
@@ -78,7 +78,7 @@ export function FunnelChart({ stages }) {
 export function ForecastChart({ data }) {
     if (!data?.length) return <Empty />
     const allStages = ['NEW', 'QUALIFIED', 'PROPOSAL']
-    const stageColors = { NEW: '#78716C', QUALIFIED: '#2563EB', PROPOSAL: '#538D8D' }
+    const stageColors = { NEW: '#78716C', QUALIFIED: T.chartBlue, PROPOSAL: T.chartTeal }
     const maxVal = Math.max(...data.map(q => allStages.reduce((s, st) => s + Number(q[st] || 0), 0)))
 
     return (

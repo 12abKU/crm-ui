@@ -21,13 +21,8 @@ const timeAgo = (str) => {
 const AVATARS = [T.primaryDim, T.secondaryDim, T.tertiaryDim, 'rgba(76,175,125,0.15)']
 const AVATAR_COLORS_LIST = [T.primaryText, T.secondaryText, T.tertiaryText, '#4CAF7D']
 
-// Avatar accent colors for hero gradient tints
-const HERO_ACCENTS = [
-    { from: '#1e3a8a', to: '#1e40af' },   // blue
-    { from: '#6b21a8', to: '#7c3aed' },   // purple
-    { from: '#065f46', to: '#0f766e' },   // teal
-    { from: '#7c2d12', to: '#c2410c' },   // amber
-]
+// Avatar accent colors for hero gradient tints — defined in theme.js as T.heroAccents
+const HERO_ACCENTS = T.heroAccents
 
 // ── InfoRow ─────────────────────────────────────────────────────
 const InfoRow = ({ label, value }) => (
@@ -298,7 +293,7 @@ export default function ContactProfile() {
                                         background: T.primary,
                                         border: '1px solid rgba(255,255,255,0.20)',
                                         color: '#fff',
-                                        boxShadow: `0 4px 14px ${T.primary}60`,
+                                        boxShadow: `0 4px 14px ${T.avatarGlow}`,
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
                                     onMouseLeave={e => e.currentTarget.style.background = T.primary}>
@@ -312,9 +307,9 @@ export default function ContactProfile() {
                 {/* ── Quick Stats Bar ───────────────────────── */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                     {[
-                        { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: 'rgba(37,99,235,0.12)', color: '#2563EB' },
+                        { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: T.primaryDim, color: T.chartBlue },
                         { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: 'rgba(22,163,74,0.12)', color: '#16A34A' },
-                        { icon: 'event_note', label: 'Activities', value: profile.recentActivities?.length || 0, bg: 'rgba(83,141,141,0.14)', color: '#538D8D' },
+                        { icon: 'event_note', label: 'Activities', value: profile.recentActivities?.length || 0, bg: 'rgba(83,141,141,0.14)', color: T.chartTeal },
                     ].map(({ icon, label, value, bg, color }) => (
                         <div key={label}
                             className="flex items-center gap-4 p-5 rounded-2xl transition-all duration-150"

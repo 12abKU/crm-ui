@@ -1,4 +1,4 @@
-import { T } from '../../../constants/theme'
+﻿import { T } from '../../../constants/theme'
 import { Card, CardTitle, Empty, TabSkeleton, fmt, fmtK } from '../DashboardWidgets'
 
 // Props: data, onAgentClick  (unchanged — onAgentClick navigates to /team/:id)

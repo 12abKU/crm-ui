@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
@@ -65,20 +65,20 @@ export default function AdminDashboard() {
                 {/* ── Hero Header ───────────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 118,
                     }}>
                     {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '50%', width: 130, height: 130,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
 
@@ -89,13 +89,13 @@ export default function AdminDashboard() {
                                 border: '1px solid rgba(255,255,255,0.18)',
                             }}>
                             <span className="material-symbols-outlined filled text-[24px]"
-                                style={{ color: '#93C5FD' }}>analytics</span>
+                                style={{ color: T.sidebarActiveText }}>analytics</span>
                         </div>
                         <div>
                             <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 Analytics Dashboard
                             </h2>
-                            <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                            <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                 Welcome back, {name} · Company-wide overview
                             </p>
                         </div>

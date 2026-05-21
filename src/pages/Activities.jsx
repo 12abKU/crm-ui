@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+﻿import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import Skeleton from 'react-loading-skeleton'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES, ROW_COLORS } from '../constants/theme'
@@ -202,20 +202,20 @@ export default function Activities() {
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
                     {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 220, height: 220,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '45%', width: 140, height: 140,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
 
@@ -227,19 +227,19 @@ export default function Activities() {
                                     border: '1px solid rgba(255,255,255,0.18)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: '#93C5FD' }}>event_note</span>
+                                    style={{ color: T.sidebarActiveText }}>event_note</span>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Activities
                                 </h2>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <p className="text-sm" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                    <p className="text-sm" style={{ color: T.heroSubText }}>
                                         {totalElements} logged
                                     </p>
                                     {stats.overdue > 0 && (
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                            style={{ background: 'rgba(220,38,38,0.25)', color: '#FCA5A5' }}>
+                                            style={{ background: 'rgba(220,38,38,0.25)', color: T.errorLight }}>
                                             {stats.overdue} overdue
                                         </span>
                                     )}
@@ -249,12 +249,12 @@ export default function Activities() {
                         <button onClick={() => setOpen(true)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
                             style={{
-                                background: 'rgba(255,255,255,0.12)',
+                                background: T.heroBadgeBg,
                                 border: '1px solid rgba(255,255,255,0.22)',
                                 color: '#fff',
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                            onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
                             <span className="material-symbols-outlined text-[18px]">add</span>
                             Log Activity
                         </button>

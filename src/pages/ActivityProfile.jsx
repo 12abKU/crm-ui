@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
@@ -184,7 +184,7 @@ export default function ActivityProfile() {
                 {/* ── Hero banner ───────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 130,
                     }}>
                     {/* Accent glow using activity type color */}
@@ -197,7 +197,7 @@ export default function ActivityProfile() {
                     <div style={{
                         position: 'absolute', bottom: -20, left: '40%', width: 120, height: 120,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.10) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
 
@@ -236,7 +236,7 @@ export default function ActivityProfile() {
                                         {ss.label}
                                     </span>
                                 </div>
-                                <p className="text-[13px]" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                <p className="text-[13px]" style={{ color: T.heroSubText }}>
                                     Logged {timeAgo(activity.createdAt)}
                                     {activity.createdAt && ` · ${fmtDate(activity.createdAt)}`}
                                 </p>
@@ -251,8 +251,8 @@ export default function ActivityProfile() {
                             style={{
                                 background: activity.completed
                                     ? 'rgba(34,197,94,0.18)'
-                                    : 'rgba(255,255,255,0.12)',
-                                color: activity.completed ? '#4ADE80' : '#fff',
+                                    : T.heroBadgeBg,
+                                color: activity.completed ? T.completedAccent : '#fff',
                                 border: activity.completed
                                     ? '1px solid rgba(34,197,94,0.35)'
                                     : '1px solid rgba(255,255,255,0.22)',
@@ -262,7 +262,7 @@ export default function ActivityProfile() {
                                 : 'rgba(255,255,255,0.20)'}
                             onMouseLeave={e => e.currentTarget.style.background = activity.completed
                                 ? 'rgba(34,197,94,0.18)'
-                                : 'rgba(255,255,255,0.12)'}>
+                                : T.heroBadgeBg}>
                             <span className="material-symbols-outlined text-[16px]">
                                 {activity.completed ? 'undo' : 'check_circle'}
                             </span>
@@ -420,7 +420,7 @@ export default function ActivityProfile() {
                                     style={{ background: T.borderSubtle }}>
                                     <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
                                         style={{
-                                            background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                             color: '#fff',
                                         }}>
                                         {activity.owner.name?.charAt(0).toUpperCase()}

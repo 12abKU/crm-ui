@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { T, STAGE_STYLES, STAGE_LABELS, ACTIVITY_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -84,13 +84,13 @@ export default function AgentProfile() {
                 {/* ── Hero banner ───────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-6"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
 
@@ -98,9 +98,9 @@ export default function AgentProfile() {
                         {/* Avatar */}
                         <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
                             style={{
-                                background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                                background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                 color: '#fff',
-                                boxShadow: `0 6px 20px ${T.primary}50`,
+                                boxShadow: `0 6px 20px ${T.avatarGlow}`,
                             }}>
                             {agent.name.charAt(0).toUpperCase()}
                         </div>
@@ -108,11 +108,11 @@ export default function AgentProfile() {
                             <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 {agent.name}
                             </h2>
-                            <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>{agent.email}</p>
+                            <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>{agent.email}</p>
                         </div>
                         <span className="px-4 py-2 rounded-xl text-sm font-bold shrink-0"
                             style={{
-                                background: 'rgba(255,255,255,0.12)',
+                                background: T.heroBadgeBg,
                                 color: '#fff',
                                 border: '1px solid rgba(255,255,255,0.20)',
                             }}>
@@ -162,7 +162,7 @@ export default function AgentProfile() {
                             <div className="h-full rounded-full transition-all duration-700"
                                 style={{
                                     width: `${actCompletionRate}%`,
-                                    background: `linear-gradient(90deg, ${T.primary} 0%, #60A5FA 100%)`,
+                                    background: `linear-gradient(90deg, ${T.primary} 0%, ${T.progressGradEnd} 100%)`,
                                 }} />
                         </div>
                         <p className="text-[11px] mt-1.5 font-semibold" style={{ color: T.textMuted }}>

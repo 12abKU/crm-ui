@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
@@ -28,10 +28,10 @@ export default function Sidebar() {
 
     // Shared NavLink style factory
     const navStyle = ({ isActive }) => ({
-        background: isActive ? 'rgba(147,197,253,0.13)' : 'transparent',
+        background: isActive ? T.sidebarHover : 'transparent',
         color: isActive ? '#DBEAFE' : T.sidebarText,
         fontWeight: isActive ? 700 : 500,
-        borderLeft: isActive ? `3px solid #60A5FA` : '3px solid transparent',
+        borderLeft: isActive ? `3px solid ${T.sidebarActiveText}` : '3px solid transparent',
     })
 
     return (
@@ -44,8 +44,8 @@ export default function Sidebar() {
                     {/* Logo icon with glow */}
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative"
                         style={{
-                            background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
-                            boxShadow: `0 0 16px rgba(37,99,235,0.50)`,
+                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
+                            boxShadow: `0 0 16px ${T.avatarGlow}`,
                         }}>
                         <span className="material-symbols-outlined filled text-white text-[18px]">dataset</span>
                     </div>
@@ -54,7 +54,7 @@ export default function Sidebar() {
                             Inventive CRM
                         </h1>
                         <p className="text-[9px] font-bold tracking-widest uppercase mt-0.5"
-                            style={{ color: 'rgba(147,197,253,0.60)' }}>
+                            style={{ color: T.heroSubText }}>
                             {isSuperAdmin ? 'Platform Admin' : 'Enterprise Edition'}
                         </p>
                     </div>
@@ -62,7 +62,7 @@ export default function Sidebar() {
             </div>
 
             {/* ── Divider ──────────────────────────────────── */}
-            <div className="mx-4 mb-3" style={{ height: 1, background: 'rgba(147,197,253,0.08)' }} />
+            <div className="mx-4 mb-3" style={{ height: 1, background: T.sidebarHover }} />
 
             {/* ── Nav ─────────────────────────────────────── */}
             <nav className="flex-1 flex flex-col gap-0.5 px-3 overflow-y-auto">
@@ -71,7 +71,7 @@ export default function Sidebar() {
                     // SUPER_ADMIN sees ONLY platform nav (unchanged logic)
                     <>
                         <p className="px-4 pt-2 pb-2 text-[9px] font-black uppercase tracking-widest"
-                            style={{ color: 'rgba(147,197,253,0.40)' }}>Platform</p>
+                            style={{ color: T.heroSubText }}>Platform</p>
 
                         <NavLink to="/platform" end
                             className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
@@ -99,7 +99,7 @@ export default function Sidebar() {
                     // CRM users (ADMIN / AGENT) see CRM nav (unchanged logic)
                     <>
                         <p className="px-4 pt-2 pb-2 text-[9px] font-black uppercase tracking-widest"
-                            style={{ color: 'rgba(147,197,253,0.40)' }}>Main Menu</p>
+                            style={{ color: T.heroSubText }}>Main Menu</p>
 
                         {NAV_LINKS.map(({ to, icon, label }) => (
                             <NavLink key={to} to={to} end={to === '/'}
@@ -132,16 +132,16 @@ export default function Sidebar() {
                     <button onClick={() => navigate('/accounts')}
                         className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 transition-all duration-150"
                         style={{
-                            background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                             color: '#fff',
-                            boxShadow: `0 4px 14px rgba(37,99,235,0.40)`,
+                            boxShadow: `0 4px 14px ${T.primary}66`,
                         }}
                         onMouseEnter={e => {
-                            e.currentTarget.style.boxShadow = `0 6px 20px rgba(37,99,235,0.55)`
+                            e.currentTarget.style.boxShadow = `0 6px 20px ${T.avatarGlow}`
                             e.currentTarget.style.transform = 'translateY(-1px)'
                         }}
                         onMouseLeave={e => {
-                            e.currentTarget.style.boxShadow = `0 4px 14px rgba(37,99,235,0.40)`
+                            e.currentTarget.style.boxShadow = `0 4px 14px ${T.primary}66`
                             e.currentTarget.style.transform = 'none'
                         }}>
                         <span className="material-symbols-outlined text-[17px]">add_circle</span>
@@ -153,7 +153,7 @@ export default function Sidebar() {
             {/* ── Support — only for CRM users (unchanged logic) ── */}
             {!isSuperAdmin && (
                 <div className="flex flex-col gap-0.5 px-3 py-2"
-                    style={{ borderTop: `1px solid rgba(147,197,253,0.08)` }}>
+                    style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
                     <NavLink to="/support"
                         className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
                         style={navStyle}>
@@ -174,16 +174,16 @@ export default function Sidebar() {
                 onMouseLeave={() => setUserHover(false)}
                 className="px-4 py-4 flex items-center gap-3 w-full text-left transition-all duration-150"
                 style={{
-                    borderTop: `1px solid rgba(147,197,253,0.08)`,
-                    background: userHover ? 'rgba(147,197,253,0.07)' : 'transparent',
+                    borderTop: `1px solid ${T.sidebarBorder}`,
+                    background: userHover ? T.sidebarHover : 'transparent',
                 }}>
                 {/* Avatar with gradient ring */}
                 <div className="relative shrink-0">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
                         style={{
-                            background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                             color: '#fff',
-                            boxShadow: userHover ? `0 0 0 2px rgba(96,165,250,0.40)` : 'none',
+                            boxShadow: userHover ? `0 0 0 2px ${T.heroOrb2}` : 'none',
                             transition: 'box-shadow 0.15s',
                         }}>
                         {name.charAt(0).toUpperCase()}
@@ -191,14 +191,14 @@ export default function Sidebar() {
                     {/* Online dot */}
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
                         style={{
-                            background: '#22C55E',
+                            background: T.onlineDot,
                             borderColor: T.sidebar,
                         }} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#FFFFFF' }}>{name}</p>
-                    <p className="text-[11px] truncate" style={{ color: 'rgba(147,197,253,0.65)' }}>
+                    <p className="text-[11px] truncate" style={{ color: T.heroSubText }}>
                         {isSuperAdmin ? 'Super Admin' : (companyName ? `${companyName} · ${role}` : role)}
                     </p>
                 </div>

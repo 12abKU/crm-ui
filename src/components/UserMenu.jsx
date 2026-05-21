@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { T } from '../constants/theme'
@@ -6,7 +6,7 @@ import { signOut as signOutSession } from '../store/authSlice'
 
 // ── Role badge styles (unchanged values) ──────────────────────
 const ROLE_STYLES = {
-    SUPER_ADMIN: { bg: 'rgba(139,92,246,0.15)', color: '#7C3AED', label: 'Super Admin', dot: '#7C3AED' },
+    SUPER_ADMIN: { bg: T.superAdminDim, color: T.superAdminColor, label: 'Super Admin', dot: T.superAdminColor },
     ADMIN:       { bg: T.primaryDim,             color: T.primary,  label: 'Admin',       dot: T.primary },
     AGENT:       { bg: T.successDim,             color: T.success,  label: 'Agent',       dot: T.success },
 }
@@ -59,7 +59,7 @@ export default function UserMenu() {
                 {/* Avatar with gradient */}
                 <div className="relative w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0"
                     style={{
-                        background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                        background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                         color: '#fff',
                         boxShadow: open ? `0 0 0 2px ${T.primary}40` : 'none',
                         transition: 'box-shadow 0.15s',
@@ -67,7 +67,7 @@ export default function UserMenu() {
                     {name.charAt(0).toUpperCase()}
                     {/* Online dot */}
                     <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full border-2"
-                        style={{ background: '#22C55E', borderColor: T.bg }} />
+                        style={{ background: T.onlineDot, borderColor: T.avatarBorderColor }} />
                 </div>
                 {/* Name + role (hidden on mobile) */}
                 <div className="text-left hidden sm:block">
@@ -93,25 +93,25 @@ export default function UserMenu() {
                     {/* ── Profile header ─────────────────── */}
                     <div className="relative overflow-hidden"
                         style={{
-                            background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 100%)`,
+                            background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgTo} 100%)`,
                         }}>
                         {/* Orb */}
                         <div style={{
                             position: 'absolute', top: -20, right: -20, width: 80, height: 80,
                             borderRadius: '50%',
-                            background: 'radial-gradient(circle, rgba(37,99,235,0.40) 0%, transparent 70%)',
+                            background: 'radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)',
                             pointerEvents: 'none',
                         }} />
                         <div className="relative px-4 py-4 flex items-center gap-3">
                             <div className="relative w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0"
                                 style={{
-                                    background: `linear-gradient(135deg, ${T.primary} 0%, #1D4ED8 100%)`,
+                                    background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     color: '#fff',
                                     boxShadow: `0 4px 14px ${T.primary}50`,
                                 }}>
                                 {name.charAt(0).toUpperCase()}
                                 <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
-                                    style={{ background: '#22C55E', borderColor: T.sidebar }} />
+                                    style={{ background: T.onlineDot, borderColor: T.avatarBorderColor }} />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-sm font-black truncate" style={{ color: '#fff' }}>{name}</p>

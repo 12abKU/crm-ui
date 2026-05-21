@@ -1,4 +1,4 @@
-import { T, STAGE_LABELS, STAGE_STYLES } from '../../constants/theme'
+﻿import { T, STAGE_LABELS, STAGE_STYLES } from '../../constants/theme'
 import Skeleton from 'react-loading-skeleton'
 
 export default function DealPanelDeals({ accountDeals, currentDealId, loading }) {
@@ -28,8 +28,8 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
             <div className="flex gap-3">
                 <div className="flex-1 px-4 py-4 rounded-2xl flex flex-col gap-1"
                     style={{
-                        background: 'rgba(37,99,235,0.08)',
-                        border: '1.5px solid rgba(37,99,235,0.18)',
+                        background: T.primaryFaint,
+                        border: '1.5px solid ${T.primary}2E',
                     }}>
                     <div className="flex items-center gap-1.5">
                         <span className="material-symbols-outlined filled text-[14px]" style={{ color: T.primary }}>

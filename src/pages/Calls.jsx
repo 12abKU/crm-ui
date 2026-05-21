@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import Pagination from '../components/Pagination'
@@ -14,7 +14,7 @@ const FILTERS = ['ALL', 'OUTBOUND', 'INBOUND', 'ANSWERED', 'MISSED']
 
 const FILTER_META = {
     ALL:      { icon: 'call',           color: T.primary },
-    OUTBOUND: { icon: 'call_made',      color: '#2563EB' },
+    OUTBOUND: { icon: 'call_made',      color: T.chartBlue },
     INBOUND:  { icon: 'call_received',  color: '#16A34A' },
     ANSWERED: { icon: 'phone_in_talk',  color: '#0891B2' },
     MISSED:   { icon: 'phone_missed',   color: '#DC2626' },
@@ -78,20 +78,20 @@ export default function Calls() {
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
                     {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 220, height: 220,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '45%', width: 130, height: 130,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
 
@@ -103,13 +103,13 @@ export default function Calls() {
                                     border: '1px solid rgba(255,255,255,0.18)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: '#93C5FD' }}>call</span>
+                                    style={{ color: T.sidebarActiveText }}>call</span>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Calls
                                 </h2>
-                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                     Voice call history and logs
                                 </p>
                             </div>
@@ -117,12 +117,12 @@ export default function Calls() {
                         <button onClick={() => setShowDialer(true)}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
                             style={{
-                                background: 'rgba(255,255,255,0.12)',
+                                background: T.heroBadgeBg,
                                 border: '1px solid rgba(255,255,255,0.22)',
                                 color: '#fff',
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                            onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
                             <span className="material-symbols-outlined text-[18px]">add_call</span>
                             New Call
                         </button>

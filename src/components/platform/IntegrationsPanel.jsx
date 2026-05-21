@@ -1,4 +1,4 @@
-// src/components/platform/IntegrationsPanel.jsx
+﻿// src/components/platform/IntegrationsPanel.jsx
 import { useEffect, useState } from 'react'
 import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff } from '@tabler/icons-react'
 import { T } from '../../constants/theme'

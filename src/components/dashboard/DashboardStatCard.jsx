@@ -1,14 +1,14 @@
-import Skeleton from 'react-loading-skeleton'
+﻿import Skeleton from 'react-loading-skeleton'
 import { T } from '../../constants/theme'
 
 // Icon → accent color mapping for visual variety
 const ICON_COLORS = {
-    handshake: { bg: 'rgba(37,99,235,0.12)', color: '#2563EB' },
+    handshake: { bg: T.primaryDim, color: T.chartBlue },
     payments:  { bg: 'rgba(22,163,74,0.12)',  color: '#16A34A' },
     business:  { bg: 'rgba(217,119,6,0.12)',  color: '#D97706' },
-    groups:    { bg: 'rgba(83,141,141,0.14)', color: '#538D8D' },
-    person_add:{ bg: 'rgba(219,39,119,0.12)', color: '#DB2777' },
-    task_alt:  { bg: 'rgba(37,99,235,0.12)',  color: '#2563EB' },
+    groups:    { bg: 'rgba(83,141,141,0.14)', color: T.chartTeal },
+    person_add:{ bg: 'rgba(219,39,119,0.12)', color: T.chartPink },
+    task_alt:  { bg: T.primaryDim,  color: T.chartBlue },
 }
 
 export default function DashboardStatCard({ icon, label, value, sub, loading }) {

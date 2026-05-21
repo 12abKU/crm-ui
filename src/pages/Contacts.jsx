@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+﻿import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, ROW_COLORS } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -93,19 +93,19 @@ export default function Contacts() {
                 {/* ── Hero Banner ─────────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.sidebar} 0%, #1a3a6b 55%, #0d2d5e 100%)`,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%)',
+                        background: `radial-gradient(circle,  0%, transparent 70%)`,
                         pointerEvents: 'none',
                     }} />
                     <div style={{
                         position: 'absolute', bottom: -20, left: '35%', width: 140, height: 140,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%)',
+                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
                     <div className="relative px-9 py-7 flex items-center justify-between gap-6">
@@ -116,13 +116,13 @@ export default function Contacts() {
                                     border: '1px solid rgba(255,255,255,0.18)',
                                 }}>
                                 <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: '#93C5FD' }}>groups</span>
+                                    style={{ color: T.sidebarActiveText }}>groups</span>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Contacts
                                 </h2>
-                                <p className="text-sm mt-0.5" style={{ color: 'rgba(147,197,253,0.80)' }}>
+                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
                                     {loading ? 'Loading…' : `${totalElements} people in your network`}
                                 </p>
                             </div>
@@ -133,12 +133,12 @@ export default function Contacts() {
                                 <button onClick={() => setOpen(true)}
                                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
                                     style={{
-                                        background: 'rgba(255,255,255,0.12)',
+                                        background: T.heroBadgeBg,
                                         border: '1px solid rgba(255,255,255,0.22)',
                                         color: '#fff',
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
+                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
                                     <span className="material-symbols-outlined text-[18px]">add</span>
                                     Add Contact
                                 </button>

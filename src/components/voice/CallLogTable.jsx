@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 
 const fmt = (s) => {
@@ -26,7 +26,7 @@ const OUTCOME_STYLE = {
 
 const STATUS_STYLE = {
     COMPLETED: { bg: 'rgba(22,163,74,0.10)', color: '#16A34A' },
-    IN_PROGRESS: { bg: 'rgba(37,99,235,0.10)', color: '#2563EB' },
+    IN_PROGRESS: { bg: '', color: T.chartBlue },
     INITIATED: { bg: 'rgba(217,119,6,0.12)', color: '#D97706' },
     RINGING: { bg: 'rgba(217,119,6,0.12)', color: '#D97706' },
     FAILED: { bg: 'rgba(220,38,38,0.10)', color: '#DC2626' },
