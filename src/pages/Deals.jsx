@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, STAGES, STAGE_LABELS, STAGE_STYLES } from '../constants/theme'
@@ -164,9 +164,9 @@ export default function Deals() {
     }))
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <TopBar />
-            <main className="p-8">
+            <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '2rem' }}>
 
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
@@ -249,8 +249,8 @@ export default function Deals() {
                     ))}
                 </div>
 
-                {/* ── Kanban board ─────────────────────────── */}
-                <div className="flex gap-4 overflow-x-auto pb-4 kanban-scroll items-start">
+                {/* ── Kanban board — scrollable columns ───── */}
+                <div style={{ flex: 1, display: 'flex', gap: 16, paddingBottom: 16, minHeight: 0 }}>
                     {STAGES.map(stage => {
                         const stageDeals = filtered.filter(d => d.stage === stage)
                         const style = STAGE_STYLES[stage]
@@ -261,11 +261,11 @@ export default function Deals() {
 
                         return (
                             <div key={stage}
-                                className="shrink-0 w-71 flex flex-col rounded-2xl overflow-hidden"
                                 style={{
+                                    flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column',
+                                    borderRadius: 16, overflow: 'hidden', height: '100%',
                                     background: colBg,
                                     border: `1.5px solid ${colBorder}`,
-                                    minHeight: 240,
                                     boxShadow: isOver
                                         ? `0 0 0 3px ${style.accent}22, 0 4px 20px rgba(0,0,0,0.10)`
                                         : '0 2px 10px rgba(0,0,0,0.05)',
@@ -305,8 +305,8 @@ export default function Deals() {
                                     )}
                                 </div>
 
-                                {/* Cards area */}
-                                <div className="flex flex-col gap-2.5 p-3 flex-1">
+                                {/* Cards area — scrolls vertically */}
+                                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0 }}>
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === String(highlightId)
                                         const canDrag = isAdminOrAbove || can.DEALS_EDIT || deal._isOwner || deal._assignedToMe

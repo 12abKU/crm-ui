@@ -39,7 +39,7 @@ export default function Register() {
                         <span className="material-symbols-outlined filled text-white text-[20px]">dataset</span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-black" style={{ color: T.textPrimary }}>Inventive CRM</h1>
+                        <h1 className="text-xl font-black" style={{ color: T.textPrimary }}>Iinventive CRM</h1>
                         <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: T.textMuted }}>Enterprise Suite</p>
                     </div>
                 </div>

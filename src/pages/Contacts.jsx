@@ -88,9 +88,9 @@ export default function Contacts() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-8">
 
-                {/* ── Hero Banner ─────────────────────────────── */}
+                {/* -- Hero Banner ------------------------------- */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
@@ -123,7 +123,7 @@ export default function Contacts() {
                                     Contacts
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {loading ? 'Loading…' : `${totalElements} people in your network`}
+                                    {loading ? 'Loading�' : `${totalElements} people in your network`}
                                 </p>
                             </div>
                         </div>
@@ -147,7 +147,7 @@ export default function Contacts() {
                     </div>
                 </div>
 
-                {/* ── Table ─────────────────────────────────────── */}
+                {/* -- Table --------------------------------------- */}
                 <TableShell
                     headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
@@ -244,7 +244,7 @@ export default function Contacts() {
                 </TableShell>
             </main>
 
-            {/* ── Slide Form ─────────────────────────────────── */}
+            {/* -- Slide Form ----------------------------------- */}
             {can.CONTACTS_CREATE && (
                 <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
                     <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />

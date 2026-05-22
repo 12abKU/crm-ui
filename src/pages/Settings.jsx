@@ -5,7 +5,7 @@ import AdminSettings from '../components/settings/AdminSettings'
 import SuperAdminSettings from '../components/settings/SuperAdminSettings'
 import { T } from '../constants/theme'
 
-// ── Role metadata (unchanged) ─────────────────────────────────
+// -- Role metadata (unchanged) ---------------------------------
 const ROLE_META = {
     SUPER_ADMIN: {
         icon: 'shield_person',
@@ -40,7 +40,7 @@ const ROLE_BADGE = {
 }
 
 export default function Settings() {
-    // ── Logic (unchanged) ──────────────────────────────────────
+    // -- Logic (unchanged) --------------------------------------
     const role = useSelector(state => state.auth.role)
     const meta = ROLE_META[role] || ROLE_META.AGENT
     const badge = ROLE_BADGE[role] || ROLE_BADGE.AGENT
@@ -54,9 +54,9 @@ export default function Settings() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-275 mx-auto">
+            <main className="p-8">
 
-                {/* ── Hero Banner ──────────────────────────── */}
+                {/* -- Hero Banner ---------------------------- */}
                 <div className="relative rounded-3xl overflow-hidden mb-8"
                     style={{ background: meta.gradient, minHeight: 120 }}>
                     {/* Orb */}
@@ -113,3 +113,4 @@ export default function Settings() {
         </div>
     )
 }
+

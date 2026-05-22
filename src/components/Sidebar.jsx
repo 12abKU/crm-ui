@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
@@ -11,10 +11,18 @@ export default function Sidebar() {
 
     const { name, role, companyName } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
+    const [openTickets, setOpenTickets] = useState(0)
 
     // Badge polling — completely unchanged
     useEffect(() => {
-        if (isSuperAdmin) return
+        if (isSuperAdmin) {
+            // Poll open ticket count for super admin
+            const loadBadge = () =>
+                api.get('/api/support/badge').then(r => setOpenTickets(r.data.myOpenTickets ?? 0)).catch(() => {})
+            loadBadge()
+            const iv = setInterval(loadBadge, 120000)
+            return () => clearInterval(iv)
+        }
         api.get('/api/activities/badge')
             .then(r => setOverdue(r.data.overdue ?? 0))
             .catch(() => { })
@@ -51,7 +59,7 @@ export default function Sidebar() {
                     </div>
                     <div>
                         <h1 className="text-[15px] font-black leading-tight" style={{ color: '#FFFFFF' }}>
-                            Inventive CRM
+                            Iinventive CRM
                         </h1>
                         <p className="text-[9px] font-bold tracking-widest uppercase mt-0.5"
                             style={{ color: T.heroSubText }}>
@@ -91,6 +99,23 @@ export default function Sidebar() {
                                 <>
                                     <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>manage_accounts</span>
                                     <span className="flex-1">My Profile</span>
+                                </>
+                            )}
+                        </NavLink>
+
+                        <NavLink to="/platform/tickets"
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
+                            style={navStyle}>
+                            {({ isActive }) => (
+                                <>
+                                    <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>support_agent</span>
+                                    <span className="flex-1">Support Tickets</span>
+                                    {openTickets > 0 && (
+                                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
+                                            style={{ background: '#DC2626', color: '#fff' }}>
+                                            {openTickets > 99 ? '99+' : openTickets}
+                                        </span>
+                                    )}
                                 </>
                             )}
                         </NavLink>

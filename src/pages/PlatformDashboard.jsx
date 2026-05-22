@@ -4,16 +4,14 @@ import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
-import { IconPlus, IconBuilding, IconUsers, IconCircleCheck, IconClock, IconBan, IconAddressBook, IconCurrencyRupee, IconArrowUpRight } from '@tabler/icons-react'
+import { IconPlus, IconBuilding, IconUsers, IconCircleCheck, IconClock, IconBan, IconAddressBook, IconCurrencyRupee } from '@tabler/icons-react'
 import CompanyDetail from '../components/platform/CompanyDetail'
 import CompaniesTable from '../components/platform/CompaniesTable'
 import ExpiringTrialsBanner from '../components/platform/ExpiringTrialsBanner'
 import { AddCompanyModal } from '../components/platform/CompanyModals'
 
-// ── Dot grid SVG background ─────────────────────────────────────────────────
 const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.07)'/%3E%3C/svg%3E")`
 
-// ── Stat card for hero ──────────────────────────────────────────────────────
 function HeroStat({ icon, value, label, accent, delay = 0 }) {
     return (
         <div style={{
@@ -47,7 +45,6 @@ export default function PlatformDashboard() {
     const navigate = useNavigate()
     const { name } = useSelector(state => state.auth)
 
-    // ── State (all functionality unchanged) ──────────────────────────────────
     const [stats, setStats] = useState(null)
     const [companies, setCompanies] = useState([])
     const [expiringTrials, setExpiringTrials] = useState([])
@@ -79,7 +76,6 @@ export default function PlatformDashboard() {
     const [formSaving, setFormSaving] = useState(false)
     const [formError, setFormError] = useState('')
 
-    // ── Data loaders (unchanged) ─────────────────────────────────────────────
     const loadData = async () => {
         setLoading(true)
         try {
@@ -119,7 +115,6 @@ export default function PlatformDashboard() {
         return matchQ && matchStatus && matchPlan
     }), [companies, searchQ, filterStatus, filterPlan])
 
-    // ── Actions (unchanged) ──────────────────────────────────────────────────
     const handleNotesChange = (val) => {
         setNotes(val); setNotesSaved(false); clearTimeout(notesTimer.current)
         notesTimer.current = setTimeout(async () => {
@@ -307,84 +302,43 @@ export default function PlatformDashboard() {
             `}</style>
             <TopBar />
 
-            {/* ════════════════════════════════════════════════════
-                HERO — tall, rich, layered
-            ════════════════════════════════════════════════════ */}
+            {/* HERO */}
             <div style={{
                 background: `linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
                 backgroundImage: `${DOT_GRID}, linear-gradient(140deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 60%, ${T.heroBgTo} 100%)`,
                 position: 'relative', overflow: 'hidden', paddingBottom: 40,
             }}>
-                {/* Glow orbs */}
                 <div style={{ position: 'absolute', top: -80, right: -80, width: 340, height: 340, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(80px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: -60, left: '25%', width: 240, height: 240, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(60px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', top: 40, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
                 <div style={{ maxWidth: 1120, margin: '0 auto', padding: '44px 36px 0', position: 'relative', zIndex: 1 }}>
-
-                    {/* ── Top row: identity + button ─────────────── */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 40 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-                            {/* Avatar with pulse ring */}
                             <div style={{ position: 'relative', flexShrink: 0 }}>
-                                <div style={{
-                                    position: 'absolute', inset: -6, borderRadius: '50%',
-                                    border: `2px solid ${T.avatarGlow}`,
-                                    animation: 'pulseRing 3s ease-in-out infinite',
-                                }} />
-                                <div style={{
-                                    width: 72, height: 72, borderRadius: '50%',
-                                    background: `linear-gradient(135deg, ${T.avatarGradFrom}, ${T.avatarGradTo})`,
-                                    boxShadow: `0 0 32px ${T.avatarGlow}`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 30, fontWeight: 900, color: '#fff',
-                                }}>
+                                <div style={{ position: 'absolute', inset: -6, borderRadius: '50%', border: `2px solid ${T.avatarGlow}`, animation: 'pulseRing 3s ease-in-out infinite' }} />
+                                <div style={{ width: 72, height: 72, borderRadius: '50%', background: `linear-gradient(135deg, ${T.avatarGradFrom}, ${T.avatarGradTo})`, boxShadow: `0 0 32px ${T.avatarGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 900, color: '#fff' }}>
                                     {initial}
                                 </div>
                             </div>
-
                             <div>
-                                {/* Role badge */}
-                                <div style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                                    background: T.heroBadgeBg,
-                                    border: `1px solid ${T.heroBadgeBorder}`,
-                                    borderRadius: 999, padding: '4px 12px', marginBottom: 10,
-                                }}>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: T.heroBadgeBg, border: `1px solid ${T.heroBadgeBorder}`, borderRadius: 999, padding: '4px 12px', marginBottom: 10 }}>
                                     <span className="material-symbols-outlined" style={{ fontSize: 12, color: T.heroBadgeText }}>shield_person</span>
-                                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', color: T.heroBadgeText, textTransform: 'uppercase' }}>
-                                        Super Admin · Platform Control
-                                    </span>
+                                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.09em', color: T.heroBadgeText, textTransform: 'uppercase' }}>Super Admin · Platform Control</span>
                                 </div>
-                                <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                                    Platform Dashboard
-                                </h1>
-                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.50)', margin: '8px 0 0', fontWeight: 500 }}>
-                                    Manage all companies, subscriptions & platform health
-                                </p>
+                                <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em', lineHeight: 1.1 }}>Platform Dashboard</h1>
+                                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.50)', margin: '8px 0 0', fontWeight: 500 }}>Manage all companies, subscriptions & platform health</p>
                             </div>
                         </div>
-
-                        {/* CTA */}
                         <button
                             onClick={() => { setFormError(''); setShowAddCompany(true) }}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
-                                background: T.primary, color: '#fff', border: 'none',
-                                borderRadius: 14, padding: '12px 22px',
-                                fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                                boxShadow: `0 6px 24px ${T.avatarGlow}`,
-                                transition: 'transform 0.18s, box-shadow 0.18s',
-                            }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, background: T.primary, color: '#fff', border: 'none', borderRadius: 14, padding: '12px 22px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 6px 24px ${T.avatarGlow}`, transition: 'transform 0.18s, box-shadow 0.18s' }}
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${T.avatarGlow}` }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 24px ${T.avatarGlow}` }}
-                        >
-                            <IconPlus size={16} strokeWidth={2.5} />
-                            New Company
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 24px ${T.avatarGlow}` }}>
+                            <IconPlus size={16} strokeWidth={2.5} /> New Company
                         </button>
                     </div>
 
-                    {/* ── Stat cards row ─────────────────────────── */}
                     {stats && (
                         <div style={{ display: 'flex', gap: 12 }}>
                             <HeroStat icon={<IconBuilding size={16} />} value={stats.totalCompanies} label="Companies" accent="#60A5FA" delay={0} />
@@ -399,12 +353,9 @@ export default function PlatformDashboard() {
                 </div>
             </div>
 
-            {/* ════════════════════════════════════════════════════
-                MAIN CONTENT
-            ════════════════════════════════════════════════════ */}
+            {/* MAIN CONTENT */}
             <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 36px 60px' }}>
 
-                {/* Expiring trials banner */}
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 
                 {/* Section header */}
@@ -413,21 +364,14 @@ export default function PlatformDashboard() {
                         <div style={{ width: 4, height: 22, borderRadius: 4, background: T.primary }} />
                         <h2 style={{ fontSize: 16, fontWeight: 800, color: T.textPrimary, margin: 0 }}>All Companies</h2>
                         {!loading && (
-                            <span style={{
-                                fontSize: 11, fontWeight: 700, padding: '2px 10px',
-                                borderRadius: 999, background: T.primaryDim, color: T.primary,
-                            }}>{filteredCompanies.length}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: T.primaryDim, color: T.primary }}>
+                                {filteredCompanies.length}
+                            </span>
                         )}
                     </div>
                 </div>
 
-                {/* Companies table */}
-                <div style={{
-                    background: T.surface, borderRadius: 20,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
-                    overflow: 'hidden',
-                }}>
+                <div style={{ background: T.surface, borderRadius: 20, border: `1px solid ${T.border}`, boxShadow: '0 2px 16px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                     <CompaniesTable
                         companies={companies} filteredCompanies={filteredCompanies}
                         loading={loading}

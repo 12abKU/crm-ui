@@ -23,6 +23,7 @@ import PlatformDashboard from './pages/PlatformDashboard'
 import ActivityProfile from './pages/ActivityProfile'
 import AgentProfile from './pages/AgentProfile'
 import PlatformProfile from './pages/PlatformProfile'
+import PlatformTickets from './pages/PlatformTickets'
 import Support from './pages/Support'
 
 
@@ -82,6 +83,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
         <Route path="/platform/profile" element={<PlatformLayout><PlatformProfile /></PlatformLayout>} />
+        <Route path="/platform/tickets" element={<PlatformLayout><PlatformTickets /></PlatformLayout>} />
 
         <Route path="/" element={<CrmLayout><Dashboard /></CrmLayout>} />
         <Route path="/accounts" element={<CrmLayout><Accounts /></CrmLayout>} />
