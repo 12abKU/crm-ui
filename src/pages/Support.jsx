@@ -129,7 +129,7 @@ export default function Support() {
                         tickets={companyTickets} loading={ticketsLoading}
                         title={`All Company Tickets · ${badge.companyOpenTickets ?? 0} open`}
                         emptyMsg="No tickets submitted by your team yet."
-                        isAdmin={true} onStatusChange={updateTicketStatus}
+                        isAdmin={true} onStatusChange={role === 'SUPER_ADMIN' ? updateTicketStatus : null}
                         statusUpdating={statusUpdating} onSubmit={() => goToSubmit()}
                     />
                 )}

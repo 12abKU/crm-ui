@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import UserMenu from './UserMenu'
+import NotificationBell from './NotificationBell'
 import api from '../api'
 
 // ── Highlight helper (unchanged) ──────────────────────────────
@@ -278,21 +279,17 @@ export default function TopBar() {
 
             {/* ── Right actions ─────────────────────────── */}
             <div className="flex items-center gap-1 ml-auto shrink-0">
-                {/* Notifications & Support — hidden for SUPER_ADMIN */}
-                {!isSuperAdmin && (
+
+                {isSuperAdmin ? (
+                    // Super admin: notification bell only (no search, no support link)
                     <>
-                        {/* Notifications */}
-                        <div className="relative">
-                            <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
-                                style={{ color: T.textMuted }}
-                                onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                <span className="material-symbols-outlined text-[20px]">notifications</span>
-                            </button>
-                            {/* Dot badge */}
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2"
-                                style={{ background: T.primary, borderColor: T.avatarBorderColor }} />
-                        </div>
+                        <NotificationBell isSuperAdmin={true} />
+                        <div className="w-px h-6 mx-2" style={{ background: T.border }} />
+                    </>
+                ) : (
+                    // Regular CRM users: notification bell + support icon
+                    <>
+                        <NotificationBell isSuperAdmin={false} />
 
                         {/* Help / Support */}
                         <button onClick={() => navigate('/support')}
