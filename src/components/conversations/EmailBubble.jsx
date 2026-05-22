@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { T } from '../../constants/theme'
 import { decodeHtml, timeAgo } from './conversationUtils'
 
-export default function EmailBubble({ email }) {
+export default function EmailBubble({ email, onReply }) {
     const [expanded, setExpanded] = useState(false)
     const isReceived = email.received
     const senderName = isReceived ? (email.from?.split('<')[0].trim() || email.from) : 'You'
@@ -51,13 +51,25 @@ export default function EmailBubble({ email }) {
                                 style={{ color: isReceived ? T.textMuted : T.primary }}
                                 onClick={() => {
                                     if (window.getSelection()?.toString().length > 0) return
-                                    setExpanded(value => !value)
+                                    setExpanded(v => !v)
                                 }}>
                                 {expanded ? 'Show less' : 'Show full email'}
                             </p>
                         </div>
                     )}
                 </div>
+                {/* Reply button — only on received emails */}
+                {isReceived && onReply && (
+                    <button
+                        onClick={onReply}
+                        className="flex items-center gap-1 mt-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all"
+                        style={{ color: T.textMuted, background: 'transparent' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.color = T.primary }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 13 }}>reply</span>
+                        Reply
+                    </button>
+                )}
             </div>
         </div>
     )

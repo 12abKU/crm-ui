@@ -11,15 +11,17 @@ import ActivitiesTab from './tabs/ActivitiesTab'
 import RevenueTab from './tabs/RevenueTab'
 import TeamTab from './tabs/TeamTab'
 import api from '../../api'
+import DownloadReport from '../Downloadreport'
+
 
 // ── Tabs definition (unchanged from original) ──────────────────
 const TABS = [
-    { key: 'summary',    label: 'Summary',         icon: 'dashboard' },
-    { key: 'deals',      label: 'Deals',            icon: 'handshake' },
-    { key: 'contacts',   label: 'Contacts',         icon: 'groups' },
+    { key: 'summary', label: 'Summary', icon: 'dashboard' },
+    { key: 'deals', label: 'Deals', icon: 'handshake' },
+    { key: 'contacts', label: 'Contacts', icon: 'groups' },
     { key: 'activities', label: 'Sales Activities', icon: 'event_note' },
-    { key: 'revenue',    label: 'Revenue',           icon: 'payments' },
-    { key: 'team',       label: 'Team',             icon: 'people' },
+    { key: 'revenue', label: 'Revenue', icon: 'payments' },
+    { key: 'team', label: 'Team', icon: 'people' },
 ]
 
 export default function AdminDashboard() {
@@ -103,6 +105,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ── Tab Bar ───────────────────────────────────── */}
+                {/* ── Tab Bar ───────────────────────────────────── */}
                 <div className="flex items-center gap-2 mb-7 flex-wrap">
                     {TABS.map(tab => {
                         const active = activeTab === tab.key
@@ -138,17 +141,26 @@ export default function AdminDashboard() {
                             </button>
                         )
                     })}
+
+                    {/* Download button — right side of tab bar */}
+                    {summary && (
+                        <div className="ml-auto">
+                            <DownloadReport stats={summary} />
+                        </div>
+                    )}
                 </div>
+
+
 
                 {/* ── Tab Content ───────────────────────────────── */}
                 {tabLoading && activeTab !== 'summary' ? <TabSkeleton /> : (
                     <>
-                        {activeTab === 'summary'    && <SummaryTab    data={summary}           loading={loading} />}
-                        {activeTab === 'deals'      && <DealsTab       data={tabData.deals} />}
-                        {activeTab === 'contacts'   && <ContactsTab    data={tabData.contacts} />}
-                        {activeTab === 'activities' && <ActivitiesTab  data={tabData.activities} />}
-                        {activeTab === 'revenue'    && <RevenueTab     data={tabData.revenue} />}
-                        {activeTab === 'team'       && <TeamTab        data={tabData.team} onAgentClick={(id) => navigate(`/team/${id}`)} />}
+                        {activeTab === 'summary' && <SummaryTab data={summary} loading={loading} />}
+                        {activeTab === 'deals' && <DealsTab data={tabData.deals} />}
+                        {activeTab === 'contacts' && <ContactsTab data={tabData.contacts} />}
+                        {activeTab === 'activities' && <ActivitiesTab data={tabData.activities} />}
+                        {activeTab === 'revenue' && <RevenueTab data={tabData.revenue} />}
+                        {activeTab === 'team' && <TeamTab data={tabData.team} onAgentClick={(id) => navigate(`/team/${id}`)} />}
                     </>
                 )}
             </main>

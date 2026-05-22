@@ -1,7 +1,7 @@
+import { useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 import { IconPlus, IconTicket } from '@tabler/icons-react'
 import TicketCard from './TicketCard'
-import Skeleton from 'react-loading-skeleton'
 import { STATUS_STYLES } from './supportConstants'
 
 function TicketStats({ tickets }) {
@@ -9,14 +9,12 @@ function TicketStats({ tickets }) {
         acc[t.status] = (acc[t.status] || 0) + 1
         return acc
     }, {})
-
     const stats = [
         { key: 'OPEN', label: 'Open' },
         { key: 'IN_PROGRESS', label: 'In Progress' },
         { key: 'RESOLVED', label: 'Resolved' },
         { key: 'CLOSED', label: 'Closed' },
     ]
-
     return (
         <div className="flex items-center gap-3 flex-wrap">
             {stats.map(({ key, label }) => {
@@ -36,7 +34,20 @@ function TicketStats({ tickets }) {
     )
 }
 
-export default function TicketList({ tickets, loading, title, emptyMsg, isAdmin, onStatusChange, statusUpdating, onSubmit }) {
+export default function TicketList({
+    tickets, loading, title, emptyMsg, isAdmin,
+    onStatusChange, statusUpdating, onSubmit, highlightTicketId
+}) {
+    const highlightRef = useRef(null)
+
+    useEffect(() => {
+        if (highlightTicketId && highlightRef.current) {
+            setTimeout(() => {
+                highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }, 300)
+        }
+    }, [highlightTicketId, tickets])
+
     return (
         <div>
             {/* Header */}
@@ -58,20 +69,17 @@ export default function TicketList({ tickets, loading, title, emptyMsg, isAdmin,
                 <div className="flex flex-col gap-3">
                     {[1, 2, 3].map(i => (
                         <div key={i} className="rounded-2xl overflow-hidden"
-                            style={{
-                                border: `1px solid ${T.border}`,
-                                background: T.surface,
-                            }}>
+                            style={{ border: `1px solid ${T.border}`, background: T.surface }}>
                             <div className="h-1 w-full" style={{ background: T.borderSubtle }} />
                             <div className="p-5 flex items-start gap-4">
-                                <Skeleton circle width={44} height={44} />
-                                <div className="flex-1">
-                                    <Skeleton height={14} width={220} borderRadius={6} />
-                                    <Skeleton height={12} width={320} borderRadius={6} className="mt-2" />
-                                    <div className="flex gap-2 mt-3">
-                                        <Skeleton height={20} width={60} borderRadius={999} />
-                                        <Skeleton height={20} width={55} borderRadius={999} />
-                                        <Skeleton height={20} width={80} borderRadius={999} />
+                                <div className="w-11 h-11 rounded-xl shrink-0 animate-pulse" style={{ background: T.surfaceHigh }} />
+                                <div className="flex-1 flex flex-col gap-2">
+                                    <div className="h-3.5 rounded-lg animate-pulse" style={{ background: T.surfaceHigh, width: '55%' }} />
+                                    <div className="h-3 rounded-lg animate-pulse" style={{ background: T.surfaceHigh, width: '80%' }} />
+                                    <div className="flex gap-2 mt-1">
+                                        {[60, 55, 80].map(w => (
+                                            <div key={w} className="h-5 rounded-full animate-pulse" style={{ background: T.surfaceHigh, width: w }} />
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -80,10 +88,7 @@ export default function TicketList({ tickets, loading, title, emptyMsg, isAdmin,
                 </div>
             ) : tickets.length === 0 ? (
                 <div className="rounded-2xl p-16 flex flex-col items-center gap-5 text-center"
-                    style={{
-                        background: T.surface,
-                        border: `1.5px dashed ${T.border}`,
-                    }}>
+                    style={{ background: T.surface, border: `1.5px dashed ${T.border}` }}>
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
                         style={{ background: T.surfaceHigh }}>
                         <IconTicket size={26} style={{ color: T.textMuted }} />
@@ -98,10 +103,35 @@ export default function TicketList({ tickets, loading, title, emptyMsg, isAdmin,
                 </div>
             ) : (
                 <div className="flex flex-col gap-3">
-                    {tickets.map(ticket => (
-                        <TicketCard key={ticket.id} ticket={ticket} isAdmin={isAdmin}
-                            onStatusChange={onStatusChange} statusUpdating={statusUpdating} />
-                    ))}
+                    {tickets.map(ticket => {
+                        const isHighlighted = ticket.id === highlightTicketId
+                        return (
+                            <div
+                                key={ticket.id}
+                                ref={isHighlighted ? highlightRef : null}
+                                style={{
+                                    borderRadius: 14,
+                                    outline: isHighlighted ? `2px solid ${T.primary}` : '2px solid transparent',
+                                    outlineOffset: 2,
+                                    transition: 'outline 0.3s ease',
+                                    animation: isHighlighted ? 'ticketHighlight 2s ease 0.3s' : 'none',
+                                }}>
+                                <style>{`
+                                    @keyframes ticketHighlight {
+                                        0%   { box-shadow: 0 0 0 0 ${T.primary}40; }
+                                        40%  { box-shadow: 0 0 0 8px ${T.primary}20; }
+                                        100% { box-shadow: 0 0 0 0 ${T.primary}00; }
+                                    }
+                                `}</style>
+                                <TicketCard
+                                    ticket={ticket}
+                                    isAdmin={isAdmin}
+                                    onStatusChange={onStatusChange}
+                                    statusUpdating={statusUpdating}
+                                />
+                            </div>
+                        )
+                    })}
                 </div>
             )}
         </div>

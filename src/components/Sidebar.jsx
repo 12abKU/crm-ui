@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
@@ -18,7 +18,7 @@ export default function Sidebar() {
         if (isSuperAdmin) {
             // Poll open ticket count for super admin
             const loadBadge = () =>
-                api.get('/api/support/badge').then(r => setOpenTickets(r.data.myOpenTickets ?? 0)).catch(() => {})
+                api.get('/api/support/badge').then(r => setOpenTickets(r.data.myOpenTickets ?? 0)).catch(() => { })
             loadBadge()
             const iv = setInterval(loadBadge, 120000)
             return () => clearInterval(iv)

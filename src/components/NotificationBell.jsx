@@ -17,10 +17,10 @@ function timeAgo(dateStr) {
 
 // ── Icon + color per type ──────────────────────────────────────────────────
 const TYPE_META = {
-    TICKET_SUBMITTED:  { icon: 'confirmation_number', color: '#2563EB', label: 'New Ticket' },
-    TICKET_IN_PROGRESS:{ icon: 'pending',             color: '#D97706', label: 'In Progress' },
-    TICKET_RESOLVED:   { icon: 'check_circle',        color: '#16A34A', label: 'Resolved' },
-    TICKET_CLOSED:     { icon: 'cancel',              color: '#64748B', label: 'Closed' },
+    TICKET_SUBMITTED: { icon: 'confirmation_number', color: '#2563EB', label: 'New Ticket' },
+    TICKET_IN_PROGRESS: { icon: 'pending', color: '#D97706', label: 'In Progress' },
+    TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
+    TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
 }
 
 function getMeta(type) {
@@ -40,7 +40,7 @@ export default function NotificationBell({ isSuperAdmin }) {
         const load = () =>
             api.get('/api/notifications/unread-count')
                 .then(r => setUnread(r.data.count ?? 0))
-                .catch(() => {})
+                .catch(() => { })
         load()
         const iv = setInterval(load, 30000)
         return () => clearInterval(iv)
@@ -71,10 +71,15 @@ export default function NotificationBell({ isSuperAdmin }) {
 
     const handleNotificationClick = (n) => {
         setOpen(false)
-        if (n.ticketId) {
-            // Super admin → go to tickets page; company user → go to support
-            if (isSuperAdmin) navigate('/platform/tickets')
-            else navigate('/support')
+        if (!n.ticketId) return
+
+        if (isSuperAdmin) {
+            // Super admin goes to platform tickets page
+            navigate('/platform/tickets')
+        } else {
+            // Regular user goes directly to Support page with ticket tab active
+            // Pass ticketId in state so Support page can auto-scroll/highlight it
+            navigate('/support', { state: { openTicketId: n.ticketId } })
         }
     }
 

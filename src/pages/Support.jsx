@@ -9,13 +9,17 @@ import FaqTab from '../components/support/FaqTab'
 import SubmitTicketTab from '../components/support/SubmitTicketTab'
 import TicketList from '../components/support/TicketList'
 import ContactTab from '../components/support/ContactTab'
+import { useLocation } from 'react-router-dom'
 
 export default function Support() {
+    const location = useLocation()
     const role = useSelector(s => s.auth.role)
     const name = useSelector(s => s.auth.name)
     const email = useSelector(s => s.auth.email)
     const companyName = useSelector(s => s.auth.companyName)
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const openTicketId = location.state?.openTicketId ?? null
+
 
     const [tab, setTab] = useState('faq')
     const [faq, setFaq] = useState([])
@@ -39,6 +43,15 @@ export default function Support() {
     useEffect(() => {
         if (tab === 'tickets' || tab === 'team_tickets') loadTickets()
     }, [tab])
+
+
+    useEffect(() => {
+        if (openTicketId) {
+            // Switch to the tickets tab and scroll to the specific ticket
+            setTab('tickets')
+        }
+    }, [openTicketId])
+
 
     const loadTickets = async () => {
         setTicketsLoading(true)
@@ -121,6 +134,8 @@ export default function Support() {
                         title="My Tickets" emptyMsg="You haven't submitted any tickets yet."
                         isAdmin={false} onStatusChange={null}
                         statusUpdating={statusUpdating} onSubmit={() => goToSubmit()}
+                        highlightTicketId={openTicketId}   // ← ADD THIS
+
                     />
                 )}
 
@@ -131,6 +146,8 @@ export default function Support() {
                         emptyMsg="No tickets submitted by your team yet."
                         isAdmin={true} onStatusChange={role === 'SUPER_ADMIN' ? updateTicketStatus : null}
                         statusUpdating={statusUpdating} onSubmit={() => goToSubmit()}
+                        highlightTicketId={openTicketId}   // ← ADD THIS
+
                     />
                 )}
 

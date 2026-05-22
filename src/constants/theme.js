@@ -76,51 +76,51 @@ const PALETTE = {
 
 
 // ── ACTIVE THEME: Steel & Tangerine ──────────────────────────
-// export const T = {
-//     bg: '#FFF7ED', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
-//     surfaceHigh: '#FFEDD5', border: '#FED7AA', borderSubtle: '#FFEDD5',
-//     textPrimary: '#0C0A08', textSecondary: '#7C2D12', textMuted: '#EA580C',
-//     textInverse: '#FFFFFF',
-//     primary: '#EA580C', primaryHover: '#C2410C', primaryDim: 'rgba(234,88,12,0.15)',
-//     primaryFaint: 'rgba(234,88,12,0.07)', primaryText: '#C2410C',
-//     secondary: '#1A1E2A', secondaryDim: 'rgba(26,30,42,0.10)',
-//     secondaryFaint: 'rgba(26,30,42,0.05)', secondaryText: '#1A1E2A',
-//     tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
-//     tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
-//     neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
-//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
-//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
-//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
-//     sidebar: '#1A1E2A', sidebarRaised: '#272D3F', sidebarHover: 'rgba(253,186,116,0.08)',
-//     sidebarBorder: 'rgba(253,186,116,0.10)', sidebarText: '#FDBA74',
-//     sidebarTextHover: '#FFEDD5', sidebarActive: '#FB923C',
-//     // ── Hero banner tokens ─────────────────────────────────────
-//     heroBgFrom: '#1A1E2A', heroBgMid: '#2d1a0e', heroBgTo: '#1a0d05',
-//     heroAccentGlow: 'rgba(234,88,12,0.35)', heroOrb2: 'rgba(253,186,116,0.10)',
-//     heroText: '#FFFFFF', heroSubText: 'rgba(253,186,116,0.85)',
-//     heroBadgeBg: 'rgba(234,88,12,0.28)', heroBadgeText: '#FDBA74', heroBadgeBorder: 'rgba(253,186,116,0.25)',
-//     avatarGradFrom: '#EA580C', avatarGradTo: '#9A3412',
-//     avatarGlow: 'rgba(234,88,12,0.50)', avatarBorderColor: '#1A1E2A', onlineDot: '#22C55E',
-//     // ── Sidebar active & progress ──────────────────────────────
-//     sidebarActiveText: '#FDBA74', progressGradEnd: '#FB923C',
-//     // ── Role badge colors ──────────────────────────────────────
-//     superAdminColor: '#7C3AED', superAdminDim: 'rgba(139,92,246,0.15)',
-//     superAdminFaint: 'rgba(124,58,237,0.10)', superAdminLight: '#A78BFA',
-//     // ── Status light colors ────────────────────────────────────
-//     errorLight: '#FCA5A5', successLight: '#86EFAC', successLightBg: '#DCFCE7',
-//     completedAccent: '#4ADE80',
-//     // ── Activity type colors ───────────────────────────────────
-//     activityEmail: '#10b981', activityMeeting: '#8b5cf6', activityNote: '#f59e0b',
-//     // ── Chart colors ──────────────────────────────────────────
-//     chartBlue: '#2563EB', chartTeal: '#538D8D', chartPink: '#DB2777',
-//     // ── Hero accent gradients (cycling avatar tints) ───────────
-//     heroAccents: [
-//         { from: '#1e3a8a', to: '#1e40af' },
-//         { from: '#6b21a8', to: '#7C3AED' },
-//         { from: '#065f46', to: '#0f766e' },
-//         { from: '#7c2d12', to: '#c2410c' },
-//     ],
-// }
+export const T = {
+    bg: '#FFF7ED', surface: '#FFFFFF', surfaceRaised: '#FFFFFF',
+    surfaceHigh: '#FFEDD5', border: '#FED7AA', borderSubtle: '#FFEDD5',
+    textPrimary: '#0C0A08', textSecondary: '#7C2D12', textMuted: '#EA580C',
+    textInverse: '#FFFFFF',
+    primary: '#EA580C', primaryHover: '#C2410C', primaryDim: 'rgba(234,88,12,0.15)',
+    primaryFaint: 'rgba(234,88,12,0.07)', primaryText: '#C2410C',
+    secondary: '#1A1E2A', secondaryDim: 'rgba(26,30,42,0.10)',
+    secondaryFaint: 'rgba(26,30,42,0.05)', secondaryText: '#1A1E2A',
+    tertiary: '#64748B', tertiaryDim: 'rgba(100,116,139,0.12)',
+    tertiaryFaint: 'rgba(100,116,139,0.06)', tertiaryText: '#64748B',
+    neutral: '#334155', neutralDim: 'rgba(51,65,85,0.12)', neutralText: '#334155',
+    success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+    error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+    warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+    sidebar: '#1A1E2A', sidebarRaised: '#272D3F', sidebarHover: 'rgba(253,186,116,0.08)',
+    sidebarBorder: 'rgba(253,186,116,0.10)', sidebarText: '#FDBA74',
+    sidebarTextHover: '#FFEDD5', sidebarActive: '#FB923C',
+    // ── Hero banner tokens ─────────────────────────────────────
+    heroBgFrom: '#1A1E2A', heroBgMid: '#2d1a0e', heroBgTo: '#1a0d05',
+    heroAccentGlow: 'rgba(234,88,12,0.35)', heroOrb2: 'rgba(253,186,116,0.10)',
+    heroText: '#FFFFFF', heroSubText: 'rgba(253,186,116,0.85)',
+    heroBadgeBg: 'rgba(234,88,12,0.28)', heroBadgeText: '#FDBA74', heroBadgeBorder: 'rgba(253,186,116,0.25)',
+    avatarGradFrom: '#EA580C', avatarGradTo: '#9A3412',
+    avatarGlow: 'rgba(234,88,12,0.50)', avatarBorderColor: '#1A1E2A', onlineDot: '#22C55E',
+    // ── Sidebar active & progress ──────────────────────────────
+    sidebarActiveText: '#FDBA74', progressGradEnd: '#FB923C',
+    // ── Role badge colors ──────────────────────────────────────
+    superAdminColor: '#7C3AED', superAdminDim: 'rgba(139,92,246,0.15)',
+    superAdminFaint: 'rgba(124,58,237,0.10)', superAdminLight: '#A78BFA',
+    // ── Status light colors ────────────────────────────────────
+    errorLight: '#FCA5A5', successLight: '#86EFAC', successLightBg: '#DCFCE7',
+    completedAccent: '#4ADE80',
+    // ── Activity type colors ───────────────────────────────────
+    activityEmail: '#10b981', activityMeeting: '#8b5cf6', activityNote: '#f59e0b',
+    // ── Chart colors ──────────────────────────────────────────
+    chartBlue: '#2563EB', chartTeal: '#538D8D', chartPink: '#DB2777',
+    // ── Hero accent gradients (cycling avatar tints) ───────────
+    heroAccents: [
+        { from: '#1e3a8a', to: '#1e40af' },
+        { from: '#6b21a8', to: '#7C3AED' },
+        { from: '#065f46', to: '#0f766e' },
+        { from: '#7c2d12', to: '#c2410c' },
+    ],
+}
 
 
 // ── Theme 11: Nordic Frost ────────────────────────────────────
@@ -181,44 +181,44 @@ const PALETTE = {
 
 // ── Theme E: Deep Navy & Coral ────────────────────────────────
 // Deep navy-blue sidebar, warm coral primary. Trustworthy yet energetic.
-export const T = {
-    bg: '#FFF8F5', surface: '#FFFFFF', surfaceRaised: '#FFF4EE',
-    surfaceHigh: '#FFEADF', border: '#F4C4AE', borderSubtle: '#FDDDD0',
-    textPrimary: '#180A04', textSecondary: '#7C2D12', textMuted: '#9A4520',
-    textInverse: '#FFFFFF',
-    primary: '#E05A38', primaryHover: '#C44B2C', primaryDim: 'rgba(224,90,56,0.15)',
-    primaryFaint: 'rgba(224,90,56,0.07)', primaryText: '#C44B2C',
-    secondary: '#0B1829', secondaryDim: 'rgba(11,24,41,0.10)',
-    secondaryFaint: 'rgba(11,24,41,0.05)', secondaryText: '#0B1829',
-    tertiary: '#5E6E7A', tertiaryDim: 'rgba(94,110,122,0.12)',
-    tertiaryFaint: 'rgba(94,110,122,0.06)', tertiaryText: '#5E6E7A',
-    neutral: '#2E3E4A', neutralDim: 'rgba(46,62,74,0.12)', neutralText: '#2E3E4A',
-    success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
-    error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
-    warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
-    sidebar: '#0B1829', sidebarRaised: '#14273E', sidebarHover: 'rgba(253,186,116,0.08)',
-    sidebarBorder: 'rgba(253,186,116,0.10)', sidebarText: '#FBB07A',
-    sidebarTextHover: '#FDDDC0', sidebarActive: '#FB923C',
-    heroBgFrom: '#0B1829', heroBgMid: '#16283E', heroBgTo: '#071020',
-    heroAccentGlow: 'rgba(224,90,56,0.38)', heroOrb2: 'rgba(253,186,116,0.10)',
-    heroText: '#FFFFFF', heroSubText: 'rgba(253,186,116,0.88)',
-    heroBadgeBg: 'rgba(224,90,56,0.30)', heroBadgeText: '#FBB07A', heroBadgeBorder: 'rgba(253,186,116,0.25)',
-    avatarGradFrom: '#E05A38', avatarGradTo: '#9A3412',
-    avatarGlow: 'rgba(224,90,56,0.50)', avatarBorderColor: '#0B1829', onlineDot: '#22C55E',
-    sidebarActiveText: '#FBB07A', progressGradEnd: '#FB923C',
-    superAdminColor: '#7C3AED', superAdminDim: 'rgba(139,92,246,0.15)',
-    superAdminFaint: 'rgba(124,58,237,0.10)', superAdminLight: '#A78BFA',
-    errorLight: '#FCA5A5', successLight: '#86EFAC', successLightBg: '#DCFCE7',
-    completedAccent: '#4ADE80',
-    activityEmail: '#10b981', activityMeeting: '#8b5cf6', activityNote: '#f59e0b',
-    chartBlue: '#2563EB', chartTeal: '#538D8D', chartPink: '#DB2777',
-    heroAccents: [
-        { from: '#1e3a8a', to: '#1e40af' },
-        { from: '#6b21a8', to: '#7C3AED' },
-        { from: '#065f46', to: '#0f766e' },
-        { from: '#7c2d12', to: '#c2410c' },
-    ],
-}
+// export const T = {
+//     bg: '#FFF8F5', surface: '#FFFFFF', surfaceRaised: '#FFF4EE',
+//     surfaceHigh: '#FFEADF', border: '#F4C4AE', borderSubtle: '#FDDDD0',
+//     textPrimary: '#180A04', textSecondary: '#7C2D12', textMuted: '#9A4520',
+//     textInverse: '#FFFFFF',
+//     primary: '#E05A38', primaryHover: '#C44B2C', primaryDim: 'rgba(224,90,56,0.15)',
+//     primaryFaint: 'rgba(224,90,56,0.07)', primaryText: '#C44B2C',
+//     secondary: '#0B1829', secondaryDim: 'rgba(11,24,41,0.10)',
+//     secondaryFaint: 'rgba(11,24,41,0.05)', secondaryText: '#0B1829',
+//     tertiary: '#5E6E7A', tertiaryDim: 'rgba(94,110,122,0.12)',
+//     tertiaryFaint: 'rgba(94,110,122,0.06)', tertiaryText: '#5E6E7A',
+//     neutral: '#2E3E4A', neutralDim: 'rgba(46,62,74,0.12)', neutralText: '#2E3E4A',
+//     success: '#16A34A', successDim: 'rgba(22,163,74,0.12)', successFaint: 'rgba(22,163,74,0.06)',
+//     error: '#DC2626', errorDim: 'rgba(220,38,38,0.12)',
+//     warning: '#D97706', warningDim: 'rgba(217,119,6,0.12)',
+//     sidebar: '#0B1829', sidebarRaised: '#14273E', sidebarHover: 'rgba(253,186,116,0.08)',
+//     sidebarBorder: 'rgba(253,186,116,0.10)', sidebarText: '#FBB07A',
+//     sidebarTextHover: '#FDDDC0', sidebarActive: '#FB923C',
+//     heroBgFrom: '#0B1829', heroBgMid: '#16283E', heroBgTo: '#071020',
+//     heroAccentGlow: 'rgba(224,90,56,0.38)', heroOrb2: 'rgba(253,186,116,0.10)',
+//     heroText: '#FFFFFF', heroSubText: 'rgba(253,186,116,0.88)',
+//     heroBadgeBg: 'rgba(224,90,56,0.30)', heroBadgeText: '#FBB07A', heroBadgeBorder: 'rgba(253,186,116,0.25)',
+//     avatarGradFrom: '#E05A38', avatarGradTo: '#9A3412',
+//     avatarGlow: 'rgba(224,90,56,0.50)', avatarBorderColor: '#0B1829', onlineDot: '#22C55E',
+//     sidebarActiveText: '#FBB07A', progressGradEnd: '#FB923C',
+//     superAdminColor: '#7C3AED', superAdminDim: 'rgba(139,92,246,0.15)',
+//     superAdminFaint: 'rgba(124,58,237,0.10)', superAdminLight: '#A78BFA',
+//     errorLight: '#FCA5A5', successLight: '#86EFAC', successLightBg: '#DCFCE7',
+//     completedAccent: '#4ADE80',
+//     activityEmail: '#10b981', activityMeeting: '#8b5cf6', activityNote: '#f59e0b',
+//     chartBlue: '#2563EB', chartTeal: '#538D8D', chartPink: '#DB2777',
+//     heroAccents: [
+//         { from: '#1e3a8a', to: '#1e40af' },
+//         { from: '#6b21a8', to: '#7C3AED' },
+//         { from: '#065f46', to: '#0f766e' },
+//         { from: '#7c2d12', to: '#c2410c' },
+//     ],
+// }
 
 
 

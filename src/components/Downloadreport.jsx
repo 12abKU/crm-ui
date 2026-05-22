@@ -151,7 +151,7 @@ export default function DownloadReport({ stats }) {
 
             {open && (
                 <div
-                    className="absolute right-0 mt-2 rounded-xl overflow-hidden z-50"
+                    className="absolute left-0 mt-2 rounded-xl overflow-hidden z-50"
                     style={{
                         background: '#fff',
                         border: '1px solid rgba(195,198,215,0.5)',
