@@ -113,7 +113,13 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
 
             <td className="px-4 py-3.5 text-[12px]"
                 style={{ color: status === 'overdue' ? T.error : T.textSecondary, fontWeight: status === 'overdue' ? 700 : 400 }}>
-                {fmtScheduled(activity.scheduledAt)}
+                <div>{fmtScheduled(activity.scheduledAt)}</div>
+                {activity.reminderAt && (
+                    <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold" style={{ color: T.warning }}>
+                        <span className="material-symbols-outlined text-[11px]">notifications_active</span>
+                        {fmtScheduled(activity.reminderAt)}
+                    </div>
+                )}
             </td>
 
             <td className="px-4 py-3.5">

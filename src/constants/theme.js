@@ -396,6 +396,15 @@ export const STAGES = ['NEW', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST']
 export const STAGE_LABELS = {
     NEW: 'New', QUALIFIED: 'Qualified', PROPOSAL: 'Proposal', WON: 'Won', LOST: 'Lost'
 }
+export const LOST_DEAL_REASONS = [
+    'Price too high',
+    'Chose competitor',
+    'No budget',
+    'No response',
+    'Bad timing',
+    'Missing feature',
+    'Other',
+]
 export const STAGE_STYLES = {
     NEW: { accent: PALETTE.stone600, badgeBg: PALETTE.stone100, badgeColor: PALETTE.stone600 },
     QUALIFIED: { accent: PALETTE.blue600, badgeBg: PALETTE.blue100, badgeColor: PALETTE.blue600 },

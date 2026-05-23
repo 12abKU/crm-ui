@@ -21,6 +21,7 @@ const TYPE_META = {
     TICKET_IN_PROGRESS: { icon: 'pending', color: '#D97706', label: 'In Progress' },
     TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
+    ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
     MENTION: { icon: 'alternate_email', color: '#EA580C', label: 'Mentioned You' }
 }
 
@@ -100,6 +101,11 @@ export default function NotificationBell({ isSuperAdmin }) {
             } else if (n.contactId) {
                 navigate(`/contacts/${n.contactId}?tab=notes`)
             }
+            return
+        }
+
+        if (n.type === 'ACTIVITY_REMINDER' && n.activityId) {
+            navigate(`/activities?highlight=${n.activityId}`)
             return
         }
 

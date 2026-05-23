@@ -304,6 +304,17 @@ export default function ActivityProfile() {
                                 </InfoCard>
 
                                 <InfoCard label="Scheduled At" value={fmtScheduled(activity.scheduledAt) || '—'} />
+                                <InfoCard label="Reminder">
+                                    {activity.reminderAt ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold mt-0.5 w-fit"
+                                            style={{ background: T.warningDim, color: T.warning }}>
+                                            <span className="material-symbols-outlined text-[12px]">notifications_active</span>
+                                            {fmtScheduled(activity.reminderAt)}
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm font-semibold" style={{ color: T.textMuted }}>Not set</span>
+                                    )}
+                                </InfoCard>
                                 <InfoCard label="Created At" value={fmtDate(activity.createdAt)} />
 
                                 <InfoCard label="Outcome">
@@ -468,6 +479,14 @@ export default function ActivityProfile() {
                                         sub: fmtScheduled(activity.scheduledAt),
                                         color: status === 'overdue' ? T.error : T.warning,
                                         bg: status === 'overdue' ? T.errorDim : T.warningDim,
+                                    },
+                                    activity.reminderAt && {
+                                        icon: 'notifications_active',
+                                        label: 'Reminder',
+                                        value: fmtDate(activity.reminderAt),
+                                        sub: 'Notification reminder',
+                                        color: T.warning,
+                                        bg: T.warningDim,
                                     },
                                     activity.completed && {
                                         icon: 'check_circle',

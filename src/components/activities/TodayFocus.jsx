@@ -38,6 +38,12 @@ function FocusTaskCard({ activity, accent }) {
                 <span className="material-symbols-outlined text-[11px] align-middle mr-0.5">schedule</span>
                 {fmtScheduled(activity.scheduledAt)}
             </p>
+            {activity.reminderAt && (
+                <p className="text-[10px] font-semibold" style={{ color: T.warning }}>
+                    <span className="material-symbols-outlined text-[10px] align-middle mr-0.5">notifications_active</span>
+                    {fmtScheduled(activity.reminderAt)}
+                </p>
+            )}
         </div>
     )
 }

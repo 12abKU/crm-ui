@@ -4,6 +4,7 @@ import { T, STAGE_LABELS, STAGE_STYLES, STAGES } from '../../constants/theme'
 import { useSelector } from 'react-redux'
 import api from '../../api'
 import { extractApiErrorMessage } from '../../api'
+import LostDealReasonModal from '../deals/LostDealReasonModal'
 
 // ── Shared InfoCard ───────────────────────────────────────────
 const InfoCard = ({ label, children }) => (
@@ -15,6 +16,12 @@ const InfoCard = ({ label, children }) => (
 
 export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit }) {
     const [stage, setStage] = useState(deal.stage)
+    const [lostDetails, setLostDetails] = useState({
+        lostReason: deal.lostReason,
+        lostReasonNote: deal.lostReasonNote,
+        lostAt: deal.lostAt,
+    })
+    const [pendingLostStage, setPendingLostStage] = useState(null)
     const [saving, setSaving] = useState(false)
     const [stageError, setStageError] = useState(null)
     const navigate = useNavigate()
@@ -26,20 +33,28 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
     const assignees = deal.assignees ?? []
 
     // ── Stage change handler (unchanged) ──────────────────────
-    const handleStageChange = async (newStage) => {
+    const saveStageChange = async (newStage, lostData = {}) => {
         if (newStage === stage) return
         setStageError(null)
         setSaving(true)
         try {
-            await api.put(`/api/deals/${deal.id}`, {
+            const r = await api.put(`/api/deals/${deal.id}`, {
                 title: deal.title,
                 amount: deal.amount,
                 stage: newStage,
                 expectedCloseDate: deal.expectedCloseDate,
                 accountId: deal.account?.id || null,
                 contactId: deal.contact?.id || null,
+                lostReason: lostData.lostReason ?? lostDetails.lostReason ?? null,
+                lostReasonNote: lostData.lostReasonNote ?? lostDetails.lostReasonNote ?? null,
             })
             setStage(newStage)
+            setLostDetails({
+                lostReason: r.data.lostReason,
+                lostReasonNote: r.data.lostReasonNote,
+                lostAt: r.data.lostAt,
+            })
+            setPendingLostStage(null)
         } catch (err) {
             setStageError(extractApiErrorMessage(err))
         } finally {
@@ -47,11 +62,19 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
         }
     }
 
+    const handleStageChange = async (newStage) => {
+        if (newStage === 'LOST' && !lostDetails.lostReason) {
+            setPendingLostStage(newStage)
+            return
+        }
+        await saveStageChange(newStage)
+    }
+
     const contactName = deal.contact
         ? `${deal.contact.firstName} ${deal.contact.lastName}`
         : '—'
 
-    const currentStyle = STAGE_STYLES[stage]
+    const currentStyle = STAGE_STYLES[stage] || STAGE_STYLES.NEW
 
     return (
         <div className="px-6 py-5 flex flex-col gap-5">
@@ -73,7 +96,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                         <p className="text-[10px] font-black uppercase tracking-widest"
                             style={{ color: currentStyle.accent }}>Current Stage</p>
                         <p className="text-base font-black mt-0.5" style={{ color: currentStyle.badgeColor }}>
-                            {STAGE_LABELS[stage]}
+                            {STAGE_LABELS[stage] || stage}
                         </p>
                     </div>
                 </div>
@@ -122,6 +145,27 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
             )}
 
             {/* ── Created by (unchanged logic) ─────────── */}
+            {stage === 'LOST' && lostDetails.lostReason && (
+                <div className="p-4 rounded-xl flex flex-col gap-2"
+                    style={{ background: T.errorDim, border: `1px solid ${T.error}30` }}>
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined filled text-[16px]" style={{ color: T.error }}>flag</span>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.error }}>Lost Reason</p>
+                    </div>
+                    <p className="text-sm font-black" style={{ color: T.textPrimary }}>{lostDetails.lostReason}</p>
+                    {lostDetails.lostReasonNote && (
+                        <p className="text-[12px] leading-relaxed" style={{ color: T.textSecondary }}>
+                            {lostDetails.lostReasonNote}
+                        </p>
+                    )}
+                    {lostDetails.lostAt && (
+                        <p className="text-[11px]" style={{ color: T.textMuted }}>
+                            Marked lost {new Date(lostDetails.lostAt).toLocaleString('en-IN')}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {isAdminOrAbove && deal.owner && (
                 <div className="flex items-center gap-3 p-4 rounded-xl"
                     style={{ background: T.borderSubtle, border: `1px solid ${T.border}` }}>
@@ -205,6 +249,14 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                     </InfoCard>
                 </div>
             </div>
+
+            <LostDealReasonModal
+                open={Boolean(pendingLostStage)}
+                deal={{ ...deal, ...lostDetails }}
+                saving={saving}
+                onClose={() => setPendingLostStage(null)}
+                onConfirm={(payload) => saveStageChange(pendingLostStage, payload)}
+            />
         </div>
     )
 }

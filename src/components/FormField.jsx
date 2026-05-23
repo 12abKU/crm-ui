@@ -20,3 +20,9 @@ export const Select = ({ label, children, ...props }) => (
         <select className="crm-select" {...props}>{children}</select>
     </Field>
 )
+
+export const Textarea = ({ label, ...props }) => (
+    <Field label={label}>
+        <textarea className="crm-input min-h-24 resize-y" {...props} />
+    </Field>
+)

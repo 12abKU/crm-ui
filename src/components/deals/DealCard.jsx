@@ -127,6 +127,15 @@ export default function DealCard({
                             </div>
                         )}
 
+                        {stage === 'LOST' && deal.lostReason && (
+                            <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.error }}>flag</span>
+                                <span className="text-[11px] font-semibold truncate" style={{ color: T.error }}>
+                                    {deal.lostReason}
+                                </span>
+                            </div>
+                        )}
+
                         {/* Assignees — avatar bubbles + names */}
                         {isAdminOrAbove && assignees.length > 0 && (
                             <div className="flex items-center gap-2 mt-0.5">

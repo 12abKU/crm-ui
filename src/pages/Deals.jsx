@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, STAGE_STYLES, STAGE_LABELS } from '../constants/theme'
+import { LOST_DEAL_REASONS, T, STAGE_STYLES, STAGE_LABELS } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
 import SearchableSelect from '../components/SearchableSelect'
-import { Input, Select } from '../components/FormField'
+import { Input, Select, Textarea } from '../components/FormField'
 import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
 import DealPanel from '../components/dealPanel/DealPanel'
 import DealCard from '../components/deals/DealCard'
+import LostDealReasonModal from '../components/deals/LostDealReasonModal'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
 // ── Constants (unchanged) ──────────────────────────────────────
-const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '' }
+const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
 
 const STAGE_COLUMN_BG = {
     NEW:      'rgba(120,113,108,0.05)',
@@ -52,6 +53,8 @@ export default function Deals() {
     const [loadingContacts, setLoadingContacts] = useState(false)
     const [draggingId, setDraggingId] = useState(null)
     const [overStage, setOverStage] = useState(null)
+    const [lostMove, setLostMove] = useState(null)
+    const [savingLostMove, setSavingLostMove] = useState(false)
     const dragDeal = useRef(null)
     const highlightRef = useRef(null)
 
@@ -149,7 +152,9 @@ export default function Deals() {
             expectedCloseDate: '',
             accountId: '',
             contactId: '',
-            pipelineId: selectedPipelineId
+            pipelineId: selectedPipelineId,
+            lostReason: LOST_DEAL_REASONS[0],
+            lostReasonNote: ''
         })
         setFilteredContacts([]) 
     }
@@ -162,7 +167,9 @@ export default function Deals() {
             expectedCloseDate: '',
             accountId: '',
             contactId: '',
-            pipelineId: selectedPipelineId
+            pipelineId: selectedPipelineId,
+            lostReason: LOST_DEAL_REASONS[0],
+            lostReasonNote: ''
         })
         setOpen(true)
     }
@@ -189,10 +196,36 @@ export default function Deals() {
             accountId: form.accountId || null,
             contactId: form.contactId || null,
             pipelineId: form.pipelineId || selectedPipelineId,
+            lostReason: form.stage === 'LOST' ? form.lostReason : null,
+            lostReasonNote: form.stage === 'LOST' ? form.lostReasonNote || null : null,
         })
         setOpen(false)
         resetForm()
         load(selectedPipelineId)
+    }
+
+    const persistStageChange = async (deal, stage, lostData = {}) => {
+        setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage, ...lostData } : d))
+        try {
+            const r = await api.put(`/api/deals/${deal.id}`, {
+                title: deal.title,
+                amount: deal.amount ?? null,
+                stage,
+                expectedCloseDate: deal.expectedCloseDate ?? null,
+                accountId: deal.account?.id ?? null,
+                contactId: deal.contact?.id ?? null,
+                pipelineId: selectedPipelineId,
+                lostReason: lostData.lostReason ?? deal.lostReason ?? null,
+                lostReasonNote: lostData.lostReasonNote ?? deal.lostReasonNote ?? null,
+            })
+            setDeals(prev => prev.map(d => d.id === deal.id ? {
+                ...r.data,
+                _assignedToMe: (r.data.assignees ?? []).some(u => String(u.id) === String(userId)),
+                _isOwner: String(r.data.owner?.id) === String(userId),
+            } : d))
+        } catch {
+            load(selectedPipelineId)
+        }
     }
 
     const handleDrop = async (stage) => {
@@ -209,22 +242,14 @@ export default function Deals() {
             }
         }
 
-        setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage } : d))
         setDraggingId(null); setOverStage(null); dragDeal.current = null
 
-        try {
-            await api.put(`/api/deals/${deal.id}`, {
-                title: deal.title,
-                amount: deal.amount ?? null,
-                stage,
-                expectedCloseDate: deal.expectedCloseDate ?? null,
-                accountId: deal.account?.id ?? null,
-                contactId: deal.contact?.id ?? null,
-                pipelineId: selectedPipelineId,
-            })
-        } catch {
-            load(selectedPipelineId)
+        if (stage?.toUpperCase() === 'LOST' && !deal.lostReason) {
+            setLostMove({ deal, stage })
+            return
         }
+
+        await persistStageChange(deal, stage)
     }
 
     const q = search.toLowerCase()
@@ -499,6 +524,17 @@ export default function Deals() {
                     ))}
                 </Select>
 
+                {form.stage === 'LOST' && (
+                    <>
+                        <Select label="Lost Reason *" value={form.lostReason} onChange={setEvent('lostReason')} required>
+                            {LOST_DEAL_REASONS.map(reason => <option key={reason} value={reason}>{reason}</option>)}
+                        </Select>
+                        <Textarea label="Lost Reason Note" value={form.lostReasonNote}
+                            onChange={setEvent('lostReasonNote')}
+                            placeholder="Optional competitor, pricing issue, missing feature..." />
+                    </>
+                )}
+
                 <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} />
                 <SearchableSelect
                     label="Account"
@@ -535,6 +571,20 @@ export default function Deals() {
                     } : undefined}
                 />
             )}
+
+            <LostDealReasonModal
+                open={Boolean(lostMove)}
+                deal={lostMove?.deal}
+                saving={savingLostMove}
+                onClose={() => setLostMove(null)}
+                onConfirm={async (payload) => {
+                    if (!lostMove) return
+                    setSavingLostMove(true)
+                    await persistStageChange(lostMove.deal, lostMove.stage, payload)
+                    setSavingLostMove(false)
+                    setLostMove(null)
+                }}
+            />
         </div>
     )
 }

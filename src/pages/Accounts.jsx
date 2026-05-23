@@ -12,6 +12,8 @@ import TableShell from '../components/ui/TableShell'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
+import DuplicateWarning from '../components/ui/DuplicateWarning'
+import { useEffect } from 'react'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
@@ -23,6 +25,8 @@ export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+    const [duplicates, setDuplicates] = useState([])
+    const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
 
@@ -48,6 +52,33 @@ export default function Accounts() {
     } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchAccounts })
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+    useEffect(() => {
+        if (!open) {
+            setDuplicates([])
+            setCheckingDuplicates(false)
+            return
+        }
+
+        if (!form.name.trim() || form.name.trim().length < 2) {
+            setDuplicates([])
+            return
+        }
+
+        const timer = setTimeout(async () => {
+            setCheckingDuplicates(true)
+            try {
+                const r = await api.post('/api/accounts/duplicates', form, { suppressErrorToast: true })
+                setDuplicates(r.data ?? [])
+            } catch {
+                setDuplicates([])
+            } finally {
+                setCheckingDuplicates(false)
+            }
+        }, 350)
+
+        return () => clearTimeout(timer)
+    }, [open, form])
 
     const submit = async (e) => {
         e.preventDefault()
@@ -271,6 +302,11 @@ export default function Accounts() {
             {/* -- Slide Form --------------------------------- */}
             {can.ACCOUNTS_CREATE && (
                 <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
+                    <DuplicateWarning
+                        matches={duplicates}
+                        loading={checkingDuplicates}
+                        onOpen={(match) => navigate(`/accounts/${match.id}`)}
+                    />
                     <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />
                     <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" />
                     <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />

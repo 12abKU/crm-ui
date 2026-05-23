@@ -68,6 +68,12 @@ export default function MyTasksPanel({ onComplete, onOutcome }) {
                             <p className="text-[11px]" style={{ color: status === 'overdue' ? T.error : T.textMuted }}>
                                 {fmtScheduled(activity.scheduledAt)}
                             </p>
+                            {activity.reminderAt && (
+                                <p className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: T.warning }}>
+                                    <span className="material-symbols-outlined text-[11px]">notifications_active</span>
+                                    {fmtScheduled(activity.reminderAt)}
+                                </p>
+                            )}
                             <OutcomePicker
                                 activityId={activity.id}
                                 type={activity.type}

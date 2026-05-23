@@ -7,6 +7,7 @@ const NOTIF_STYLES = {
     TICKET_IN_PROGRESS: { icon: 'pending', color: '#D97706', label: 'In Progress' },
     TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
+    ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
     MENTION: { icon: 'alternate_email', color: '#9333EA', label: 'Mentioned You' }
 }
 
@@ -44,6 +45,8 @@ export default function WebSocketToast() {
             } else if (notice.contactId) {
                 navigate(`/contacts/${notice.contactId}?tab=notes`)
             }
+        } else if (notice.type === 'ACTIVITY_REMINDER' && notice.activityId) {
+            navigate(`/activities?highlight=${notice.activityId}`)
         } else if (notice.ticketId) {
             navigate('/support', { state: { openTicketId: notice.ticketId } })
         }

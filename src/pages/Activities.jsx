@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux'
 
 // ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
-const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', accountId: '', contactId: '', dealId: '' }
+const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', reminderAt: '', accountId: '', contactId: '', dealId: '' }
 const VIEW_MODES = [
     { mode: 'table',    icon: 'table_rows', label: 'All Activities' },
     { mode: 'tasks',    icon: 'checklist',  label: 'My Tasks' },
@@ -152,13 +152,26 @@ export default function Activities() {
 
     const setF = (key, value) => setForm(f => ({ ...f, [key]: value }))
 
+    const toDateTimeLocalValue = (date) => {
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+    }
+
+    const applyReminderPreset = (minutesBefore) => {
+        if (!form.scheduledAt) return
+        const d = new Date(form.scheduledAt)
+        d.setMinutes(d.getMinutes() - minutesBefore)
+        setF('reminderAt', toDateTimeLocalValue(d))
+    }
+
     const submit = async (e) => {
         e.preventDefault()
         await api.post('/api/activities', {
             ...form,
             accountId: form.accountId || null,
             contactId: form.contactId || null,
-            dealId: form.dealId || null
+            dealId: form.dealId || null,
+            reminderAt: form.reminderAt || null
         })
         setOpen(false); resetForm(); setPage(0)
         loadPage(0, filterAccountId, search)
@@ -179,6 +192,7 @@ export default function Activities() {
         await api.put(`/api/activities/${id}`, {
             type: activity.type, subject: activity.subject,
             description: activity.description, scheduledAt: activity.scheduledAt,
+            reminderAt: activity.reminderAt,
             [field]: value,
         })
         setActivities(prev => prev.map(x => x.id === id ? { ...x, [field]: value } : x))
@@ -404,6 +418,31 @@ export default function Activities() {
                     placeholder="Details..." />
                 <Input label="Scheduled At" type="datetime-local" value={form.scheduledAt}
                     onChange={e => setF('scheduledAt', e.target.value)} />
+                <div className="flex flex-col gap-2">
+                    <Input label="Reminder At" type="datetime-local" value={form.reminderAt}
+                        onChange={e => setF('reminderAt', e.target.value)} />
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { label: '15 min', minutes: 15 },
+                            { label: '1 hour', minutes: 60 },
+                            { label: '1 day', minutes: 1440 },
+                        ].map(item => (
+                            <button key={item.label} type="button"
+                                disabled={!form.scheduledAt}
+                                onClick={() => applyReminderPreset(item.minutes)}
+                                className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all"
+                                style={{
+                                    background: form.scheduledAt ? T.primaryFaint : T.surfaceHigh,
+                                    color: form.scheduledAt ? T.primary : T.textMuted,
+                                    border: `1px solid ${form.scheduledAt ? T.primary + '22' : T.border}`,
+                                    cursor: form.scheduledAt ? 'pointer' : 'not-allowed',
+                                }}>
+                                <span className="material-symbols-outlined text-[13px]">notifications_active</span>
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 <SearchableSelect label="Account" value={form.accountId} onChange={onFormAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
