@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, STAGE_STYLES } from '../../constants/theme'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
@@ -39,6 +39,10 @@ export default function DealCard({
         }, 300)
         return () => clearTimeout(timer)
     }, [highlighted])
+
+    const daysInStage = deal.stageChangedAt
+        ? Math.floor((Date.now() - new Date(deal.stageChangedAt)) / (1000 * 60 * 60 * 24))
+        : 0
 
     const isOverdue = deal.expectedCloseDate && !['WON', 'LOST'].includes(stage)
         && new Date(deal.expectedCloseDate) < new Date()
@@ -106,6 +110,15 @@ export default function DealCard({
                     )}
 
                     <div className="flex flex-col gap-1.5 mb-1">
+                        {daysInStage >= 5 && !['WON', 'LOST'].includes(stage) && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg w-fit"
+                                style={{ background: T.warningDim, border: `1px solid ${T.warning}50` }}>
+                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.warning }}>warning</span>
+                                <span className="text-[10px] font-black" style={{ color: T.warning }}>
+                                    Stuck: {daysInStage} day{daysInStage !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        )}
                         {deal.account?.name && (
                             <div className="flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[12px]" style={{ color: T.textMuted }}>business</span>

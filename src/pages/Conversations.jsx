@@ -1,4 +1,5 @@
-﻿import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { useSelector } from 'react-redux'
 import Skeleton from 'react-loading-skeleton'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -9,21 +10,71 @@ import api from '../api'
 
 // ── Compose Panel ──────────────────────────────────────────────────────────────
 function ComposePanel({ contact, replyTo, onSent, onClose }) {
+    const auth = useSelector(state => state.auth)
     const [subject, setSubject] = useState(
         replyTo ? (replyTo.subject?.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`) : ''
     )
     const [body, setBody] = useState('')
+    const [templates, setTemplates] = useState([])
     const [sending, setSending] = useState(false)
     const [error, setError] = useState('')
-    const bodyRef = useRef(null)
+    
+    const editorRef = useRef(null)
 
     useEffect(() => {
-        bodyRef.current?.focus()
+        // Load email templates
+        api.get('/api/email-templates')
+            .then(r => setTemplates(r.data))
+            .catch(() => setTemplates([]))
     }, [])
+
+    useEffect(() => {
+        editorRef.current?.focus()
+    }, [])
+
+    const interpolateLocal = (text, contact, user) => {
+        if (!text) return ''
+        return text
+            .replace(/\{\{contact\.firstName\}\}/g, contact.firstName || '')
+            .replace(/\{\{contact\.lastName\}\}/g, contact.lastName || '')
+            .replace(/\{\{contact\.email\}\}/g, contact.email || '')
+            .replace(/\{\{user\.name\}\}/g, user.name || '')
+            .replace(/\{\{deal\.title\}\}/g, '')
+            .replace(/\{\{deal\.amount\}\}/g, '')
+    }
+
+    const handleTemplateSelect = (e) => {
+        const id = e.target.value
+        const selected = templates.find(t => String(t.id) === String(id))
+        if (selected) {
+            const interpolatedBody = interpolateLocal(selected.body, contact, auth)
+            const interpolatedSubject = interpolateLocal(selected.subject, contact, auth)
+            setSubject(interpolatedSubject)
+            setBody(interpolatedBody)
+            if (editorRef.current) {
+                editorRef.current.innerHTML = interpolatedBody
+            }
+        }
+        e.target.value = "" // reset select
+    }
+
+    const execCmd = (cmd, val = null) => {
+        document.execCommand(cmd, false, val)
+        editorRef.current?.focus()
+        if (editorRef.current) {
+            setBody(editorRef.current.innerHTML)
+        }
+    }
+
+    const handleInput = () => {
+        if (editorRef.current) {
+            setBody(editorRef.current.innerHTML)
+        }
+    }
 
     const send = async () => {
         if (!subject.trim()) { setError('Subject is required.'); return }
-        if (!body.trim()) { setError('Message body cannot be empty.'); return }
+        if (!body.trim() || body === '<br>') { setError('Message body cannot be empty.'); return }
         setSending(true)
         setError('')
         try {
@@ -52,7 +103,14 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
             maxHeight: '60%',
             animation: 'composeSlideUp 0.2s ease',
         }}>
-            <style>{`@keyframes composeSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }`}</style>
+            <style>{`
+                @keyframes composeSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+                .rich-editor:empty:before {
+                    content: attr(placeholder);
+                    color: #94a3b8;
+                    cursor: text;
+                }
+            `}</style>
 
             {/* Header */}
             <div style={{
@@ -93,15 +151,54 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
                 />
             </div>
 
-            {/* Body */}
-            <textarea
-                ref={bodyRef}
-                value={body}
-                onChange={e => setBody(e.target.value)}
+            {/* Formatting Toolbar */}
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+                background: T.surfaceRaised, borderBottom: `1px solid ${T.borderSubtle}`,
+                flexShrink: 0,
+            }}>
+                <button type="button" onClick={() => execCmd('bold')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bold">
+                    <span className="material-symbols-outlined text-[18px] font-bold">format_bold</span>
+                </button>
+                <button type="button" onClick={() => execCmd('italic')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Italic">
+                    <span className="material-symbols-outlined text-[18px]">format_italic</span>
+                </button>
+                <button type="button" onClick={() => execCmd('insertUnorderedList')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bullet List">
+                    <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+                </button>
+                <button type="button" onClick={() => execCmd('hiliteColor', '#FDBA74')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Highlight">
+                    <span className="material-symbols-outlined text-[18px]">border_color</span>
+                </button>
+
+                {/* Templates Selector */}
+                {templates.length > 0 && (
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="material-symbols-outlined text-[15px]" style={{ color: T.textMuted }}>description</span>
+                        <select
+                            onChange={handleTemplateSelect}
+                            className="text-[11px] font-bold border px-2.5 py-1 rounded-lg outline-none cursor-pointer"
+                            style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
+                            defaultValue=""
+                        >
+                            <option value="" disabled>-- Insert Template --</option>
+                            {templates.map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+            </div>
+
+            {/* Rich Editor */}
+            <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                className="rich-editor"
                 placeholder="Write your message here..."
                 style={{
-                    flex: 1, padding: '14px 16px', border: 'none', outline: 'none',
-                    resize: 'none', background: 'transparent',
+                    flex: 1, padding: '14px 16px', outline: 'none',
+                    overflowY: 'auto', background: 'transparent',
                     fontSize: 13, color: T.textPrimary, lineHeight: 1.6,
                     fontFamily: 'Manrope, sans-serif', minHeight: 120,
                 }}
@@ -113,7 +210,7 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
                 background: T.surfaceRaised,
             }}>
-                <div>
+                <div style={{ flex: 1 }}>
                     {error && (
                         <p style={{ fontSize: 12, color: T.error, fontWeight: 600 }}>
                             <span className="material-symbols-outlined" style={{ fontSize: 13, verticalAlign: 'middle', marginRight: 4 }}>error</span>
@@ -154,6 +251,11 @@ export default function Conversations() {
     const [emailCounts, setEmailCounts] = useState({})
     const [compose, setCompose] = useState(null) // null | 'new' | { replyTo: email }
     const [sentSuccess, setSentSuccess] = useState(false)
+    const threadEndRef = useRef(null)
+
+    useEffect(() => {
+        threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [emails])
 
     useEffect(() => {
         api.get('/api/gmail/status')
@@ -476,13 +578,16 @@ export default function Conversations() {
                                         )}
                                     </div>
                                 ) : (
-                                    emails.map(email => (
-                                        <EmailBubble
-                                            key={email.id}
-                                            email={email}
-                                            onReply={() => setCompose({ replyTo: email })}
-                                        />
-                                    ))
+                                    <>
+                                        {emails.map(email => (
+                                            <EmailBubble
+                                                key={email.id}
+                                                email={email}
+                                                onReply={() => setCompose({ replyTo: email })}
+                                            />
+                                        ))}
+                                        <div ref={threadEndRef} />
+                                    </>
                                 )}
                             </div>
 

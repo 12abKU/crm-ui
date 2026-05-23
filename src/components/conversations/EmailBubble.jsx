@@ -38,10 +38,17 @@ export default function EmailBubble({ email, onReply }) {
                         border: `1px solid ${isReceived ? T.border : T.primary + '30'}`,
                         borderRadius: isReceived ? '2px 16px 16px 16px' : '16px 2px 16px 16px',
                     }}>
-                    <p className="text-[13px] leading-relaxed"
-                        style={{ color: isReceived ? T.textPrimary : T.primaryText, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                        {expanded && email.body ? fullBody : snippet}
-                    </p>
+                    {expanded && email.body ? (
+                        <div className="text-[13px] leading-relaxed select-text"
+                            style={{ color: isReceived ? T.textPrimary : T.primaryText, wordBreak: 'break-word' }}
+                            dangerouslySetInnerHTML={{ __html: fullBody }}
+                        />
+                    ) : (
+                        <p className="text-[13px] leading-relaxed"
+                            style={{ color: isReceived ? T.textPrimary : T.primaryText, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {snippet}
+                        </p>
+                    )}
                     {email.body?.trim().length > 0 && (
                         <div className="flex items-center gap-1 mt-2">
                             <span className="material-symbols-outlined text-[13px]" style={{ color: isReceived ? T.textMuted : T.primary }}>

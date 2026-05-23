@@ -1,8 +1,11 @@
-﻿import { useSelector } from 'react-redux'
+import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import TopBar from '../components/TopBar'
 import AgentSettings from '../components/settings/AgentSettings'
 import AdminSettings from '../components/settings/AdminSettings'
 import SuperAdminSettings from '../components/settings/SuperAdminSettings'
+import EmailTemplatesSettings from '../components/settings/EmailTemplatesSettings'
+import AutomatedSequencesSettings from '../components/settings/AutomatedSequencesSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -40,12 +43,18 @@ const ROLE_BADGE = {
 }
 
 export default function Settings() {
-    // -- Logic (unchanged) --------------------------------------
     const role = useSelector(state => state.auth.role)
     const meta = ROLE_META[role] || ROLE_META.AGENT
     const badge = ROLE_BADGE[role] || ROLE_BADGE.AGENT
+    const [activeTab, setActiveTab] = useState('general')
 
     const renderPanel = () => {
+        if (activeTab === 'templates') {
+            return <EmailTemplatesSettings />
+        }
+        if (activeTab === 'sequences') {
+            return <AutomatedSequencesSettings />
+        }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN') return <AdminSettings />
         return <AgentSettings />
@@ -59,7 +68,7 @@ export default function Settings() {
                 {/* -- Hero Banner ---------------------------- */}
                 <div className="relative rounded-3xl overflow-hidden mb-8"
                     style={{ background: meta.gradient, minHeight: 120 }}>
-                    {/* Orb */}
+                    {/* Orbs */}
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 220, height: 220,
                         borderRadius: '50%',
@@ -101,13 +110,39 @@ export default function Settings() {
                                 color: '#fff',
                                 border: '1px solid rgba(255,255,255,0.20)',
                                 letterSpacing: '0.02em',
-                            }}>
+                             }}>
                             {badge.label}
                         </span>
                     </div>
                 </div>
 
-                {/* Settings panel (unchanged) */}
+                {/* -- Tabs Navigation -------------------------- */}
+                <div className="flex gap-2 mb-6 border-b pb-px" style={{ borderColor: T.border }}>
+                    {[
+                        { id: 'general', label: 'General Settings', icon: 'settings' },
+                        { id: 'templates', label: 'Email Templates', icon: 'mail' },
+                        { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
+                    ].map(tab => {
+                        const active = activeTab === tab.id
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className="flex items-center gap-2 px-5 py-3 -mb-px border-b-2 font-bold text-sm transition-all"
+                                style={{
+                                    borderColor: active ? T.primary : 'transparent',
+                                    color: active ? T.primaryText : T.textSecondary,
+                                    opacity: active ? 1 : 0.7,
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                                {tab.label}
+                            </button>
+                        )
+                    })}
+                </div>
+
+                {/* Settings panel */}
                 {renderPanel()}
             </main>
         </div>
