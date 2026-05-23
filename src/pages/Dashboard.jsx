@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, ACTIVITY_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -32,7 +32,7 @@ function AgentDashboard() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-8">
 
                 {/* ── Hero Welcome Banner ──────────────────────────── */}
                 <section className="relative rounded-3xl overflow-hidden mb-8"

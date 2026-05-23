@@ -25,7 +25,14 @@ import AgentProfile from './pages/AgentProfile'
 import PlatformProfile from './pages/PlatformProfile'
 import PlatformTickets from './pages/PlatformTickets'
 import Support from './pages/Support'
+import { useWebSocket } from './hooks/useWebSocket'
+import WebSocketToast from './components/ui/WebSocketToast'
 
+function WebSocketManager() {
+  const token = useSelector(state => state.auth.token)
+  useWebSocket(token)
+  return null
+}
 
 function PermissionLoader() {
   const token = useSelector(state => state.auth.token)
@@ -77,7 +84,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <ApiErrorToast />
+      <WebSocketToast />
       <PermissionLoader />
+      <WebSocketManager />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

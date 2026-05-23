@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { T, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
@@ -8,6 +8,7 @@ import CallWidget from '../components/voice/CallWidget'
 import CallLogTable from '../components/voice/CallLogTable'
 import InlineEdit from '../components/InlineEdit'
 import AddDealSlideForm from '../components/deals/AddDealSlideForm'
+import InternalNotes from '../components/notes/InternalNotes'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 
@@ -63,6 +64,7 @@ const SectionCard = ({ title, badge, icon, children, action }) => (
 export default function ContactProfile() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -115,6 +117,18 @@ export default function ContactProfile() {
             .finally(() => { if (!controller.signal.aborted) setLoading(false) })
         return () => controller.abort()
     }, [id])
+
+    useEffect(() => {
+        if (new URLSearchParams(location.search).get('tab') === 'notes' && profile) {
+            const timer = setTimeout(() => {
+                const notesEl = document.getElementById('internal-notes-section')
+                if (notesEl) {
+                    notesEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+            }, 300)
+            return () => clearTimeout(timer)
+        }
+    }, [location.search, profile])
 
     // ── Loading skeleton ─────────────────────────────────────────
     if (loading) return (
@@ -435,6 +449,14 @@ export default function ContactProfile() {
 
                     {/* Right sidebar: Recent Activity */}
                     <div className="flex flex-col gap-5">
+                        <div id="internal-notes-section">
+                            <SectionCard title="Internal Notes" icon="rate_review">
+                                <div className="max-h-[500px] overflow-y-auto">
+                                    <InternalNotes contactId={id} />
+                                </div>
+                            </SectionCard>
+                        </div>
+
                         <SectionCard title="Recent Activity" icon="event_note">
                             {profile.recentActivities?.length > 0 ? (
                                 <div className="flex flex-col gap-1">

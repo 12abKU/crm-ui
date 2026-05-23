@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, STAGE_LABELS, STAGE_STYLES, SHADOW } from '../../constants/theme'
 import api from '../../api'
@@ -8,6 +8,7 @@ import DealPanelConversation from './DealPanelConversation'
 import DealPanelActivities from './DealPanelActivities'
 import DealPanelContacts from './DealPanelContacts'
 import DealPanelDeals from './DealPanelDeals'
+import InternalNotes from '../notes/InternalNotes'
 
 // ── Tab config (unchanged) ─────────────────────────────────────
 const TABS = [
@@ -15,12 +16,13 @@ const TABS = [
     { id: 'account',       icon: 'business',       label: 'Account Details' },
     { id: 'conversation',  icon: 'forum',          label: 'Conversations' },
     { id: 'activities',    icon: 'event_note',     label: 'Activities' },
+    { id: 'notes',         icon: 'rate_review',    label: 'Internal Notes' },
     { id: 'contacts',      icon: 'person',         label: 'Contacts' },
     { id: 'deals',         icon: 'handshake',      label: 'Deals' },
 ]
 
-export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
-    const [activeTab, setActiveTab] = useState('overview')
+export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab }) {
+    const [activeTab, setActiveTab] = useState(initialTab || 'overview')
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const s = STAGE_STYLES[deal.stage]
@@ -43,9 +45,9 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
 
     useEffect(() => {
         setProfile(null)
-        setActiveTab('overview')
+        setActiveTab(initialTab || 'overview')
         loadProfile()
-    }, [deal.id])
+    }, [deal.id, initialTab])
 
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
@@ -71,6 +73,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit }) {
                     onActivityAdded={loadProfile}
                 />
             )
+            case 'notes':    return <InternalNotes dealId={deal.id} />
             case 'contacts': return <DealPanelContacts deal={deal} />
             case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
             default: return null

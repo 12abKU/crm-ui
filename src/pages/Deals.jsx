@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, STAGES, STAGE_LABELS, STAGE_STYLES } from '../constants/theme'
+import { T, STAGE_STYLES, STAGE_LABELS } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
 import SearchableSelect from '../components/SearchableSelect'
@@ -14,7 +14,7 @@ import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
 // ── Constants (unchanged) ──────────────────────────────────────
-const EMPTY_FORM = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
+const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '' }
 
 const STAGE_COLUMN_BG = {
     NEW:      'rgba(120,113,108,0.05)',
@@ -41,6 +41,7 @@ const STAGE_COLUMN_BORDER = {
 }
 
 export default function Deals() {
+    const navigate = useNavigate()
     const [deals, setDeals] = useState([])
     const [accounts, setAccounts] = useState([])
     const [open, setOpen] = useState(false)
@@ -54,6 +55,10 @@ export default function Deals() {
     const dragDeal = useRef(null)
     const highlightRef = useRef(null)
 
+    // Pipeline states
+    const [pipelines, setPipelines] = useState([])
+    const [selectedPipelineId, setSelectedPipelineId] = useState(null)
+
     const userId = useSelector(state => state.auth.userId)
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE', 'DEALS_EDIT', 'DEALS_DELETE', 'DEALS_ASSIGN'])
@@ -63,8 +68,9 @@ export default function Deals() {
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
 
-    const load = async () => {
-        const res = await api.get('/api/deals/all')
+    const load = async (pipelineId) => {
+        const url = pipelineId ? `/api/deals/all?pipelineId=${pipelineId}` : '/api/deals/all'
+        const res = await api.get(url)
         const all = res.data ?? []
         setDeals(all.map(d => ({
             ...d,
@@ -74,7 +80,16 @@ export default function Deals() {
     }
 
     useEffect(() => {
-        load()
+        api.get('/api/pipelines').then(r => {
+            const data = r.data ?? []
+            setPipelines(data)
+            if (data.length > 0) {
+                setSelectedPipelineId(data[0].id)
+                load(data[0].id)
+            } else {
+                load()
+            }
+        })
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
     }, [])
 
@@ -84,9 +99,73 @@ export default function Deals() {
         return () => clearTimeout(timer)
     }, [highlightId, deals])
 
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search)
+        const dealIdParam = queryParams.get('dealId')
+        if (dealIdParam) {
+            const found = deals.find(d => String(d.id) === String(dealIdParam))
+            if (found) {
+                setSelectedDeal(found)
+            } else {
+                setSelectedDeal({
+                    id: parseInt(dealIdParam),
+                    stage: 'NEW',
+                    title: 'Loading Deal...'
+                })
+            }
+        } else {
+            setSelectedDeal(null)
+        }
+    }, [location.search, deals])
+
+    const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
+    const activeStages = activePipeline ? activePipeline.stages : []
+
+    const getStageStyle = (stageKey) => {
+        return STAGE_STYLES[stageKey.toUpperCase()] || {
+            accent: T.primary,
+            badgeBg: T.primaryFaint,
+            badgeColor: T.primary
+        }
+    }
+    const getStageColBg = (stageKey) => {
+        return STAGE_COLUMN_BG[stageKey.toUpperCase()] || 'rgba(234,88,12,0.02)'
+    }
+    const getStageHeaderBg = (stageKey) => {
+        return STAGE_HEADER_BG[stageKey.toUpperCase()] || 'rgba(234,88,12,0.05)'
+    }
+    const getStageColBorder = (stageKey) => {
+        return STAGE_COLUMN_BORDER[stageKey.toUpperCase()] || 'rgba(234,88,12,0.15)'
+    }
+
     const setField = (key, value) => setForm(f => ({ ...f, [key]: value }))
     const setEvent = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
-    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]) }
+    
+    const resetForm = () => { 
+        setForm({
+            title: '',
+            amount: '',
+            stage: activeStages[0]?.stageKey || 'NEW',
+            expectedCloseDate: '',
+            accountId: '',
+            contactId: '',
+            pipelineId: selectedPipelineId
+        })
+        setFilteredContacts([]) 
+    }
+
+    const openCreateForm = () => {
+        setForm({
+            title: '',
+            amount: '',
+            stage: activeStages[0]?.stageKey || 'NEW',
+            expectedCloseDate: '',
+            accountId: '',
+            contactId: '',
+            pipelineId: selectedPipelineId
+        })
+        setOpen(true)
+    }
 
     const onAccountChange = async (accountId) => {
         setField('accountId', accountId)
@@ -109,10 +188,11 @@ export default function Deals() {
             expectedCloseDate: form.expectedCloseDate || null,
             accountId: form.accountId || null,
             contactId: form.contactId || null,
+            pipelineId: form.pipelineId || selectedPipelineId,
         })
         setOpen(false)
         resetForm()
-        load()
+        load(selectedPipelineId)
     }
 
     const handleDrop = async (stage) => {
@@ -140,9 +220,10 @@ export default function Deals() {
                 expectedCloseDate: deal.expectedCloseDate ?? null,
                 accountId: deal.account?.id ?? null,
                 contactId: deal.contact?.id ?? null,
+                pipelineId: selectedPipelineId,
             })
         } catch {
-            load()
+            load(selectedPipelineId)
         }
     }
 
@@ -153,15 +234,20 @@ export default function Deals() {
 
     const subtitleText = isAgent
         ? `${deals.length} deal${deals.length !== 1 ? 's' : ''} assigned to you`
-        : `${deals.length} deal${deals.length !== 1 ? 's' : ''} · Kanban board`
+        : `${deals.length} deal${deals.length !== 1 ? 's' : ''} · ${activePipeline ? activePipeline.name : 'Kanban board'}`
 
     // ── Pipeline totals for summary strip
-    const pipelineTotals = STAGES.map(stage => ({
-        stage,
-        count: filtered.filter(d => d.stage === stage).length,
-        value: filtered.filter(d => d.stage === stage).reduce((s, d) => s + (d.amount ?? 0), 0),
-        style: STAGE_STYLES[stage],
-    }))
+    const pipelineTotals = activeStages.map(stageObj => {
+        const key = stageObj.stageKey;
+        const style = getStageStyle(key);
+        return {
+            stage: key,
+            label: stageObj.label,
+            count: filtered.filter(d => d.stage === key).length,
+            value: filtered.filter(d => d.stage === key).reduce((s, d) => s + (d.amount ?? 0), 0),
+            style: style,
+        }
+    })
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -207,9 +293,30 @@ export default function Deals() {
                             </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
+                            {pipelines.length > 0 && (
+                                <select
+                                    value={selectedPipelineId || ''}
+                                    onChange={e => {
+                                        const pid = Number(e.target.value)
+                                        setSelectedPipelineId(pid)
+                                        load(pid)
+                                    }}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 outline-none cursor-pointer"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.08)',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#fff',
+                                    }}>
+                                    {pipelines.map(p => (
+                                        <option key={p.id} value={p.id} style={{ color: '#000' }}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                             <SearchInput value={search} onChange={setSearch} placeholder="Search deals..." />
                             {can.DEALS_CREATE && (
-                                <button onClick={() => setOpen(true)}
+                                <button onClick={openCreateForm}
                                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
                                     style={{
                                         background: T.heroBadgeBg,
@@ -227,8 +334,8 @@ export default function Deals() {
                 </div>
 
                 {/* ── Pipeline summary strip ───────────────── */}
-                <div className="grid grid-cols-5 gap-3 mb-6">
-                    {pipelineTotals.map(({ stage, count, value, style }) => (
+                <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: `repeat(${pipelineTotals.length || 1}, minmax(0, 1fr))` }}>
+                    {pipelineTotals.map(({ stage, label, count, value, style }) => (
                         <div key={stage}
                             className="rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
                             style={{
@@ -237,8 +344,8 @@ export default function Deals() {
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                             }}>
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase tracking-widest"
-                                    style={{ color: style.accent }}>{STAGE_LABELS[stage]}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest truncate"
+                                    style={{ color: style.accent }}>{label}</span>
                                 <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
                                     style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
                             </div>
@@ -251,13 +358,14 @@ export default function Deals() {
 
                 {/* ── Kanban board — scrollable columns ───── */}
                 <div style={{ flex: 1, display: 'flex', gap: 16, paddingBottom: 16, minHeight: 0 }}>
-                    {STAGES.map(stage => {
+                    {activeStages.map(stageObj => {
+                        const stage = stageObj.stageKey
                         const stageDeals = filtered.filter(d => d.stage === stage)
-                        const style = STAGE_STYLES[stage]
+                        const style = getStageStyle(stage)
                         const totalValue = stageDeals.reduce((s, d) => s + (d.amount ?? 0), 0)
                         const isOver = overStage === stage
-                        const colBg = STAGE_COLUMN_BG[stage]
-                        const colBorder = isOver ? style.accent : STAGE_COLUMN_BORDER[stage]
+                        const colBg = getStageColBg(stage)
+                        const colBorder = isOver ? style.accent : getStageColBorder(stage)
 
                         return (
                             <div key={stage}
@@ -278,17 +386,17 @@ export default function Deals() {
                                 {/* Column header */}
                                 <div className="px-4 py-3.5 flex items-center justify-between"
                                     style={{
-                                        background: STAGE_HEADER_BG[stage],
+                                        background: getStageHeaderBg(stage),
                                         borderBottom: `2px solid ${style.accent}`,
                                     }}>
-                                    <div className="flex items-center gap-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
                                         <div className="w-2.5 h-2.5 rounded-full shrink-0"
                                             style={{ background: style.accent }} />
-                                        <span className="text-[12px] font-black uppercase tracking-[0.12em]"
+                                        <span className="text-[12px] font-black uppercase tracking-[0.12em] truncate"
                                             style={{ color: style.accent }}>
-                                            {STAGE_LABELS[stage]}
+                                            {stageObj.label}
                                         </span>
-                                        <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+                                        <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full shrink-0"
                                             style={{
                                                 background: style.badgeBg,
                                                 color: style.badgeColor,
@@ -298,7 +406,7 @@ export default function Deals() {
                                         </span>
                                     </div>
                                     {totalValue > 0 && (
-                                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg"
+                                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 ml-1"
                                             style={{ background: style.badgeBg, color: style.badgeColor }}>
                                             ₹{Number(totalValue).toLocaleString('en-IN')}
                                         </span>
@@ -335,7 +443,7 @@ export default function Deals() {
                                                     ))}
                                                     onRemove={canDelete ? async () => {
                                                         await api.delete(`/api/deals/${deal.id}`)
-                                                        load()
+                                                        load(selectedPipelineId)
                                                     } : undefined}
                                                 />
                                             </div>
@@ -366,13 +474,31 @@ export default function Deals() {
                 </div>
             </main>
 
-            {/* Create Deal slide form (unchanged) */}
+            {/* Create Deal slide form */}
             <SlideForm open={open} onClose={() => { setOpen(false); resetForm() }} title="New Deal" onSubmit={submit}>
                 <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required />
                 <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} />
+                
+                {pipelines.length > 0 && (
+                    <Select label="Pipeline *" value={form.pipelineId || ''} onChange={e => {
+                        const pid = Number(e.target.value);
+                        setField('pipelineId', pid);
+                        // Reset stage to the first stage of the selected pipeline
+                        const selectedPipe = pipelines.find(p => p.id === pid);
+                        if (selectedPipe && selectedPipe.stages.length > 0) {
+                            setField('stage', selectedPipe.stages[0].stageKey);
+                        }
+                    }} required>
+                        {pipelines.map(p => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                    </Select>
+                )}
+
                 <Select label="Stage" value={form.stage} onChange={setEvent('stage')}>
-                    {STAGES.map(s => (<option key={s} value={s}>{STAGE_LABELS[s]}</option>))}
+                    {(pipelines.find(p => p.id === Number(form.pipelineId || selectedPipelineId))?.stages || []).map(s => (
+                        <option key={s.stageKey} value={s.stageKey}>{s.label}</option>
+                    ))}
                 </Select>
+
                 <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} />
                 <SearchableSelect
                     label="Account"
@@ -391,16 +517,21 @@ export default function Deals() {
                 />
             </SlideForm>
 
-            {/* Deal panel (unchanged) */}
+            {/* Deal panel */}
             {selectedDeal && (
                 <DealPanel
                     deal={selectedDeal}
-                    onClose={() => setSelectedDeal(null)}
+                    initialTab={new URLSearchParams(location.search).get('tab')}
+                    onClose={() => {
+                        setSelectedDeal(null)
+                        navigate(location.pathname, { replace: true })
+                    }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
                     onDelete={can.DEALS_DELETE && (isAdminOrAbove || selectedDeal._isOwner) ? async (id) => {
                         await api.delete(`/api/deals/${id}`)
                         setSelectedDeal(null)
-                        load()
+                        load(selectedPipelineId)
+                        navigate(location.pathname, { replace: true })
                     } : undefined}
                 />
             )}

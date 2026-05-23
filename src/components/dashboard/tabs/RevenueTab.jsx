@@ -2,7 +2,7 @@ import { T } from '../../../constants/theme'
 import { Card, CardTitle, StatBox, TabSkeleton, fmtK } from '../DashboardWidgets'
 import { ForecastChart, RevenueDonut } from '../DashboardCharts'
 
-export default function RevenueTab({ data }) {
+export default function RevenueTab({ data, activeStages = [] }) {
     if (!data) return <TabSkeleton />
     const total = (data.totalWon || 0) + (data.totalLost || 0)
     const wonPct = total > 0 ? Math.round((data.totalWon / total) * 100) : 0
@@ -19,7 +19,7 @@ export default function RevenueTab({ data }) {
                 </Card>
                 <Card>
                     <CardTitle icon="trending_up">Forecast by Quarter</CardTitle>
-                    <ForecastChart data={data.forecast} />
+                    <ForecastChart data={data.forecast} activeStages={activeStages} />
                 </Card>
             </div>
         </>

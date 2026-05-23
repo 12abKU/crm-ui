@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import Skeleton from 'react-loading-skeleton'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES, ROW_COLORS } from '../constants/theme'
@@ -14,6 +14,7 @@ import ActivityStatCard from '../components/activities/ActivityStatCard'
 import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
 import TodayFocus from '../components/activities/TodayFocus'
+import CalendarView from '../components/activities/CalendarView'
 import api from '../api'
 import { useSelector } from 'react-redux'
 
@@ -23,6 +24,7 @@ const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: ''
 const VIEW_MODES = [
     { mode: 'table',    icon: 'table_rows', label: 'All Activities' },
     { mode: 'tasks',    icon: 'checklist',  label: 'My Tasks' },
+    { mode: 'calendar', icon: 'calendar_month', label: 'Calendar' },
     { mode: 'timeline', icon: 'timeline',   label: 'Timeline' },
 ]
 
@@ -115,7 +117,7 @@ export default function Activities() {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
         loadAllTasks()
         if (highlightId) {
-            api.get(`/api/activities/position/${highlightId}?size=${PAGE_SIZE}`)
+            api.get(`/api/activities/position/${highlightId}?size=${PAGE_SIZE}`, { suppressErrorToast: true })
                 .then(r => { const p = r.data.page ?? 0; setPage(p); loadPage(p, '') })
                 .catch(() => loadPage(0, ''))
         } else {
@@ -327,6 +329,11 @@ export default function Activities() {
                 {/* ── Main content (unchanged logic) ─────── */}
                 {viewMode === 'tasks' ? (
                     <MyTasksPanel onComplete={toggleComplete} onOutcome={saveOutcome} />
+                ) : viewMode === 'calendar' ? (
+                    <CalendarView onLogActivity={(prefillDate) => {
+                        setForm({ ...EMPTY_FORM, scheduledAt: prefillDate })
+                        setOpen(true)
+                    }} />
                 ) : (
                     <div className="rounded-2xl overflow-hidden"
                         style={{ background: T.surface, border: `1px solid ${T.border}` }}>

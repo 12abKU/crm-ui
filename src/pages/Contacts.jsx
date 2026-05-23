@@ -1,6 +1,6 @@
-﻿import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { T, ROW_COLORS } from '../constants/theme'
+import { T, ROW_COLORS, SHADOW } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
 import InlineEdit from '../components/InlineEdit'
@@ -15,7 +15,7 @@ import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
 
 const PAGE_SIZE = 20
@@ -25,6 +25,14 @@ export default function Contacts() {
     const [accounts, setAccounts] = useState([])
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
+
+    // Import Contacts states
+    const [importOpen, setImportOpen] = useState(false)
+    const [importFile, setImportFile] = useState(null)
+    const [importing, setImporting] = useState(false)
+    const [importError, setImportError] = useState('')
+    const [importResult, setImportResult] = useState(null)
+    const [dragActive, setDragActive] = useState(false)
 
     const can = usePermissions(['CONTACTS_CREATE', 'CONTACTS_EDIT', 'CONTACTS_DELETE'])
 
@@ -82,6 +90,56 @@ export default function Contacts() {
         setContacts(p => p.map(x => x.id === id ? { ...x, [field]: value } : x))
     }
 
+    const handleDrag = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true)
+        } else if (e.type === "dragleave") {
+            setDragActive(false)
+        }
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActive(false)
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setImportFile(e.dataTransfer.files[0])
+        }
+    }
+
+    const handleImportSubmit = async (e) => {
+        e.preventDefault()
+        if (!importFile) return
+        setImporting(true)
+        setImportError('')
+        try {
+            const formData = new FormData()
+            formData.append('file', importFile)
+            const r = await api.post('/api/contacts/import', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            })
+            setImportResult(r.data)
+        } catch (err) {
+            setImportError(extractApiErrorMessage(err, 'Failed to import contacts'))
+        } finally {
+            setImporting(false)
+        }
+    }
+
+    const downloadSampleCSV = () => {
+        const csvContent = "First Name,Last Name,Email,Phone,Designation,Account Name\nJohn,Doe,john.doe@example.com,1234567890,Sales Manager,Acme Corp\nJane,Smith,jane.smith@example.com,9876543210,CEO,Globex LLC"
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.setAttribute("href", url)
+        link.setAttribute("download", "nexus_contacts_import_sample.csv")
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
     const headers = ['Name', 'Email', 'Phone', 'Designation', 'Account']
     if (can.CONTACTS_DELETE) headers.push('')
 
@@ -130,18 +188,32 @@ export default function Contacts() {
                         <div className="flex items-center gap-3 shrink-0">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
                             {can.CONTACTS_CREATE && (
-                                <button onClick={() => setOpen(true)}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
-                                    style={{
-                                        background: T.heroBadgeBg,
-                                        border: '1px solid rgba(255,255,255,0.22)',
-                                        color: '#fff',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
-                                    <span className="material-symbols-outlined text-[18px]">add</span>
-                                    Add Contact
-                                </button>
+                                <>
+                                    <button onClick={() => setImportOpen(true)}
+                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                        style={{
+                                            background: 'transparent',
+                                            border: '1px solid rgba(255,255,255,0.25)',
+                                            color: '#fff',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                        <span className="material-symbols-outlined text-[18px]">upload</span>
+                                        Import
+                                    </button>
+                                    <button onClick={() => setOpen(true)}
+                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                        style={{
+                                            background: T.heroBadgeBg,
+                                            border: '1px solid rgba(255,255,255,0.22)',
+                                            color: '#fff',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                        <span className="material-symbols-outlined text-[18px]">add</span>
+                                        Add Contact
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -255,6 +327,230 @@ export default function Contacts() {
                     <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
                         options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
                 </SlideForm>
+            )}
+
+            {/* -- Import Contacts Slide Form ----------------------------------- */}
+            {can.CONTACTS_CREATE && importOpen && (
+                <>
+                    <div className="fixed inset-0 z-40 backdrop-blur-sm transition-all duration-300"
+                        style={{ background: 'rgba(15,23,42,0.4)' }}
+                        onClick={() => {
+                            if (!importing) {
+                                setImportOpen(false);
+                                setImportResult(null);
+                                setImportFile(null);
+                                setImportError('');
+                            }
+                        }} />
+                    <div className="fixed right-0 top-0 h-full w-[460px] z-50 flex flex-col transition-all duration-300"
+                        style={{ background: T.surface, borderLeft: `1px solid ${T.border}`, boxShadow: SHADOW.xl }}>
+                        
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-8 py-5"
+                            style={{ borderBottom: `1px solid ${T.border}` }}>
+                            <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>upload</span>
+                                <h2 className="text-base font-black tracking-tight" style={{ color: T.textPrimary }}>Import Contacts</h2>
+                            </div>
+                            <button onClick={() => {
+                                setImportOpen(false);
+                                setImportResult(null);
+                                setImportFile(null);
+                                setImportError('');
+                            }}
+                                disabled={importing}
+                                className="material-symbols-outlined text-[20px] p-1.5 rounded-lg transition-colors"
+                                style={{ color: T.textMuted }}
+                                onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                close
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-6">
+                            {importError && (
+                                <div className="px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2"
+                                    style={{ background: T.errorDim, color: T.error }}>
+                                    <span className="material-symbols-outlined text-[16px] mt-0.5">error</span>
+                                    <span className="break-words">{importError}</span>
+                                </div>
+                            )}
+
+                            {importResult ? (
+                                /* Success Result Screen */
+                                <div className="flex flex-col items-center justify-center py-8 text-center animate-fade-in">
+                                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                                        style={{ background: T.successFaint, border: `2px solid ${T.success}` }}>
+                                        <span className="material-symbols-outlined text-[36px]" style={{ color: T.success }}>check</span>
+                                    </div>
+                                    <h3 className="text-lg font-black mb-2" style={{ color: T.textPrimary }}>Import Complete!</h3>
+                                    <p className="text-sm mb-6" style={{ color: T.textSecondary }}>We processed your file successfully.</p>
+
+                                    {/* Stats Grid */}
+                                    <div className="w-full grid grid-cols-3 gap-3 mb-8">
+                                        <div className="p-4 rounded-2xl flex flex-col items-center justify-center"
+                                            style={{ background: T.surfaceHigh, border: `1px solid ${T.border}` }}>
+                                            <span className="text-[20px] font-black" style={{ color: T.textPrimary }}>{importResult.totalProcessed}</span>
+                                            <span className="text-[10px] uppercase font-bold tracking-wider mt-1" style={{ color: T.textSecondary }}>Processed</span>
+                                        </div>
+                                        <div className="p-4 rounded-2xl flex flex-col items-center justify-center"
+                                            style={{ background: T.successFaint, border: `1px solid ${T.success}30` }}>
+                                            <span className="text-[20px] font-black" style={{ color: T.success }}>{importResult.imported}</span>
+                                            <span className="text-[10px] uppercase font-bold tracking-wider mt-1" style={{ color: T.success }}>Imported</span>
+                                        </div>
+                                        <div className="p-4 rounded-2xl flex flex-col items-center justify-center"
+                                            style={{ background: 'rgba(217,119,6,0.06)', border: `1px solid rgba(217,119,6,0.2)` }}>
+                                            <span className="text-[20px] font-black" style={{ color: '#D97706' }}>{importResult.skippedDuplicates}</span>
+                                            <span className="text-[10px] uppercase font-bold tracking-wider mt-1" style={{ color: '#D97706' }}>Skipped</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            setImportOpen(false);
+                                            setImportResult(null);
+                                            setImportFile(null);
+                                            setPage(0);
+                                            loadPage(0, search);
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold transition-all duration-150"
+                                        style={{ background: T.primary, color: '#fff' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                                        onMouseLeave={e => e.currentTarget.style.background = T.primary}>
+                                        Done & Refresh
+                                    </button>
+                                </div>
+                            ) : (
+                                /* Upload Form Screen */
+                                <div className="flex flex-col gap-6 flex-1">
+                                    {/* Guidelines */}
+                                    <div className="p-5 rounded-2xl flex flex-col gap-3 text-sm leading-relaxed"
+                                        style={{ background: T.primaryFaint, border: `1px solid ${T.border}` }}>
+                                        <div className="flex items-center gap-2 font-bold" style={{ color: T.textSecondary }}>
+                                            <span className="material-symbols-outlined text-[18px]">info</span>
+                                            CSV File Requirements
+                                        </div>
+                                        <ul className="list-disc pl-5 flex flex-col gap-1.5 text-[13px]" style={{ color: T.textSecondary }}>
+                                            <li>Headers must contain: <strong>First Name, Last Name, Email, Phone, Designation, Account Name</strong></li>
+                                            <li>Only <strong>First Name</strong> is strictly required for each contact.</li>
+                                            <li>Contacts are skipped if their email already exists under your company.</li>
+                                            <li>If an account does not exist, it will be automatically created.</li>
+                                        </ul>
+                                        <button
+                                            type="button"
+                                            onClick={downloadSampleCSV}
+                                            className="flex items-center justify-center gap-2 mt-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150"
+                                            style={{
+                                                background: T.surface,
+                                                border: `1px solid ${T.border}`,
+                                                color: T.primaryText,
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = T.primaryFaint}
+                                            onMouseLeave={e => e.currentTarget.style.background = T.surface}>
+                                            <span className="material-symbols-outlined text-[16px]">download</span>
+                                            Download Sample Template
+                                        </button>
+                                    </div>
+
+                                    {/* Dropzone */}
+                                    <div
+                                        className="flex-1 min-h-[160px] max-h-[220px] rounded-2xl flex flex-col items-center justify-center p-6 border-2 border-dashed transition-all duration-150"
+                                        style={{
+                                            borderColor: dragActive ? T.primary : T.border,
+                                            background: dragActive ? T.primaryFaint : 'transparent'
+                                        }}
+                                        onDragEnter={handleDrag}
+                                        onDragOver={handleDrag}
+                                        onDragLeave={handleDrag}
+                                        onDrop={handleDrop}>
+                                        
+                                        <input
+                                            id="csv-file-upload"
+                                            type="file"
+                                            accept=".csv"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setImportFile(e.target.files[0]);
+                                                }
+                                            }}
+                                        />
+
+                                        {importFile ? (
+                                            <div className="flex flex-col items-center text-center">
+                                                <span className="material-symbols-outlined text-[40px] mb-2" style={{ color: T.primary }}>description</span>
+                                                <p className="text-sm font-bold truncate max-w-[280px]" style={{ color: T.textPrimary }}>{importFile.name}</p>
+                                                <p className="text-xs mt-1" style={{ color: T.textSecondary }}>{(importFile.size / 1024).toFixed(1)} KB</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setImportFile(null)}
+                                                    className="mt-4 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                                                    style={{ background: T.errorDim, color: T.error }}
+                                                    onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+                                                    onMouseLeave={e => e.currentTarget.style.opacity = 1}>
+                                                    Remove File
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label htmlFor="csv-file-upload" className="cursor-pointer flex flex-col items-center text-center">
+                                                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: T.surfaceHigh }}>
+                                                    <span className="material-symbols-outlined text-[24px]" style={{ color: T.primary }}>cloud_upload</span>
+                                                </div>
+                                                <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
+                                                    Drag and drop your CSV here, or <span style={{ color: T.primary }}>browse</span>
+                                                </p>
+                                                <p className="text-xs mt-1" style={{ color: T.textMuted }}>Supports only .csv files</p>
+                                            </label>
+                                        )}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-3 mt-auto pt-4" style={{ borderTop: `1px solid ${T.border}` }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setImportOpen(false);
+                                                setImportFile(null);
+                                                setImportError('');
+                                            }}
+                                            disabled={importing}
+                                            className="flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-colors border"
+                                            style={{ background: T.surface, borderColor: T.border, color: T.textSecondary }}
+                                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
+                                            onMouseLeave={e => e.currentTarget.style.background = T.surface}>
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleImportSubmit}
+                                            disabled={!importFile || importing}
+                                            className="flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
+                                            style={{
+                                                background: !importFile ? T.surfaceHigh : T.primary,
+                                                color: !importFile ? T.textMuted : '#fff',
+                                                cursor: !importFile || importing ? 'not-allowed' : 'pointer'
+                                            }}
+                                            onMouseEnter={e => { if (importFile && !importing) e.currentTarget.style.background = T.primaryHover }}
+                                            onMouseLeave={e => { if (importFile && !importing) e.currentTarget.style.background = T.primary }}>
+                                            {importing ? (
+                                                <>
+                                                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="material-symbols-outlined text-[18px]">upload</span>
+                                                    Upload & Import
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     )

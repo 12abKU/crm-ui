@@ -1,4 +1,4 @@
-﻿import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
+import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
 import { Empty, fmt, fmtK } from './DashboardWidgets'
 
 // ── BarChart ───────────────────────────────────────────────────
@@ -34,25 +34,35 @@ export function BarChart({ data, valueKey = 'count', labelKey = 'label' }) {
 }
 
 // ── FunnelChart ────────────────────────────────────────────────
-// Props: stages[]  (unchanged)
-export function FunnelChart({ stages }) {
+// Props: stages[], activeStages[]
+export function FunnelChart({ stages, activeStages = [] }) {
     if (!stages?.length) return <Empty />
-    const stageOrder = ['NEW', 'QUALIFIED', 'PROPOSAL']
-    const ordered = stageOrder
-        .map(s => stages.find(x => x.stage === s))
-        .filter(Boolean)
-        .concat(stages.filter(x => !stageOrder.includes(x.stage)))
+    
+    // Filter to active stages (exclude terminal won/lost)
+    const activeKeys = activeStages.length > 0 
+        ? activeStages.filter(s => s.stageKey !== 'WON' && s.stageKey !== 'LOST').map(s => s.stageKey)
+        : ['NEW', 'QUALIFIED', 'PROPOSAL'];
+
+    const ordered = activeKeys
+        .map(k => stages.find(x => x.stage === k))
+        .filter(Boolean);
 
     return (
         <div className="flex flex-col gap-2.5">
             {ordered.map((s, i) => {
-                const style = STAGE_STYLES[s.stage] || STAGE_STYLES.NEW
-                const w = 100 - (i * 10)
+                const stageObj = activeStages.find(x => x.stageKey === s.stage);
+                const label = stageObj ? stageObj.label : s.stage;
+                const style = STAGE_STYLES[s.stage] || {
+                    accent: T.primary,
+                    badgeBg: T.primaryFaint,
+                    badgeColor: T.primary
+                };
+                const w = 100 - (i * (100 / (ordered.length || 1)) * 0.3)
                 return (
                     <div key={s.stage} className="flex items-center gap-3">
-                        <span className="text-xs w-20 text-right shrink-0 font-semibold"
-                            style={{ color: style.badgeColor }}>
-                            {STAGE_LABELS[s.stage] || s.stage}
+                        <span className="text-xs w-24 text-right shrink-0 font-semibold truncate"
+                            style={{ color: style.accent }}>
+                            {label}
                         </span>
                         <div className="flex-1 flex justify-center">
                             <div className="h-9 rounded-xl flex items-center justify-center px-4 transition-all duration-300"
@@ -74,11 +84,26 @@ export function FunnelChart({ stages }) {
 }
 
 // ── ForecastChart ──────────────────────────────────────────────
-// Props: data[]  (unchanged)
-export function ForecastChart({ data }) {
+// Props: data[], activeStages[]
+export function ForecastChart({ data, activeStages = [] }) {
     if (!data?.length) return <Empty />
-    const allStages = ['NEW', 'QUALIFIED', 'PROPOSAL']
-    const stageColors = { NEW: '#78716C', QUALIFIED: T.chartBlue, PROPOSAL: T.chartTeal }
+    
+    const allStages = activeStages.length > 0
+        ? activeStages.filter(s => s.stageKey !== 'WON' && s.stageKey !== 'LOST').map(s => s.stageKey)
+        : ['NEW', 'QUALIFIED', 'PROPOSAL'];
+
+    const getStageColor = (stageKey) => {
+        const predefined = {
+            NEW: '#78716C',
+            LEAD: '#78716C',
+            QUALIFIED: T.chartBlue,
+            DISCOVERY: T.chartBlue,
+            PROPOSAL: T.chartTeal,
+            NEGOTIATION: T.chartTeal,
+        }
+        return predefined[stageKey.toUpperCase()] || T.primary;
+    }
+
     const maxVal = Math.max(...data.map(q => allStages.reduce((s, st) => s + Number(q[st] || 0), 0)))
 
     return (
@@ -101,7 +126,7 @@ export function ForecastChart({ data }) {
                                 const v = Number(q[st] || 0)
                                 const pct = total > 0 ? (v / total) * 100 : 0
                                 return pct > 0
-                                    ? <div key={st} style={{ height: `${pct}%`, background: stageColors[st] }} />
+                                    ? <div key={st} style={{ height: `${pct}%`, background: getStageColor(st) }} />
                                     : null
                             })}
                         </div>

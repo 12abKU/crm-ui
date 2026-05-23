@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
@@ -13,8 +13,7 @@ import TeamTab from './tabs/TeamTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
 
-
-// ── Tabs definition (unchanged from original) ──────────────────
+// ── Tabs definition (unchanged) ──────────────────
 const TABS = [
     { key: 'summary', label: 'Summary', icon: 'dashboard' },
     { key: 'deals', label: 'Deals', icon: 'handshake' },
@@ -34,30 +33,60 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
     const [tabLoading, setTabLoading] = useState(false)
 
+    // Pipelines state
+    const [pipelines, setPipelines] = useState([])
+    const [selectedPipelineId, setSelectedPipelineId] = useState(null)
+
+    const loadTab = useCallback(async (tab, pipelineId) => {
+        if (tab === 'summary') return
+        const isPipelineDependent = tab === 'deals' || tab === 'revenue';
+        const cacheKey = isPipelineDependent ? `${tab}_${pipelineId || 'all'}` : tab;
+        if (tabData[cacheKey]) return
+        
+        setTabLoading(true)
+        try {
+            const url = isPipelineDependent && pipelineId
+                ? `/api/dashboard/${tab}?pipelineId=${pipelineId}`
+                : `/api/dashboard/${tab}`
+            const r = await api.get(url)
+            setTabData(p => ({ ...p, [cacheKey]: r.data }))
+        } catch { }
+        finally { setTabLoading(false) }
+    }, [tabData])
+
     useEffect(() => {
         api.get('/api/dashboard')
             .then(r => setSummary(r.data))
             .catch(() => { })
             .finally(() => setLoading(false))
-    }, [])
-    useEffect(() => {
-        if (activeTab !== 'summary') loadTab(activeTab)
+
+        api.get('/api/pipelines').then(r => {
+            const list = r.data ?? []
+            setPipelines(list)
+            if (list.length > 0) {
+                setSelectedPipelineId(list[0].id)
+            }
+        })
     }, [])
 
-    const loadTab = useCallback(async (tab) => {
-        if (tab === 'summary' || tabData[tab]) return
-        setTabLoading(true)
-        try {
-            const r = await api.get(`/api/dashboard/${tab}`)
-            setTabData(p => ({ ...p, [tab]: r.data }))
-        } catch { }
-        finally { setTabLoading(false) }
-    }, [tabData])
+    useEffect(() => {
+        if (activeTab !== 'summary') {
+            loadTab(activeTab, selectedPipelineId)
+        }
+    }, [activeTab, selectedPipelineId, loadTab])
 
     const handleTab = (key) => {
         setSearchParams({ tab: key })
-        loadTab(key)
     }
+
+    const handlePipelineChange = (pipelineId) => {
+        setSelectedPipelineId(pipelineId)
+    }
+
+    const currentTabCacheKey = `${activeTab}_${selectedPipelineId || 'all'}`
+    const currentTabData = tabData[currentTabCacheKey]
+    const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
+    const activeStages = activePipeline ? activePipeline.stages : []
 
     return (
         <div>
@@ -89,7 +118,7 @@ export default function AdminDashboard() {
                             style={{
                                 background: 'rgba(255,255,255,0.10)',
                                 border: '1px solid rgba(255,255,255,0.18)',
-                            }}>
+                             }}>
                             <span className="material-symbols-outlined filled text-[24px]"
                                 style={{ color: T.sidebarActiveText }}>analytics</span>
                         </div>
@@ -104,7 +133,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* ── Tab Bar ───────────────────────────────────── */}
                 {/* ── Tab Bar ───────────────────────────────────── */}
                 <div className="flex items-center gap-2 mb-7 flex-wrap">
                     {TABS.map(tab => {
@@ -142,24 +170,43 @@ export default function AdminDashboard() {
                         )
                     })}
 
-                    {/* Download button — right side of tab bar */}
-                    {summary && (
-                        <div className="ml-auto">
+                    {/* Pipeline selector and Download button — right side of tab bar */}
+                    <div className="ml-auto flex items-center gap-3">
+                        {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 0 && (
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200"
+                                style={{
+                                    background: T.surface,
+                                    border: `1px solid ${T.border}`,
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                                }}>
+                                <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Pipeline:</span>
+                                <select
+                                    value={selectedPipelineId || ''}
+                                    onChange={e => handlePipelineChange(Number(e.target.value))}
+                                    className="bg-transparent text-sm font-bold outline-none cursor-pointer"
+                                    style={{ color: T.textPrimary }}>
+                                    {pipelines.map(p => (
+                                        <option key={p.id} value={p.id} style={{ color: '#000' }}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        {summary && (
                             <DownloadReport stats={summary} />
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-
-
 
                 {/* ── Tab Content ───────────────────────────────── */}
                 {tabLoading && activeTab !== 'summary' ? <TabSkeleton /> : (
                     <>
                         {activeTab === 'summary' && <SummaryTab data={summary} loading={loading} />}
-                        {activeTab === 'deals' && <DealsTab data={tabData.deals} />}
+                        {activeTab === 'deals' && <DealsTab data={currentTabData} activeStages={activeStages} />}
                         {activeTab === 'contacts' && <ContactsTab data={tabData.contacts} />}
                         {activeTab === 'activities' && <ActivitiesTab data={tabData.activities} />}
-                        {activeTab === 'revenue' && <RevenueTab data={tabData.revenue} />}
+                        {activeTab === 'revenue' && <RevenueTab data={currentTabData} activeStages={activeStages} />}
                         {activeTab === 'team' && <TeamTab data={tabData.team} onAgentClick={(id) => navigate(`/team/${id}`)} />}
                     </>
                 )}

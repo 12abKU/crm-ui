@@ -21,6 +21,7 @@ const TYPE_META = {
     TICKET_IN_PROGRESS: { icon: 'pending', color: '#D97706', label: 'In Progress' },
     TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
+    MENTION: { icon: 'alternate_email', color: '#EA580C', label: 'Mentioned You' }
 }
 
 function getMeta(type) {
@@ -46,6 +47,17 @@ export default function NotificationBell({ isSuperAdmin }) {
         return () => clearInterval(iv)
     }, [])
 
+    // ── Handle real-time notifications ───────────────────────────────────────
+    useEffect(() => {
+        const handleRealtime = (e) => {
+            const notif = e.detail
+            setUnread(prev => prev + 1)
+            setNotifications(prev => [notif, ...prev])
+        }
+        window.addEventListener('crm-notification', handleRealtime)
+        return () => window.removeEventListener('crm-notification', handleRealtime)
+    }, [])
+
     // ── Close on outside click ───────────────────────────────────────────────
     useEffect(() => {
         const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -69,8 +81,28 @@ export default function NotificationBell({ isSuperAdmin }) {
         finally { setLoading(false) }
     }
 
+    const handleClearAllNotifications = async (e) => {
+        e.stopPropagation()
+        try {
+            await api.delete('/api/notifications')
+            setNotifications([])
+            setUnread(0)
+        } catch (err) {
+            console.error("Failed to clear notifications:", err)
+        }
+    }
+
     const handleNotificationClick = (n) => {
         setOpen(false)
+        if (n.type === 'MENTION') {
+            if (n.dealId) {
+                navigate(`/deals?dealId=${n.dealId}&tab=notes`)
+            } else if (n.contactId) {
+                navigate(`/contacts/${n.contactId}?tab=notes`)
+            }
+            return
+        }
+
         if (!n.ticketId) return
 
         if (isSuperAdmin) {
@@ -138,9 +170,26 @@ export default function NotificationBell({ isSuperAdmin }) {
                             <span style={{ fontSize: 13, fontWeight: 800, color: T.textPrimary }}>Notifications</span>
                         </div>
                         {notifications.length > 0 && (
-                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: T.primaryDim, color: T.primary }}>
-                                {notifications.length}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <button
+                                    onClick={handleClearAllNotifications}
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: T.error,
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                                >
+                                    Clear All
+                                </button>
+                                <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: T.primaryDim, color: T.primary }}>
+                                    {notifications.length}
+                                </span>
+                            </div>
                         )}
                     </div>
 
