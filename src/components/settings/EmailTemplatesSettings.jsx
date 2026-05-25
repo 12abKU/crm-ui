@@ -114,6 +114,18 @@ export default function EmailTemplatesSettings() {
         }, 50)
     }
 
+    const renderPreview = (text) => {
+        if (!text) return ''
+        let result = text
+        result = result.replace(/\{\{contact\.firstName\}\}/g, 'John')
+        result = result.replace(/\{\{contact\.lastName\}\}/g, 'Doe')
+        result = result.replace(/\{\{contact\.email\}\}/g, 'john.doe@example.com')
+        result = result.replace(/\{\{deal\.title\}\}/g, 'Acme Corp Software License')
+        result = result.replace(/\{\{deal\.amount\}\}/g, '$12,500.00')
+        result = result.replace(/\{\{user\.name\}\}/g, 'Sarah Agent')
+        return result
+    }
+
     return (
         <div className="flex flex-col gap-6">
             <SettingsSection 
@@ -184,7 +196,7 @@ export default function EmailTemplatesSettings() {
             {/* Template Editor Modal */}
             {editorOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                    <div className="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+                    <div className="w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
                         style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                         
                         {/* Header */}
@@ -243,34 +255,53 @@ export default function EmailTemplatesSettings() {
                                         onChange={e => setBody(e.target.value)}
                                         required
                                     />
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {HELP_VARS.map(v => (
+                                            <button 
+                                                key={v.tag} 
+                                                type="button" 
+                                                onClick={() => injectVariable(v.tag)}
+                                                className="px-2 py-1 rounded-md text-[10px] font-mono font-bold hover:bg-orange-100 transition-colors"
+                                                style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.primary }}
+                                                title={v.label}
+                                            >
+                                                {v.tag}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="mt-1 text-[10px] leading-relaxed" style={{ color: T.textMuted }}>
+                                        <span className="material-symbols-outlined text-[12px] align-middle mr-1" style={{ color: T.primary }}>info</span>
+                                        <span>Click a variable to insert it. HTML tags are supported.</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Variable Injection Sidebar */}
-                            <div className="w-full md:w-64 flex flex-col gap-4 shrink-0 p-4 rounded-xl" style={{ background: T.bg, border: `1px solid ${T.border}` }}>
+                            {/* Live Preview Panel */}
+                            <div className="flex-1 flex flex-col gap-4 p-5 rounded-xl shrink-0 border shadow-inner overflow-hidden" style={{ background: T.bg, borderColor: T.borderSubtle }}>
                                 <div>
-                                    <h4 className="font-bold text-xs uppercase tracking-wider" style={{ color: T.textSecondary }}>Dynamic Variables</h4>
-                                    <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>Click any token below to insert it at the cursor position in the email body.</p>
+                                    <h4 className="font-bold text-xs uppercase tracking-wider flex items-center gap-2" style={{ color: T.textSecondary }}>
+                                        <span className="material-symbols-outlined text-[16px]">visibility</span>
+                                        Live Preview
+                                    </h4>
+                                    <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>This is how the email will look to your recipient with mock data.</p>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
-                                    {HELP_VARS.map(v => (
-                                        <button 
-                                            key={v.tag} 
-                                            type="button" 
-                                            onClick={() => injectVariable(v.tag)}
-                                            className="px-3 py-2 rounded-lg text-left text-xs font-mono font-bold hover:bg-orange-100 transition-colors flex flex-col gap-0.5"
-                                            style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.primary }}
-                                        >
-                                            <span style={{ color: T.textPrimary }}>{v.tag}</span>
-                                            <span className="text-[9px] font-sans font-normal" style={{ color: T.textMuted }}>{v.label}</span>
-                                        </button>
-                                    ))}
+                                <div className="flex flex-col gap-1.5 p-3 rounded-lg border" style={{ background: T.surface, borderColor: T.border }}>
+                                    <div className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Subject</div>
+                                    <div className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
+                                        {renderPreview(subject) || '(No subject)'}
+                                    </div>
                                 </div>
 
-                                <div className="mt-auto p-3 rounded-lg text-[10px] leading-relaxed" style={{ background: T.surfaceHigh, color: T.textSecondary }}>
-                                    <span className="material-symbols-outlined text-[12px] align-middle mr-1" style={{ color: T.primary }}>info</span>
-                                    <span>HTML syntax is supported in the body editor (e.g. <code>&lt;strong&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;a&gt;</code>).</span>
+                                <div className="flex-1 flex flex-col min-h-0 border rounded-lg overflow-hidden" style={{ background: T.surface, borderColor: T.border }}>
+                                    <div className="px-3 py-2 border-b" style={{ background: T.surfaceHigh, borderColor: T.borderSubtle }}>
+                                        <div className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Message Body</div>
+                                    </div>
+                                    <div 
+                                        className="p-4 overflow-y-auto text-sm leading-relaxed" 
+                                        style={{ color: T.textPrimary }}
+                                        dangerouslySetInnerHTML={{ __html: renderPreview(body) || '<span style="color: #9CA3AF; font-style: italic;">(No body content)</span>' }}
+                                    />
                                 </div>
                             </div>
                         </form>

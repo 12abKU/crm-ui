@@ -8,6 +8,7 @@ import DealPanelConversation from './DealPanelConversation'
 import DealPanelActivities from './DealPanelActivities'
 import DealPanelContacts from './DealPanelContacts'
 import DealPanelDeals from './DealPanelDeals'
+import DealPanelJourney from './DealPanelJourney'
 import InternalNotes from '../notes/InternalNotes'
 import { usePermissions } from '../../hooks/usePermission'
 import RequirePermission from '../RequirePermission'
@@ -18,6 +19,7 @@ const TABS = [
     { id: 'account',       icon: 'business',       label: 'Account Details' },
     { id: 'conversation',  icon: 'forum',          label: 'Conversations' },
     { id: 'activities',    icon: 'event_note',     label: 'Activities' },
+    { id: 'journey',       icon: 'route',          label: 'Journey' },
     { id: 'notes',         icon: 'rate_review',    label: 'Internal Notes' },
     { id: 'contacts',      icon: 'person',         label: 'Contacts' },
     { id: 'deals',         icon: 'handshake',      label: 'Deals' },
@@ -78,6 +80,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                     onActivityAdded={loadProfile}
                 />
             )
+            case 'journey':  return <DealPanelJourney deal={deal} />
             case 'notes':    return can.NOTES_VIEW ? <InternalNotes dealId={deal.id} /> : null
             case 'contacts': return <DealPanelContacts deal={deal} />
             case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
