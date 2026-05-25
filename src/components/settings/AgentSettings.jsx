@@ -3,7 +3,11 @@ import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import ProfileForm from './ProfileForm'
 import ChangePasswordForm from './ChangePasswordForm'
+import UserTable from './UserTable'
+import InviteUserModal from './InviteUserModal'
+import usePermission from '../../hooks/usePermission'
 import api from '../../api'
+import { useSelector } from 'react-redux'
 
 const PERMISSION_META = {
     ACCOUNTS_VIEW: { icon: 'business', label: 'View accounts' },
@@ -48,11 +52,47 @@ export default function AgentSettings() {
     const [permissions, setPermissions] = useState(null)  // null = loading
     const [error, setError] = useState(false)
 
+    // User Management states
+    const canViewUsers = usePermission('USERS_VIEW')
+    const canCreateUsers = usePermission('USERS_CREATE')
+    const canDeleteUsers = usePermission('USERS_DELETE')
+
+    const [users, setUsers] = useState([])
+    const [loadingUsers, setLoadingUsers] = useState(false)
+    const [showInvite, setShowInvite] = useState(false)
+    const currentUserId = Number(useSelector(state => state.auth.userId))
+
+    const loadUsers = () => {
+        setLoadingUsers(true)
+        api.get('/api/management/users')
+            .then(r => setUsers(r.data))
+            .finally(() => setLoadingUsers(false))
+    }
+
     useEffect(() => {
         api.get('/api/permissions/me')
             .then(r => setPermissions(new Set(r.data)))
             .catch(() => setError(true))
     }, [])
+
+    useEffect(() => {
+        if (canViewUsers) {
+            loadUsers()
+        }
+    }, [canViewUsers])
+
+    const createUser = async (form) => {
+        await api.post('/api/management/users', { ...form, role: 'AGENT' })
+        loadUsers()
+    }
+
+    const deleteUser = async (id) => {
+        if (!confirm('Delete this user? This cannot be undone.')) return
+        await api.delete(`/api/management/users/${id}`)
+        loadUsers()
+    }
+
+    const agents = users.filter(u => u.role === 'AGENT')
 
     const totalCount = Object.keys(PERMISSION_META).length
     const grantedCount = permissions ? permissions.size : 0
@@ -61,6 +101,35 @@ export default function AgentSettings() {
         <div className="flex flex-col gap-6">
             <ProfileForm />
             <ChangePasswordForm />
+
+            {canViewUsers && (
+                <SettingsSection title="Agent Management" description="View and manage agents on your team" noPad>
+                    <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                        <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                            {agents.length} agent{agents.length !== 1 ? 's' : ''}
+                        </p>
+                        {canCreateUsers && (
+                            <button onClick={() => setShowInvite(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
+                                <span className="material-symbols-outlined text-[16px]">person_add</span>
+                                Add Agent
+                            </button>
+                        )}
+                    </div>
+                    <UserTable
+                        users={agents}
+                        loading={loadingUsers}
+                        currentUserId={currentUserId}
+                        canPromote={false}
+                        canDemote={false}
+                        canDelete={canDeleteUsers}
+                        onDelete={deleteUser}
+                    />
+                </SettingsSection>
+            )}
+
+            {showInvite && (
+                <InviteUserModal onClose={() => setShowInvite(false)} onSubmit={createUser} allowAdminRole={false} />
+            )}
 
             <div className="rounded-2xl overflow-hidden"
                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>

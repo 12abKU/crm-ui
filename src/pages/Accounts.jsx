@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, TAGS, EMPLOYEE_RANGES, TAG_COLORS, ROW_COLORS } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -276,7 +276,7 @@ export default function Accounts() {
                                     {/* Open Deals */}
                                     <td className="px-6 py-4">
                                         <span className="text-sm font-bold block" style={{ color: T.primaryText }}>
-                                            ?{(a.openDealAmount ?? 0).toLocaleString()}
+                                            ₹{(a.openDealAmount ?? 0).toLocaleString()}
                                         </span>
                                         <p className="text-[11px]" style={{ color: T.textMuted }}>
                                             {a.openDealCount ?? 0} deals

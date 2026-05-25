@@ -1,8 +1,9 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { T, STAGE_STYLES, STAGE_LABELS, ACTIVITY_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
+import usePermission from '../hooks/usePermission'
 
 // ── Helpers (unchanged) ───────────────────────────────────────
 const fmt = (v) => Number(v || 0).toLocaleString('en-IN')
@@ -42,6 +43,7 @@ export default function AgentProfile() {
     const navigate = useNavigate()
     const [agent, setAgent] = useState(null)
     const [loading, setLoading] = useState(true)
+    const canExport = usePermission('REPORTS_EXPORT')
 
     // ── Data handler (unchanged) ───────────────────────────────
     useEffect(() => {
@@ -71,15 +73,56 @@ export default function AgentProfile() {
             <TopBar />
             <main className="p-8 max-w-5xl mx-auto">
 
-                {/* ── Back button ───────────────────────────── */}
-                <button onClick={() => navigate(-1)}
-                    className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
-                    style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
-                    <span className="material-symbols-outlined text-[16px] transition-transform duration-200 group-hover:-translate-x-0.5">arrow_back</span>
-                    Back
-                </button>
+                {/* ── Top actions ───────────────────────────── */}
+                <div className="flex items-center justify-between mb-6">
+                    <button onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                        style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
+                        onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
+                        onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
+                        <span className="material-symbols-outlined text-[16px] transition-transform duration-200 group-hover:-translate-x-0.5">arrow_back</span>
+                        Back
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                        {canExport && (
+                            <>
+                                <button onClick={() => {
+                                    api.get(`/api/dashboard/agent/${id}/report/pdf`, { responseType: 'blob' })
+                                        .then(response => {
+                                            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+                                            window.open(url, '_blank')
+                                        })
+                                }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                                    style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
+                                    <span className="material-symbols-outlined text-[16px]">visibility</span>
+                                    View Report
+                                </button>
+
+                                <button onClick={() => {
+                                    api.get(`/api/dashboard/agent/${id}/report/pdf`, { responseType: 'blob' })
+                                        .then(response => {
+                                            const url = window.URL.createObjectURL(new Blob([response.data]))
+                                            const link = document.createElement('a')
+                                            link.href = url
+                                            link.setAttribute('download', `agent_report_${id}.pdf`)
+                                            document.body.appendChild(link)
+                                            link.click()
+                                            link.remove()
+                                        })
+                                }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 hover:opacity-90"
+                                    style={{ background: T.primary, color: '#fff', boxShadow: `0 4px 12px ${T.primary}40` }}>
+                                    <span className="material-symbols-outlined text-[16px]">download</span>
+                                    Download Report
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
 
                 {/* ── Hero banner ───────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-6"
@@ -153,7 +196,7 @@ export default function AgentProfile() {
                                     Activity Completion
                                 </p>
                                 <p className="text-xl font-black" style={{ color: T.primary }}>
-                                    {fmt(agent.completedActivities)}<span className="text-sm font-normal text-[{T.textMuted}]">/{fmt(agent.totalActivities)}</span>
+                                    {fmt(agent.completedActivities)}<span className="text-sm font-normal" style={{ color: T.textMuted }}>/{fmt(agent.totalActivities)}</span>
                                 </p>
                             </div>
                         </div>

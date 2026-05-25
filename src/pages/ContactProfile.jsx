@@ -11,6 +11,7 @@ import AddDealSlideForm from '../components/deals/AddDealSlideForm'
 import InternalNotes from '../components/notes/InternalNotes'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
+import RequirePermission from '../components/RequirePermission'
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
@@ -449,13 +450,15 @@ export default function ContactProfile() {
 
                     {/* Right sidebar: Recent Activity */}
                     <div className="flex flex-col gap-5">
-                        <div id="internal-notes-section">
-                            <SectionCard title="Internal Notes" icon="rate_review">
-                                <div className="max-h-[500px] overflow-y-auto">
-                                    <InternalNotes contactId={id} />
-                                </div>
-                            </SectionCard>
-                        </div>
+                        <RequirePermission requires="NOTES_VIEW">
+                            <div id="internal-notes-section">
+                                <SectionCard title="Internal Notes" icon="rate_review">
+                                    <div className="max-h-[500px] overflow-y-auto">
+                                        <InternalNotes contactId={id} />
+                                    </div>
+                                </SectionCard>
+                            </div>
+                        </RequirePermission>
 
                         <SectionCard title="Recent Activity" icon="event_note">
                             {profile.recentActivities?.length > 0 ? (

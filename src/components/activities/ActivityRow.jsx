@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconTrash } from '@tabler/icons-react'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES } from '../../constants/theme'
@@ -118,6 +118,12 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                     <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold" style={{ color: T.warning }}>
                         <span className="material-symbols-outlined text-[11px]">notifications_active</span>
                         {fmtScheduled(activity.reminderAt)}
+                    </div>
+                )}
+                {activity.remindHourlyOneDayBefore && (
+                    <div className="flex items-center gap-1 mt-1 text-[10px] font-black uppercase tracking-wider" style={{ color: T.primary }}>
+                        <span className="material-symbols-outlined text-[11px]">update</span>
+                        Hourly Reminder
                     </div>
                 )}
             </td>

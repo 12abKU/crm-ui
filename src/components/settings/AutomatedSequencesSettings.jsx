@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { T, STAGES, STAGE_LABELS } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import api, { extractApiErrorMessage } from '../../api'
+import ConfirmModal from '../ui/ConfirmModal'
 
 const EVENTS = [
     { value: 'DEAL_CREATED', label: 'Deal Created' },
@@ -22,6 +23,8 @@ export default function AutomatedSequencesSettings() {
     const [error, setError] = useState(null)
     const [editorOpen, setEditorOpen] = useState(false)
     const [editId, setEditId] = useState(null)
+    const [viewMode, setViewMode] = useState('list')
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null)
 
     // Form fields
     const [name, setName] = useState('')
@@ -131,19 +134,26 @@ export default function AutomatedSequencesSettings() {
             })
             loadData()
         } catch (err) {
-            alert(extractApiErrorMessage(err, 'Could not toggle status'))
+            console.error(err)
         }
     }
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this sequence rule? This cannot be undone.')) return
+        setDeleteConfirmId(id)
+    }
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return
         try {
-            await api.delete(`/api/workflow-rules/${id}`)
+            await api.delete(`/api/workflow-rules/${deleteConfirmId}`)
             loadData()
         } catch (err) {
-            alert(extractApiErrorMessage(err, 'Could not delete rule'))
+            console.error(err)
+        } finally {
+            setDeleteConfirmId(null)
         }
     }
+
 
     return (
         <div className="flex flex-col gap-6">
@@ -153,9 +163,39 @@ export default function AutomatedSequencesSettings() {
                 noPad
             >
                 <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {rules.length} active rule{rules.length !== 1 ? 's' : ''} configured
-                    </p>
+                    <div className="flex items-center gap-4">
+                        <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                            {rules.length} active rule{rules.length !== 1 ? 's' : ''} configured
+                        </p>
+                        <div className="flex bg-neutral-100 rounded-lg p-0.5" style={{ border: `1px solid ${T.border}` }}>
+                            <button 
+                                type="button"
+                                onClick={() => setViewMode('list')}
+                                className="px-3 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5"
+                                style={{
+                                    background: viewMode === 'list' ? '#fff' : 'transparent',
+                                    color: viewMode === 'list' ? T.primary : T.textMuted,
+                                    boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[14px]">list</span>
+                                List View
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => setViewMode('visual')}
+                                className="px-3 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5"
+                                style={{
+                                    background: viewMode === 'visual' ? '#fff' : 'transparent',
+                                    color: viewMode === 'visual' ? T.primary : T.textMuted,
+                                    boxShadow: viewMode === 'visual' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[14px]">account_tree</span>
+                                Visual Designer
+                            </button>
+                        </div>
+                    </div>
                     <button onClick={openCreate} className="crm-btn-primary flex items-center gap-2 text-sm">
                         <span className="material-symbols-outlined text-[16px]">bolt</span>
                         Create Sequence Rule
@@ -179,7 +219,7 @@ export default function AutomatedSequencesSettings() {
                         <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No sequence rules configured</p>
                         <p className="text-[12px] mt-1" style={{ color: T.textMuted }}>Automate your workflow tasks, notifications, and emails by clicking Create Sequence Rule.</p>
                     </div>
-                ) : (
+                ) : viewMode === 'list' ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -259,6 +299,129 @@ export default function AutomatedSequencesSettings() {
                                 })}
                             </tbody>
                         </table>
+                    </div>
+                ) : (
+                    <div className="p-6 flex flex-col gap-6" style={{ background: T.bg }}>
+                        {rules.map(r => {
+                            const triggerLabel = EVENTS.find(e => e.value === r.triggerEvent)?.label || r.triggerEvent
+                            const actionLabel = ACTIONS.find(a => a.value === r.actionType)?.label || r.actionType
+                            
+                            let triggerIcon = 'bolt'
+                            if (r.triggerEvent === 'DEAL_CREATED') triggerIcon = 'add_shopping_cart'
+                            if (r.triggerEvent === 'DEAL_STAGE_CHANGED') triggerIcon = 'published_with_changes'
+                            if (r.triggerEvent === 'CONTACT_CREATED') triggerIcon = 'person_add'
+
+                            let actionIcon = 'task_alt'
+                            if (r.actionType === 'SEND_NOTIFICATION') actionIcon = 'notifications_active'
+                            if (r.actionType === 'SEND_EMAIL_TEMPLATE') actionIcon = 'mail'
+
+                            return (
+                                <div key={r.id} className="relative p-5 rounded-2xl border flex flex-col gap-4 bg-white shadow-sm transition-all hover:shadow-md" style={{ borderColor: T.border }}>
+                                    <div className="flex items-center justify-between pb-3" style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-sm" style={{ color: T.textPrimary }}>{r.name}</span>
+                                            <span 
+                                                className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1"
+                                                style={{ 
+                                                    background: r.active ? T.successDim : T.surfaceHigh, 
+                                                    color: r.active ? T.success : T.textMuted 
+                                                }}
+                                            >
+                                                <span className="w-1 h-1 rounded-full" style={{ background: r.active ? T.success : T.textMuted }} />
+                                                {r.active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <button type="button" onClick={() => toggleActive(r)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-neutral-100 transition-colors" title="Toggle active status" style={{ color: T.textMuted }}>
+                                                <span className="material-symbols-outlined text-[18px]">power_settings_new</span>
+                                            </button>
+                                            <button type="button" onClick={() => openEdit(r)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-orange-100 transition-colors" title="Edit sequence" style={{ color: T.primary }}>
+                                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                                            </button>
+                                            <button type="button" onClick={() => handleDelete(r.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors" title="Delete rule" style={{ color: T.error }}>
+                                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-3 py-2 justify-start overflow-x-auto">
+                                        <div 
+                                            onClick={() => openEdit(r)}
+                                            className="w-full md:w-56 p-3.5 rounded-xl border-2 flex items-center gap-3 cursor-pointer transition-all hover:scale-102 hover:shadow-sm" 
+                                            style={{ 
+                                                background: '#FFF8F5', 
+                                                borderColor: T.primary,
+                                                color: T.textPrimary 
+                                            }}
+                                        >
+                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: T.primary, color: '#fff' }}>
+                                                <span className="material-symbols-outlined text-[20px]">{triggerIcon}</span>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-orange-600">Trigger</div>
+                                                <div className="text-xs font-bold truncate">{triggerLabel}</div>
+                                                {r.triggerValue && (
+                                                    <div className="text-[10px] font-medium text-orange-500 truncate">
+                                                        → {STAGE_LABELS[r.triggerValue] || r.triggerValue}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-center rotate-90 md:rotate-0 text-neutral-400 shrink-0">
+                                            <span className="material-symbols-outlined text-[22px]">arrow_right_alt</span>
+                                        </div>
+
+                                        <div 
+                                            onClick={() => openEdit(r)}
+                                            className="w-full md:w-44 p-3.5 rounded-xl border-2 flex items-center gap-3 cursor-pointer transition-all hover:scale-102 hover:shadow-sm" 
+                                            style={{ 
+                                                background: '#F0F9FF', 
+                                                borderColor: T.chartBlue,
+                                                color: T.textPrimary 
+                                            }}
+                                        >
+                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: T.chartBlue, color: '#fff' }}>
+                                                <span className="material-symbols-outlined text-[20px]">schedule</span>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-sky-600">Wait Delay</div>
+                                                <div className="text-xs font-bold truncate">
+                                                    {r.delayDays === 0 ? 'Execute Immediately' : `${r.delayDays} Day${r.delayDays !== 1 ? 's' : ''}`}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-center rotate-90 md:rotate-0 text-neutral-400 shrink-0">
+                                            <span className="material-symbols-outlined text-[22px]">arrow_right_alt</span>
+                                        </div>
+
+                                        <div 
+                                            onClick={() => openEdit(r)}
+                                            className="w-full md:w-72 p-3.5 rounded-xl border-2 flex items-center gap-3 cursor-pointer transition-all hover:scale-102 hover:shadow-sm" 
+                                            style={{ 
+                                                background: '#ECFDF5', 
+                                                borderColor: T.success,
+                                                color: T.textPrimary 
+                                            }}
+                                        >
+                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: T.success, color: '#fff' }}>
+                                                <span className="material-symbols-outlined text-[20px]">{actionIcon}</span>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Action</div>
+                                                <div className="text-xs font-bold truncate">{actionLabel}</div>
+                                                <div className="text-[10px] text-neutral-500 truncate">
+                                                    {r.actionType === 'SEND_EMAIL_TEMPLATE' && r.emailTemplate 
+                                                        ? `📄 Template: ${r.emailTemplate.name}` 
+                                                        : r.actionSubject || 'No Subject'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 )}
             </SettingsSection>
@@ -448,6 +611,15 @@ export default function AutomatedSequencesSettings() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={!!deleteConfirmId}
+                title="Delete Sequence Rule"
+                message="Are you sure you want to delete this sequence rule? This cannot be undone."
+                confirmText="Delete Rule"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirmId(null)}
+            />
         </div>
     )
 }

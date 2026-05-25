@@ -10,6 +10,7 @@ import ContactsTab from './tabs/ContactsTab'
 import ActivitiesTab from './tabs/ActivitiesTab'
 import RevenueTab from './tabs/RevenueTab'
 import TeamTab from './tabs/TeamTab'
+import BottlenecksTab from './tabs/BottlenecksTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
 
@@ -17,6 +18,7 @@ import DownloadReport from '../Downloadreport'
 const TABS = [
     { key: 'summary', label: 'Summary', icon: 'dashboard' },
     { key: 'deals', label: 'Deals', icon: 'handshake' },
+    { key: 'bottlenecks', label: 'Bottlenecks', icon: 'hourglass_empty' },
     { key: 'contacts', label: 'Contacts', icon: 'groups' },
     { key: 'activities', label: 'Sales Activities', icon: 'event_note' },
     { key: 'revenue', label: 'Revenue', icon: 'payments' },
@@ -204,6 +206,7 @@ export default function AdminDashboard() {
                     <>
                         {activeTab === 'summary' && <SummaryTab data={summary} loading={loading} />}
                         {activeTab === 'deals' && <DealsTab data={currentTabData} activeStages={activeStages} />}
+                        {activeTab === 'bottlenecks' && <BottlenecksTab data={tabData.bottlenecks} activeStages={activeStages} />}
                         {activeTab === 'contacts' && <ContactsTab data={tabData.contacts} />}
                         {activeTab === 'activities' && <ActivitiesTab data={tabData.activities} />}
                         {activeTab === 'revenue' && <RevenueTab data={currentTabData} activeStages={activeStages} />}

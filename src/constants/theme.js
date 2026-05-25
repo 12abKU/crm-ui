@@ -438,6 +438,7 @@ export const NAV_LINKS = [
     { to: '/contacts', icon: 'groups', label: 'Contacts' },
     { to: '/deals', icon: 'handshake', label: 'Deals' },
     { to: '/activities', icon: 'event_note', label: 'Activities' },
+    { to: '/calendar', icon: 'calendar_month', label: 'Calendar' },
     { to: '/calls', icon: 'call', label: 'Calls' },
     { to: '/conversations', icon: 'forum', label: 'Conversations' },
     { to: '/settings', icon: 'settings', label: 'Settings' },

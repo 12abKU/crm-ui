@@ -7,6 +7,7 @@ import RecentActivityList from '../components/dashboard/RecentActivityList'
 import AdminDashboard from '../components/dashboard/AdminDashboard'
 import api from '../api'
 import DownloadReport from '../components/Downloadreport'
+import usePermission from '../hooks/usePermission'
 
 export default function Dashboard() {
     const role = useSelector(state => state.auth.role)
@@ -19,6 +20,7 @@ function AgentDashboard() {
     const [loading, setLoading] = useState(true)
     const name = useSelector(state => state.auth.name)
     const role = useSelector(s => s.auth.role)
+    const canExport = usePermission('REPORTS_EXPORT')
 
     useEffect(() => {
         api.get('/api/dashboard')
@@ -35,23 +37,24 @@ function AgentDashboard() {
             <main className="p-8">
 
                 {/* ── Hero Welcome Banner ──────────────────────────── */}
-                <section className="relative rounded-3xl overflow-hidden mb-8"
+                <section className="relative rounded-3xl mb-8"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 148,
                     }}>
-                    <div style={{
-                        position: 'absolute', top: -50, right: -50, width: 220, height: 220,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -30, left: '40%', width: 160, height: 160,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
+                    {/* Glow elements constrained to background */}
+                    <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                        <div style={{
+                            position: 'absolute', top: -50, right: -50, width: 220, height: 220,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)`,
+                        }} />
+                        <div style={{
+                            position: 'absolute', bottom: -30, left: '40%', width: 160, height: 160,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
+                        }} />
+                    </div>
 
                     <div className="relative px-10 py-8 flex items-center justify-between gap-6">
                         <div>
@@ -66,8 +69,7 @@ function AgentDashboard() {
                             </p>
                         </div>
                         {/* ── Download Report button — lives here now ── */}
-                        {role !== 'AGENT' && <DownloadReport stats={stats} />}
-
+                        {canExport && <DownloadReport stats={stats} />}
 
                         {/* Right side — stat chips + download */}
                         <div className="flex flex-col items-end gap-3 shrink-0">

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { T } from '../../constants/theme'
 import SettingsSection from './SettingsSection'
 import api, { extractApiErrorMessage } from '../../api'
+import ConfirmModal from '../ui/ConfirmModal'
 
 const HELP_VARS = [
     { tag: '{{contact.firstName}}', label: 'Contact First Name' },
@@ -18,6 +19,7 @@ export default function EmailTemplatesSettings() {
     const [error, setError] = useState(null)
     const [editorOpen, setEditorOpen] = useState(false)
     const [editId, setEditId] = useState(null)
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null)
 
     // Form fields
     const [name, setName] = useState('')
@@ -83,12 +85,18 @@ export default function EmailTemplatesSettings() {
     }
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this template? Any sequence using it might fail to send.')) return
+        setDeleteConfirmId(id)
+    }
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return
         try {
-            await api.delete(`/api/email-templates/${id}`)
+            await api.delete(`/api/email-templates/${deleteConfirmId}`)
             loadTemplates()
         } catch (err) {
-            alert(extractApiErrorMessage(err, 'Could not delete template'))
+            console.error(err)
+        } finally {
+            setDeleteConfirmId(null)
         }
     }
 
@@ -282,6 +290,15 @@ export default function EmailTemplatesSettings() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={!!deleteConfirmId}
+                title="Delete Email Template"
+                message="Are you sure you want to delete this template? Any sequence using it might fail to send."
+                confirmText="Delete Template"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirmId(null)}
+            />
         </div>
     )
 }

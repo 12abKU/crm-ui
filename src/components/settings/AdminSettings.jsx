@@ -7,11 +7,13 @@ import ChangePasswordForm from './ChangePasswordForm'
 import UserTable from './UserTable'
 import InviteUserModal from './InviteUserModal'
 import api from '../../api'
+import ConfirmModal from '../ui/ConfirmModal'
 
 export default function AdminSettings() {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [showInvite, setShowInvite] = useState(false)
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null)
     const currentUserId = Number(useSelector(state => state.auth.userId))
 
     const load = () => {
@@ -32,9 +34,19 @@ export default function AdminSettings() {
     }
 
     const deleteUser = async (id) => {
-        if (!confirm('Delete this user? This cannot be undone.')) return
-        await api.delete(`/api/management/users/${id}`)
-        load()
+        setDeleteConfirmId(id)
+    }
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return
+        try {
+            await api.delete(`/api/management/users/${deleteConfirmId}`)
+            load()
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setDeleteConfirmId(null)
+        }
     }
 
     const agents = users.filter(u => u.role === 'AGENT')
@@ -67,6 +79,14 @@ export default function AdminSettings() {
             {showInvite && (
                 <InviteUserModal onClose={() => setShowInvite(false)} onSubmit={createUser} allowAdminRole={false} />
             )}
+            <ConfirmModal
+                isOpen={!!deleteConfirmId}
+                title="Delete User"
+                message="Are you sure you want to delete this user? This cannot be undone."
+                confirmText="Delete User"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirmId(null)}
+            />
         </div>
     )
 }

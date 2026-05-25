@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import { useSelector } from 'react-redux'
 import api from '../../api'
@@ -61,6 +61,16 @@ const PERMISSION_GROUPS = [
         perms: [
             { key: 'DASHBOARD_VIEW', label: 'View dashboard' },
             { key: 'REPORTS_EXPORT', label: 'Export reports' },
+        ]
+    },
+    {
+        label: 'Internal Notes',
+        icon: 'notes',
+        perms: [
+            { key: 'NOTES_VIEW', label: 'View notes' },
+            { key: 'NOTES_CREATE', label: 'Create notes' },
+            { key: 'NOTES_EDIT', label: 'Edit notes' },
+            { key: 'NOTES_DELETE', label: 'Delete notes' },
         ]
     },
     {

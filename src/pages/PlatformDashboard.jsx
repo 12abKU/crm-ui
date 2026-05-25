@@ -136,7 +136,7 @@ export default function PlatformDashboard() {
             const payload = JSON.stringify({ token: data.token, name: data.name, role: data.role, userId: String(data.userId), email: data.email, companyId: String(data.companyId), companyName: data.companyName, permissions: data.permissions ? JSON.parse(data.permissions) : [] })
             sessionStorage.setItem('crm_impersonate', payload)
             window.open('/', '_blank')
-        } catch (e) { alert(e?.response?.data?.message || 'Failed to impersonate user') }
+        } catch (e) { console.error(e) }
         finally { setImpersonating(null) }
     }
 

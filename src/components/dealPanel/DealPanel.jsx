@@ -9,6 +9,8 @@ import DealPanelActivities from './DealPanelActivities'
 import DealPanelContacts from './DealPanelContacts'
 import DealPanelDeals from './DealPanelDeals'
 import InternalNotes from '../notes/InternalNotes'
+import { usePermissions } from '../../hooks/usePermission'
+import RequirePermission from '../RequirePermission'
 
 // ── Tab config (unchanged) ─────────────────────────────────────
 const TABS = [
@@ -34,6 +36,9 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
     const isAssignedToMe = deal.assignedTo?.id === Number(userId) || deal.assignedTo?.id === userId
         || deal.owner?.id === Number(userId) || deal.owner?.id === userId
     const canDelete = !isAgent
+    const can = usePermissions(['NOTES_VIEW'])
+
+    const visibleTabs = TABS.filter(t => t.id !== 'notes' || can.NOTES_VIEW)
 
     // ── Data loading (unchanged) ─────────────────────────────
     const loadProfile = () => {
@@ -73,7 +78,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                     onActivityAdded={loadProfile}
                 />
             )
-            case 'notes':    return <InternalNotes dealId={deal.id} />
+            case 'notes':    return can.NOTES_VIEW ? <InternalNotes dealId={deal.id} /> : null
             case 'contacts': return <DealPanelContacts deal={deal} />
             case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
             default: return null
@@ -110,7 +115,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                     {/* Divider */}
                     <div className="w-8 mb-2" style={{ height: 1, background: T.sidebarBorder }} />
 
-                    {TABS.map(tab => {
+                    {visibleTabs.map(tab => {
                         const isActive = activeTab === tab.id
                         return (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label}
@@ -218,7 +223,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                             {/* Active tab label */}
                             <p className="text-[10px] font-black uppercase tracking-widest mt-3"
                                 style={{ color: T.heroSubText }}>
-                                {TABS.find(t => t.id === activeTab)?.label}
+                                {visibleTabs.find(t => t.id === activeTab)?.label}
                             </p>
                         </div>
                     </div>

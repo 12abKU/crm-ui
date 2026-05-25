@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import api from '../../api'
 
@@ -11,6 +12,9 @@ export default function CalendarView({ onLogActivity }) {
     const [syncing, setSyncing] = useState(false)
     const [syncStatus, setSyncStatus] = useState({ connected: false, email: null })
     const [syncResult, setSyncResult] = useState(null)
+
+    const role = useSelector(state => state.auth.role)
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
     // Load team members for filter
     const loadTeam = async () => {
@@ -242,20 +246,22 @@ export default function CalendarView({ onLogActivity }) {
                     )}
 
                     {/* Team Filter */}
-                    <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[16px]" style={{ color: T.textMuted }}>group</span>
-                        <select
-                            value={selectedOwnerId}
-                            onChange={e => setSelectedOwnerId(e.target.value)}
-                            className="px-3.5 py-2 rounded-xl text-xs font-bold outline-none cursor-pointer"
-                            style={{ background: T.surfaceRaised, border: `1.5px solid ${T.border}`, color: T.textPrimary }}
-                        >
-                            <option value="">All Team Calendars</option>
-                            {team.map(user => (
-                                <option key={user.id} value={user.id}>{user.name}'s Calendar</option>
-                            ))}
-                        </select>
-                    </div>
+                    {isAdmin && (
+                        <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[16px]" style={{ color: T.textMuted }}>group</span>
+                            <select
+                                value={selectedOwnerId}
+                                onChange={e => setSelectedOwnerId(e.target.value)}
+                                className="px-3.5 py-2 rounded-xl text-xs font-bold outline-none cursor-pointer"
+                                style={{ background: T.surfaceRaised, border: `1.5px solid ${T.border}`, color: T.textPrimary }}
+                            >
+                                <option value="">All Team Calendars</option>
+                                {team.map(user => (
+                                    <option key={user.id} value={user.id}>{user.name}'s Calendar</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     {/* Google Sync Button */}
                     <button

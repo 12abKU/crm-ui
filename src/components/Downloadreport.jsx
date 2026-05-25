@@ -73,7 +73,28 @@ export default function DownloadReport({ stats }) {
             link.remove()
             window.URL.revokeObjectURL(url)
         } catch (err) {
-            alert('Failed to download PDF report from backend')
+            window.dispatchEvent(new CustomEvent('crm-api-error', {
+                detail: { message: 'Failed to download PDF report from backend', status: 500 }
+            }))
+        } finally {
+            setPdfDownloading(false)
+        }
+    }
+
+    const handlePdfView = async () => {
+        setOpen(false)
+        setPdfDownloading(true)
+        try {
+            const response = await api.get('/api/dashboard/report/pdf', {
+                responseType: 'blob'
+            })
+            const blob = new Blob([response.data], { type: 'application/pdf' })
+            const url = window.URL.createObjectURL(blob)
+            window.open(url, '_blank')
+        } catch (err) {
+            window.dispatchEvent(new CustomEvent('crm-api-error', {
+                detail: { message: 'Failed to view PDF report', status: 500 }
+            }))
         } finally {
             setPdfDownloading(false)
         }
@@ -112,6 +133,18 @@ export default function DownloadReport({ stats }) {
                     <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#737686' }}>
                         Export as
                     </p>
+
+                    <button
+                        onClick={handlePdfView}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
+                        style={{ color: '#0b1c30', cursor: 'pointer' }}
+                    >
+                        <span className="material-symbols-outlined text-[18px]" style={{ color: '#0369a1' }}>visibility</span>
+                        View PDF
+                        <span className="ml-auto text-[10px] font-normal" style={{ color: '#737686' }}>Open in tab</span>
+                    </button>
+
+                    <div style={{ height: '1px', background: '#eff4ff', margin: '0 12px' }} />
 
                     <button
                         onClick={handlePdfDownload}

@@ -61,11 +61,15 @@ api.interceptors.response.use(
         }
 
         // 403 — company suspended/trial expired → sign out with reason shown on login page
+        // If it's a regular RBAC permission error (e.g. "You don't have permission..."), we let it fall through to the toast!
         if (status === 403 && !isAuthEndpoint) {
-            store.dispatch(signOut())
-            sessionStorage.setItem('logoutReason', message)
-            window.location.href = '/login'
-            return Promise.reject(err) // ← return early, no toast
+            const isAccountLocked = message?.toLowerCase().includes('suspended') || message?.toLowerCase().includes('expired')
+            if (isAccountLocked) {
+                store.dispatch(signOut())
+                sessionStorage.setItem('logoutReason', message)
+                window.location.href = '/login'
+                return Promise.reject(err) // ← return early, no toast
+            }
         }
 
         // All other errors — show global toast (but not for auth endpoints)

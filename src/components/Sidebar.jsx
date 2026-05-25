@@ -1,7 +1,8 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
+import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
 export default function Sidebar() {
@@ -12,6 +13,7 @@ export default function Sidebar() {
     const { name, role, companyName } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
     const [openTickets, setOpenTickets] = useState(0)
+    const can = usePermissions(['ACCOUNTS_CREATE'])
 
     // Badge polling — completely unchanged
     useEffect(() => {
@@ -152,7 +154,7 @@ export default function Sidebar() {
             </nav>
 
             {/* ── Create New — only for CRM users (unchanged logic) ── */}
-            {!isSuperAdmin && (
+            {!isSuperAdmin && can.ACCOUNTS_CREATE && (
                 <div className="px-4 py-3">
                     <button onClick={() => navigate('/accounts')}
                         className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 transition-all duration-150"

@@ -9,6 +9,7 @@ import AccountProfile from './pages/AccountProfile'
 import ContactProfile from './pages/ContactProfile'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
+import Calendar from './pages/Calendar'
 import Sidebar from './components/Sidebar'
 import Register from './pages/Register'
 import { T } from './constants/theme'
@@ -102,6 +103,7 @@ export default function App() {
         <Route path="/deals" element={<CrmLayout><Deals /></CrmLayout>} />
         <Route path="/activities" element={<CrmLayout><Activities /></CrmLayout>} />
         <Route path="/activities/:id" element={<CrmLayout><ActivityProfile /></CrmLayout>} />
+        <Route path="/calendar" element={<CrmLayout><Calendar /></CrmLayout>} />
         <Route path="/profile" element={<CrmLayout><Profile /></CrmLayout>} />
         <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />

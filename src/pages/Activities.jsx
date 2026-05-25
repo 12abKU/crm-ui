@@ -17,10 +17,11 @@ import TodayFocus from '../components/activities/TodayFocus'
 import CalendarView from '../components/activities/CalendarView'
 import api from '../api'
 import { useSelector } from 'react-redux'
+import { usePermissions } from '../hooks/usePermission'
 
 // ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
-const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', reminderAt: '', accountId: '', contactId: '', dealId: '' }
+const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '', reminderAt: '', accountId: '', contactId: '', dealId: '', remindHourlyOneDayBefore: false }
 const VIEW_MODES = [
     { mode: 'table',    icon: 'table_rows', label: 'All Activities' },
     { mode: 'tasks',    icon: 'checklist',  label: 'My Tasks' },
@@ -54,6 +55,7 @@ export default function Activities() {
 
     const role = useSelector(state => state.auth.role)
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const can = usePermissions(['ACTIVITIES_CREATE', 'ACTIVITIES_EDIT', 'ACTIVITIES_DELETE'])
 
     // ── Data handlers (all unchanged) ─────────────────────────
     const loadAllTasks = useCallback(async () => {
@@ -171,7 +173,8 @@ export default function Activities() {
             accountId: form.accountId || null,
             contactId: form.contactId || null,
             dealId: form.dealId || null,
-            reminderAt: form.reminderAt || null
+            reminderAt: form.reminderAt || null,
+            remindHourlyOneDayBefore: form.remindHourlyOneDayBefore || false
         })
         setOpen(false); resetForm(); setPage(0)
         loadPage(0, filterAccountId, search)
@@ -262,18 +265,20 @@ export default function Activities() {
                                 </div>
                             </div>
                         </div>
-                        <button onClick={() => setOpen(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
-                            style={{
-                                background: T.heroBadgeBg,
-                                border: '1px solid rgba(255,255,255,0.22)',
-                                color: '#fff',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                            onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
-                            <span className="material-symbols-outlined text-[18px]">add</span>
-                            Log Activity
-                        </button>
+                        {can.ACTIVITIES_CREATE && (
+                            <button onClick={() => setOpen(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
+                                style={{
+                                    background: T.heroBadgeBg,
+                                    border: '1px solid rgba(255,255,255,0.22)',
+                                    color: '#fff',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
+                                onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                Log Activity
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -342,9 +347,10 @@ export default function Activities() {
 
                 {/* ── Main content (unchanged logic) ─────── */}
                 {viewMode === 'tasks' ? (
-                    <MyTasksPanel onComplete={toggleComplete} onOutcome={saveOutcome} />
+                    <MyTasksPanel onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined} onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined} />
                 ) : viewMode === 'calendar' ? (
                     <CalendarView onLogActivity={(prefillDate) => {
+                        if (!can.ACTIVITIES_CREATE) return;
                         setForm({ ...EMPTY_FORM, scheduledAt: prefillDate })
                         setOpen(true)
                     }} />
@@ -381,10 +387,10 @@ export default function Activities() {
                                                     activity={activity}
                                                     rowBg={ROW_COLORS[i % ROW_COLORS.length]}
                                                     highlighted={isHighlighted}
-                                                    onRemove={remove}
-                                                    onUpdate={updateActivity}
-                                                    onComplete={toggleComplete}
-                                                    onOutcome={saveOutcome}
+                                                    onRemove={can.ACTIVITIES_DELETE ? remove : undefined}
+                                                    onUpdate={can.ACTIVITIES_EDIT ? updateActivity : undefined}
+                                                    onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined}
+                                                    onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined}
                                                     showOwner={isAdmin}
                                                 />
                                             )
@@ -399,7 +405,7 @@ export default function Activities() {
                             </>
                         ) : (
                             <TimelineView activities={displayActivities} loading={loading}
-                                onComplete={toggleComplete} onOutcome={saveOutcome} />
+                                onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined} onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined} />
                         )}
                     </div>
                 )}
@@ -422,6 +428,7 @@ export default function Activities() {
                     <Input label="Reminder At" type="datetime-local" value={form.reminderAt}
                         onChange={e => setF('reminderAt', e.target.value)} />
                     <div className="grid grid-cols-3 gap-2">
+                        {/* Presets */}
                         {[
                             { label: '15 min', minutes: 15 },
                             { label: '1 hour', minutes: 60 },
@@ -441,6 +448,18 @@ export default function Activities() {
                                 {item.label}
                             </button>
                         ))}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 px-1">
+                        <input 
+                            id="remindHourlyOneDayBefore"
+                            type="checkbox"
+                            checked={form.remindHourlyOneDayBefore || false}
+                            onChange={e => setF('remindHourlyOneDayBefore', e.target.checked)}
+                            className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-orange-300 cursor-pointer"
+                        />
+                        <label htmlFor="remindHourlyOneDayBefore" className="text-xs font-bold cursor-pointer" style={{ color: T.textPrimary }}>
+                            Hourly alerts (Starting 24 hours prior)
+                        </label>
                     </div>
                 </div>
                 <SearchableSelect label="Account" value={form.accountId} onChange={onFormAccountChange}

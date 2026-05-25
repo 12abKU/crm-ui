@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { T } from '../../constants/theme'
+import { usePermissions } from '../../hooks/usePermission'
 import api from '../../api'
 
 // ── Clear All Confirmation Modal ───────────────────────────────
@@ -115,6 +116,8 @@ export default function InternalNotes({ dealId, contactId }) {
     const [submitting, setSubmitting] = useState(false)
     const [showClearModal, setShowClearModal] = useState(false)  // ← new
     const [clearing, setClearing] = useState(false)              // ← new
+    
+    const can = usePermissions(['NOTES_CREATE', 'NOTES_DELETE'])
 
     // Autocomplete state
     const [showMentionDropdown, setShowMentionDropdown] = useState(false)
@@ -303,8 +306,9 @@ export default function InternalNotes({ dealId, contactId }) {
             )}
 
             {/* Note Editor */}
-            <form onSubmit={handleSubmit} className="p-5 border-b relative"
-                style={{ borderColor: T.borderSubtle, background: T.surfaceRaised }}>
+            {can.NOTES_CREATE && (
+                <form onSubmit={handleSubmit} className="p-5 border-b relative"
+                    style={{ borderColor: T.borderSubtle, background: T.surfaceRaised }}>
                 <div className="relative">
                     <textarea
                         ref={textareaRef}
@@ -349,7 +353,7 @@ export default function InternalNotes({ dealId, contactId }) {
                 </div>
 
                 <div className="flex justify-between items-center mt-3">
-                    {notes.length > 0 ? (
+                    {notes.length > 0 && can.NOTES_DELETE ? (
                         <button
                             type="button"
                             onClick={() => setShowClearModal(true)}   // ← opens modal now
@@ -377,6 +381,7 @@ export default function InternalNotes({ dealId, contactId }) {
                     </button>
                 </div>
             </form>
+            )}
 
             {/* Note Stream */}
             <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">

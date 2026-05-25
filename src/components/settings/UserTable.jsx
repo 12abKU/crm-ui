@@ -2,11 +2,13 @@ import { T } from '../../constants/theme'
 import RoleBadge from './RoleBadge'
 import PermissionEditor from './PermissionEditor'
 import { useState } from 'react'
-
+import { useSelector } from 'react-redux'
 
 export default function UserTable({ users, loading, currentUserId, canPromote, canDemote, canDelete, onPromote, onDemote, onDelete }) {
 
     const [editingUser, setEditingUser] = useState(null)
+    const currentUserRole = useSelector(state => state.auth.role)
+    const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'SUPER_ADMIN'
 
 
     if (loading) {
@@ -104,12 +106,14 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
 
                                 )}
 
-                                <button onClick={() => setEditingUser(u)}
-                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                                    style={{ background: T.primaryDim, color: T.primary }}>
-                                    <span className="material-symbols-outlined text-[13px]">shield</span>
-                                    Permissions
-                                </button>
+                                {isAdmin && (
+                                    <button onClick={() => setEditingUser(u)}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                                        style={{ background: T.primaryDim, color: T.primary }}>
+                                        <span className="material-symbols-outlined text-[13px]">shield</span>
+                                        Permissions
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     )
