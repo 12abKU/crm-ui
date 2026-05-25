@@ -81,19 +81,14 @@ export default function TopBar() {
             setLoading(true)
             try {
                 const q = query.trim()
-                const [accRes, conRes, dealRes, actRes] = await Promise.all([
-                    api.get(`/api/accounts?page=0&size=5&search=${encodeURIComponent(q)}`),
-                    api.get(`/api/contacts?page=0&size=5&search=${encodeURIComponent(q)}`),
-                    api.get('/api/deals/all'),
-                    api.get(`/api/activities/search?q=${encodeURIComponent(q)}`)
-                ])
-                const accounts = accRes.data.content ?? []
-                const contacts = conRes.data.content ?? []
-                const ql = q.toLowerCase()
-                const deals = (dealRes.data ?? [])
-                    .filter(d => d.title.toLowerCase().includes(ql) || (d.account?.name || '').toLowerCase().includes(ql))
-                    .slice(0, 5)
-                const activities = actRes.data ?? []
+                const res = await api.get(`/api/search?q=${encodeURIComponent(q)}`)
+                const data = res.data || {}
+                
+                const accounts = data.accounts || []
+                const contacts = data.contacts || []
+                const deals = data.deals || []
+                const activities = data.activities || []
+                
                 setResults({ accounts, contacts, deals, activities })
                 setOpen(true)
             } finally {
