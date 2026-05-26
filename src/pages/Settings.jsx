@@ -121,7 +121,7 @@ export default function Settings() {
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
-                        { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
+                        { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' }
                     ].map(tab => {
                         const active = activeTab === tab.id
                         return (

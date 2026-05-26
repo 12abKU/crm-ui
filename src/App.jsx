@@ -37,6 +37,18 @@ function WebSocketManager() {
   return null
 }
 
+import { registerServiceWorkerAndSubscribe } from './utils/pushNotifications'
+
+function PushNotificationManager() {
+  const token = useSelector(state => state.auth.token)
+  useEffect(() => {
+    if (token) {
+      registerServiceWorkerAndSubscribe()
+    }
+  }, [token])
+  return null
+}
+
 function PermissionLoader() {
   const token = useSelector(state => state.auth.token)
   const dispatch = useDispatch()
@@ -90,6 +102,7 @@ export default function App() {
       <WebSocketToast />
       <PermissionLoader />
       <WebSocketManager />
+      <PushNotificationManager />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
