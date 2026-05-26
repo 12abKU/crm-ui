@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { T, STAGES, STAGE_LABELS } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import SettingsSection from './SettingsSection'
 import api, { extractApiErrorMessage } from '../../api'
 import ConfirmModal from '../ui/ConfirmModal'
@@ -17,6 +18,7 @@ const ACTIONS = [
 ]
 
 export default function AutomatedSequencesSettings() {
+    const { stages, getStageLabel } = usePipelineStages()
     const [rules, setRules] = useState([])
     const [templates, setTemplates] = useState([])
     const [loading, setLoading] = useState(true)
@@ -247,7 +249,7 @@ export default function AutomatedSequencesSettings() {
                                                     <span>{triggerLabel}</span>
                                                     {r.triggerValue && (
                                                         <span className="text-[11px] font-bold text-orange-600 mt-0.5">
-                                                            → {STAGE_LABELS[r.triggerValue] || r.triggerValue} Stage
+                                                            → {getStageLabel(r.triggerValue)} Stage
                                                         </span>
                                                     )}
                                                 </div>
@@ -362,7 +364,7 @@ export default function AutomatedSequencesSettings() {
                                                 <div className="text-xs font-bold truncate">{triggerLabel}</div>
                                                 {r.triggerValue && (
                                                     <div className="text-[10px] font-medium text-orange-500 truncate">
-                                                        → {STAGE_LABELS[r.triggerValue] || r.triggerValue}
+                                                        → {getStageLabel(r.triggerValue)}
                                                     </div>
                                                 )}
                                             </div>
@@ -487,8 +489,8 @@ export default function AutomatedSequencesSettings() {
                                             value={triggerValue}
                                             onChange={e => setTriggerValue(e.target.value)}
                                         >
-                                            {STAGES.map(st => (
-                                                <option key={st} value={st}>{STAGE_LABELS[st]}</option>
+                                            {stages.map(st => (
+                                                <option key={st.stageKey} value={st.stageKey}>{st.label}</option>
                                             ))}
                                         </select>
                                     </div>

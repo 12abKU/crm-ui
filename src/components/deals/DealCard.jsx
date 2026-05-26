@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { T, STAGE_STYLES } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
 import AssignDealModal from './AssignDealModal'
 
@@ -26,7 +27,8 @@ export default function DealCard({
     const assignedByName = deal.owner?.name ?? 'Admin'
     const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? '—'
 
-    const stageStyle = STAGE_STYLES[stage] ?? STAGE_STYLES['NEW']
+    const { getStageStyle } = usePipelineStages()
+    const stageStyle = getStageStyle(stage)
 
     useEffect(() => {
         if (!highlighted) return

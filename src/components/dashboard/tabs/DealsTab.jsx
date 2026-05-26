@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { T, STAGE_STYLES, STAGE_LABELS } from '../../../constants/theme'
+import { T } from '../../../constants/theme'
+import { usePipelineStages } from '../../../hooks/usePipelineStages'
 import { Card, CardTitle, StatBox, Empty, TabSkeleton, fmt, fmtK } from '../DashboardWidgets'
 import { FunnelChart, ForecastChart, WinRateDonut, BarChart } from '../DashboardCharts'
 import api from '../../../api'
 
 export default function DealsTab({ data, activeStages = [] }) {
+    const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
     if (!data) return <TabSkeleton />
     const winRate = data.winRate ?? 0
 
@@ -16,7 +18,7 @@ export default function DealsTab({ data, activeStages = [] }) {
             .then(r => {
                 const formatted = r.data.map(d => ({
                     ...d,
-                    stageLabel: STAGE_LABELS[d.stage] || d.stage
+                    stageLabel: getStageLabel(d.stage)
                 }))
                 setVelocity(formatted)
             })
@@ -25,11 +27,7 @@ export default function DealsTab({ data, activeStages = [] }) {
     }, [])
 
     const getStageStyle = (stageKey) => {
-        return STAGE_STYLES[stageKey.toUpperCase()] || {
-            accent: T.primary,
-            badgeBg: T.primaryFaint,
-            badgeColor: T.primary
-        }
+        return getPipelineStageStyle(stageKey)
     }
 
     return (

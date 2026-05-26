@@ -6,6 +6,7 @@ import AdminSettings from '../components/settings/AdminSettings'
 import SuperAdminSettings from '../components/settings/SuperAdminSettings'
 import EmailTemplatesSettings from '../components/settings/EmailTemplatesSettings'
 import AutomatedSequencesSettings from '../components/settings/AutomatedSequencesSettings'
+import PipelineSettings from '../components/settings/PipelineSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -54,6 +55,9 @@ export default function Settings() {
         }
         if (activeTab === 'sequences') {
             return <AutomatedSequencesSettings />
+        }
+        if (activeTab === 'pipeline') {
+            return <PipelineSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN') return <AdminSettings />
@@ -121,7 +125,8 @@ export default function Settings() {
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
-                        { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' }
+                        { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
+                        ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [{ id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id
                         return (

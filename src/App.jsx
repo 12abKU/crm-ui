@@ -61,6 +61,24 @@ function PermissionLoader() {
   return null
 }
 
+import { setStages } from './store/pipelineSlice'
+
+function PipelineStagesLoader() {
+  const token = useSelector(state => state.auth.token)
+  const dispatch = useDispatch()
+  useEffect(() => {
+    if (!token) return
+    api.get('/api/pipelines')
+      .then(r => {
+        if (r.data && r.data.length > 0) {
+          dispatch(setStages(r.data[0].stages))
+        }
+      })
+      .catch(() => { })
+  }, [token, dispatch])
+  return null
+}
+
 const CrmLayout = ({ children }) => {
   const token = useSelector(state => state.auth.token)
   const role = useSelector(state => state.auth.role)
@@ -101,6 +119,7 @@ export default function App() {
       <ApiErrorToast />
       <WebSocketToast />
       <PermissionLoader />
+      <PipelineStagesLoader />
       <WebSocketManager />
       <PushNotificationManager />
       <Routes>

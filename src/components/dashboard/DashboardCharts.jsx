@@ -1,4 +1,5 @@
-import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { Empty, fmt, fmtK } from './DashboardWidgets'
 import {
   BarChart as RechartBarChart,
@@ -76,6 +77,7 @@ export function BarChart({ data, valueKey = 'count', labelKey = 'label' }) {
 
 // ── FunnelChart ────────────────────────────────────────────────
 export function FunnelChart({ stages, activeStages = [] }) {
+    const { getStageStyle } = usePipelineStages()
     if (!stages?.length) return <Empty />
     
     const activeKeys = activeStages.length > 0 
@@ -89,7 +91,7 @@ export function FunnelChart({ stages, activeStages = [] }) {
     const chartData = ordered.map((s, i) => {
         const stageObj = activeStages.find(x => x.stageKey === s.stage);
         const label = stageObj ? stageObj.label : s.stage;
-        const style = STAGE_STYLES[s.stage] || { accent: T.primary };
+        const style = getStageStyle(s.stage);
         return {
             value: s.count,
             name: label,
@@ -145,6 +147,7 @@ export function FunnelChart({ stages, activeStages = [] }) {
 
 // ── ForecastChart ──────────────────────────────────────────────
 export function ForecastChart({ data, activeStages = [] }) {
+    const { getStageStyle } = usePipelineStages()
     if (!data?.length) return <Empty />
     
     const allStages = activeStages.length > 0
@@ -152,15 +155,7 @@ export function ForecastChart({ data, activeStages = [] }) {
         : ['NEW', 'QUALIFIED', 'PROPOSAL'];
 
     const getStageColor = (stageKey) => {
-        const predefined = {
-            NEW: '#78716C',
-            LEAD: '#78716C',
-            QUALIFIED: T.chartBlue,
-            DISCOVERY: T.chartBlue,
-            PROPOSAL: T.chartTeal,
-            NEGOTIATION: T.chartTeal,
-        }
-        return predefined[stageKey.toUpperCase()] || T.primary;
+        return getStageStyle(stageKey).accent;
     }
 
     return (

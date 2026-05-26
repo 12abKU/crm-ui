@@ -1,7 +1,8 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
+import { T, ACTIVITY_STYLES } from '../constants/theme'
+import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
@@ -68,6 +69,7 @@ const LinkedCard = ({ icon, iconBg, iconColor, label, title, subtitle, badge, on
 }
 
 export default function ActivityProfile() {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     const { id } = useParams()
     const navigate = useNavigate()
     const role = useSelector(state => state.auth.role)
@@ -399,11 +401,11 @@ export default function ActivityProfile() {
                                         label="Deal"
                                         title={activity.deal.title}
                                         badge={activity.deal.stage && (() => {
-                                            const ds = STAGE_STYLES[activity.deal.stage] || STAGE_STYLES.NEW
+                                            const ds = getStageStyle(activity.deal.stage)
                                             return (
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block"
                                                     style={{ background: ds.badgeBg, color: ds.badgeColor }}>
-                                                    {activity.deal.stage}
+                                                    {getStageLabel(activity.deal.stage)}
                                                 </span>
                                             )
                                         })()}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { T, STAGE_LABELS, STAGE_STYLES, SHADOW } from '../../constants/theme'
+import { T, SHADOW } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import api from '../../api'
 import DealPanelOverview from './DealPanelOverview'
 import DealPanelAccount from './DealPanelAccount'
@@ -28,10 +29,11 @@ const TABS = [
 ]
 
 export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab }) {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     const [activeTab, setActiveTab] = useState(initialTab || 'overview')
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
-    const s = STAGE_STYLES[deal.stage]
+    const s = getStageStyle(deal.stage)
 
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
@@ -208,7 +210,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                             <div className="flex items-center gap-2.5 mt-3 flex-wrap">
                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
                                     style={{ background: s.badgeBg, color: s.badgeColor }}>
-                                    {STAGE_LABELS[deal.stage]}
+                                    {getStageLabel(deal.stage)}
                                 </span>
                                 {deal.amount > 0 && (
                                     <span className="text-sm font-black" style={{ color: T.sidebarActiveText }}>

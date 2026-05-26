@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { T, STAGE_STYLES, STAGE_LABELS, ACTIVITY_STYLES } from '../constants/theme'
+import { T, ACTIVITY_STYLES } from '../constants/theme'
+import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import usePermission from '../hooks/usePermission'
@@ -39,6 +40,7 @@ function KpiCard({ icon, label, value, color }) {
 }
 
 export default function AgentProfile() {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     const { id } = useParams()
     const navigate = useNavigate()
     const [agent, setAgent] = useState(null)
@@ -230,7 +232,7 @@ export default function AgentProfile() {
                         </div>
                         <div className="p-3">
                             {agent.openDeals?.length ? agent.openDeals.map((d) => {
-                                const s = STAGE_STYLES[d.stage] || STAGE_STYLES.NEW
+                                const s = getStageStyle(d.stage)
                                 return (
                                     <div key={d.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all"
                                         style={{ background: T.borderSubtle }}
@@ -243,7 +245,7 @@ export default function AgentProfile() {
                                         </div>
                                         <div className="text-right shrink-0">
                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold block mb-1"
-                                                style={{ background: s.badgeBg, color: s.badgeColor }}>{STAGE_LABELS[d.stage]}</span>
+                                                style={{ background: s.badgeBg, color: s.badgeColor }}>{getStageLabel(d.stage)}</span>
                                             {d.amount && <span className="text-[11px] font-bold" style={{ color: T.primary }}>{fmtK(d.amount)}</span>}
                                         </div>
                                     </div>

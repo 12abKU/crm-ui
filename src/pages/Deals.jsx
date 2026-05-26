@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { LOST_DEAL_REASONS, T, STAGE_STYLES, STAGE_LABELS } from '../constants/theme'
+import { LOST_DEAL_REASONS, T } from '../constants/theme'
+import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
 import SearchableSelect from '../components/SearchableSelect'
@@ -42,6 +43,7 @@ const STAGE_COLUMN_BORDER = {
 }
 
 export default function Deals() {
+    const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
     const navigate = useNavigate()
     const [deals, setDeals] = useState([])
     const [accounts, setAccounts] = useState([])
@@ -125,20 +127,25 @@ export default function Deals() {
     const activeStages = activePipeline ? activePipeline.stages : []
 
     const getStageStyle = (stageKey) => {
-        return STAGE_STYLES[stageKey.toUpperCase()] || {
-            accent: T.primary,
-            badgeBg: T.primaryFaint,
-            badgeColor: T.primary
-        }
+        return getPipelineStageStyle(stageKey)
     }
     const getStageColBg = (stageKey) => {
-        return STAGE_COLUMN_BG[stageKey.toUpperCase()] || 'rgba(234,88,12,0.02)'
+        const keyUpper = stageKey.toUpperCase()
+        if (STAGE_COLUMN_BG[keyUpper]) return STAGE_COLUMN_BG[keyUpper]
+        const style = getStageStyle(stageKey)
+        return style.accent && style.accent.startsWith('#') ? `${style.accent}05` : 'rgba(234,88,12,0.02)'
     }
     const getStageHeaderBg = (stageKey) => {
-        return STAGE_HEADER_BG[stageKey.toUpperCase()] || 'rgba(234,88,12,0.05)'
+        const keyUpper = stageKey.toUpperCase()
+        if (STAGE_HEADER_BG[keyUpper]) return STAGE_HEADER_BG[keyUpper]
+        const style = getStageStyle(stageKey)
+        return style.accent && style.accent.startsWith('#') ? `${style.accent}0f` : 'rgba(234,88,12,0.05)'
     }
     const getStageColBorder = (stageKey) => {
-        return STAGE_COLUMN_BORDER[stageKey.toUpperCase()] || 'rgba(234,88,12,0.15)'
+        const keyUpper = stageKey.toUpperCase()
+        if (STAGE_COLUMN_BORDER[keyUpper]) return STAGE_COLUMN_BORDER[keyUpper]
+        const style = getStageStyle(stageKey)
+        return style.accent && style.accent.startsWith('#') ? `${style.accent}33` : 'rgba(234,88,12,0.15)'
     }
 
     const setField = (key, value) => setForm(f => ({ ...f, [key]: value }))

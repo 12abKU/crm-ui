@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { T, STAGE_STYLES, STAGE_LABELS } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import api from '../../api'
 
 export default function DealPanelJourney({ deal }) {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     const [history, setHistory] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -62,8 +64,8 @@ export default function DealPanelJourney({ deal }) {
                 <div className="absolute top-2 bottom-6 left-[11px] w-0.5 rounded-full" style={{ background: T.border }} />
 
                 {history.map((h, i) => {
-                    const style = STAGE_STYLES[h.stage] || { accent: T.primary, badgeBg: T.primaryFaint, badgeColor: T.primary }
-                    const label = STAGE_LABELS[h.stage] || h.stage
+                    const style = getStageStyle(h.stage)
+                    const label = getStageLabel(h.stage)
                     const isLast = i === history.length - 1
 
                     return (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { T, STAGES, STAGE_LABELS } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { usePermissions } from '../../hooks/usePermission'
 import SlideForm from '../SlideForm'
 import { Input, Select } from '../FormField'
@@ -10,6 +11,7 @@ import api from '../../api'
 const EMPTY = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
 
 export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAccount, prefillContact }) {
+    const { stages } = usePipelineStages()
     const [form, setForm] = useState(EMPTY)
     const [accounts, setAccounts] = useState([])
     const [contacts, setContacts] = useState([])
@@ -27,6 +29,9 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     useEffect(() => {
         if (!open) return
         const base = { ...EMPTY }
+        if (stages.length > 0) {
+            base.stage = stages[0].stageKey
+        }
         if (prefillAccount) {
             base.accountId = String(prefillAccount.id)
         }
@@ -96,7 +101,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
             <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required />
             <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} />
             <Select label="Stage" value={form.stage} onChange={setEvent('stage')}>
-                {STAGES.map(s => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
+                {stages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
             </Select>
             <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} />
 

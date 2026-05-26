@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { T, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
+import { T, ACTIVITY_STYLES } from '../constants/theme'
+import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
@@ -64,6 +65,7 @@ const SectionCard = ({ title, badge, icon, children, action }) => (
 )
 
 export default function ContactProfile() {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     const { id } = useParams()
     const navigate = useNavigate()
     const location = useLocation()
@@ -414,7 +416,7 @@ export default function ContactProfile() {
                             {profile.openDeals?.length > 0 ? (
                                 <div className="flex flex-col gap-2">
                                     {profile.openDeals.map(d => {
-                                        const s = STAGE_STYLES[d.stage] || STAGE_STYLES.NEW
+                                        const s = getStageStyle(d.stage)
                                         return (
                                             <div key={d.id}
                                                 className="flex items-center justify-between p-4 rounded-xl transition-all duration-150"
@@ -430,7 +432,7 @@ export default function ContactProfile() {
                                                     <div>
                                                         <p className="text-sm font-bold" style={{ color: T.textPrimary }}>{d.title}</p>
                                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block"
-                                                            style={{ background: s.badgeBg, color: s.badgeColor }}>{d.stage}</span>
+                                                            style={{ background: s.badgeBg, color: s.badgeColor }}>{getStageLabel(d.stage)}</span>
                                                     </div>
                                                 </div>
                                                 <p className="text-sm font-black" style={{ color: T.primaryText }}>

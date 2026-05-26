@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { T, STAGE_LABELS, STAGE_STYLES, STAGES } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { useSelector } from 'react-redux'
 import api from '../../api'
 import { extractApiErrorMessage } from '../../api'
@@ -15,6 +16,7 @@ const InfoCard = ({ label, children }) => (
 )
 
 export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit }) {
+    const { stages, getStageLabel, getStageStyle } = usePipelineStages()
     const [stage, setStage] = useState(deal.stage)
     const [lostDetails, setLostDetails] = useState({
         lostReason: deal.lostReason,
@@ -74,7 +76,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
         ? `${deal.contact.firstName} ${deal.contact.lastName}`
         : '—'
 
-    const currentStyle = STAGE_STYLES[stage] || STAGE_STYLES.NEW
+    const currentStyle = getStageStyle(stage)
 
     return (
         <div className="px-6 py-5 flex flex-col gap-5">
@@ -96,7 +98,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                         <p className="text-[10px] font-black uppercase tracking-widest"
                             style={{ color: currentStyle.accent }}>Current Stage</p>
                         <p className="text-base font-black mt-0.5" style={{ color: currentStyle.badgeColor }}>
-                            {STAGE_LABELS[stage] || stage}
+                            {getStageLabel(stage)}
                         </p>
                     </div>
                 </div>
@@ -119,12 +121,12 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                         {isAgent ? 'Move Stage' : 'Change Stage'}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                        {STAGES.map(st => {
-                            const ss = STAGE_STYLES[st]
-                            const isActive = stage === st
+                        {stages.map(s => {
+                            const ss = getStageStyle(s.stageKey)
+                            const isActive = stage === s.stageKey
                             return (
-                                <button key={st} disabled={saving}
-                                    onClick={() => handleStageChange(st)}
+                                <button key={s.stageKey} disabled={saving}
+                                    onClick={() => handleStageChange(s.stageKey)}
                                     className="px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all"
                                     style={{
                                         background: isActive ? ss.badgeBg : T.surfaceRaised,
@@ -134,7 +136,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                                         cursor: saving ? 'not-allowed' : 'pointer',
                                         transform: isActive ? 'scale(1.04)' : 'scale(1)',
                                     }}>
-                                    {STAGE_LABELS[st]}
+                                    {s.label}
                                 </button>
                             )
                         })}

@@ -1,7 +1,9 @@
-﻿import { T, STAGE_LABELS, STAGE_STYLES } from '../../constants/theme'
+import { T } from '../../constants/theme'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 import Skeleton from 'react-loading-skeleton'
 
 export default function DealPanelDeals({ accountDeals, currentDealId, loading }) {
+    const { getStageLabel, getStageStyle } = usePipelineStages()
     if (loading) return (
         <div className="px-6 py-5 flex flex-col gap-3">
             <div className="flex gap-3 mb-2">
@@ -86,7 +88,7 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
                 ) : (
                     <div className="flex flex-col gap-2">
                         {accountDeals.map(d => {
-                            const s = STAGE_STYLES[d.stage]
+                            const s = getStageStyle(d.stage)
                             const isCurrent = d.id === currentDealId
                             return (
                                 <div key={d.id}
@@ -113,7 +115,7 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
                                         <div className="flex items-center gap-2 mt-0.5">
                                             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                                                 style={{ background: s.badgeBg, color: s.badgeColor }}>
-                                                {STAGE_LABELS[d.stage]}
+                                                {getStageLabel(d.stage)}
                                             </span>
                                             {d.expectedCloseDate && (
                                                 <span className="text-[11px]" style={{ color: T.textMuted }}>

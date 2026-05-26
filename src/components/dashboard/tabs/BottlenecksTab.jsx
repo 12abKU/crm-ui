@@ -1,22 +1,20 @@
-import { T, STAGE_STYLES, STAGE_LABELS } from '../../../constants/theme'
+import { T } from '../../../constants/theme'
+import { usePipelineStages } from '../../../hooks/usePipelineStages'
 import { Card, CardTitle, StatBox, Empty, TabSkeleton, fmt, fmtK } from '../DashboardWidgets'
 import { BarChart } from '../DashboardCharts'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function BottlenecksTab({ data, activeStages = [] }) {
+    const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
     if (!data) return <TabSkeleton />
 
     const getStageStyle = (stageKey) => {
-        return STAGE_STYLES[stageKey.toUpperCase()] || {
-            accent: T.primary,
-            badgeBg: T.primaryFaint,
-            badgeColor: T.primary
-        }
+        return getPipelineStageStyle(stageKey)
     }
 
     // Format average days stuck per stage for BarChart component
     const avgDaysData = (data.avgDaysStuckByStage || []).map(item => ({
-        label: STAGE_LABELS[item.stage] || item.stage,
+        label: getStageLabel(item.stage),
         avgDays: item.avgDays
     }));
 
@@ -24,7 +22,7 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
     const bottleneckPieData = (data.bottlenecks || []).map(item => {
         const style = getStageStyle(item.stage);
         return {
-            name: STAGE_LABELS[item.stage] || item.stage,
+            name: getStageLabel(item.stage),
             value: item.count,
             fill: style.accent
         };
@@ -36,7 +34,7 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
                 <StatBox label="Total Stuck Deals (≥ 5 Days)" value={fmt(data.totalStuck)} icon="warning" color={T.error} />
                 <StatBox 
                     label="Most Bottlenecked Stage" 
-                    value={data.bottlenecks?.[0]?.stage ? (STAGE_LABELS[data.bottlenecks[0].stage] || data.bottlenecks[0].stage) : 'None'} 
+                    value={data.bottlenecks?.[0]?.stage ? getStageLabel(data.bottlenecks[0].stage) : 'None'} 
                     icon="grid_view" 
                     color={T.primary} 
                 />
