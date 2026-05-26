@@ -26,6 +26,8 @@ import AgentProfile from './pages/AgentProfile'
 import PlatformProfile from './pages/PlatformProfile'
 import PlatformTickets from './pages/PlatformTickets'
 import Support from './pages/Support'
+import AuditLogPage from './pages/AuditLogPage'
+import DeDuplicationPage from './pages/DeDuplicationPage'
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 
@@ -110,6 +112,8 @@ export default function App() {
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
         <Route path="/team/:id" element={<CrmLayout><AgentProfile /></CrmLayout>} />
         <Route path="/support" element={<CrmLayout><Support /></CrmLayout>} />
+        <Route path="/audit-log" element={<CrmLayout><AuditLogPage /></CrmLayout>} />
+        <Route path="/de-duplication" element={<CrmLayout><DeDuplicationPage /></CrmLayout>} />
 
 
         <Route path="*" element={<SmartRedirect />} />

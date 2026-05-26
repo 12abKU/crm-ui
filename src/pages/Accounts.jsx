@@ -12,8 +12,7 @@ import TableShell from '../components/ui/TableShell'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
-import DuplicateWarning from '../components/ui/DuplicateWarning'
-import { useEffect } from 'react'
+import DuplicateModal from '../components/ui/DuplicateModal'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
@@ -27,6 +26,7 @@ export default function Accounts() {
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false)
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
 
@@ -53,37 +53,30 @@ export default function Accounts() {
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-    useEffect(() => {
-        if (!open) {
-            setDuplicates([])
-            setCheckingDuplicates(false)
-            return
-        }
-
-        if (!form.name.trim() || form.name.trim().length < 2) {
-            setDuplicates([])
-            return
-        }
-
-        const timer = setTimeout(async () => {
-            setCheckingDuplicates(true)
-            try {
-                const r = await api.post('/api/accounts/duplicates', form, { suppressErrorToast: true })
-                setDuplicates(r.data ?? [])
-            } catch {
-                setDuplicates([])
-            } finally {
-                setCheckingDuplicates(false)
-            }
-        }, 350)
-
-        return () => clearTimeout(timer)
-    }, [open, form])
-
     const submit = async (e) => {
         e.preventDefault()
+        setCheckingDuplicates(true)
+        try {
+            const r = await api.post('/api/accounts/duplicates', form, { suppressErrorToast: true })
+            const matches = r.data ?? []
+            if (matches.length > 0) {
+                setDuplicates(matches)
+                setShowDuplicateModal(true)
+                return
+            }
+        } catch {
+            // let it slide
+        } finally {
+            setCheckingDuplicates(false)
+        }
+        await executeSave()
+    }
+
+    const executeSave = async () => {
         await api.post('/api/accounts', form)
         setOpen(false)
+        setShowDuplicateModal(false)
+        setDuplicates([])
         setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
         setPage(0); loadPage(0, search)
     }
@@ -302,11 +295,6 @@ export default function Accounts() {
             {/* -- Slide Form --------------------------------- */}
             {can.ACCOUNTS_CREATE && (
                 <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                    <DuplicateWarning
-                        matches={duplicates}
-                        loading={checkingDuplicates}
-                        onOpen={(match) => navigate(`/accounts/${match.id}`)}
-                    />
                     <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />
                     <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" />
                     <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
@@ -321,6 +309,20 @@ export default function Accounts() {
                     </Select>
                 </SlideForm>
             )}
+            {/* -- Duplicate Modal ----------------------------------- */}
+            <DuplicateModal
+                isOpen={showDuplicateModal}
+                duplicates={duplicates}
+                entityType="account"
+                onCancel={() => setShowDuplicateModal(false)}
+                onSaveAnyway={executeSave}
+                onViewExisting={(match) => {
+                    setShowDuplicateModal(false)
+                    setOpen(false)
+                    setDuplicates([])
+                    navigate(`/accounts/${match.id}`)
+                }}
+            />
         </div>
     )
 }

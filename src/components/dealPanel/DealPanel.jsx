@@ -12,6 +12,7 @@ import DealPanelJourney from './DealPanelJourney'
 import InternalNotes from '../notes/InternalNotes'
 import { usePermissions } from '../../hooks/usePermission'
 import RequirePermission from '../RequirePermission'
+import EntityAuditHistory from '../audit/EntityAuditHistory'
 
 // ── Tab config (unchanged) ─────────────────────────────────────
 const TABS = [
@@ -23,6 +24,7 @@ const TABS = [
     { id: 'notes',         icon: 'rate_review',    label: 'Internal Notes' },
     { id: 'contacts',      icon: 'person',         label: 'Contacts' },
     { id: 'deals',         icon: 'handshake',      label: 'Deals' },
+    { id: 'audit',         icon: 'history',        label: 'Audit', adminOnly: true },
 ]
 
 export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab }) {
@@ -40,7 +42,11 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
     const canDelete = !isAgent
     const can = usePermissions(['NOTES_VIEW'])
 
-    const visibleTabs = TABS.filter(t => t.id !== 'notes' || can.NOTES_VIEW)
+    const visibleTabs = TABS.filter(t => {
+        if (t.id === 'notes' && !can.NOTES_VIEW) return false
+        if (t.adminOnly && isAgent) return false
+        return true
+    })
 
     // ── Data loading (unchanged) ─────────────────────────────
     const loadProfile = () => {
@@ -84,6 +90,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
             case 'notes':    return can.NOTES_VIEW ? <InternalNotes dealId={deal.id} /> : null
             case 'contacts': return <DealPanelContacts deal={deal} />
             case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
+            case 'audit':    return <EntityAuditHistory entityType="DEAL" entityId={deal.id} />
             default: return null
         }
     }

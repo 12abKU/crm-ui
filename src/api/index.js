@@ -44,7 +44,15 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use(
-    (res) => res,
+    (res) => {
+        if (res?.data && res.data.page && Array.isArray(res.data.content)) {
+            res.data.totalElements = res.data.page.totalElements;
+            res.data.totalPages = res.data.page.totalPages;
+            res.data.size = res.data.page.size;
+            res.data.number = res.data.page.number;
+        }
+        return res;
+    },
     (err) => {
         const status = err.response?.status
         const message = extractApiErrorMessage(err)

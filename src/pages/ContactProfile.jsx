@@ -12,6 +12,7 @@ import InternalNotes from '../components/notes/InternalNotes'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 import RequirePermission from '../components/RequirePermission'
+import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
@@ -493,6 +494,9 @@ export default function ContactProfile() {
                                 </div>
                             )}
                         </SectionCard>
+
+                        {/* Audit History — admin only */}
+                        <EntityAuditHistory entityType="CONTACT" entityId={Number(id)} />
                     </div>
                 </div>
             </main>

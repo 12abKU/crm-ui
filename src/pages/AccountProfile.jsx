@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { T, TAG_COLORS, ACTIVITY_STYLES, STAGE_STYLES } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -8,6 +8,7 @@ import InlineEdit from '../components/InlineEdit'
 import AddDealSlideForm from '../components/deals/AddDealSlideForm'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
+import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
@@ -395,7 +396,7 @@ export default function AccountProfile() {
                         </SectionCard>
                     </div>
 
-                    {/* Right sidebar: Recent Activity */}
+                    {/* Right sidebar: Recent Activity + Audit */}
                     <div className="flex flex-col gap-5">
                         <SectionCard title="Recent Activity" icon="event_note">
                             {profile.recentActivities?.length > 0 ? (
@@ -430,6 +431,9 @@ export default function AccountProfile() {
                                 </div>
                             )}
                         </SectionCard>
+
+                        {/* Audit History — admin only, auto-hides for agents */}
+                        <EntityAuditHistory entityType="ACCOUNT" entityId={Number(id)} />
                     </div>
                 </div>
             </main>

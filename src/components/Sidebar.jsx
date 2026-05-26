@@ -191,6 +191,32 @@ export default function Sidebar() {
                             </>
                         )}
                     </NavLink>
+
+                    {/* Audit Log — ADMIN only */}
+                    {role === 'ADMIN' && (
+                        <>
+                            <NavLink to="/audit-log"
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
+                                style={navStyle}>
+                                {({ isActive }) => (
+                                    <>
+                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>history</span>
+                                        <span>Audit Log</span>
+                                    </>
+                                )}
+                            </NavLink>
+                            <NavLink to="/de-duplication"
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
+                                style={navStyle}>
+                                {({ isActive }) => (
+                                    <>
+                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>merge</span>
+                                        <span>De-Duplication</span>
+                                    </>
+                                )}
+                            </NavLink>
+                        </>
+                    )}
                 </div>
             )}
 

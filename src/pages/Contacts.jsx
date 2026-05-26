@@ -13,7 +13,7 @@ import TableShell from '../components/ui/TableShell'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
-import DuplicateWarning from '../components/ui/DuplicateWarning'
+import DuplicateModal from '../components/ui/DuplicateModal'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
@@ -28,6 +28,7 @@ export default function Contacts() {
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false)
 
     // Import Contacts states
     const [importOpen, setImportOpen] = useState(false)
@@ -66,39 +67,30 @@ export default function Contacts() {
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-    useEffect(() => {
-        if (!open) {
-            setDuplicates([])
-            setCheckingDuplicates(false)
-            return
-        }
-
-        const hasStrongKey = form.email.trim() || form.phone.trim()
-        const hasFullName = form.firstName.trim().length >= 2 && form.lastName.trim().length >= 2
-        if (!hasStrongKey && !hasFullName) {
-            setDuplicates([])
-            return
-        }
-
-        const timer = setTimeout(async () => {
-            setCheckingDuplicates(true)
-            try {
-                const r = await api.post('/api/contacts/duplicates', form, { suppressErrorToast: true })
-                setDuplicates(r.data ?? [])
-            } catch {
-                setDuplicates([])
-            } finally {
-                setCheckingDuplicates(false)
-            }
-        }, 350)
-
-        return () => clearTimeout(timer)
-    }, [open, form])
-
     const submit = async (e) => {
         e.preventDefault()
+        setCheckingDuplicates(true)
+        try {
+            const r = await api.post('/api/contacts/duplicates', form, { suppressErrorToast: true })
+            const matches = r.data ?? []
+            if (matches.length > 0) {
+                setDuplicates(matches)
+                setShowDuplicateModal(true)
+                return
+            }
+        } catch {
+            // let it slide
+        } finally {
+            setCheckingDuplicates(false)
+        }
+        await executeSave()
+    }
+
+    const executeSave = async () => {
         await api.post('/api/contacts', { ...form, accountId: form.accountId || null })
         setOpen(false)
+        setShowDuplicateModal(false)
+        setDuplicates([])
         setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
         setPage(0); loadPage(0, search)
     }
@@ -351,11 +343,6 @@ export default function Contacts() {
             {/* -- Slide Form ----------------------------------- */}
             {can.CONTACTS_CREATE && (
                 <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                    <DuplicateWarning
-                        matches={duplicates}
-                        loading={checkingDuplicates}
-                        onOpen={(match) => navigate(`/contacts/${match.id}`)}
-                    />
                     <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />
                     <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" />
                     <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" />
@@ -589,6 +576,20 @@ export default function Contacts() {
                     </div>
                 </>
             )}
+            {/* -- Duplicate Modal ----------------------------------- */}
+            <DuplicateModal
+                isOpen={showDuplicateModal}
+                duplicates={duplicates}
+                entityType="contact"
+                onCancel={() => setShowDuplicateModal(false)}
+                onSaveAnyway={executeSave}
+                onViewExisting={(match) => {
+                    setShowDuplicateModal(false)
+                    setOpen(false)
+                    setDuplicates([])
+                    navigate(`/contacts/${match.id}`)
+                }}
+            />
         </div>
     )
 }
