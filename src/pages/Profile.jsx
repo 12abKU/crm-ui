@@ -1,10 +1,11 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api, { extractApiErrorMessage } from '../api'
 import { signOut, updateProfileSession } from '../store/authSlice'
+import SignOutModal from '../components/SignOutModal'
 
 // ── Outside component — prevents focus loss on keystroke (unchanged) ──
 const InputField = ({ label, type = 'text', value, onChange, placeholder, required, rightSlot }) => (
@@ -29,8 +30,9 @@ const EyeToggle = ({ show, onToggle }) => (
 export default function Profile() {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const { name: authName, role: authRole } = useSelector(state => state.auth)
 
-    // ── State (unchanged) ──────────────────────────────────────
+    // ── State ──────────────────────────────────────────────────
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -40,6 +42,7 @@ export default function Profile() {
     const [showCurrent, setShowCurrent] = useState(false)
     const [showNew, setShowNew] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [showSignOut, setShowSignOut] = useState(false)
 
     // ── Data handlers (unchanged) ──────────────────────────────
     useEffect(() => {
@@ -75,6 +78,7 @@ export default function Profile() {
     )
 
     return (
+        <>
         <div>
             <TopBar />
             <main className="p-8 max-w-3xl mx-auto">
@@ -134,16 +138,19 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        {/* Sign out (unchanged logic) */}
-                        <button onClick={() => { dispatch(signOut()); navigate('/login') }}
+                        {/* Sign out — opens confirmation modal */}
+                        <button
+                            id="profile-signout-btn"
+                            onClick={() => setShowSignOut(true)}
                             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0"
                             style={{
                                 background: T.errorDim,
                                 color: T.errorLight,
                                 border: '1px solid rgba(239,68,68,0.25)',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = `rgba(239,68,68,0.25)`}
-                            onMouseLeave={e => e.currentTarget.style.background = T.errorDim}>
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
+                            onMouseLeave={e => e.currentTarget.style.background = T.errorDim}
+                        >
                             <span className="material-symbols-outlined text-[16px]">logout</span>
                             Sign out
                         </button>
@@ -233,5 +240,15 @@ export default function Profile() {
                 </form>
             </main>
         </div>
+
+        {/* ── Sign-out confirmation modal ────────────────── */}
+        <SignOutModal
+            open={showSignOut}
+            onConfirm={() => { setShowSignOut(false); dispatch(signOut()); navigate('/login') }}
+            onCancel={() => setShowSignOut(false)}
+            userName={authName}
+            role={authRole}
+        />
+        </>
     )
 }
