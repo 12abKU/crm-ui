@@ -38,6 +38,18 @@ export function useWebSocket(token, onNotification) {
                         }
                     }
                 })
+
+                // Subscribe to WhatsApp updates
+                client.subscribe('/topic/whatsapp', (message) => {
+                    if (message.body) {
+                        try {
+                            const msg = JSON.parse(message.body)
+                            window.dispatchEvent(new CustomEvent('crm-whatsapp', { detail: msg }))
+                        } catch (e) {
+                            console.error('Failed to parse WhatsApp WebSocket message', e)
+                        }
+                    }
+                })
             },
             onStompError: (frame) => {
                 console.error('Broker reported error: ' + frame.headers['message'])

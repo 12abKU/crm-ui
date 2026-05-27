@@ -1,6 +1,6 @@
-﻿// src/components/platform/IntegrationsPanel.jsx
+// src/components/platform/IntegrationsPanel.jsx
 import { useEffect, useState } from 'react'
-import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff, IconBrandWhatsapp } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 
@@ -115,6 +115,15 @@ export default function IntegrationsPanel({ companyId }) {
     const [googleError, setGoogleError] = useState('')
     const [googleSuccess, setGoogleSuccess] = useState('')
 
+    // WhatsApp
+    const [whatsapp, setWhatsapp] = useState({
+        phoneNumberId: '', businessAccountId: '', accessToken: '', verifyToken: ''
+    })
+    const [whatsappConfigured, setWhatsappConfigured] = useState(false)
+    const [whatsappSaving, setWhatsappSaving] = useState(false)
+    const [whatsappError, setWhatsappError] = useState('')
+    const [whatsappSuccess, setWhatsappSuccess] = useState('')
+
     useEffect(() => {
         if (!companyId) return
         setLoading(true)
@@ -122,6 +131,7 @@ export default function IntegrationsPanel({ companyId }) {
             .then(r => {
                 const tw = r.data.twilio || {}
                 const go = r.data.google || {}
+                const wa = r.data.whatsapp || {}
                 // Backend masks secrets — show placeholder if configured
                 setTwilio({
                     accountSid: tw.accountSid || '',
@@ -138,6 +148,13 @@ export default function IntegrationsPanel({ companyId }) {
                     redirectUri: go.redirectUri || '',
                 })
                 setGoogleConfigured(go.configured || false)
+                setWhatsapp({
+                    phoneNumberId: wa.phoneNumberId || '',
+                    businessAccountId: wa.businessAccountId || '',
+                    accessToken: wa.accessToken || '',
+                    verifyToken: wa.verifyToken || '',
+                })
+                setWhatsappConfigured(wa.configured || false)
             })
             .catch(() => { })
             .finally(() => setLoading(false))
@@ -145,6 +162,7 @@ export default function IntegrationsPanel({ companyId }) {
 
     const setT = (key) => (e) => setTwilio(p => ({ ...p, [key]: e.target.value }))
     const setG = (key) => (e) => setGoogle(p => ({ ...p, [key]: e.target.value }))
+    const setW = (key) => (e) => setWhatsapp(p => ({ ...p, [key]: e.target.value }))
 
     const saveTwilio = async () => {
         setTwilioSaving(true); setTwilioError(''); setTwilioSuccess('')
@@ -200,6 +218,32 @@ export default function IntegrationsPanel({ companyId }) {
         } finally { setGoogleSaving(false) }
     }
 
+    const saveWhatsapp = async () => {
+        setWhatsappSaving(true); setWhatsappError(''); setWhatsappSuccess('')
+        try {
+            await api.patch(`/api/platform/companies/${companyId}/integrations/whatsapp`, whatsapp)
+            setWhatsappConfigured(true)
+            setWhatsappSuccess('WhatsApp settings saved.')
+            setTimeout(() => setWhatsappSuccess(''), 3000)
+        } catch (e) {
+            setWhatsappError(e?.response?.data?.message || 'Save failed')
+        } finally { setWhatsappSaving(false) }
+    }
+
+    const clearWhatsapp = async () => {
+        if (!confirm('Clear WhatsApp config? Company will use platform defaults.')) return
+        setWhatsappSaving(true); setWhatsappError('')
+        try {
+            await api.delete(`/api/platform/companies/${companyId}/integrations/whatsapp`)
+            setWhatsapp({ phoneNumberId: '', businessAccountId: '', accessToken: '', verifyToken: '' })
+            setWhatsappConfigured(false)
+            setWhatsappSuccess('WhatsApp config cleared.')
+            setTimeout(() => setWhatsappSuccess(''), 3000)
+        } catch (e) {
+            setWhatsappError('Failed to clear')
+        } finally { setWhatsappSaving(false) }
+    }
+
     if (loading) return (
         <div className="py-12 text-center text-sm" style={{ color: T.textMuted }}>Loading integrations...</div>
     )
@@ -252,6 +296,29 @@ export default function IntegrationsPanel({ companyId }) {
                     <div className="col-span-2">
                         <Field label="Redirect URI" value={google.redirectUri} onChange={setG('redirectUri')}
                             placeholder="https://yourdomain.com/api/gmail/callback" monospace />
+                    </div>
+                </div>
+            </Section>
+
+            {/* WhatsApp */}
+            <Section
+                icon={IconBrandWhatsapp} title="WhatsApp Business API (Meta)"
+                color="#25D366" configured={whatsappConfigured}
+                onSave={saveWhatsapp} onClear={clearWhatsapp}
+                saving={whatsappSaving} error={whatsappError} success={whatsappSuccess}
+            >
+                <div className="grid grid-cols-2 gap-4">
+                    <Field label="Phone Number ID" value={whatsapp.phoneNumberId} onChange={setW('phoneNumberId')}
+                        placeholder="1065xxxxxxxxxxx" monospace />
+                    <Field label="WhatsApp Business Account ID" value={whatsapp.businessAccountId} onChange={setW('businessAccountId')}
+                        placeholder="1009xxxxxxxxxxx" monospace />
+                    <div className="col-span-2">
+                        <Field label="System User Access Token" type="password" value={whatsapp.accessToken} onChange={setW('accessToken')}
+                            placeholder="EAAGxxxxxxxxxxxxxxx" monospace />
+                    </div>
+                    <div className="col-span-2">
+                        <Field label="Webhook Verify Token" value={whatsapp.verifyToken} onChange={setW('verifyToken')}
+                            placeholder="any_secret_string" monospace />
                     </div>
                 </div>
             </Section>

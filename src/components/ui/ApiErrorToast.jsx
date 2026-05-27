@@ -22,7 +22,7 @@ export default function ApiErrorToast() {
     if (!notice?.message) return null
 
     return (
-        <div className="fixed top-5 right-5 z-100 w-90 max-w-[calc(100vw-32px)] px-4 py-3 flex items-start gap-3 rounded-xl"
+        <div className="fixed top-5 right-5 z-100 w-96 max-w-[calc(100vw-32px)] px-4 py-3 flex items-start gap-3 rounded-xl"
             style={{ background: T.surface, border: `1px solid ${T.errorDim}`, boxShadow: SHADOW.lg }}>
             <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5" style={{ color: T.error }}>
                 error
@@ -31,11 +31,11 @@ export default function ApiErrorToast() {
                 <p className="text-[12px] font-black uppercase tracking-widest" style={{ color: T.error }}>
                     Request failed
                 </p>
-                <p className="text-sm mt-0.5 leading-relaxed wrap-break-word" style={{ color: T.textPrimary }}>
+                <p className="text-sm mt-0.5 leading-relaxed break-words" style={{ color: T.textPrimary, wordBreak: 'break-word' }}>
                     {notice.message}
                 </p>
             </div>
-            <button type="button" onClick={() => setNotice(null)} className="p-1 rounded-lg"
+            <button type="button" onClick={() => setNotice(null)} className="p-1 rounded-lg shrink-0"
                 style={{ color: T.textMuted }}
                 onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>

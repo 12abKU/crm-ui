@@ -1,12 +1,12 @@
 import { T } from '../../constants/theme'
 
-export default function ContactRow({ contact, selected, onClick, emailCount }) {
+export default function ContactRow({ contact, selected, onClick, emailCount, isPinned, onPinToggle }) {
     const name = `${contact.firstName} ${contact.lastName}`.trim()
     const initial = name.charAt(0).toUpperCase()
     const isActive = selected?.id === contact.id
 
     return (
-        <button onClick={onClick} className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+        <button onClick={onClick} className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors group"
             style={{
                 background: isActive ? T.primaryDim : 'transparent',
                 borderLeft: `3px solid ${isActive ? T.primary : 'transparent'}`,
@@ -28,12 +28,26 @@ export default function ContactRow({ contact, selected, onClick, emailCount }) {
                 )}
 
             </div>
-            {emailCount != null && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                    style={{ background: isActive ? T.primary : T.surfaceHigh, color: isActive ? '#fff' : T.textMuted }}>
-                    {emailCount}
-                </span>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0">
+                {emailCount != null && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: isActive ? T.primary : T.surfaceHigh, color: isActive ? '#fff' : T.textMuted }}>
+                        {emailCount}
+                    </span>
+                )}
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onPinToggle(); }}
+                    className={`p-1 rounded-lg transition-all ${isPinned ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    style={{ color: isPinned ? T.primary : T.textMuted }}
+                    title={isPinned ? "Unpin contact" : "Pin contact"}
+                    onMouseEnter={e => e.currentTarget.style.background = isActive ? `${T.primary}20` : T.surfaceHigh}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                    <span className="material-symbols-outlined text-[15px] block select-none" style={{ fontVariationSettings: isPinned ? "'FILL' 1" : "'FILL' 0" }}>
+                        push_pin
+                    </span>
+                </button>
+            </div>
         </button>
     )
 }
