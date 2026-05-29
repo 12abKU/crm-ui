@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { T } from '../../constants/theme'
+import CustomSelect from '../ui/CustomSelect'
 import { extractApiErrorMessage } from '../../api'
 
 export default function InviteUserModal({ onClose, onSubmit, allowAdminRole = false }) {
@@ -67,10 +68,10 @@ export default function InviteUserModal({ onClose, onSubmit, allowAdminRole = fa
                         {allowAdminRole && (
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>Role</label>
-                                <select className="crm-select" value={form.role} onChange={e => set('role', e.target.value)}>
+                                <CustomSelect className="crm-select" value={form.role} onChange={e => set('role', e.target.value)}>
                                     <option value="AGENT">Agent</option>
                                     <option value="ADMIN">Admin</option>
-                                </select>
+                                </CustomSelect>
                             </div>
                         )}
                         <div className="flex gap-3 pt-2">

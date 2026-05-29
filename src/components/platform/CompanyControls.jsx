@@ -13,7 +13,7 @@ export default function CompanyControls({
     const trialExpired = isTrial && company.trialEndsAt && days <= 0
 
     return (
-        <div className="rounded-2xl p-5 mb-5 grid grid-cols-4 gap-6"
+        <div className="rounded-2xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             style={{ background: T.surface, border: `1px solid ${T.border}` }}>
             {/* Plan */}
             <div>
@@ -41,8 +41,8 @@ export default function CompanyControls({
             <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>Trial Ends</p>
                 {isTrial && company.trialEndsAt ? (
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold" style={{ color: trialExpired ? '#DC2626' : T.textPrimary }}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold whitespace-nowrap" style={{ color: trialExpired ? '#DC2626' : T.textPrimary }}>
                             {new Date(company.trialEndsAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                         {days > 0 && (

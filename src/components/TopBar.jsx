@@ -67,6 +67,20 @@ export default function TopBar() {
     }
     const daysLeft = getTrialDaysLeft()
     const [query, setQuery] = useState('')
+    const [placeholder, setPlaceholder] = useState('Search deals, contacts, accounts...')
+
+    useEffect(() => {
+        const updatePlaceholder = () => {
+            if (window.innerWidth < 640) {
+                setPlaceholder('Search CRM...')
+            } else {
+                setPlaceholder('Search deals, contacts, accounts...')
+            }
+        }
+        updatePlaceholder()
+        window.addEventListener('resize', updatePlaceholder)
+        return () => window.removeEventListener('resize', updatePlaceholder)
+    }, [])
     // ── State (unchanged) ─────────────────────────────────────
     const [results, setResults] = useState({ accounts: [], contacts: [], deals: [], activities: [] })
     const [loading, setLoading] = useState(false)
@@ -137,7 +151,7 @@ export default function TopBar() {
 
             {/* ── Search bar — hidden for SUPER_ADMIN ─────── */}
             {!isSuperAdmin && (
-            <div className="relative flex-1 max-w-[150px] sm:max-w-xs md:max-w-lg" ref={ref}>
+            <div className="relative flex-1 max-w-[180px] min-[400px]:max-w-[240px] sm:max-w-xs md:max-w-lg" ref={ref}>
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px]"
                     style={{ color: open ? T.primary : T.textMuted }}>search</span>
                 <input
@@ -150,7 +164,7 @@ export default function TopBar() {
                         boxShadow: open ? `0 0 0 3px ${T.primaryDim}` : '0 1px 4px rgba(0,0,0,0.05)',
                         transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
-                    placeholder="Search deals, contacts, accounts..."
+                    placeholder={placeholder}
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     onFocus={() => { if (totalResults > 0) setOpen(true) }}
@@ -168,7 +182,7 @@ export default function TopBar() {
 
                 {/* ── Dropdown ─────────────────────────── */}
                 {open && (
-                    <div className="absolute left-0 right-0 mt-2 rounded-2xl overflow-hidden z-50"
+                    <div className="absolute -left-10 min-[400px]:-left-16 sm:left-0 mt-2 rounded-2xl overflow-hidden z-50 w-[280px] min-[400px]:w-[320px] sm:w-[380px] md:w-full md:left-0 md:right-0"
                         style={{
                             background: T.surface,
                             border: `1.5px solid ${T.border}`,
@@ -294,7 +308,7 @@ export default function TopBar() {
             <div className="flex items-center gap-1 ml-auto shrink-0">
 
                 {!isSuperAdmin && companyStatus === 'TRIAL' && (
-                    <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
+                    <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
                         style={{
                             background: `linear-gradient(135deg, ${T.primaryDim} 0%, rgba(234,88,12,0.04) 100%)`,
                             border: `1.5px solid ${T.border}`,
@@ -330,7 +344,7 @@ export default function TopBar() {
 
                         {/* Help / Support */}
                         <button onClick={() => navigate('/support')}
-                            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
+                            className="hidden sm:flex w-9 h-9 rounded-xl items-center justify-center transition-all duration-150"
                             style={{ color: T.textMuted }}
                             onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
                             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}

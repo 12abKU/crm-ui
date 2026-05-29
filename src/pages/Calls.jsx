@@ -94,7 +94,7 @@ export default function Calls() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-6 py-6 md:px-9 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -114,7 +114,7 @@ export default function Calls() {
                             </div>
                         </div>
                         <button onClick={() => setShowDialer(true)}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full md:w-auto"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
                             style={{
                                 background: T.heroBadgeBg,
                                 border: '1px solid rgba(255,255,255,0.22)',
@@ -129,11 +129,19 @@ export default function Calls() {
                 </div>
 
                 {/* ── Stat cards ───────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-7">
-                    <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '—'}                      bg={T.primaryDim}  color={T.primary} />
-                    <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '—'}                   bg={T.successDim}  color={T.success} />
-                    <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
-                    <CallStatCard icon="avg_pace"  label="Avg Duration"  value={stats ? `${stats.avgDurationSeconds}s` : '—'} bg={T.warningDim} color={T.warning} />
+                <div className="flex flex-wrap gap-4 mb-7">
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '—'}                      bg={T.primaryDim}  color={T.primary} />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '—'}                   bg={T.successDim}  color={T.success} />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <CallStatCard icon="avg_pace"  label="Avg Duration"  value={stats ? `${stats.avgDurationSeconds}s` : '—'} bg={T.warningDim} color={T.warning} />
+                    </div>
                 </div>
 
                 {/* ── Call logs card ──────────────────────── */}

@@ -104,12 +104,12 @@ export default function AgentSettings() {
 
             {canViewUsers && (
                 <SettingsSection title="Agent Management" description="View and manage agents on your team" noPad>
-                    <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
                         <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
                             {agents.length} agent{agents.length !== 1 ? 's' : ''}
                         </p>
                         {canCreateUsers && (
-                            <button onClick={() => setShowInvite(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
+                            <button onClick={() => setShowInvite(true)} className="crm-btn-primary w-full sm:w-auto justify-center flex items-center gap-2 text-sm">
                                 <span className="material-symbols-outlined text-[16px]">person_add</span>
                                 Add Agent
                             </button>
@@ -136,7 +136,7 @@ export default function AgentSettings() {
 
                 {/* Header */}
                 <div className="px-6 py-5" style={{ borderBottom: `1px solid ${T.border}` }}>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                         <div>
                             <h2 className="text-base font-bold" style={{ color: T.textPrimary }}>My Permissions</h2>
                             <p className="text-sm mt-0.5" style={{ color: T.textMuted }}>
@@ -144,7 +144,7 @@ export default function AgentSettings() {
                             </p>
                         </div>
                         {permissions && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl w-full sm:w-auto justify-center"
                                 style={{ background: T.primaryFaint, border: `1px solid ${T.primaryDim}` }}>
                                 <span className="material-symbols-outlined text-[14px]"
                                     style={{ color: T.primary }}>verified_user</span>

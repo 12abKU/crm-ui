@@ -512,7 +512,7 @@ export default function Conversations() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full" style={{ background: T.onlineDot }} />
-                                        <p className="text-[11px] font-semibold truncate max-w-35"
+                                        <p className="text-[11px] font-semibold truncate max-w-[140px]"
                                             style={{ color: T.textSecondary }}>
                                             {gmailStatus.email}
                                         </p>

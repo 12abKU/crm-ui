@@ -1,4 +1,4 @@
-﻿import { T } from '../../constants/theme'
+import { T } from '../../constants/theme'
 
 export default function SupportHeader({ isAdmin, companyName, badge }) {
     return (
@@ -28,7 +28,7 @@ export default function SupportHeader({ isAdmin, companyName, badge }) {
                 pointerEvents: 'none',
             }} />
 
-            <div className="relative px-10 py-9 flex items-center justify-between gap-6">
+            <div className="relative px-6 py-6 lg:px-10 lg:py-9 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                 {/* Left: text */}
                 <div className="flex items-center gap-5">
                     {/* Icon blob */}
@@ -55,7 +55,7 @@ export default function SupportHeader({ isAdmin, companyName, badge }) {
                 </div>
 
                 {/* Right: stat pills */}
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     {badge.myOpenTickets > 0 && (
                         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                             style={{

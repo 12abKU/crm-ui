@@ -233,7 +233,7 @@ export default function PermissionEditor({ user, onClose, onSaved }) {
                                                     <span className="text-sm" style={{ color: on ? T.textPrimary : T.textSecondary }}>
                                                         {perm.label}
                                                     </span>
-                                                    <span className="ml-auto text-[10px] font-mono"
+                                                    <span className="ml-auto text-[10px] font-mono hidden sm:block"
                                                         style={{ color: T.textMuted }}>{perm.key}</span>
                                                 </button>
                                             )

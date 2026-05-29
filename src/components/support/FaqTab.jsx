@@ -187,24 +187,26 @@ export default function FaqTab({ faq, faqSearch, setFaqSearch, openFaq, setOpenF
                     ))}
 
                     {/* Bottom CTA */}
-                    <div className="flex items-center gap-4 px-6 py-5 rounded-2xl"
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-6 py-5 rounded-2xl"
                         style={{
                             background: T.primaryFaint,
                             border: `1px solid ${T.primaryDim}`,
                         }}>
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ background: T.primaryDim }}>
-                            <IconSparkles size={18} style={{ color: T.primary }} />
+                        <div className="flex items-start sm:items-center gap-4 flex-1">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                style={{ background: T.primaryDim }}>
+                                <IconSparkles size={18} style={{ color: T.primary }} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
+                                    Couldn't find what you were looking for?
+                                </p>
+                                <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>
+                                    Our support team is happy to help you directly.
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
-                                Couldn't find what you were looking for?
-                            </p>
-                            <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>
-                                Our support team is happy to help you directly.
-                            </p>
-                        </div>
-                        <button onClick={() => onSubmitTicket('')} className="crm-btn-primary shrink-0 flex items-center gap-2 text-sm">
+                        <button onClick={() => onSubmitTicket('')} className="crm-btn-primary w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 text-sm">
                             <span className="material-symbols-outlined text-[15px]">confirmation_number</span>
                             Open a Ticket
                         </button>

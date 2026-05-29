@@ -57,11 +57,11 @@ export default function AdminSettings() {
             <ChangePasswordForm />
             <SettingsSection title="Agent Management" description="Create and manage agents on your team"
                 noPad>
-                <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
                         {agents.length} agent{agents.length !== 1 ? 's' : ''}
                     </p>
-                    <button onClick={() => setShowInvite(true)} className="crm-btn-primary flex items-center gap-2 text-sm">
+                    <button onClick={() => setShowInvite(true)} className="crm-btn-primary w-full sm:w-auto justify-center flex items-center gap-2 text-sm">
                         <span className="material-symbols-outlined text-[16px]">person_add</span>
                         Add Agent
                     </button>

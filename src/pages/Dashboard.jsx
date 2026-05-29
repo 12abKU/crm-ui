@@ -34,7 +34,7 @@ function AgentDashboard() {
     return (
         <div>
             <TopBar />
-            <main className="p-8">
+            <main className="p-4 md:p-8">
 
                 {/* ── Hero Welcome Banner ──────────────────────────── */}
                 <section className="relative rounded-3xl mb-8"
@@ -56,7 +56,7 @@ function AgentDashboard() {
                         }} />
                     </div>
 
-                    <div className="relative px-6 py-6 md:px-10 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-10 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div>
                             <p className="text-sm font-bold mb-1" style={{ color: T.heroSubText }}>
                                 Good day 👋
@@ -72,7 +72,7 @@ function AgentDashboard() {
                         {canExport && <DownloadReport stats={stats} />}
 
                         {/* Right side — stat chips + download */}
-                        <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+                        <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                                     style={{

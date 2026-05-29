@@ -159,7 +159,7 @@ export default function SuperAdminSettings() {
             {/* ── USER MANAGEMENT TAB ── */}
             {pageTab === 'users' && (
                 <>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {stats.map(({ label, value, icon, color, bg }) => (
                             <div key={label} className="rounded-2xl p-5 flex items-center gap-4"
                                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -175,12 +175,12 @@ export default function SuperAdminSettings() {
                     </div>
 
                     <SettingsSection title="User Management" description="Manage all users, roles and access" noPad>
-                        <div className="flex items-center justify-between px-6 py-4"
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4"
                             style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <div className="flex gap-1 p-1 rounded-xl" style={{ background: T.surfaceRaised }}>
+                            <div className="flex flex-wrap gap-1 p-1 rounded-xl w-full sm:w-auto" style={{ background: T.surfaceRaised }}>
                                 {USER_TABS.map(tab => (
                                     <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                        className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                                        className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex-1 sm:flex-initial text-center justify-center"
                                         style={{
                                             background: activeTab === tab.id ? T.surface : 'transparent',
                                             color: activeTab === tab.id ? T.textPrimary : T.textMuted,
@@ -191,7 +191,7 @@ export default function SuperAdminSettings() {
                                 ))}
                             </div>
                             <button onClick={() => setShowInvite(true)}
-                                className="crm-btn-primary flex items-center gap-2 text-sm">
+                                className="crm-btn-primary w-full sm:w-auto justify-center flex items-center gap-2 text-sm">
                                 <span className="material-symbols-outlined text-[16px]">person_add</span>
                                 Add User
                             </button>

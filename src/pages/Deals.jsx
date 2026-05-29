@@ -9,6 +9,7 @@ import SearchableSelect from '../components/SearchableSelect'
 import { Input, Select, Textarea } from '../components/FormField'
 import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
+import CustomSelect from '../components/ui/CustomSelect'
 import DealPanel from '../components/dealPanel/DealPanel'
 import DealCard from '../components/deals/DealCard'
 import LostDealReasonModal from '../components/deals/LostDealReasonModal'
@@ -284,7 +285,7 @@ export default function Deals() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <TopBar />
-            <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '2rem' }}>
+            <main className="p-4 sm:p-8 flex-1 overflow-hidden flex flex-col">
 
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
@@ -305,7 +306,7 @@ export default function Deals() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -324,32 +325,34 @@ export default function Deals() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto shrink-0">
                             {pipelines.length > 0 && (
-                                <select
-                                    value={selectedPipelineId || ''}
-                                    onChange={e => {
-                                        const pid = Number(e.target.value)
-                                        setSelectedPipelineId(pid)
-                                        load(pid)
-                                    }}
-                                    className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 outline-none cursor-pointer"
-                                    style={{
-                                        background: 'rgba(255,255,255,0.08)',
-                                        border: '1px solid rgba(255,255,255,0.15)',
-                                        color: '#fff',
-                                    }}>
-                                    {pipelines.map(p => (
-                                        <option key={p.id} value={p.id} style={{ color: '#000' }}>
-                                            {p.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="w-full sm:w-48 text-center shrink-0">
+                                    <CustomSelect
+                                        value={selectedPipelineId || ''}
+                                        onChange={e => {
+                                            const pid = Number(e.target.value)
+                                            setSelectedPipelineId(pid)
+                                            load(pid)
+                                        }}
+                                        className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 outline-none cursor-pointer text-center"
+                                        style={{
+                                            background: 'rgba(255,255,255,0.08)',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            color: '#fff',
+                                        }}>
+                                        {pipelines.map(p => (
+                                            <option key={p.id} value={p.id}>
+                                                {p.name}
+                                            </option>
+                                        ))}
+                                    </CustomSelect>
+                                </div>
                             )}
                             <SearchInput value={search} onChange={setSearch} placeholder="Search deals..." />
                             {can.DEALS_CREATE && (
                                 <button onClick={openCreateForm}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto shrink-0"
                                     style={{
                                         background: T.heroBadgeBg,
                                         border: '1px solid rgba(255,255,255,0.22)',
@@ -366,10 +369,10 @@ export default function Deals() {
                 </div>
 
                 {/* ── Pipeline summary strip ───────────────── */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+                <div className="flex flex-wrap gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, value, style }) => (
                         <div key={stage}
-                            className="rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
+                            className="flex-1 min-w-[140px] sm:min-w-[170px] rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
                             style={{
                                 background: T.surface,
                                 border: `1.5px solid ${style.accent}30`,

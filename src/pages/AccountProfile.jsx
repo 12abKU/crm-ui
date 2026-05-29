@@ -26,7 +26,7 @@ const InfoRow = ({ label, value }) => (
     <div className="flex flex-col gap-1.5 p-4 rounded-xl transition-colors"
         style={{ background: T.borderSubtle }}>
         <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
-        <p className="text-sm font-semibold" style={{ color: value ? T.textPrimary : T.textMuted }}>
+        <p className="text-sm font-semibold break-all" style={{ color: value ? T.textPrimary : T.textMuted }}>
             {value || 'Not provided'}
         </p>
     </div>
@@ -93,7 +93,7 @@ export default function AccountProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-4 md:p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8">
                 {/* Hero skeleton */}
                 <div className="rounded-3xl overflow-hidden mb-6 p-8"
                     style={{ background: T.surfaceHigh, minHeight: 140 }}>
@@ -159,7 +159,7 @@ export default function AccountProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-4 md:p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8">
 
                 {/* ── Back button ───────────────────────────── */}
                 <button onClick={() => navigate(-1)}
@@ -190,7 +190,7 @@ export default function AccountProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-6 py-6 md:px-8 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-8 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         {/* Left: avatar + name */}
                         <div className="flex items-center gap-5">
                             <div className="w-18 h-18 rounded-2xl flex items-center justify-center text-3xl font-black shrink-0"
@@ -232,7 +232,7 @@ export default function AccountProfile() {
                         </div>
 
                         {/* Right: action buttons */}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 w-full md:w-auto">
+                        <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full lg:w-auto">
                             <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                 style={{ background: T.heroBadgeBg, color: T.sidebarActiveText, border: `1px solid ${T.heroBadgeBorder}` }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
@@ -257,14 +257,14 @@ export default function AccountProfile() {
                 </div>
 
                 {/* ── 3-column Quick Stats Bar ──────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="flex flex-wrap gap-4 mb-6">
                     {[
                         { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: T.primaryDim, color: T.chartBlue },
                         { icon: 'groups', label: 'Contacts', value: profile.contactCount, bg: 'rgba(83,141,141,0.14)', color: T.chartTeal },
                         { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: 'rgba(22,163,74,0.12)', color: '#16A34A' },
                     ].map(({ icon, label, value, bg, color }) => (
                         <div key={label}
-                            className="flex items-center gap-4 p-5 rounded-2xl transition-all duration-150"
+                            className="flex-1 min-w-[200px] flex items-center gap-4 p-5 rounded-2xl transition-all duration-150"
                             style={{
                                 background: T.surface,
                                 border: `1px solid ${T.border}`,
@@ -297,7 +297,7 @@ export default function AccountProfile() {
 
                         {/* Overview */}
                         <SectionCard title="Overview" icon="info">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 <InfoRow label="Phone" value={profile.phone} />
                                 <InfoRow label="Website" value={profile.website} />
                                 <InfoRow label="Industry" value={profile.industry} />

@@ -126,7 +126,7 @@ export default function Accounts() {
                         background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
-                    <div className="relative px-6 py-6 md:px-9 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -145,7 +145,7 @@ export default function Accounts() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full md:w-auto">
+                        <div className="flex flex-wrap items-center gap-3 shrink-0 w-full lg:w-auto">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
                             {can.ACCOUNTS_CREATE && (
                                 <button onClick={() => setOpen(true)}

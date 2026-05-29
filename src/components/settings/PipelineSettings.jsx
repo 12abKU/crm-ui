@@ -187,7 +187,8 @@ export default function PipelineSettings() {
                 </div>
 
                 {/* Stages List */}
-                <div className="flex flex-col gap-2">
+                <div className="overflow-x-auto scrollbar-none">
+                    <div className="flex flex-col gap-2 min-w-[650px]">
                     <div className="grid grid-cols-12 gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>
                         <div className="col-span-1 text-center">Order</div>
                         <div className="col-span-3">Stage Key</div>
@@ -292,6 +293,7 @@ export default function PipelineSettings() {
                         })}
                     </div>
                 </div>
+            </div>
 
                 {/* Footer Controls */}
                 <div className="flex items-center justify-between border-t pt-4 mt-2" style={{ borderColor: T.borderSubtle }}>

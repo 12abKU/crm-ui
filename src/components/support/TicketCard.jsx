@@ -38,7 +38,7 @@ export default function TicketCard({ ticket, isAdmin, onStatusChange, statusUpda
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
                                     {ticket.subject}
@@ -118,7 +118,7 @@ export default function TicketCard({ ticket, isAdmin, onStatusChange, statusUpda
                                 · {timeAgo(ticket.createdAt)}
                             </span>
                             {isAdmin && ticket.submitterName && (
-                                <span className="text-[11px] font-semibold ml-auto flex items-center gap-1"
+                                <span className="text-[11px] font-semibold ml-0 sm:ml-auto flex items-center gap-1"
                                     style={{ color: T.textMuted }}>
                                     <span className="material-symbols-outlined text-[12px]">person</span>
                                     {ticket.submitterName}

@@ -53,7 +53,7 @@ export default function ContactTab() {
         <div className="max-w-4xl flex flex-col gap-6">
 
             {/* Contact channel cards */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {CHANNELS.map(({ Icon, title, value, sub, action, actionLabel, gradient, iconBg, iconColor, available }) => (
                     <div key={title}
                         className="rounded-2xl p-6 flex flex-col gap-5 transition-all duration-200"
@@ -136,15 +136,14 @@ export default function ContactTab() {
                         </p>
                     </div>
                 </div>
-                <div className="grid grid-cols-4 gap-0">
-                    {SLA.map(({ priority, time, style }, i) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-2 py-6 px-4 sm:px-6">
+                    {SLA.map(({ priority, time, style }) => (
                         <div key={priority}
-                            className="flex flex-col gap-2 p-5"
+                            className="flex flex-col gap-2 px-4 border-l-2"
                             style={{
-                                borderRight: i < SLA.length - 1 ? `1px solid ${T.border}` : 'none',
+                                borderLeftColor: style.color,
                             }}>
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full" style={{ background: style.color }} />
                                 <span className="text-[10px] font-black uppercase tracking-widest"
                                     style={{ color: style.color }}>{priority}</span>
                             </div>
@@ -155,7 +154,7 @@ export default function ContactTab() {
             </div>
 
             {/* Trust badges row */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { icon: 'verified_user', label: 'Enterprise-grade Security', sub: 'SOC 2 Type II Compliant' },
                     { icon: 'support_agent', label: 'Dedicated Support', sub: 'Expert team available' },

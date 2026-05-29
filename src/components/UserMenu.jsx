@@ -81,14 +81,14 @@ export default function UserMenu() {
                     </div>
 
                     {/* Name + role */}
-                    <div className="text-left hidden sm:block">
+                    <div className="text-left hidden lg:block">
                         <p className="text-sm font-bold leading-tight" style={{ color: T.textPrimary }}>{name}</p>
                         <p className="text-[10px] font-semibold" style={{ color: rs.color }}>{rs.label}</p>
                     </div>
 
                     {/* Chevron */}
                     <span
-                        className="material-symbols-outlined text-[16px] hidden sm:block transition-transform duration-200"
+                        className="material-symbols-outlined text-[16px] hidden lg:block transition-transform duration-200"
                         style={{ color: T.textMuted, transform: open ? 'rotate(180deg)' : 'rotate(0)' }}
                     >
                         expand_more

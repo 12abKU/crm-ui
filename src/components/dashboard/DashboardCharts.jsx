@@ -27,7 +27,7 @@ export function BarChart({ data, valueKey = 'count', labelKey = 'label' }) {
 
     return (
         <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RechartBarChart
                     data={chartData}
                     layout="vertical"
@@ -102,7 +102,7 @@ export function FunnelChart({ stages, activeStages = [] }) {
 
     return (
         <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RechartFunnelChart margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
                     <Tooltip
                         contentStyle={{ 
@@ -160,7 +160,7 @@ export function ForecastChart({ data, activeStages = [] }) {
 
     return (
         <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RechartBarChart
                     data={data}
                     margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
@@ -214,7 +214,7 @@ export function WinRateDonut({ winRate, wonCount, lostCount }) {
     return (
         <div className="flex items-center gap-5">
             <div className="relative w-24 h-24 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                         <Pie
                             data={chartData}
@@ -262,7 +262,7 @@ export function RevenueDonut({ wonPct, totalWon, totalLost }) {
     return (
         <div className="flex items-center gap-6">
             <div className="relative w-28 h-28 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                         <Pie
                             data={chartData}

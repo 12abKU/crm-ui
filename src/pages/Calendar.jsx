@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
 import { Input, Select } from '../components/FormField'
 import SearchableSelect from '../components/SearchableSelect'
+import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
 
 function getDaysInMonth(year, month) {
@@ -224,16 +225,16 @@ export default function Calendar() {
     return (
         <div className="h-full flex flex-col">
             <TopBar />
-            <main className="p-8 flex-1 max-w-7xl mx-auto w-full flex flex-col">
-                <div className="flex items-center justify-between mb-8">
+            <main className="p-4 sm:p-8 flex-1 flex flex-col">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>Calendar</h1>
                         <p className="mt-1 font-medium" style={{ color: T.textMuted }}>Manage your schedule and upcoming activities.</p>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
+                        <div className="flex flex-col gap-2 w-full lg:w-auto">
+                            <div className="flex items-center gap-2 w-full justify-between sm:justify-start">
                                 <button onClick={() => setOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm"
                                     style={{ background: T.primary, color: '#fff' }}
                                     onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
@@ -252,7 +253,7 @@ export default function Calendar() {
                                 </button>
                             </div>
                             
-                            <div className="flex items-center gap-2 justify-end">
+                            <div className="flex flex-wrap items-center gap-2 justify-start lg:justify-end">
                                 {syncResult && (
                                     <div className="px-2 py-1 rounded-lg text-[10px] font-bold transition-all"
                                         style={{
@@ -265,17 +266,19 @@ export default function Calendar() {
                                 {isAdmin && (
                                     <div className="flex items-center gap-1.5">
                                         <span className="material-symbols-outlined text-[14px]" style={{ color: T.textMuted }}>group</span>
-                                        <select
-                                            value={selectedOwnerId}
-                                            onChange={e => setSelectedOwnerId(e.target.value)}
-                                            className="px-2 py-1 rounded-lg text-xs font-bold outline-none cursor-pointer"
-                                            style={{ background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary }}
-                                        >
-                                            <option value="">All Team Calendars</option>
-                                            {team.map(user => (
-                                                <option key={user.id} value={user.id}>{user.name}'s Calendar</option>
-                                            ))}
-                                        </select>
+                                        <div className="w-48 shrink-0 text-center">
+                                            <CustomSelect
+                                                value={selectedOwnerId}
+                                                onChange={e => setSelectedOwnerId(e.target.value)}
+                                                className="px-2 py-1.5 rounded-lg text-xs font-bold outline-none cursor-pointer text-center"
+                                                style={{ background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary }}
+                                            >
+                                                <option value="">All Team Calendars</option>
+                                                {team.map(user => (
+                                                    <option key={user.id} value={user.id}>{user.name}'s Calendar</option>
+                                                ))}
+                                            </CustomSelect>
+                                        </div>
                                     </div>
                                 )}
                                 <button
@@ -298,7 +301,7 @@ export default function Calendar() {
                             </div>
                         </div>
                         
-                        <div className="flex items-center rounded-xl p-1" style={{ background: T.surfaceHigh, border: `1px solid ${T.border}` }}>
+                        <div className="flex items-center rounded-xl p-1 self-center lg:self-auto" style={{ background: T.surfaceHigh, border: `1px solid ${T.border}` }}>
                             <button onClick={prevMonth} className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-black/5">
                                 <span className="material-symbols-outlined text-[20px]" style={{ color: T.textPrimary }}>chevron_left</span>
                             </button>
@@ -312,22 +315,24 @@ export default function Calendar() {
                     </div>
                 </div>
 
-                <div className="flex-1 rounded-3xl overflow-hidden shadow-sm flex flex-col" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                    <div className="grid grid-cols-7 border-b" style={{ borderColor: T.border, background: T.surfaceRaised }}>
-                        {DAYS.map(day => (
-                            <div key={day} className="py-3 text-center text-xs font-black uppercase tracking-wider border-r last:border-r-0"
-                                style={{ color: T.textMuted, borderColor: T.border }}>
-                                {day}
+                <div className="overflow-x-auto w-full pb-2">
+                    <div className="rounded-3xl overflow-hidden shadow-sm flex flex-col min-w-[750px] lg:min-w-0" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                        <div className="grid grid-cols-7 border-b" style={{ borderColor: T.border, background: T.surfaceRaised }}>
+                            {DAYS.map(day => (
+                                <div key={day} className="py-3 text-center text-xs font-black uppercase tracking-wider border-r last:border-r-0"
+                                    style={{ color: T.textMuted, borderColor: T.border }}>
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto relative min-h-[500px]">
+                            {loading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: T.primary }}></div>
+                            </div>}
+                            <div className="grid grid-cols-7 border-l" style={{ borderColor: T.border }}>
+                                {totalSlots}
                             </div>
-                        ))}
-                    </div>
-                    
-                    <div className="flex-1 overflow-y-auto">
-                        {loading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: T.primary }}></div>
-                        </div>}
-                        <div className="grid grid-cols-7 border-l" style={{ borderColor: T.border }}>
-                            {totalSlots}
                         </div>
                     </div>
                 </div>

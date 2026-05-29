@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { LOST_DEAL_REASONS, T } from '../../constants/theme'
+import CustomSelect from '../ui/CustomSelect'
 
 export default function LostDealReasonModal({ deal, open, saving = false, onClose, onConfirm }) {
     const [reason, setReason] = useState(deal?.lostReason || LOST_DEAL_REASONS[0])
@@ -61,11 +62,11 @@ export default function LostDealReasonModal({ deal, open, saving = false, onClos
                         <label className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>
                             Lost Reason *
                         </label>
-                        <select className="crm-select" value={reason}
+                        <CustomSelect className="crm-select" value={reason}
                             onChange={e => setReason(e.target.value)}
                             disabled={saving}>
                             {LOST_DEAL_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                        </CustomSelect>
                         {touched && !valid && (
                             <p className="text-[11px] font-semibold" style={{ color: T.error }}>Choose a reason.</p>
                         )}

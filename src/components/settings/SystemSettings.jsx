@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 import { IconSettings, IconCheck, IconX, IconPlus, IconTrash, IconEdit, IconRefresh } from '@tabler/icons-react'
@@ -108,12 +108,12 @@ function SettingRow({ setting, onSaved }) {
 
     return (
         <div className="rounded-xl p-5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-            <div className="flex items-start justify-between gap-4 mb-1">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-1">
                 <div>
                     <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>{setting.label}</h4>
                     <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>{setting.description}</p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
                         style={{ background: T.primaryDim, color: T.primary }}>
                         {TYPE_LABELS[setting.type] || setting.type}

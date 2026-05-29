@@ -81,7 +81,7 @@ export default function Profile() {
         <>
         <div>
             <TopBar />
-            <main className="p-8 max-w-3xl mx-auto">
+            <main className="p-4 sm:p-8 max-w-3xl mx-auto">
 
                 {/* ── Hero Banner ───────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
@@ -103,7 +103,7 @@ export default function Profile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-8 py-6 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-5">
                             {/* Avatar */}
                             <div className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
@@ -142,7 +142,7 @@ export default function Profile() {
                         <button
                             id="profile-signout-btn"
                             onClick={() => setShowSignOut(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0"
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 w-full sm:w-auto"
                             style={{
                                 background: T.errorDim,
                                 color: T.errorLight,
@@ -168,7 +168,7 @@ export default function Profile() {
                             </span>
                             <h4 className="text-sm font-black" style={{ color: T.textPrimary }}>Personal Information</h4>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <InputField label="Full Name" value={form.name} onChange={set('name')} placeholder="Your name" />
                             <InputField label="Email" type="email" value={form.email} onChange={set('email')} placeholder="you@company.com" />
                         </div>
@@ -187,7 +187,7 @@ export default function Profile() {
                                 value={form.currentPassword} onChange={set('currentPassword')}
                                 placeholder="Enter current password" required
                                 rightSlot={<EyeToggle show={showCurrent} onToggle={() => setShowCurrent(s => !s)} />} />
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <InputField label="New Password" type={showNew ? 'text' : 'password'}
                                     value={form.newPassword} onChange={set('newPassword')}
                                     placeholder="Leave blank to keep"

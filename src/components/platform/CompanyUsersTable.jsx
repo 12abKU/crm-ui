@@ -10,7 +10,7 @@ export default function CompanyUsersTable({
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
             {/* Header */}
-            <div className="px-6 py-4 flex items-center justify-between"
+            <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 style={{ borderBottom: `1px solid ${T.border}` }}>
                 <div>
                     <h2 className="text-sm font-bold" style={{ color: T.textPrimary }}>Users</h2>

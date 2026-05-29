@@ -1,4 +1,4 @@
-﻿import { T } from '../../constants/theme'
+import { T } from '../../constants/theme'
 import { IconSend, IconTicket, IconCircleCheckFilled, IconAlertCircle } from '@tabler/icons-react'
 
 const PRIORITY_OPTIONS = [
@@ -113,7 +113,7 @@ export default function SubmitTicketTab({
 
                     <form onSubmit={onSubmit} className="flex flex-col gap-6">
                         {/* Submitter info card */}
-                        <div className="flex items-center gap-4 p-4 rounded-2xl"
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl"
                             style={{
                                 background: T.primaryFaint,
                                 border: `1px solid ${T.primaryDim}`,
@@ -150,7 +150,7 @@ export default function SubmitTicketTab({
                                 <span className="material-symbols-outlined text-[13px]">category</span>
                                 Category *
                             </label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {CATEGORY_OPTIONS.map(opt => (
                                     <button
                                         key={opt.value}
@@ -176,7 +176,7 @@ export default function SubmitTicketTab({
                                 <span className="material-symbols-outlined text-[13px]">flag</span>
                                 Priority
                             </label>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 {PRIORITY_OPTIONS.map(opt => (
                                     <button
                                         key={opt.value}

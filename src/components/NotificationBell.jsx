@@ -149,16 +149,13 @@ export default function NotificationBell({ isSuperAdmin }) {
             {/* Dropdown */}
             {open && (
                 <div
+                    className="absolute top-[calc(100%+10px)] z-50 flex flex-col overflow-hidden -right-16 min-[400px]:-right-24 sm:right-0 w-[280px] min-[400px]:w-[320px] sm:w-[360px]"
                     style={{
-                        position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-                        width: 360, maxHeight: 480,
+                        maxHeight: 480,
                         background: T.surface,
                         border: `1.5px solid ${T.border}`,
                         borderRadius: 18,
                         boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)',
-                        zIndex: 999,
-                        display: 'flex', flexDirection: 'column',
-                        overflow: 'hidden',
                         animation: 'notifFadeIn 0.18s ease',
                     }}
                 >

@@ -1,4 +1,4 @@
-﻿import { IconBuilding, IconBook, IconCurrencyRupee, IconUsers } from '@tabler/icons-react'
+import { IconBuilding, IconBook, IconCurrencyRupee, IconUsers } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 
 export default function CompanyStatsGrid({ stats }) {
@@ -12,7 +12,7 @@ export default function CompanyStatsGrid({ stats }) {
     ]
 
     return (
-        <div className="grid grid-cols-4 gap-4 mb-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             {cards.map(({ icon, label, value, color }) => (
                 <div key={label} className="rounded-xl p-4 flex items-center gap-3"
                     style={{ background: T.surface, border: `1px solid ${T.border}` }}>

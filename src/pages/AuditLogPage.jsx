@@ -177,13 +177,12 @@ export default function AuditLogPage() {
     const chipLabels = { '': 'All', ACCOUNT: 'Accounts', CONTACT: 'Contacts', DEAL: 'Deals', ACTIVITY: 'Activities' }
 
     return (
-        <div className="flex flex-col h-screen">
+        <div>
             <TopBar />
-            <div className="flex-1 overflow-auto" style={{ background: T.bg }}>
-                <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+            <main className="p-4 md:p-8">
 
                     {/* ── Header ─────────────────────────────── */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -197,7 +196,7 @@ export default function AuditLogPage() {
                                 Complete history of every action performed in your CRM
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full sm:w-auto justify-center"
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full lg:w-auto justify-center"
                             style={{ background: T.surfaceHigh, color: T.textMuted }}>
                             <span className="material-symbols-outlined text-[16px]">bar_chart</span>
                             {total.toLocaleString()} total events
@@ -206,9 +205,9 @@ export default function AuditLogPage() {
 
                     {/* ── Filters ────────────────────────────── */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                             {/* Entity type chips */}
-                            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl w-full sm:w-auto"
+                            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl w-full lg:w-auto"
                                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                 {filterChips.map(chip => (
                                     <button key={chip}
@@ -233,7 +232,7 @@ export default function AuditLogPage() {
                             <select
                                 value={actorFilter}
                                 onChange={e => setActorFilter(e.target.value)}
-                                className="text-sm px-3 py-2 rounded-xl outline-none border cursor-pointer w-full sm:w-auto"
+                                className="text-sm px-3 py-2 rounded-xl outline-none border cursor-pointer w-full lg:w-auto"
                                 style={{
                                     background: T.surface,
                                     color: actorFilter ? T.textPrimary : T.textMuted,
@@ -249,7 +248,7 @@ export default function AuditLogPage() {
                             {(entityFilter || actorFilter) && (
                                 <button
                                     onClick={() => { setEntityFilter(''); setActorFilter('') }}
-                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full sm:w-auto"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full lg:w-auto"
                                     style={{ background: '#EF444420', color: '#EF4444' }}>
                                     <span className="material-symbols-outlined text-[13px]">close</span>
                                     Clear Filters
@@ -422,8 +421,7 @@ export default function AuditLogPage() {
                             Showing {logs.length} of {total.toLocaleString()} events
                         </p>
                     )}
-                </div>
-            </div>
+                </main>
 
             <ConfirmModal
                 isOpen={showConfirm}

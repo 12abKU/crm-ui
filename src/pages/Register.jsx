@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import CustomSelect from '../components/ui/CustomSelect'
 import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import api, { extractApiErrorMessage } from '../api'
@@ -389,13 +390,12 @@ export default function Register() {
                                             <label className="text-[10px] font-extrabold uppercase tracking-widest pl-1" style={{ color: T.textSecondary }}>
                                                 Industry <span className="text-red-500">*</span>
                                             </label>
-                                            <select
+                                            <CustomSelect
                                                 value={form.industry}
                                                 onChange={set('industry')}
                                                 className="w-full border rounded-2xl px-5 py-3.5 text-sm outline-none transition-all duration-200 cursor-pointer crm-select"
                                                 style={getFieldStyle('industry')}
-                                                onFocus={() => setFocusedField('industry')}
-                                                onBlur={() => setFocusedField(null)}
+                                                placeholder="Select Industry"
                                             >
                                                 <option value="">Select Industry</option>
                                                 <option value="Technology">Technology / Software</option>
@@ -407,7 +407,7 @@ export default function Register() {
                                                 <option value="Professional Services">Professional Services</option>
                                                 <option value="Manufacturing">Manufacturing / Logistics</option>
                                                 <option value="Other">Other</option>
-                                            </select>
+                                            </CustomSelect>
                                             {fieldErrors.industry && (
                                                 <span className="text-[11px] font-semibold pl-1" style={{ color: T.error }}>{fieldErrors.industry}</span>
                                             )}
@@ -417,13 +417,12 @@ export default function Register() {
                                             <label className="text-[10px] font-extrabold uppercase tracking-widest pl-1" style={{ color: T.textSecondary }}>
                                                 Company Size <span className="text-red-500">*</span>
                                             </label>
-                                            <select
+                                            <CustomSelect
                                                 value={form.companySize}
                                                 onChange={set('companySize')}
                                                 className="w-full border rounded-2xl px-5 py-3.5 text-sm outline-none transition-all duration-200 cursor-pointer crm-select"
                                                 style={getFieldStyle('companySize')}
-                                                onFocus={() => setFocusedField('companySize')}
-                                                onBlur={() => setFocusedField(null)}
+                                                placeholder="Select Size"
                                             >
                                                 <option value="">Select Size</option>
                                                 <option value="1-10">1-10 employees</option>
@@ -431,7 +430,7 @@ export default function Register() {
                                                 <option value="51-200">51-200 employees</option>
                                                 <option value="201-500">201-500 employees</option>
                                                 <option value="500+">500+ employees</option>
-                                            </select>
+                                            </CustomSelect>
                                             {fieldErrors.companySize && (
                                                 <span className="text-[11px] font-semibold pl-1" style={{ color: T.error }}>{fieldErrors.companySize}</span>
                                             )}

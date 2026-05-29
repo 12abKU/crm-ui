@@ -93,7 +93,7 @@ export default function AdminDashboard() {
     return (
         <div>
             <TopBar />
-            <main className="p-8">
+            <main className="p-4 md:p-8">
 
                 {/* ── Hero Header ───────────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"

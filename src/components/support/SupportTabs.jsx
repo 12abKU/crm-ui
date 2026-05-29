@@ -1,4 +1,4 @@
-﻿import { T } from '../../constants/theme'
+import { T } from '../../constants/theme'
 import {
     IconHelpCircle, IconTicket, IconPlus,
     IconHeadset, IconUsers
@@ -22,7 +22,7 @@ export default function SupportTabs({ tab, setTab, badge, isAdmin }) {
     ]
 
     return (
-        <div className="flex items-center gap-2 mb-8 flex-wrap">
+        <div className="flex items-center gap-2 mb-8 overflow-x-auto whitespace-nowrap scrollbar-none pb-1">
             {TABS.map(t => {
                 const { icon: Icon, desc } = TAB_META[t.id] || {}
                 const active = tab === t.id
@@ -30,7 +30,7 @@ export default function SupportTabs({ tab, setTab, badge, isAdmin }) {
                     <button
                         key={t.id}
                         onClick={() => setTab(t.id)}
-                        className="relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-bold transition-all duration-200"
+                        className="relative flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 shrink-0"
                         style={{
                             background: active
                                 ? `linear-gradient(135deg, ${T.primary} 0%, ${T.primaryHover} 100%)`

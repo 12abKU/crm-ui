@@ -5,6 +5,23 @@ import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
 import AssignDealModal from './AssignDealModal'
 
+// ── Helpers ───────────────────────────────────────────────────────
+function OwnerAvatar({ name }) {
+    const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    const colors = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#6366F1']
+    const color = colors[(name || '').charCodeAt(0) % colors.length]
+    return (
+        <div title={`Owner: ${name}`} style={{
+            width: 22, height: 22, borderRadius: '50%',
+            background: color + '22', border: `1.5px solid ${color}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 9, fontWeight: 800, color, flexShrink: 0
+        }}>
+            {initials}
+        </div>
+    )
+}
+
 export default function DealCard({
     deal, stage, isDragging, onDragStart, onDragEnd,
     onRemove, highlighted, onClick, onAssigned,
@@ -58,7 +75,7 @@ export default function DealCard({
                 onClick={() => { if (!wasDragging.current) onClick?.() }}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                className="rounded-xl cursor-pointer active:cursor-grabbing select-none overflow-hidden relative"
+                className="group rounded-xl cursor-pointer active:cursor-grabbing select-none overflow-hidden relative"
                 style={{
                     background: blink ? '' : T.surface,
                     border: isDragging
@@ -77,134 +94,130 @@ export default function DealCard({
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease',
                 }}>
 
-                <div className="absolute left-0 top-0 bottom-0 w-0.75 rounded-l-xl"
+                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
                     style={{ background: stageStyle.accent }} />
 
-                <div className="pl-4 pr-3 pt-3 pb-3">
+                <div className="p-3.5 flex flex-col gap-2.5">
+                    
+                    {/* Header Row: Stuck/Close Date Pill + Owner Avatar */}
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                        {daysInStage >= 5 && !['WON', 'LOST'].includes(stage) ? (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide shrink-0"
+                                style={{ background: T.warningDim, border: `1px solid ${T.warning}30`, color: T.warning }}>
+                                <span className="material-symbols-outlined text-[10px]" style={{ verticalAlign: 'middle' }}>warning</span>
+                                {daysInStage}d stuck
+                            </div>
+                        ) : deal.expectedCloseDate ? (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0"
+                                style={{
+                                    background: isOverdue ? T.errorDim : T.surfaceHigh,
+                                    border: `1px solid ${isOverdue ? T.error + '40' : T.border}`,
+                                    color: isOverdue ? T.error : T.textMuted
+                                }}>
+                                <span className="material-symbols-outlined text-[10px]" style={{ verticalAlign: 'middle' }}>
+                                    {isOverdue ? 'error' : 'event'}
+                                </span>
+                                {new Date(deal.expectedCloseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                            </div>
+                        ) : (
+                            <div />
+                        )}
+                        
+                        {isAdminOrAbove && <OwnerAvatar name={createdByName} />}
+                    </div>
 
+                    {/* Agent assigned notification */}
                     {isAgent && assignedToMe && (
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg mb-2.5"
-                            style={{ background: T.secondaryFaint, border: `1px solid ${T.secondaryDim}` }}>
-                            <span className="material-symbols-outlined text-[12px]" style={{ color: T.secondary }}>assignment_ind</span>
-                            <span className="text-[10px] font-bold tracking-wide" style={{ color: T.secondaryText }}>
-                                Assigned by {assignedByName}
-                            </span>
+                        <div className="flex items-center gap-1 px-2 py-0.75 rounded-lg text-[9px] font-bold tracking-wide"
+                            style={{ background: T.secondaryFaint, border: `1px solid ${T.secondaryDim}`, color: T.secondaryText }}>
+                            <span className="material-symbols-outlined text-[11px]">assignment_ind</span>
+                            Assigned by {assignedByName}
                         </div>
                     )}
 
-                    {isAdminOrAbove && (
-                        <div className="flex items-center gap-1 mb-2">
-                            <span className="material-symbols-outlined text-[11px]" style={{ color: T.textMuted }}>person</span>
-                            <span className="text-[10px]" style={{ color: T.textMuted }}>
-                                by <span className="font-bold" style={{ color: T.textSecondary }}>{createdByName}</span>
-                            </span>
-                        </div>
-                    )}
-
-                    <p className="text-[13px] font-extrabold leading-snug mb-1.5" style={{ color: T.textPrimary }}>
-                        {deal.title}
-                    </p>
-
-                    {deal.amount != null && (
-                        <p className="text-[15px] font-black mb-2.5" style={{ color: stageStyle.accent }}>
-                            ₹{Number(deal.amount).toLocaleString('en-IN')}
-                        </p>
-                    )}
-
-                    <div className="flex flex-col gap-1.5 mb-1">
-                        {daysInStage >= 5 && !['WON', 'LOST'].includes(stage) && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg w-fit"
-                                style={{ background: T.warningDim, border: `1px solid ${T.warning}50` }}>
-                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.warning }}>warning</span>
-                                <span className="text-[10px] font-black" style={{ color: T.warning }}>
-                                    Stuck: {daysInStage} day{daysInStage !== 1 ? 's' : ''}
-                                </span>
-                            </div>
-                        )}
-                        {deal.account?.name && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.textMuted }}>business</span>
-                                <span className="text-[11px] font-semibold truncate" style={{ color: T.textSecondary }}>
-                                    {deal.account.name}
-                                </span>
-                            </div>
-                        )}
-
-                        {deal.expectedCloseDate && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[12px]"
-                                    style={{ color: isOverdue ? T.error : T.textMuted }}>event</span>
-                                <span className="text-[11px] font-semibold"
-                                    style={{ color: isOverdue ? T.error : T.textMuted }}>
-                                    {isOverdue && '⚠ '}
-                                    {new Date(deal.expectedCloseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </span>
-                            </div>
-                        )}
-
-                        {stage === 'LOST' && deal.lostReason && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[12px]" style={{ color: T.error }}>flag</span>
-                                <span className="text-[11px] font-semibold truncate" style={{ color: T.error }}>
-                                    {deal.lostReason}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Assignees — avatar bubbles + names */}
-                        {isAdminOrAbove && assignees.length > 0 && (
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <div className="flex -space-x-1.5">
-                                    {assignees.slice(0, 3).map((u, i) => (
-                                        <div key={u.id}
-                                            title={u.name}
-                                            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ring-1 ring-white"
-                                            style={{
-                                                background: T.primaryDim,
-                                                color: T.primary,
-                                                zIndex: 3 - i,
-                                            }}>
-                                            {u.name.charAt(0).toUpperCase()}
-                                        </div>
-                                    ))}
-                                    {assignees.length > 3 && (
-                                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ring-1 ring-white"
-                                            style={{ background: T.surfaceHigh, color: T.textMuted }}>
-                                            +{assignees.length - 3}
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[11px] font-semibold truncate" style={{ color: T.textSecondary }}>
-                                    {assigneeNames.slice(0, 2).join(', ')}{assignees.length > 2 && ` +${assignees.length - 2}`}
-                                </span>
-                            </div>
+                    {/* Deal Title and Amount */}
+                    <div className="min-w-0">
+                        <h4 className="text-[13px] font-bold leading-snug text-left line-clamp-2"
+                            style={{ color: T.textPrimary }}
+                            title={deal.title}>
+                            {deal.title}
+                        </h4>
+                        {deal.amount != null && (
+                            <p className="text-[15px] font-black mt-1 text-left" style={{ color: stageStyle.accent }}>
+                                ₹{Number(deal.amount).toLocaleString('en-IN')}
+                            </p>
                         )}
                     </div>
 
-                    {((isAdminOrAbove && canAssign) || onRemove) && (
-                        <div className="flex items-center justify-between pt-2.5 mt-1"
-                            style={{ borderTop: `1px solid ${T.border}` }}>
-                            {isAdminOrAbove && canAssign ? (
-                                <button
-                                    onClick={e => { e.stopPropagation(); setAssignOpen(true) }}
-                                    className="flex items-center gap-1.5 text-[11px] font-bold transition-colors px-2 py-1 rounded-lg"
-                                    style={{ color: assignees.length > 0 ? T.primary : T.textMuted, background: 'transparent' }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.color = T.primary }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = assignees.length > 0 ? T.primary : T.textMuted }}>
-                                    {assignees.length > 0
-                                        ? <IconUserCheck size={12} />
-                                        : <IconUserPlus size={12} />}
-                                    {assignees.length > 0 ? `${assignees.length} assigned` : 'Assign'}
-                                </button>
-                            ) : <span />}
+                    {/* Metadata lines */}
+                    {(deal.account?.name || (stage === 'LOST' && deal.lostReason)) && (
+                        <div className="flex flex-col gap-1.5 min-w-0">
+                            {deal.account?.name && (
+                                <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: T.textSecondary }}>
+                                    <span className="material-symbols-outlined text-[12px] opacity-75 shrink-0">business</span>
+                                    <span className="truncate" title={deal.account.name}>
+                                        {deal.account.name}
+                                    </span>
+                                </div>
+                            )}
 
+                            {stage === 'LOST' && deal.lostReason && (
+                                <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: T.error }}>
+                                    <span className="material-symbols-outlined text-[12px] shrink-0">flag</span>
+                                    <span className="truncate" title={deal.lostReason}>
+                                        {deal.lostReason}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Footer divider + action bar */}
+                    {((isAdminOrAbove && canAssign) || onRemove || assignees.length > 0) && (
+                        <div className="flex items-center justify-between pt-2 mt-0.5"
+                            style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
+                            
+                            {/* Left: Assignees Stack & Assign Button */}
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                {assignees.length > 0 ? (
+                                    <div className="flex -space-x-1.5 shrink-0">
+                                        {assignees.slice(0, 3).map((u, i) => (
+                                            <div key={u.id}
+                                                title={`Assignee: ${u.name}`}
+                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
+                                                style={{
+                                                    background: T.primaryDim,
+                                                    color: T.primary,
+                                                    zIndex: 3 - i,
+                                                }}>
+                                                {u.name.charAt(0).toUpperCase()}
+                                            </div>
+                                        ))}
+                                        {assignees.length > 3 && (
+                                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
+                                                style={{ background: T.surfaceHigh, color: T.textMuted }}>
+                                                +{assignees.length - 3}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+                                
+                                {isAdminOrAbove && canAssign && (
+                                    <button
+                                        onClick={e => { e.stopPropagation(); setAssignOpen(true) }}
+                                        className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors shrink-0"
+                                        title="Manage Assignees">
+                                        <IconUserPlus size={13} />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Right: Remove Button (group-hover visibility) */}
                             {onRemove && (
                                 <button
                                     onClick={e => { e.stopPropagation(); onRemove() }}
-                                    className="p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                    style={{ color: T.textMuted }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error; e.currentTarget.style.opacity = 1 }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                    className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                    title="Delete Deal">
                                     <span className="material-symbols-outlined text-[15px]">delete</span>
                                 </button>
                             )}

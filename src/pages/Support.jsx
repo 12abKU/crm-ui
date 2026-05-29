@@ -105,7 +105,7 @@ export default function Support() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 sm:p-8">
                 <SupportHeader isAdmin={isAdmin} companyName={companyName} badge={badge} />
                 <SupportTabs tab={tab} setTab={setTab} badge={badge} isAdmin={isAdmin} />
 

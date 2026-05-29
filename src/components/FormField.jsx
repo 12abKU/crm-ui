@@ -1,4 +1,5 @@
 import { T } from '../constants/theme'
+import CustomSelect from './ui/CustomSelect'
 
 export const Field = ({ label, children }) => (
     <div className="flex flex-col gap-1.5">
@@ -17,7 +18,7 @@ export const Input = ({ label, ...props }) => (
 
 export const Select = ({ label, children, ...props }) => (
     <Field label={label}>
-        <select className="crm-select" {...props}>{children}</select>
+        <CustomSelect className="crm-select" {...props}>{children}</CustomSelect>
     </Field>
 )
 

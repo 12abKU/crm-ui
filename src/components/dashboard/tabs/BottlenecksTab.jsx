@@ -59,7 +59,7 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
                     {bottleneckPieData.length ? (
                         <div className="flex items-center gap-6" style={{ height: 220 }}>
                             <div className="relative w-40 h-40 shrink-0">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <PieChart>
                                         <Pie
                                             data={bottleneckPieData}

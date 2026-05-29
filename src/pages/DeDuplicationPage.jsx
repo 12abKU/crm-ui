@@ -52,13 +52,12 @@ export default function DeDuplicationPage() {
     }
 
     return (
-        <div className="flex flex-col h-screen">
+        <div>
             <TopBar />
-            <div className="flex-1 overflow-auto animate-fade-in" style={{ background: T.bg }}>
-                <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+            <main className="p-4 md:p-8 animate-fade-in">
                     
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -76,7 +75,7 @@ export default function DeDuplicationPage() {
                         <button
                             onClick={scanDuplicates}
                             disabled={loading}
-                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full lg:w-auto"
                             style={{
                                 background: T.surface,
                                 border: `1px solid ${T.border}`,
@@ -199,8 +198,7 @@ export default function DeDuplicationPage() {
                             ))}
                         </div>
                     )}
-                </div>
-            </div>
+                </main>
 
             {/* Merge Modal */}
             {selectedGroup && (

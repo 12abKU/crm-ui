@@ -207,3 +207,12 @@ button {
 .crm-sidebar nav a:hover {
     background: rgba(255, 255, 255, 0.07) !important;
 }
+
+/* ── Scrollbar Hiding Utility ── */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}

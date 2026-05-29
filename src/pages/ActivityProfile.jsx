@@ -14,7 +14,7 @@ const InfoCard = ({ label, children, value }) => (
     <div className="flex flex-col gap-1.5 p-4 rounded-xl" style={{ background: T.borderSubtle }}>
         <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
         {children ?? (
-            <p className="text-sm font-semibold" style={{ color: value ? T.textPrimary : T.textMuted }}>
+            <p className="text-sm font-semibold break-all" style={{ color: value ? T.textPrimary : T.textMuted }}>
                 {value || 'Not provided'}
             </p>
         )}
@@ -118,7 +118,7 @@ export default function ActivityProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-4 md:p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8">
                 <Skeleton height={14} width={120} borderRadius={6} className="mb-6" />
                 <Skeleton height={130} borderRadius={20} className="mb-6" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -171,7 +171,7 @@ export default function ActivityProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-4 md:p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8">
 
                 {/* ── Back button ───────────────────────────── */}
                 <button onClick={() => navigate(-1)}
@@ -202,7 +202,7 @@ export default function ActivityProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-6 py-6 md:px-8 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-8 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-5">
                             {/* Type icon */}
                             <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
@@ -248,7 +248,7 @@ export default function ActivityProfile() {
                         <button
                             onClick={toggleComplete}
                             disabled={completing}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full md:w-auto"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
                             style={{
                                 background: activity.completed
                                     ? 'rgba(34,197,94,0.18)'

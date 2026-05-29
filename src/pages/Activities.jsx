@@ -237,7 +237,7 @@ export default function Activities() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-6 py-6 md:px-9 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -266,7 +266,7 @@ export default function Activities() {
                         </div>
                         {can.ACTIVITIES_CREATE && (
                             <button onClick={() => setOpen(true)}
-                                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full md:w-auto"
+                                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
                                 style={{
                                     background: T.heroBadgeBg,
                                     border: '1px solid rgba(255,255,255,0.22)',
@@ -282,11 +282,19 @@ export default function Activities() {
                 </div>
 
                 {/* ── Stat cards ───────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <ActivityStatCard icon="warning"         label="Overdue"   value={loading ? '—' : stats.overdue}   sub="need follow-up"    loading={loading} accent="#DC2626" />
-                    <ActivityStatCard icon="today"           label="Due today"  value={loading ? '—' : stats.dueToday}  sub="scheduled today"   loading={loading} accent="#D97706" />
-                    <ActivityStatCard icon="task_alt"        label="Completed"  value={loading ? '—' : stats.done}      sub="on this page"      loading={loading} accent={T.success} />
-                    <ActivityStatCard icon="pending_actions" label="Pending"    value={loading ? '—' : stats.pending}   sub="scheduled, open"   loading={loading} />
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <ActivityStatCard icon="warning"         label="Overdue"   value={loading ? '—' : stats.overdue}   sub="need follow-up"    loading={loading} accent="#DC2626" />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <ActivityStatCard icon="today"           label="Due today"  value={loading ? '—' : stats.dueToday}  sub="scheduled today"   loading={loading} accent="#D97706" />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <ActivityStatCard icon="task_alt"        label="Completed"  value={loading ? '—' : stats.done}      sub="on this page"      loading={loading} accent={T.success} />
+                    </div>
+                    <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
+                        <ActivityStatCard icon="pending_actions" label="Pending"    value={loading ? '—' : stats.pending}   sub="scheduled, open"   loading={loading} />
+                    </div>
                 </div>
 
                 {/* ── Today focus ──────────────────────────── */}

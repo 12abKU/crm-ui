@@ -67,7 +67,7 @@ export default function Settings() {
     return (
         <div>
             <TopBar />
-            <main className="p-8">
+            <main className="p-4 sm:p-8">
 
                 {/* -- Hero Banner ---------------------------- */}
                 <div className="relative rounded-3xl overflow-hidden mb-8"
@@ -86,7 +86,7 @@ export default function Settings() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             {/* Icon */}
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
@@ -108,7 +108,7 @@ export default function Settings() {
                         </div>
 
                         {/* Role badge */}
-                        <span className="px-4 py-2 rounded-xl text-sm font-black shrink-0"
+                        <span className="px-4 py-2 rounded-xl text-sm font-black shrink-0 w-full lg:w-auto text-center"
                             style={{
                                 background: T.heroBadgeBg,
                                 color: '#fff',
@@ -121,7 +121,7 @@ export default function Settings() {
                 </div>
 
                 {/* -- Tabs Navigation -------------------------- */}
-                <div className="flex gap-2 mb-6 border-b pb-px" style={{ borderColor: T.border }}>
+                <div className="flex gap-2 mb-6 border-b pb-px overflow-x-auto whitespace-nowrap scrollbar-none" style={{ borderColor: T.border }}>
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
@@ -133,7 +133,7 @@ export default function Settings() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className="flex items-center gap-2 px-5 py-3 -mb-px border-b-2 font-bold text-sm transition-all"
+                                className="flex items-center gap-2 px-5 py-3 -mb-px border-b-2 font-bold text-sm transition-all shrink-0"
                                 style={{
                                     borderColor: active ? T.primary : 'transparent',
                                     color: active ? T.primaryText : T.textSecondary,

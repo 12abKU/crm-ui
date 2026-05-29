@@ -197,8 +197,8 @@ export default function CompanyDetail({
             <TopBar />
             <main className="p-8 max-w-5xl mx-auto">
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
                         <button onClick={onBack}
                             className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl shrink-0"
                             style={{ color: T.textMuted, background: T.surfaceRaised }}
@@ -210,7 +210,7 @@ export default function CompanyDetail({
                             style={{ background: T.primaryDim, color: T.primary }}>
                             {company.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-[200px]">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h1 className="text-xl font-black truncate" style={{ color: T.textPrimary }}>{company.name}</h1>
                                 <TrialBadge trialEndsAt={company.trialEndsAt} status={company.status} />
@@ -219,7 +219,7 @@ export default function CompanyDetail({
                         </div>
                     </div>
                     <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
-                        className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full md:w-auto shrink-0"
+                        className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
                         style={{ background: T.errorDim, color: T.error }}>
                         <IconTrash size={13} /> Delete Company
                     </button>

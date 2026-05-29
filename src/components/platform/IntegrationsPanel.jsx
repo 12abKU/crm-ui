@@ -293,7 +293,7 @@ export default function IntegrationsPanel({ companyId }) {
                         placeholder="xxxxxxx.apps.googleusercontent.com" monospace />
                     <Field label="Client Secret" type="password" value={google.clientSecret} onChange={setG('clientSecret')}
                         placeholder="GOCSPX-••••••••" monospace />
-                    <div className="col-span-2">
+                    <div className="col-span-1 sm:col-span-2">
                         <Field label="Redirect URI" value={google.redirectUri} onChange={setG('redirectUri')}
                             placeholder="https://yourdomain.com/api/gmail/callback" monospace />
                     </div>
@@ -312,11 +312,11 @@ export default function IntegrationsPanel({ companyId }) {
                         placeholder="1065xxxxxxxxxxx" monospace />
                     <Field label="WhatsApp Business Account ID" value={whatsapp.businessAccountId} onChange={setW('businessAccountId')}
                         placeholder="1009xxxxxxxxxxx" monospace />
-                    <div className="col-span-2">
+                    <div className="col-span-1 sm:col-span-2">
                         <Field label="System User Access Token" type="password" value={whatsapp.accessToken} onChange={setW('accessToken')}
                             placeholder="EAAGxxxxxxxxxxxxxxx" monospace />
                     </div>
-                    <div className="col-span-2">
+                    <div className="col-span-1 sm:col-span-2">
                         <Field label="Webhook Verify Token" value={whatsapp.verifyToken} onChange={setW('verifyToken')}
                             placeholder="any_secret_string" monospace />
                     </div>
