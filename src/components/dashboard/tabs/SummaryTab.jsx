@@ -1,6 +1,7 @@
 import { T } from '../../../constants/theme'
 import DashboardStatCard from '../DashboardStatCard'
 import { Card, CardTitle, RecentActivityList, fmt } from '../DashboardWidgets'
+import { FunnelChart, WinRateDonut } from '../DashboardCharts'
 
 export default function SummaryTab({ data, loading }) {
     return (
@@ -15,6 +16,31 @@ export default function SummaryTab({ data, loading }) {
                 <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(data?.newContactsThisMonth)} sub="This month" loading={loading} />
                 <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(data?.newDealsThisMonth)} sub="This month" loading={loading} />
             </div>
+
+            {/* Visual Funnel and Win Rate charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+                <Card className="lg:col-span-2">
+                    <CardTitle icon="filter_alt">Deal Stage Funnel</CardTitle>
+                    <div className="py-2">
+                        {loading ? (
+                            <div className="h-[220px] bg-slate-100 animate-pulse rounded-xl" />
+                        ) : (
+                            <FunnelChart stages={data?.openDealsByStage} />
+                        )}
+                    </div>
+                </Card>
+                <Card>
+                    <CardTitle icon="percent">Win Rate Analytics</CardTitle>
+                    <div className="py-4 flex justify-center items-center h-[220px]">
+                        {loading ? (
+                            <div className="w-24 h-24 rounded-full border-4 border-slate-200 border-t-transparent animate-spin" />
+                        ) : (
+                            <WinRateDonut winRate={data?.winRate ?? 0} wonCount={data?.wonCount ?? 0} lostCount={data?.lostCount ?? 0} />
+                        )}
+                    </div>
+                </Card>
+            </div>
+
             <Card>
                 <CardTitle icon="event_note">Recent Activity</CardTitle>
                 <RecentActivityList activities={data?.recentActivities} loading={loading} />

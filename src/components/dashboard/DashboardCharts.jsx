@@ -82,7 +82,7 @@ export function FunnelChart({ stages, activeStages = [] }) {
     
     const activeKeys = activeStages.length > 0 
         ? activeStages.filter(s => s.stageKey !== 'WON' && s.stageKey !== 'LOST').map(s => s.stageKey)
-        : ['NEW', 'QUALIFIED', 'PROPOSAL'];
+        : stages.map(x => x.stage);
 
     const ordered = activeKeys
         .map(k => stages.find(x => x.stage === k))

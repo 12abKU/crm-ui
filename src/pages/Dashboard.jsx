@@ -8,6 +8,7 @@ import AdminDashboard from '../components/dashboard/AdminDashboard'
 import api from '../api'
 import DownloadReport from '../components/Downloadreport'
 import usePermission from '../hooks/usePermission'
+import { FunnelChart, WinRateDonut } from '../components/dashboard/DashboardCharts'
 
 export default function Dashboard() {
     const role = useSelector(state => state.auth.role)
@@ -115,6 +116,46 @@ function AgentDashboard() {
                     <DashboardStatCard icon="groups" label="Contacts" value={fmt(stats?.totalContacts)} sub="In your network" loading={loading} />
                     <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(stats?.newContactsThisMonth)} sub="This month" loading={loading} />
                     <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(stats?.newDealsThisMonth)} sub="This month" loading={loading} />
+                </div>
+
+                {/* ── Charts Panel ─────────────────────────────────── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+                    <div className="lg:col-span-2 rounded-2xl p-6"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                        }}>
+                        <div className="flex items-center gap-2.5 mb-5" style={{ color: T.textPrimary }}>
+                            <span className="material-symbols-outlined text-[18px]">filter_alt</span>
+                            <h3 className="text-sm font-black">My Deal Stage Funnel</h3>
+                        </div>
+                        <div className="py-2">
+                            {loading ? (
+                                <div className="h-[220px] bg-slate-100/50 animate-pulse rounded-xl" />
+                            ) : (
+                                <FunnelChart stages={stats?.openDealsByStage} />
+                            )}
+                        </div>
+                    </div>
+                    <div className="rounded-2xl p-6"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                        }}>
+                        <div className="flex items-center gap-2.5 mb-5" style={{ color: T.textPrimary }}>
+                            <span className="material-symbols-outlined text-[18px]">percent</span>
+                            <h3 className="text-sm font-black">Win Rate Analytics</h3>
+                        </div>
+                        <div className="py-4 flex justify-center items-center h-[220px]">
+                            {loading ? (
+                                <div className="w-24 h-24 rounded-full border-4 border-slate-200 border-t-transparent animate-spin" />
+                            ) : (
+                                <WinRateDonut winRate={stats?.winRate ?? 0} wonCount={stats?.wonCount ?? 0} lostCount={stats?.lostCount ?? 0} />
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* ── Recent Activity Card ──────────────────────────── */}

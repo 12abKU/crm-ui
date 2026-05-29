@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { IconArrowLeft, IconTrash, IconClock, IconUsers, IconPlug, IconTicket } from '@tabler/icons-react'
+import { IconArrowLeft, IconTrash, IconClock, IconUsers, IconPlug, IconTicket, IconGauge } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import TopBar from '../TopBar'
 import TrialBadge from './TrialBadge'
@@ -8,6 +8,7 @@ import CompanyStatsGrid from './CompanyStatsGrid'
 import CompanyNotes from './CompanyNotes'
 import CompanyUsersTable from './CompanyUsersTable'
 import IntegrationsPanel from './IntegrationsPanel'
+import PlanConfigPanel from './PlanConfigPanel'
 import { TrialModal, DeleteCompanyModal, AddUserModal, ResetPasswordModal } from './CompanyModals'
 import { daysLeft } from './platformConstants'
 import { PRIORITY_STYLES, STATUS_STYLES, CATEGORY_ICONS, timeAgo } from '../support/supportConstants'
@@ -16,6 +17,7 @@ import Skeleton from 'react-loading-skeleton'
 
 const TABS = [
     { id: 'overview', label: 'Overview', Icon: IconUsers },
+    { id: 'plan-limits', label: 'Plan Limits', Icon: IconGauge },
     { id: 'integrations', label: 'Integrations', Icon: IconPlug },
     { id: 'tickets', label: 'Tickets', Icon: IconTicket },
 ]
@@ -242,7 +244,7 @@ export default function CompanyDetail({
                     onOpenTrialModal={() => { setFormError(''); setTrialDays('14'); setTrialDate(''); setTrialMode('days'); setShowTrialModal(true) }}
                 />
 
-                <CompanyStatsGrid stats={companyStats} />
+                <CompanyStatsGrid stats={companyStats} plan={company.plan} />
                 <CompanyNotes notes={notes} onChange={onNotesChange} saving={notesSaving} saved={notesSaved} />
 
                 {/* Tabs */}
@@ -271,6 +273,12 @@ export default function CompanyDetail({
                         onDeleteUser={onDeleteUser}
                         onChangeRole={onChangeRole}
                     />
+                )}
+                {tab === 'plan-limits' && (
+                    <div className="rounded-2xl p-6"
+                        style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                        <PlanConfigPanel companyId={company.id} />
+                    </div>
                 )}
                 {tab === 'integrations' && <IntegrationsPanel companyId={company.id} />}
                 {tab === 'tickets' && (
