@@ -110,7 +110,7 @@ const CrmLayout = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
-      <div className="pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
+      <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
     </div>
   )
 }
@@ -123,7 +123,7 @@ const PlatformLayout = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
-      <div className="pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
+      <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
     </div>
   )
 }

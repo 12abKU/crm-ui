@@ -56,7 +56,7 @@ function AgentDashboard() {
                         }} />
                     </div>
 
-                    <div className="relative px-10 py-8 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-10 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
                             <p className="text-sm font-bold mb-1" style={{ color: T.heroSubText }}>
                                 Good day 👋
@@ -72,7 +72,7 @@ function AgentDashboard() {
                         {canExport && <DownloadReport stats={stats} />}
 
                         {/* Right side — stat chips + download */}
-                        <div className="flex flex-col items-end gap-3 shrink-0">
+                        <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                                     style={{
@@ -104,14 +104,14 @@ function AgentDashboard() {
 
 
                 {/* ── Stat Cards Row 1 ─────────────────────────────── */}
-                <div className="grid grid-cols-3 gap-5 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                     <DashboardStatCard icon="handshake" label="Active Deals" value={fmt(stats?.activeDeals)} sub="Open pipeline" loading={loading} />
                     <DashboardStatCard icon="payments" label="Revenue Won" value={`₹${fmt(stats?.totalRevenue)}`} sub="From won deals" loading={loading} />
                     <DashboardStatCard icon="business" label="Total Accounts" value={fmt(stats?.totalAccounts)} sub="All time" loading={loading} />
                 </div>
 
                 {/* ── Stat Cards Row 2 ─────────────────────────────── */}
-                <div className="grid grid-cols-3 gap-5 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                     <DashboardStatCard icon="groups" label="Contacts" value={fmt(stats?.totalContacts)} sub="In your network" loading={loading} />
                     <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(stats?.newContactsThisMonth)} sub="This month" loading={loading} />
                     <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(stats?.newDealsThisMonth)} sub="This month" loading={loading} />

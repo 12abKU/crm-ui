@@ -173,7 +173,7 @@ export default function AdminDashboard() {
                     })}
 
                     {/* Pipeline selector and Download button — right side of tab bar */}
-                    <div className="ml-auto flex items-center gap-3">
+                    <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
                         {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 0 && (
                             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200"
                                 style={{

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, NAV_LINKS } from '../constants/theme'
 import { usePermissions } from '../hooks/usePermission'
@@ -7,13 +7,32 @@ import api from '../api'
 
 export default function Sidebar() {
     const navigate = useNavigate()
+    const { pathname } = useLocation()
     const [userHover, setUserHover] = useState(false)
     const [overdue, setOverdue] = useState(0)
+    const [isOpen, setIsOpen] = useState(false)
+
+    // Auto-close sidebar on route change
+    useEffect(() => {
+        setIsOpen(false)
+    }, [pathname])
 
     const { name, role, companyName } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
     const [openTickets, setOpenTickets] = useState(0)
     const can = usePermissions(['ACCOUNTS_CREATE'])
+
+    // Listen to sidebar toggle events
+    useEffect(() => {
+        const handleToggle = () => setIsOpen(open => !open)
+        const handleClose = () => setIsOpen(false)
+        window.addEventListener('crm-toggle-sidebar', handleToggle)
+        window.addEventListener('crm-close-sidebar', handleClose)
+        return () => {
+            window.removeEventListener('crm-toggle-sidebar', handleToggle)
+            window.removeEventListener('crm-close-sidebar', handleClose)
+        }
+    }, [])
 
     // Badge polling — completely unchanged
     useEffect(() => {
@@ -45,8 +64,15 @@ export default function Sidebar() {
     })
 
     return (
-        <aside className="crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50"
-            style={{ background: T.sidebar }}>
+        <>
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden transition-opacity duration-300"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+            <aside className={`crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+                style={{ background: T.sidebar }}>
 
             {/* ── Logo ────────────────────────────────────── */}
             <div className="px-5 pt-6 pb-5">
@@ -264,5 +290,6 @@ export default function Sidebar() {
                 )}
             </button>
         </aside>
+        </>
     )
 }

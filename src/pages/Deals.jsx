@@ -366,7 +366,7 @@ export default function Deals() {
                 </div>
 
                 {/* ── Pipeline summary strip ───────────────── */}
-                <div className="grid gap-3 mb-6" style={{ gridTemplateColumns: `repeat(${pipelineTotals.length || 1}, minmax(0, 1fr))` }}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, value, style }) => (
                         <div key={stage}
                             className="rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
@@ -389,7 +389,7 @@ export default function Deals() {
                 </div>
 
                 {/* ── Kanban board — scrollable columns ───── */}
-                <div style={{ flex: 1, display: 'flex', gap: 16, paddingBottom: 16, minHeight: 0 }}>
+                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
                     {activeStages.map(stageObj => {
                         const stage = stageObj.stageKey
                         const stageDeals = filtered.filter(d => d.stage === stage)
@@ -401,8 +401,9 @@ export default function Deals() {
 
                         return (
                             <div key={stage}
+                                className="flex flex-col shrink-0 w-[280px] md:w-auto md:flex-1"
                                 style={{
-                                    flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column',
+                                    minWidth: 0,
                                     borderRadius: 16, overflow: 'hidden', height: '100%',
                                     background: colBg,
                                     border: `1.5px solid ${colBorder}`,

@@ -16,4 +16,5 @@
   - [x] Integrate same glassmorphic visual preview and background enhancements
 - [x] Verify styling and functionality
   - [x] Check build correctness using `npm run build`
-  - [x] Manually test responsive layout, password toggle, and wizard flow
+  - [x] Dashboard responsiveness
+  - [x] Dashboard.jsx stat grid columns and marginszard flow

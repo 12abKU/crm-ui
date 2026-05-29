@@ -129,11 +129,11 @@ export default function PlatformProfile() {
                 <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(70px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: -40, left: '35%', width: 220, height: 220, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(55px)', pointerEvents: 'none' }} />
 
-                <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 36px 44px', position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28 }}>
+                <div className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
                         {/* Left: avatar + identity */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+                        <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
                             {/* Avatar */}
                             <div style={{ position: 'relative', flexShrink: 0 }}>
                                 <div style={{
@@ -185,8 +185,9 @@ export default function PlatformProfile() {
                         {/* Right: sign out */}
                         <button
                             onClick={() => { dispatch(signOut()); navigate('/login') }}
+                            className="w-full md:w-auto justify-center flex items-center gap-2"
                             style={{
-                                display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+                                flexShrink: 0,
                                 background: 'rgba(220,38,38,0.18)',
                                 border: '1px solid rgba(220,38,38,0.30)',
                                 color: '#FCA5A5', borderRadius: 13,
@@ -206,9 +207,9 @@ export default function PlatformProfile() {
             {/* ══════════════════════════════════════════════════
                 FORMS — side by side layout
             ══════════════════════════════════════════════════ */}
-            <main style={{ maxWidth: 900, margin: '0 auto', padding: '36px 36px 60px' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 900, margin: '0 auto' }}>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* ── Personal Info Card ─────────────────────── */}
                     <div style={{

@@ -180,10 +180,10 @@ export default function AuditLogPage() {
         <div className="flex flex-col h-screen">
             <TopBar />
             <div className="flex-1 overflow-auto" style={{ background: T.bg }}>
-                <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
 
                     {/* ── Header ─────────────────────────────── */}
-                    <div className="flex items-start justify-between mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -193,11 +193,11 @@ export default function AuditLogPage() {
                                 </div>
                                 <h1 className="text-2xl font-black" style={{ color: T.textPrimary }}>Audit Log</h1>
                             </div>
-                            <p className="text-sm ml-12" style={{ color: T.textMuted }}>
+                            <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
                                 Complete history of every action performed in your CRM
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold"
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full sm:w-auto justify-center"
                             style={{ background: T.surfaceHigh, color: T.textMuted }}>
                             <span className="material-symbols-outlined text-[16px]">bar_chart</span>
                             {total.toLocaleString()} total events
@@ -205,15 +205,15 @@ export default function AuditLogPage() {
                     </div>
 
                     {/* ── Filters ────────────────────────────── */}
-                    <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-                        <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                             {/* Entity type chips */}
-                            <div className="flex items-center gap-1.5 p-1 rounded-xl"
+                            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl w-full sm:w-auto"
                                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                 {filterChips.map(chip => (
                                     <button key={chip}
                                         onClick={() => setEntityFilter(chip)}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer"
+                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer flex-1 sm:flex-none text-center justify-center"
                                         style={{
                                             background: entityFilter === chip ? T.primary : 'transparent',
                                             color: entityFilter === chip ? '#fff' : T.textMuted,
@@ -233,7 +233,7 @@ export default function AuditLogPage() {
                             <select
                                 value={actorFilter}
                                 onChange={e => setActorFilter(e.target.value)}
-                                className="text-sm px-3 py-2 rounded-xl outline-none border cursor-pointer"
+                                className="text-sm px-3 py-2 rounded-xl outline-none border cursor-pointer w-full sm:w-auto"
                                 style={{
                                     background: T.surface,
                                     color: actorFilter ? T.textPrimary : T.textMuted,
@@ -249,7 +249,7 @@ export default function AuditLogPage() {
                             {(entityFilter || actorFilter) && (
                                 <button
                                     onClick={() => { setEntityFilter(''); setActorFilter('') }}
-                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full sm:w-auto"
                                     style={{ background: '#EF444420', color: '#EF4444' }}>
                                     <span className="material-symbols-outlined text-[13px]">close</span>
                                     Clear Filters
@@ -261,7 +261,7 @@ export default function AuditLogPage() {
                         <button
                             onClick={handleClearAll}
                             disabled={loading || logs.length === 0}
-                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 cursor-pointer"
+                            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 cursor-pointer w-full lg:w-auto"
                             style={{
                                 background: logs.length === 0 ? T.surfaceRaised : '#EF444415',
                                 color: logs.length === 0 ? T.textMuted : '#EF4444',
@@ -289,18 +289,20 @@ export default function AuditLogPage() {
                     <div className="rounded-2xl overflow-hidden"
                         style={{ background: T.surface, border: `1px solid ${T.border}` }}>
 
-                        {/* Table header */}
-                        <div className="grid gap-4 px-5 py-3"
-                            style={{
-                                gridTemplateColumns: '2fr 1fr 1.5fr 2fr 1fr',
-                                borderBottom: `1px solid ${T.border}`,
-                                background: T.surfaceHigh,
-                            }}>
-                            {['Actor', 'Action', 'Entity', 'Detail', 'Time'].map(h => (
-                                <span key={h} className="text-[10px] font-black uppercase tracking-widest"
-                                    style={{ color: T.textMuted }}>{h}</span>
-                            ))}
-                        </div>
+                        <div className="overflow-x-auto">
+                            <div className="min-w-[900px]">
+                                {/* Table header */}
+                                <div className="grid gap-4 px-5 py-3"
+                                    style={{
+                                        gridTemplateColumns: '2fr 1fr 1.5fr 2fr 1fr',
+                                        borderBottom: `1px solid ${T.border}`,
+                                        background: T.surfaceHigh,
+                                    }}>
+                                    {['Actor', 'Action', 'Entity', 'Detail', 'Time'].map(h => (
+                                        <span key={h} className="text-[10px] font-black uppercase tracking-widest"
+                                            style={{ color: T.textMuted }}>{h}</span>
+                                    ))}
+                                </div>
 
                         {/* Rows */}
                         {loading && logs.length === 0 ? (
@@ -386,6 +388,8 @@ export default function AuditLogPage() {
                                 )
                             })
                         )}
+                            </div>
+                        </div>
 
                         {/* Load more */}
                         {hasMore && logs.length > 0 && (

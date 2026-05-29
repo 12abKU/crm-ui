@@ -30,7 +30,7 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
 
     return (
         <>
-            <div className="grid grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
                 <StatBox label="Total Stuck Deals (≥ 5 Days)" value={fmt(data.totalStuck)} icon="warning" color={T.error} />
                 <StatBox 
                     label="Most Bottlenecked Stage" 
@@ -46,7 +46,7 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
                 <Card>
                     <CardTitle icon="hourglass_empty">Average Days Stuck per Stage</CardTitle>
                     {avgDaysData.length ? (

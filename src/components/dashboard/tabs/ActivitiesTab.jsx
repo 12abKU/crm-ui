@@ -6,7 +6,7 @@ import { BarChart } from '../DashboardCharts'
 export default function ActivitiesTab({ data }) {
     if (!data) return <TabSkeleton />
     return (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Activities by Type */}
             <Card>
                 <CardTitle icon="pie_chart">Activities by Type</CardTitle>

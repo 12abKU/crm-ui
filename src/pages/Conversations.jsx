@@ -433,7 +433,7 @@ export default function Conversations() {
             <div className="flex flex-1 min-h-0 overflow-hidden">
 
                 {/* ── Left contact sidebar ─────────────────── */}
-                <div className="w-72 shrink-0 flex flex-col overflow-hidden"
+                <div className={`w-full md:w-72 shrink-0 flex flex-col overflow-hidden ${selectedContact ? 'hidden md:flex' : 'flex'}`}
                     style={{ background: T.surface, borderRight: `1px solid ${T.border}` }}>
 
                     <div className="px-5 pt-5 pb-4 shrink-0"
@@ -540,7 +540,7 @@ export default function Conversations() {
                 </div>
 
                 {/* ── Main content area ──────────────────────── */}
-                <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ background: T.bg }}>
+                <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${selectedContact ? 'flex' : 'hidden md:flex'}`} style={{ background: T.bg }}>
                     {!selectedContact ? (
                         <div className="flex-1 flex flex-col items-center justify-center gap-5">
                             <div className="relative">
@@ -582,6 +582,15 @@ export default function Conversations() {
                             {/* Contact header bar */}
                             <div className="px-6 py-3 flex items-center gap-4 shrink-0"
                                 style={{ background: T.surface, borderBottom: `1px solid ${T.border}` }}>
+                                <button 
+                                    onClick={() => setSelectedContact(null)}
+                                    className="md:hidden flex items-center justify-center p-2 rounded-xl text-orange-600 transition-colors cursor-pointer shrink-0"
+                                    style={{ color: T.primary }}
+                                    onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                                </button>
                                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
                                     style={{
                                         background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,

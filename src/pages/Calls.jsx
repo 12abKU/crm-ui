@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import Pagination from '../components/Pagination'
@@ -73,13 +73,12 @@ export default function Calls() {
     return (
         <div>
             <TopBar />
-            <main className="p-8">
+            <main className="p-4 md:p-8">
 
                 {/* ── Hero Banner ──────────────────────────── */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 120,
                     }}>
                     {/* Orbs */}
                     <div style={{
@@ -95,7 +94,7 @@ export default function Calls() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-9 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -115,7 +114,7 @@ export default function Calls() {
                             </div>
                         </div>
                         <button onClick={() => setShowDialer(true)}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full md:w-auto"
                             style={{
                                 background: T.heroBadgeBg,
                                 border: '1px solid rgba(255,255,255,0.22)',
@@ -130,7 +129,7 @@ export default function Calls() {
                 </div>
 
                 {/* ── Stat cards ───────────────────────────── */}
-                <div className="grid grid-cols-4 gap-4 mb-7">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-7">
                     <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '—'}                      bg={T.primaryDim}  color={T.primary} />
                     <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '—'}                   bg={T.successDim}  color={T.success} />
                     <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
@@ -178,7 +177,9 @@ export default function Calls() {
                     </div>
 
                     {/* Table + Pagination (unchanged) */}
-                    <CallLogTable logs={logs} loading={loading} />
+                    <div className="overflow-x-auto">
+                        <CallLogTable logs={logs} loading={loading} />
+                    </div>
 
                     {totalPages > 1 && (
                         <Pagination

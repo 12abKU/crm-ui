@@ -57,9 +57,9 @@ export default function AgentProfile() {
 
     if (loading) return (
         <div><TopBar />
-            <main className="p-8 max-w-5xl mx-auto">
+            <main className="p-4 md:p-8 max-w-5xl mx-auto">
                 <div className="h-36 rounded-3xl animate-pulse mb-6" style={{ background: T.surface }} />
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(i => <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: T.surface }} />)}
                 </div>
             </main>
@@ -73,12 +73,12 @@ export default function AgentProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-5xl mx-auto">
+            <main className="p-4 md:p-8 max-w-5xl mx-auto">
 
                 {/* ── Top actions ───────────────────────────── */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <button onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group w-full sm:w-auto"
                         style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
                         onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
                         onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
@@ -86,7 +86,7 @@ export default function AgentProfile() {
                         Back
                     </button>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                         {canExport && (
                             <>
                                 <button onClick={() => {
@@ -130,7 +130,6 @@ export default function AgentProfile() {
                 <div className="relative rounded-3xl overflow-hidden mb-6"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 120,
                     }}>
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
@@ -139,7 +138,7 @@ export default function AgentProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-8 py-6 flex items-center gap-5">
+                    <div className="relative px-6 py-6 md:px-8 md:py-6 flex flex-col sm:flex-row items-center text-center sm:text-left gap-5">
                         {/* Avatar */}
                         <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
                             style={{
@@ -149,13 +148,13 @@ export default function AgentProfile() {
                             }}>
                             {agent.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 {agent.name}
                             </h2>
                             <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>{agent.email}</p>
                         </div>
-                        <span className="px-4 py-2 rounded-xl text-sm font-bold shrink-0"
+                        <span className="px-4 py-2 rounded-xl text-sm font-bold shrink-0 w-full sm:w-auto text-center"
                             style={{
                                 background: T.heroBadgeBg,
                                 color: '#fff',
@@ -167,7 +166,7 @@ export default function AgentProfile() {
                 </div>
 
                 {/* ── KPIs row 1 ───────────────────────────── */}
-                <div className="grid grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <KpiCard icon="check_circle" label="Deals Won"    value={fmt(agent.dealsWon)}    color={T.success} />
                     <KpiCard icon="cancel"       label="Deals Lost"   value={fmt(agent.dealsLost)}   color={T.error} />
                     <KpiCard icon="handshake"    label="Active Deals" value={fmt(agent.activeDeals)} />
@@ -175,12 +174,12 @@ export default function AgentProfile() {
                 </div>
 
                 {/* ── KPIs row 2 ───────────────────────────── */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     <KpiCard icon="payments"    label="Revenue Won"   value={fmtK(agent.revenueWon)}  color={T.success} />
                     <KpiCard icon="trending_up" label="Open Pipeline" value={fmtK(agent.openRevenue)} />
 
                     {/* Activity completion card */}
-                    <div className="rounded-2xl p-5 transition-all duration-150"
+                    <div className="rounded-2xl p-5 transition-all duration-150 sm:col-span-2 lg:col-span-1"
                         style={{
                             background: T.surface,
                             border: `1.5px solid ${T.primary}22`,
@@ -217,7 +216,7 @@ export default function AgentProfile() {
                 </div>
 
                 {/* ── Open Deals + Recent Activities ────────── */}
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
                     {/* Open Deals */}
                     <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>

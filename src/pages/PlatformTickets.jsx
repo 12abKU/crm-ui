@@ -53,7 +53,7 @@ function TicketDrawer({ ticket, onClose, onStatusChange, statusUpdating }) {
             {/* Drawer panel */}
             <div style={{
                 position: 'fixed', top: 0, right: 0, bottom: 0,
-                width: 520, zIndex: 201,
+                width: '100%', maxWidth: 520, zIndex: 201,
                 background: T.surface, borderLeft: `1px solid ${T.border}`,
                 display: 'flex', flexDirection: 'column',
                 boxShadow: '-8px 0 40px rgba(0,0,0,0.15)',
@@ -261,9 +261,9 @@ export default function PlatformTickets() {
                 <div style={{ position: 'absolute', top: -70, right: -70, width: 300, height: 300, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(75px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: -40, left: '30%', width: 200, height: 200, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(50px)', pointerEvents: 'none' }} />
 
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 36px 36px', position: 'relative', zIndex: 1 }}>
+                <div className="px-4 py-8 md:px-9 md:py-9" style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
                     {/* Title row */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, marginBottom: 32 }}>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
                             <div style={{
                                 width: 52, height: 52, borderRadius: 16, flexShrink: 0,
@@ -289,12 +289,14 @@ export default function PlatformTickets() {
                                 </p>
                             </div>
                         </div>
-                        <button onClick={load} style={{
-                            display: 'flex', alignItems: 'center', gap: 7,
-                            background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)',
-                            color: '#fff', borderRadius: 12, padding: '9px 18px',
-                            fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s',
-                        }}
+                        <button onClick={load}
+                            className="w-full md:w-auto justify-center"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 7,
+                                background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)',
+                                color: '#fff', borderRadius: 12, padding: '9px 18px',
+                                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s',
+                            }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
                         >
@@ -304,7 +306,7 @@ export default function PlatformTickets() {
                     </div>
 
                     {/* Stat cards */}
-                    <div style={{ display: 'flex', gap: 12 }}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         {[
                             { label: 'Total', value: stats.total, icon: 'confirmation_number', accent: '#60A5FA' },
                             { label: 'Open', value: stats.open, icon: 'radio_button_unchecked', accent: '#2563EB' },
@@ -337,17 +339,17 @@ export default function PlatformTickets() {
             </div>
 
             {/* ── Main content ──────────────────────────────────── */}
-            <main style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 36px 60px' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 1200, margin: '0 auto' }}>
 
                 {/* Filters bar */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20,
-                    background: T.surface, borderRadius: 16, padding: '14px 18px',
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                }}>
+                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-5"
+                    style={{
+                        background: T.surface, borderRadius: 16, padding: '14px 18px',
+                        border: `1px solid ${T.border}`,
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                    }}>
                     {/* Search */}
-                    <div style={{ position: 'relative', flex: 1 }}>
+                    <div className="w-full md:flex-1" style={{ position: 'relative' }}>
                         <span className="material-symbols-outlined" style={{
                             position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
                             fontSize: 16, color: T.textMuted,
@@ -367,6 +369,7 @@ export default function PlatformTickets() {
 
                     {/* Status filter */}
                     <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                        className="w-full md:w-auto"
                         style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, padding: '0 12px', cursor: 'pointer', outline: 'none' }}>
                         <option value="ALL">All Status</option>
                         {Object.entries(STATUS_STYLES).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
@@ -374,35 +377,37 @@ export default function PlatformTickets() {
 
                     {/* Priority filter */}
                     <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
+                        className="w-full md:w-auto"
                         style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, padding: '0 12px', cursor: 'pointer', outline: 'none' }}>
                         <option value="ALL">All Priority</option>
                         {Object.entries(PRIORITY_STYLES).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
                     </select>
 
-                    <span style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, whiteSpace: 'nowrap' }}>
+                    <span className="w-full md:w-auto text-right md:text-left" style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, whiteSpace: 'nowrap' }}>
                         {filtered.length} ticket{filtered.length !== 1 ? 's' : ''}
                     </span>
                 </div>
 
                 {/* Ticket table */}
-                <div style={{
-                    background: T.surface, borderRadius: 20,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
-                    overflow: 'hidden',
-                }}>
-                    {/* Table header */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 180px 100px 90px 90px 110px',
-                        padding: '12px 20px',
-                        background: T.surfaceRaised,
-                        borderBottom: `1px solid ${T.border}`,
+                <div className="overflow-x-auto"
+                    style={{
+                        background: T.surface, borderRadius: 20,
+                        border: `1px solid ${T.border}`,
+                        boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
                     }}>
-                        {['Subject & Company', 'Submitter', 'Category', 'Priority', 'Status', 'Raised'].map(h => (
-                            <span key={h} style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.textMuted }}>{h}</span>
-                        ))}
-                    </div>
+                    <div className="min-w-[900px]">
+                        {/* Table header */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 180px 100px 90px 90px 110px',
+                            padding: '12px 20px',
+                            background: T.surfaceRaised,
+                            borderBottom: `1px solid ${T.border}`,
+                        }}>
+                            {['Subject & Company', 'Submitter', 'Category', 'Priority', 'Status', 'Raised'].map(h => (
+                                <span key={h} style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.textMuted }}>{h}</span>
+                            ))}
+                        </div>
 
                     {/* Rows */}
                     {loading ? (
@@ -476,6 +481,7 @@ export default function PlatformTickets() {
                             })}
                         </div>
                     )}
+                    </div>
                 </div>
             </main>
 

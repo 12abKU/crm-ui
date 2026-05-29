@@ -170,13 +170,12 @@ export default function Contacts() {
     return (
         <div>
             <TopBar />
-            <main className="p-8">
+            <main className="p-4 md:p-8">
 
                 {/* -- Hero Banner ------------------------------- */}
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 120,
                     }}>
                     <div style={{
                         position: 'absolute', top: -40, right: -40, width: 200, height: 200,
@@ -190,7 +189,7 @@ export default function Contacts() {
                         background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
                         pointerEvents: 'none',
                     }} />
-                    <div className="relative px-9 py-7 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-9 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -205,16 +204,16 @@ export default function Contacts() {
                                     Contacts
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {loading ? 'Loading�' : `${totalElements} people in your network`}
+                                    {loading ? 'Loading...' : `${totalElements} people in your network`}
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full md:w-auto">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
                             {can.CONTACTS_CREATE && (
                                 <>
                                     <button onClick={() => setImportOpen(true)}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                         style={{
                                             background: 'transparent',
                                             border: '1px solid rgba(255,255,255,0.25)',
@@ -226,7 +225,7 @@ export default function Contacts() {
                                         Import
                                     </button>
                                     <button onClick={() => setOpen(true)}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150"
+                                        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                         style={{
                                             background: T.heroBadgeBg,
                                             border: '1px solid rgba(255,255,255,0.22)',
@@ -366,7 +365,7 @@ export default function Contacts() {
                                 setImportError('');
                             }
                         }} />
-                    <div className="fixed right-0 top-0 h-full w-[460px] z-50 flex flex-col transition-all duration-300"
+                    <div className="fixed right-0 top-0 h-full w-full sm:w-[460px] z-50 flex flex-col transition-all duration-300"
                         style={{ background: T.surface, borderLeft: `1px solid ${T.border}`, boxShadow: SHADOW.xl }}>
                         
                         {/* Header */}

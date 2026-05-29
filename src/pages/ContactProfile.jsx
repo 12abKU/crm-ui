@@ -138,7 +138,7 @@ export default function ContactProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
                 <div className="rounded-3xl overflow-hidden mb-6 p-8"
                     style={{ background: T.surfaceHigh, minHeight: 140 }}>
                     <div className="flex items-center gap-5">
@@ -149,7 +149,7 @@ export default function ContactProfile() {
                         </div>
                     </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                     {Array.from({ length: 3 }).map((_, i) => (
                         <div key={i} className="p-5 rounded-2xl" style={{ background: T.surfaceHigh }}>
                             <Skeleton height={10} width={80} borderRadius={4} />
@@ -157,8 +157,8 @@ export default function ContactProfile() {
                         </div>
                     ))}
                 </div>
-                <div className="grid grid-cols-3 gap-6">
-                    <div className="col-span-2 flex flex-col gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 flex flex-col gap-4">
                         <Skeleton height={160} borderRadius={16} />
                         <Skeleton height={180} borderRadius={16} />
                     </div>
@@ -203,11 +203,11 @@ export default function ContactProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
 
                 {/* ── Back button ───────────────────────────── */}
                 <button onClick={() => navigate(-1)}
-                    className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                    className="inline-flex items-center justify-center gap-2 mb-5 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group w-full sm:w-auto"
                     style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
                     onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
@@ -219,7 +219,6 @@ export default function ContactProfile() {
                 <div className="relative rounded-3xl overflow-hidden mb-6"
                     style={{
                         background: `linear-gradient(135deg, ${T.sidebar} 0%, ${heroAccent.from} 50%, ${heroAccent.to} 100%)`,
-                        minHeight: 150,
                     }}>
                     {/* Orbs */}
                     <div style={{
@@ -235,7 +234,7 @@ export default function ContactProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-8 py-8 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-8 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         {/* Avatar + name */}
                         <div className="flex items-center gap-5">
                             <div className="rounded-full flex items-center justify-center text-3xl font-black shrink-0"
@@ -278,12 +277,12 @@ export default function ContactProfile() {
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex items-center gap-2.5 shrink-0">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 w-full md:w-auto">
                             <button
                                 onClick={() => profile?.phone && setActiveCall(profile)}
                                 disabled={!profile?.phone}
                                 title={!profile?.phone ? 'No phone number' : `Call ${fullName}`}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 w-full sm:w-auto"
                                 style={{
                                     background: 'rgba(255,255,255,0.10)',
                                     border: '1px solid rgba(255,255,255,0.20)',
@@ -294,7 +293,7 @@ export default function ContactProfile() {
                                 <span className="material-symbols-outlined text-[16px]">call</span>Call
                             </button>
                             <button
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                 style={{
                                     background: 'rgba(255,255,255,0.10)',
                                     border: '1px solid rgba(255,255,255,0.20)',
@@ -306,7 +305,7 @@ export default function ContactProfile() {
                             </button>
                             {canCreateDeal && (
                                 <button onClick={() => setDealFormOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                     style={{
                                         background: T.primary,
                                         border: '1px solid rgba(255,255,255,0.20)',
@@ -323,7 +322,7 @@ export default function ContactProfile() {
                 </div>
 
                 {/* ── Quick Stats Bar ───────────────────────── */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     {[
                         { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: T.primaryDim, color: T.chartBlue },
                         { icon: 'payments', label: 'Deal Value', value: '₹' + (profile.openDealAmount || 0).toLocaleString(), bg: 'rgba(22,163,74,0.12)', color: '#16A34A' },
@@ -387,14 +386,14 @@ export default function ContactProfile() {
                 </SectionCard>
 
                 {/* ── Main 2-col layout ─────────────────────── */}
-                <div className="grid grid-cols-3 gap-6 mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 
                     {/* Left: Overview + Open Deals */}
-                    <div className="col-span-2 flex flex-col gap-5">
+                    <div className="lg:col-span-2 flex flex-col gap-5">
 
                         {/* Overview */}
                         <SectionCard title="Overview" icon="info">
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <InfoRow label="Email" value={profile.email} />
                                 <InfoRow label="Phone" value={profile.phone} />
                                 <InfoRow label="Designation" value={profile.designation} />

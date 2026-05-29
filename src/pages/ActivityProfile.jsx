@@ -118,11 +118,11 @@ export default function ActivityProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
                 <Skeleton height={14} width={120} borderRadius={6} className="mb-6" />
                 <Skeleton height={130} borderRadius={20} className="mb-6" />
-                <div className="grid grid-cols-3 gap-6">
-                    <div className="col-span-2 flex flex-col gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 flex flex-col gap-5">
                         <Skeleton height={200} borderRadius={16} />
                         <Skeleton height={180} borderRadius={16} />
                     </div>
@@ -171,11 +171,11 @@ export default function ActivityProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
 
                 {/* ── Back button ───────────────────────────── */}
                 <button onClick={() => navigate(-1)}
-                    className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                    className="inline-flex items-center justify-center gap-2 mb-6 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group w-full sm:w-auto"
                     style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
                     onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
@@ -187,7 +187,6 @@ export default function ActivityProfile() {
                 <div className="relative rounded-3xl overflow-hidden mb-7"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 130,
                     }}>
                     {/* Accent glow using activity type color */}
                     <div style={{
@@ -203,7 +202,7 @@ export default function ActivityProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-8 py-7 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-8 md:py-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-center gap-5">
                             {/* Type icon */}
                             <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
@@ -249,7 +248,7 @@ export default function ActivityProfile() {
                         <button
                             onClick={toggleComplete}
                             disabled={completing}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full md:w-auto"
                             style={{
                                 background: activity.completed
                                     ? 'rgba(34,197,94,0.18)'
@@ -274,10 +273,10 @@ export default function ActivityProfile() {
                 </div>
 
                 {/* ── Main grid ─────────────────────────────── */}
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     {/* ── Left col — details ────────────────── */}
-                    <div className="col-span-2 flex flex-col gap-6">
+                    <div className="lg:col-span-2 flex flex-col gap-6">
 
                         {/* Activity details card */}
                         <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -286,7 +285,7 @@ export default function ActivityProfile() {
                                     style={{ color: T.primary }}>info</span>
                                 <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Activity Details</h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <InfoCard label="Type">
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="material-symbols-outlined filled text-[14px]"

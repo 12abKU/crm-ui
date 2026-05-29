@@ -31,7 +31,7 @@ export default function SlideForm({ title, open, onClose, onSubmit, children }) 
             <div className="fixed inset-0 z-40 backdrop-blur-sm"
                 style={{ background: 'rgba(15,23,42,0.5)' }}
                 onClick={close} />
-            <div className="fixed right-0 top-0 h-full w-[440px] z-50 flex flex-col"
+            <div className="fixed right-0 top-0 h-full w-full sm:w-[440px] z-50 flex flex-col"
                 style={{ background: T.surface, borderLeft: `1px solid ${T.border}`, boxShadow: SHADOW.xl }}>
                 <div className="flex items-center justify-between px-8 py-5"
                     style={{ borderBottom: `1px solid ${T.border}` }}>

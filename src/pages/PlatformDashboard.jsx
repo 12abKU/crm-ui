@@ -312,9 +312,9 @@ export default function PlatformDashboard() {
                 <div style={{ position: 'absolute', bottom: -60, left: '25%', width: 240, height: 240, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(60px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', top: 40, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
-                <div style={{ maxWidth: 1120, margin: '0 auto', padding: '44px 36px 0', position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 40 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+                <div className="px-4 pt-8 md:px-9 md:pt-10" style={{ maxWidth: 1120, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
                             <div style={{ position: 'relative', flexShrink: 0 }}>
                                 <div style={{ position: 'absolute', inset: -6, borderRadius: '50%', border: `2px solid ${T.avatarGlow}`, animation: 'pulseRing 3s ease-in-out infinite' }} />
                                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: `linear-gradient(135deg, ${T.avatarGradFrom}, ${T.avatarGradTo})`, boxShadow: `0 0 32px ${T.avatarGlow}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 900, color: '#fff' }}>
@@ -332,6 +332,7 @@ export default function PlatformDashboard() {
                         </div>
                         <button
                             onClick={() => { setFormError(''); setShowAddCompany(true) }}
+                            className="w-full md:w-auto justify-center"
                             style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, background: T.primary, color: '#fff', border: 'none', borderRadius: 14, padding: '12px 22px', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 6px 24px ${T.avatarGlow}`, transition: 'transform 0.18s, box-shadow 0.18s' }}
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 12px 32px ${T.avatarGlow}` }}
                             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 24px ${T.avatarGlow}` }}>
@@ -340,7 +341,7 @@ export default function PlatformDashboard() {
                     </div>
 
                     {stats && (
-                        <div style={{ display: 'flex', gap: 12 }}>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
                             <HeroStat icon={<IconBuilding size={16} />} value={stats.totalCompanies} label="Companies" accent="#60A5FA" delay={0} />
                             <HeroStat icon={<IconCircleCheck size={16} />} value={stats.activeCompanies} label="Active" accent="#4ADE80" delay={0.06} />
                             <HeroStat icon={<IconClock size={16} />} value={stats.trialCompanies ?? 0} label="On Trial" accent="#FBBF24" delay={0.12} />
@@ -354,7 +355,7 @@ export default function PlatformDashboard() {
             </div>
 
             {/* MAIN CONTENT */}
-            <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 36px 60px' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 1120, margin: '0 auto' }}>
 
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 

@@ -117,21 +117,32 @@ export default function TopBar() {
     const typeColors = { CALL: T.primary, EMAIL: T.activityEmail, MEETING: T.activityMeeting, NOTE: T.activityNote }
 
     return (
-        <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-40"
+        <header className="h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 gap-3"
             style={{
                 background: T.bg,
                 borderBottom: `1px solid ${T.border}`,
                 backdropFilter: 'blur(8px)',
             }}>
 
+            {/* Hamburger Menu Toggle Button on Mobile */}
+            <button 
+                onClick={() => window.dispatchEvent(new CustomEvent('crm-toggle-sidebar'))}
+                className="md:hidden flex items-center justify-center p-2 rounded-xl text-orange-600 transition-colors cursor-pointer shrink-0"
+                style={{ color: T.primary }}
+                onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+                <span className="material-symbols-outlined text-[24px]">menu</span>
+            </button>
+
             {/* ── Search bar — hidden for SUPER_ADMIN ─────── */}
             {!isSuperAdmin && (
-            <div className="relative w-full max-w-lg" ref={ref}>
+            <div className="relative flex-1 max-w-[150px] sm:max-w-xs md:max-w-lg" ref={ref}>
                 <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px]"
                     style={{ color: open ? T.primary : T.textMuted }}>search</span>
                 <input
                     ref={inputRef}
-                    className="w-full pl-10 pr-10 py-2.5 text-sm outline-none rounded-xl"
+                    className="w-full pl-10 pr-10 py-2 py-2.5 text-xs sm:text-sm outline-none rounded-xl"
                     style={{
                         background: T.surface,
                         color: T.textPrimary,
@@ -283,7 +294,7 @@ export default function TopBar() {
             <div className="flex items-center gap-1 ml-auto shrink-0">
 
                 {!isSuperAdmin && companyStatus === 'TRIAL' && (
-                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
+                    <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
                         style={{
                             background: `linear-gradient(135deg, ${T.primaryDim} 0%, rgba(234,88,12,0.04) 100%)`,
                             border: `1.5px solid ${T.border}`,

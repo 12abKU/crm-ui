@@ -32,13 +32,13 @@ export default function DealsTab({ data, activeStages = [] }) {
 
     return (
         <>
-            <div className="grid grid-cols-4 gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
                 <StatBox label="Revenue Won" value={fmtK(data.wonRevenue)} icon="payments" color={T.success} />
                 <StatBox label="Revenue Lost" value={fmtK(data.lostRevenue)} icon="money_off" color={T.error} />
                 <StatBox label="Deals Won" value={fmt(data.wonCount)} icon="check_circle" color={T.success} />
                 <StatBox label="Deals Lost" value={fmt(data.lostCount)} icon="cancel" color={T.error} />
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
                 <Card>
                     <CardTitle icon="percent">Win Rate</CardTitle>
                     <WinRateDonut winRate={winRate} wonCount={data.wonCount} lostCount={data.lostCount} />
@@ -48,7 +48,7 @@ export default function DealsTab({ data, activeStages = [] }) {
                     <FunnelChart stages={data.openDealsByStage} activeStages={activeStages} />
                 </Card>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
                 <Card>
                     <CardTitle icon="trending_up">Forecast by Quarter</CardTitle>
                     <ForecastChart data={data.forecast} activeStages={activeStages} />

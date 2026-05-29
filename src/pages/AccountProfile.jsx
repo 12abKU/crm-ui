@@ -93,7 +93,7 @@ export default function AccountProfile() {
     if (loading) return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
                 {/* Hero skeleton */}
                 <div className="rounded-3xl overflow-hidden mb-6 p-8"
                     style={{ background: T.surfaceHigh, minHeight: 140 }}>
@@ -105,7 +105,7 @@ export default function AccountProfile() {
                         </div>
                     </div>
                 </div>
-                <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="p-4 rounded-xl" style={{ background: T.surfaceHigh }}>
                             <Skeleton height={10} width={80} borderRadius={4} />
@@ -159,11 +159,11 @@ export default function AccountProfile() {
     return (
         <div>
             <TopBar />
-            <main className="p-8 max-w-360 mx-auto">
+            <main className="p-4 md:p-8 max-w-360 mx-auto">
 
                 {/* ── Back button ───────────────────────────── */}
                 <button onClick={() => navigate(-1)}
-                    className="inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
+                    className="inline-flex items-center justify-center gap-2 mb-5 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group w-full sm:w-auto"
                     style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}22`; e.currentTarget.style.boxShadow = `0 4px 12px ${T.primary}20` }}
                     onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
@@ -175,7 +175,6 @@ export default function AccountProfile() {
                 <div className="relative rounded-3xl overflow-hidden mb-6"
                     style={{
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 150,
                     }}>
                     {/* Orbs */}
                     <div style={{
@@ -191,7 +190,7 @@ export default function AccountProfile() {
                         pointerEvents: 'none',
                     }} />
 
-                    <div className="relative px-8 py-8 flex items-center justify-between gap-6">
+                    <div className="relative px-6 py-6 md:px-8 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                         {/* Left: avatar + name */}
                         <div className="flex items-center gap-5">
                             <div className="w-18 h-18 rounded-2xl flex items-center justify-center text-3xl font-black shrink-0"
@@ -233,8 +232,8 @@ export default function AccountProfile() {
                         </div>
 
                         {/* Right: action buttons */}
-                        <div className="flex items-center gap-2.5 shrink-0">
-                            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0 w-full md:w-auto">
+                            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                 style={{ background: T.heroBadgeBg, color: T.sidebarActiveText, border: `1px solid ${T.heroBadgeBorder}` }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.18)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
@@ -242,7 +241,7 @@ export default function AccountProfile() {
                             </button>
                             {canCreateDeal && (
                                 <button onClick={() => setDealFormOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                     style={{
                                         background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                         color: '#fff',
@@ -258,7 +257,7 @@ export default function AccountProfile() {
                 </div>
 
                 {/* ── 3-column Quick Stats Bar ──────────────── */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     {[
                         { icon: 'handshake', label: 'Open Deals', value: profile.openDealCount, bg: T.primaryDim, color: T.chartBlue },
                         { icon: 'groups', label: 'Contacts', value: profile.contactCount, bg: 'rgba(83,141,141,0.14)', color: T.chartTeal },
@@ -291,14 +290,14 @@ export default function AccountProfile() {
                 </div>
 
                 {/* ── Main 2-col layout ──────────────────────── */}
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     {/* Left col: Overview + Contacts + Open Deals */}
-                    <div className="col-span-2 flex flex-col gap-5">
+                    <div className="lg:col-span-2 flex flex-col gap-5">
 
                         {/* Overview */}
                         <SectionCard title="Overview" icon="info">
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                 <InfoRow label="Phone" value={profile.phone} />
                                 <InfoRow label="Website" value={profile.website} />
                                 <InfoRow label="Industry" value={profile.industry} />
@@ -333,8 +332,8 @@ export default function AccountProfile() {
                                                 <p className="text-sm font-bold" style={{ color: T.textPrimary }}>{c.firstName} {c.lastName}</p>
                                                 <p className="text-[12px]" style={{ color: T.textMuted }}>{c.designation || '—'}</p>
                                             </div>
-                                            <p className="text-[12px]" style={{ color: T.textMuted }}>{c.email}</p>
-                                            <span className="material-symbols-outlined text-[14px]" style={{ color: T.primary }}>chevron_right</span>
+                                            <p className="text-[12px] hidden sm:block truncate" style={{ color: T.textMuted }}>{c.email}</p>
+                                            <span className="material-symbols-outlined text-[14px] shrink-0" style={{ color: T.primary }}>chevron_right</span>
                                         </div>
                                     ))}
                                 </div>
