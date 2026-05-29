@@ -57,8 +57,15 @@ function SectionLabel({ label, count }) {
 
 export default function TopBar() {
     const navigate = useNavigate()
-    const { role } = useSelector(state => state.auth)
+    const { role, companyStatus, trialEndsAt } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
+
+    const getTrialDaysLeft = () => {
+        if (!trialEndsAt) return 0
+        const diff = new Date(trialEndsAt) - new Date()
+        return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+    }
+    const daysLeft = getTrialDaysLeft()
     const [query, setQuery] = useState('')
     // ── State (unchanged) ─────────────────────────────────────
     const [results, setResults] = useState({ accounts: [], contacts: [], deals: [], activities: [] })
@@ -274,6 +281,30 @@ export default function TopBar() {
 
             {/* ── Right actions ─────────────────────────── */}
             <div className="flex items-center gap-1 ml-auto shrink-0">
+
+                {!isSuperAdmin && companyStatus === 'TRIAL' && (
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
+                        style={{
+                            background: `linear-gradient(135deg, ${T.primaryDim} 0%, rgba(234,88,12,0.04) 100%)`,
+                            border: `1.5px solid ${T.border}`,
+                            color: T.primaryText,
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                        }}>
+                        <span className="material-symbols-outlined filled text-[14px]" style={{ color: T.primary }}>info</span>
+                        <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in trial</span>
+                        {role === 'ADMIN' && (
+                            <button onClick={() => navigate('/settings')}
+                                className="ml-1.5 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white transition-all duration-100"
+                                style={{
+                                    background: T.primary,
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                                onMouseLeave={e => e.currentTarget.style.background = T.primary}>
+                                Upgrade
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {isSuperAdmin ? (
                     // Super admin: notification bell only (no search, no support link)

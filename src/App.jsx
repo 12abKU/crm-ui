@@ -18,7 +18,7 @@ import Calls from './pages/Calls'
 import ApiErrorToast from './components/ui/ApiErrorToast'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setPermissions } from './store/authSlice'
+import { setPermissions, updateCompanyStatus } from './store/authSlice'
 import api from './api'
 import PlatformDashboard from './pages/PlatformDashboard'
 import ActivityProfile from './pages/ActivityProfile'
@@ -58,6 +58,29 @@ function PermissionLoader() {
       .then(r => dispatch(setPermissions(r.data)))
       .catch(() => { })
   }, [token, dispatch])
+  return null
+}
+
+function CompanyStatusLoader() {
+  const token = useSelector(state => state.auth.token)
+  const role = useSelector(state => state.auth.role)
+  const { pathname } = useLocation()
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (!token || role === 'SUPER_ADMIN') return
+    api.get('/api/user/profile')
+      .then(r => {
+        if (r.data) {
+          dispatch(updateCompanyStatus({
+            companyStatus: r.data.companyStatus,
+            trialEndsAt: r.data.trialEndsAt
+          }))
+        }
+      })
+      .catch(() => { })
+  }, [token, role, pathname, dispatch])
+
   return null
 }
 
@@ -119,10 +142,12 @@ export default function App() {
       <ApiErrorToast />
       <WebSocketToast />
       <PermissionLoader />
+      <CompanyStatusLoader />
       <PipelineStagesLoader />
       <WebSocketManager />
       <PushNotificationManager />
       <Routes>
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
