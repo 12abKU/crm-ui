@@ -27,7 +27,7 @@ export default function DealPanelDeals({ accountDeals, currentDealId, loading })
         <div className="px-6 py-5 flex flex-col gap-5">
 
             {/* Summary cards */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 px-4 py-4 rounded-2xl flex flex-col gap-1"
                     style={{
                         background: T.primaryFaint,

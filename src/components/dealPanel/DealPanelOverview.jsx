@@ -82,7 +82,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
         <div className="px-6 py-5 flex flex-col gap-5">
 
             {/* ── Stage + Value Hero Card ──────────────── */}
-            <div className="flex items-center justify-between p-5 rounded-2xl"
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl"
                 style={{
                     background: `linear-gradient(135deg, ${currentStyle.badgeBg} 0%, ${T.surface} 100%)`,
                     border: `1.5px solid ${currentStyle.accent}30`,
@@ -103,7 +103,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                     </div>
                 </div>
                 {deal.amount > 0 && (
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                         <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>
                             Deal Value
                         </p>
@@ -215,7 +215,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
                     Deal Details
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoCard label="Amount">
                         <span style={{ color: deal.amount > 0 ? T.primary : T.textMuted }}>
                             {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—'}

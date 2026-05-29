@@ -65,7 +65,7 @@ export default function TimelineView({ activities, loading, onComplete, onOutcom
                                         </span>
                                     </div>
                                     <div className="flex-1 pb-5 min-w-0">
-                                        <div className="flex items-start justify-between gap-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-sm font-semibold"
                                                     style={{ color: T.textPrimary, textDecoration: activity.completed ? 'line-through' : 'none' }}>
@@ -90,7 +90,7 @@ export default function TimelineView({ activities, loading, onComplete, onOutcom
                                                     <OutcomePicker activityId={activity.id} type={activity.type} current={activity.outcome} onSave={onOutcome} />
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                            <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1.5 shrink-0 flex-wrap sm:flex-nowrap mt-1 sm:mt-0">
                                                 <span className="text-[11px]" style={{ color: status === 'overdue' ? T.error : T.textMuted }}>
                                                     {fmtScheduled(activity.scheduledAt || activity.createdAt)}
                                                 </span>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 import Skeleton from 'react-loading-skeleton'
@@ -48,7 +48,7 @@ function EmailBubble({ email }) {
             </div>
 
             {/* Bubble + meta */}
-            <div className={`flex flex-col max-w-[78%] ${isReceived ? 'items-start' : 'items-end'}`}>
+            <div className={`flex flex-col max-w-[85%] sm:max-w-[78%] ${isReceived ? 'items-start' : 'items-end'}`}>
 
                 {/* Sender + time */}
                 <div className="flex items-center gap-2 mb-1 px-1">
@@ -247,11 +247,11 @@ export default function DealPanelConversation({ deal }) {
         <div className="flex flex-col h-full overflow-hidden">
 
             {/* Top bar */}
-            <div className="px-5 py-2.5 flex items-center justify-between shrink-0"
+            <div className="px-5 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0"
                 style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: T.onlineDot }} />
-                    <p className="text-[12px] font-semibold" style={{ color: T.textSecondary }}>
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: T.onlineDot }} />
+                    <p className="text-[12px] font-semibold truncate" style={{ color: T.textSecondary }}>
                         {status?.email}
                     </p>
                 </div>
@@ -274,15 +274,17 @@ export default function DealPanelConversation({ deal }) {
             </div>
 
             {/* Contact + count bar */}
-            <div className="px-5 py-2 flex items-center gap-2 shrink-0"
+            <div className="px-5 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0"
                 style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
-                <span className="material-symbols-outlined text-[13px]"
-                    style={{ color: T.textMuted }}>person</span>
-                <p className="text-[12px]" style={{ color: T.textMuted }}>
-                    Emails with{' '}
-                    <strong style={{ color: T.textPrimary }}>{deal.contact?.email}</strong>
-                </p>
-                <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full"
+                <div className="flex items-center gap-2 min-w-0">
+                    <span className="material-symbols-outlined text-[13px] shrink-0"
+                        style={{ color: T.textMuted }}>person</span>
+                    <p className="text-[12px] truncate" style={{ color: T.textMuted }}>
+                        Emails with{' '}
+                        <strong className="truncate" style={{ color: T.textPrimary }}>{deal.contact?.email}</strong>
+                    </p>
+                </div>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
                     style={{ background: T.primaryDim, color: T.primary }}>
                     {emails.length} emails
                 </span>

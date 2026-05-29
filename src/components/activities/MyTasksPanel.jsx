@@ -54,35 +54,37 @@ export default function MyTasksPanel({ onComplete, onOutcome }) {
                     <div key={activity.id} className="flex items-start gap-3 p-4 rounded-xl"
                         style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                         <CompleteToggle activityId={activity.id} completed={activity.completed} onToggle={handleComplete} />
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                    style={{ background: s.bg, color: s.color }}>{activity.type}</span>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                    style={{ background: ss.bg, color: ss.color }}>{ss.label}</span>
+                        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{ background: s.bg, color: s.color }}>{activity.type}</span>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{ background: ss.bg, color: ss.color }}>{ss.label}</span>
+                                </div>
+                                <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{activity.subject}</p>
+                                {activity.account && <p className="text-[11px]" style={{ color: T.textMuted }}>{activity.account.name}</p>}
                             </div>
-                            <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{activity.subject}</p>
-                            {activity.account && <p className="text-[11px]" style={{ color: T.textMuted }}>{activity.account.name}</p>}
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5">
-                            <p className="text-[11px]" style={{ color: status === 'overdue' ? T.error : T.textMuted }}>
-                                {fmtScheduled(activity.scheduledAt)}
-                            </p>
-                            {activity.reminderAt && (
-                                <p className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: T.warning }}>
-                                    <span className="material-symbols-outlined text-[11px]">notifications_active</span>
-                                    {fmtScheduled(activity.reminderAt)}
+                            <div className="flex flex-col items-start sm:items-end gap-1.5 shrink-0">
+                                <p className="text-[11px]" style={{ color: status === 'overdue' ? T.error : T.textMuted }}>
+                                    {fmtScheduled(activity.scheduledAt)}
                                 </p>
-                            )}
-                            <OutcomePicker
-                                activityId={activity.id}
-                                type={activity.type}
-                                current={activity.outcome}
-                                onSave={(id, val) => {
-                                    onOutcome(id, val)
-                                    setTasks(t => t.map(x => x.id === id ? { ...x, outcome: val } : x))
-                                }}
-                            />
+                                {activity.reminderAt && (
+                                    <p className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: T.warning }}>
+                                        <span className="material-symbols-outlined text-[11px]">notifications_active</span>
+                                        {fmtScheduled(activity.reminderAt)}
+                                    </p>
+                                )}
+                                <OutcomePicker
+                                    activityId={activity.id}
+                                    type={activity.type}
+                                    current={activity.outcome}
+                                    onSave={(id, val) => {
+                                        onOutcome(id, val)
+                                        setTasks(t => t.map(x => x.id === id ? { ...x, outcome: val } : x))
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
                 )

@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { T } from '../../constants/theme'
 
 const InfoCard = ({ label, children }) => (
@@ -67,7 +67,7 @@ export default function DealPanelAccount({ deal }) {
                 <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
                     Basic Information
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoCard label="Company Name">
                         <button onClick={() => navigate(`/accounts/${acc.id}`)}
                             className="hover:underline text-left font-bold"

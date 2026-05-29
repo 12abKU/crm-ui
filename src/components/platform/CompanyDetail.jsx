@@ -46,21 +46,23 @@ function CompanyTicketsPanel({ companyId, companyName }) {
 
     return (
         <div>
-            <div className="flex items-center gap-2 mb-5">
-                <div className="flex gap-1 p-1 rounded-xl" style={{ background: T.surfaceHigh }}>
-                    {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map(f => (
-                        <button key={f} onClick={() => setFilter(f)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            style={{
-                                background: filter === f ? T.surface : 'transparent',
-                                color: filter === f ? T.textPrimary : T.textMuted,
-                                boxShadow: filter === f ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
-                            }}>
-                            {f === 'ALL' ? 'All' : STATUS_STYLES[f]?.label}
-                        </button>
-                    ))}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-5">
+                <div className="overflow-x-auto w-full sm:w-auto scrollbar-none">
+                    <div className="flex gap-1 p-1 rounded-xl w-max" style={{ background: T.surfaceHigh }}>
+                        {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map(f => (
+                            <button key={f} onClick={() => setFilter(f)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap"
+                                style={{
+                                    background: filter === f ? T.surface : 'transparent',
+                                    color: filter === f ? T.textPrimary : T.textMuted,
+                                    boxShadow: filter === f ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+                                }}>
+                                {f === 'ALL' ? 'All' : STATUS_STYLES[f]?.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <span className="text-xs" style={{ color: T.textMuted }}>{tickets.length} total</span>
+                <span className="text-xs shrink-0" style={{ color: T.textMuted }}>{tickets.length} total</span>
             </div>
 
             {loading ? (
@@ -95,20 +97,20 @@ function CompanyTicketsPanel({ companyId, companyName }) {
                                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                 <div className="h-1" style={{ background: `linear-gradient(90deg, ${s.color}, ${s.color}60)` }} />
                                 <div className="p-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-start gap-3 min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 min-w-0 flex-1">
                                             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                                 style={{ background: T.primaryFaint }}>
                                                 <span className="material-symbols-outlined filled text-[15px]"
                                                     style={{ color: T.primary }}>{catIcon}</span>
                                             </div>
-                                            <div className="min-w-0">
+                                            <div className="min-w-0 flex-1">
                                                 <p className="text-sm font-bold" style={{ color: T.textPrimary }}>{t.subject}</p>
                                                 <p className="text-xs mt-0.5 line-clamp-1" style={{ color: T.textMuted }}>{t.description}</p>
                                             </div>
                                         </div>
                                         {t.status !== 'CLOSED' && (
-                                            <div className="flex gap-1.5 shrink-0">
+                                            <div className="flex gap-1.5 shrink-0 w-full sm:w-auto justify-end sm:justify-start">
                                                 {t.status === 'OPEN' && (
                                                     <button disabled={isUpdating}
                                                         onClick={() => handleStatusChange(t.id, 'IN_PROGRESS')}
@@ -195,27 +197,29 @@ export default function CompanyDetail({
             <TopBar />
             <main className="p-8 max-w-5xl mx-auto">
 
-                <div className="flex items-center gap-3 mb-6">
-                    <button onClick={onBack}
-                        className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl"
-                        style={{ color: T.textMuted, background: T.surfaceRaised }}
-                        onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
-                        onMouseLeave={e => e.currentTarget.style.background = T.surfaceRaised}>
-                        <IconArrowLeft size={15} /> Back
-                    </button>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm"
-                        style={{ background: T.primaryDim, color: T.primary }}>
-                        {company.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-black" style={{ color: T.textPrimary }}>{company.name}</h1>
-                            <TrialBadge trialEndsAt={company.trialEndsAt} status={company.status} />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <button onClick={onBack}
+                            className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl shrink-0"
+                            style={{ color: T.textMuted, background: T.surfaceRaised }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
+                            onMouseLeave={e => e.currentTarget.style.background = T.surfaceRaised}>
+                            <IconArrowLeft size={15} /> Back
+                        </button>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0"
+                            style={{ background: T.primaryDim, color: T.primary }}>
+                            {company.name.charAt(0).toUpperCase()}
                         </div>
-                        <p className="text-xs font-mono" style={{ color: T.textMuted }}>{company.slug}</p>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h1 className="text-xl font-black truncate" style={{ color: T.textPrimary }}>{company.name}</h1>
+                                <TrialBadge trialEndsAt={company.trialEndsAt} status={company.status} />
+                            </div>
+                            <p className="text-xs font-mono truncate" style={{ color: T.textMuted }}>{company.slug}</p>
+                        </div>
                     </div>
                     <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
-                        className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl"
+                        className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full md:w-auto shrink-0"
                         style={{ background: T.errorDim, color: T.error }}>
                         <IconTrash size={13} /> Delete Company
                     </button>
@@ -242,11 +246,11 @@ export default function CompanyDetail({
                 <CompanyNotes notes={notes} onChange={onNotesChange} saving={notesSaving} saved={notesSaved} />
 
                 {/* Tabs */}
-                <div className="flex items-center gap-1 p-1 rounded-xl mb-5"
-                    style={{ background: T.surface, border: `1px solid ${T.border}`, width: 'fit-content' }}>
+                <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl mb-5 w-full sm:w-fit"
+                    style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                     {TABS.map(({ id, label, Icon }) => (
                         <button key={id} onClick={() => setTab(id)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all"
+                            className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all flex-1 sm:flex-initial"
                             style={{
                                 background: tab === id ? T.primary : 'transparent',
                                 color: tab === id ? '#fff' : T.textMuted,

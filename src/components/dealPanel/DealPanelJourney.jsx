@@ -79,7 +79,7 @@ export default function DealPanelJourney({ deal }) {
                                     zIndex: 1
                                 }} />
                             
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                 <div>
                                     <span className="px-2.5 py-1 rounded-full text-xs font-bold inline-block mb-1.5"
                                         style={{ background: style.badgeBg, color: style.badgeColor }}>
@@ -95,7 +95,7 @@ export default function DealPanelJourney({ deal }) {
                                     )}
                                 </div>
                                 
-                                <div className="text-right">
+                                <div className="text-left sm:text-right mt-2 sm:mt-0">
                                     <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: T.textMuted }}>
                                         Time in Stage
                                     </div>

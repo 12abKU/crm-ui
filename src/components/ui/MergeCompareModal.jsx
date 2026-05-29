@@ -106,11 +106,11 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                 <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[420px]" style={{ background: T.bg }}>
                     
                     {/* Primary Selector Grid */}
-                    <div className="grid grid-cols-12 gap-4 items-center mb-2">
-                        <div className="col-span-4 text-xs font-bold" style={{ color: T.textMuted }}>
+                    <div className="flex flex-col sm:grid sm:grid-cols-12 gap-4 items-start sm:items-center mb-2">
+                        <div className="w-full sm:col-span-4 text-xs font-bold" style={{ color: T.textMuted }}>
                             RECORDS
                         </div>
-                        <div className="col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
+                        <div className="w-full sm:col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
                             style={{
                                 background: primaryIdx === 0 ? T.primaryDim : T.surface,
                                 borderColor: primaryIdx === 0 ? T.primary : T.border,
@@ -129,7 +129,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                 ID: {rec1.id} • Owner: {rec1.ownerName}
                             </span>
                         </div>
-                        <div className="col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
+                        <div className="w-full sm:col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
                             style={{
                                 background: primaryIdx === 1 ? T.primaryDim : T.surface,
                                 borderColor: primaryIdx === 1 ? T.primary : T.border,
@@ -160,14 +160,14 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                             const val1 = rec1[f.key] || ''
                             const val2 = rec2[f.key] || ''
                             return (
-                                <div key={f.key} className="grid grid-cols-12 gap-4 items-center py-2 border-b"
+                                <div key={f.key} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:gap-4 items-start sm:items-center py-2 border-b"
                                     style={{ borderColor: T.borderSubtle }}>
-                                    <div className="col-span-4 text-xs font-bold" style={{ color: T.textSecondary }}>
+                                    <div className="w-full sm:col-span-4 text-xs font-bold" style={{ color: T.textSecondary }}>
                                         {f.label}
                                     </div>
                                     
                                     {/* Record 1 Radio */}
-                                    <label className="col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
+                                    <label className="w-full sm:col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
                                         onClick={() => handleSelectField(f.key, val1)}>
                                         <input type="radio" name={`field-${f.key}`} checked={selectedFields[f.key] === val1} readOnly
                                             style={{ marginTop: 2, accentColor: T.primary }} />
@@ -179,7 +179,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                     </label>
 
                                     {/* Record 2 Radio */}
-                                    <label className="col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
+                                    <label className="w-full sm:col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
                                         onClick={() => handleSelectField(f.key, val2)}>
                                         <input type="radio" name={`field-${f.key}`} checked={selectedFields[f.key] === val2} readOnly
                                             style={{ marginTop: 2, accentColor: T.primary }} />

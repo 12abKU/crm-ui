@@ -287,24 +287,28 @@ export default function CalendarView({ onLogActivity }) {
             {/* Monthly Grid */}
             <div className="rounded-2xl overflow-hidden shadow-sm"
                 style={{ border: `1.5px solid ${T.border}` }}>
-                {/* Weekdays Header */}
-                <div className="grid grid-cols-7 text-center py-3 font-black text-[10px] uppercase tracking-wider"
-                    style={{ background: T.surfaceRaised, color: T.textMuted, borderBottom: `1.5px solid ${T.border}` }}>
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                        <div key={day}>{day}</div>
-                    ))}
-                </div>
-
-                {/* Days Grid */}
-                <div className="grid grid-cols-7" style={{ background: T.borderSubtle }}>
-                    {loading && activities.length === 0 ? (
-                        <div className="col-span-7 flex flex-col items-center justify-center py-24 gap-3 bg-neutral-900/5">
-                            <div className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: T.primary }} />
-                            <span className="text-xs font-bold" style={{ color: T.textMuted }}>Loading team schedule...</span>
+                <div className="overflow-x-auto">
+                    <div className="min-w-[700px] md:min-w-0">
+                        {/* Weekdays Header */}
+                        <div className="grid grid-cols-7 text-center py-3 font-black text-[10px] uppercase tracking-wider"
+                            style={{ background: T.surfaceRaised, color: T.textMuted, borderBottom: `1.5px solid ${T.border}` }}>
+                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+                                <div key={day}>{day}</div>
+                            ))}
                         </div>
-                    ) : (
-                        renderCells()
-                    )}
+
+                        {/* Days Grid */}
+                        <div className="grid grid-cols-7" style={{ background: T.borderSubtle }}>
+                            {loading && activities.length === 0 ? (
+                                <div className="col-span-7 flex flex-col items-center justify-center py-24 gap-3 bg-neutral-900/5">
+                                    <div className="w-8 h-8 rounded-full border-3 border-t-transparent animate-spin" style={{ borderColor: T.primary }} />
+                                    <span className="text-xs font-bold" style={{ color: T.textMuted }}>Loading team schedule...</span>
+                                </div>
+                            ) : (
+                                renderCells()
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

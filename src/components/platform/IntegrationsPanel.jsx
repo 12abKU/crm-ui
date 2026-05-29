@@ -46,9 +46,9 @@ const Field = ({ label, type = 'text', value, onChange, placeholder, monospace }
 
 const Section = ({ icon: Icon, title, color, configured, children, onSave, onClear, saving, error, success }) => (
     <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${T.border}` }}>
+        <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ borderBottom: `1px solid ${T.border}` }}>
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: color + '20' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: color + '20' }}>
                     <Icon size={18} style={{ color }} />
                 </div>
                 <div>
@@ -61,7 +61,7 @@ const Section = ({ icon: Icon, title, color, configured, children, onSave, onCle
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
                 {configured && (
                     <button onClick={onClear} disabled={saving}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
@@ -265,7 +265,7 @@ export default function IntegrationsPanel({ companyId }) {
                 onSave={saveTwilio} onClear={clearTwilio}
                 saving={twilioSaving} error={twilioError} success={twilioSuccess}
             >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Account SID" value={twilio.accountSid} onChange={setT('accountSid')}
                         placeholder="ACxxxxxxxxxxxxxxx" monospace />
                     <Field label="Auth Token" type="password" value={twilio.authToken} onChange={setT('authToken')}
@@ -288,7 +288,7 @@ export default function IntegrationsPanel({ companyId }) {
                 onSave={saveGoogle} onClear={clearGoogle}
                 saving={googleSaving} error={googleError} success={googleSuccess}
             >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Client ID" value={google.clientId} onChange={setG('clientId')}
                         placeholder="xxxxxxx.apps.googleusercontent.com" monospace />
                     <Field label="Client Secret" type="password" value={google.clientSecret} onChange={setG('clientSecret')}
@@ -307,7 +307,7 @@ export default function IntegrationsPanel({ companyId }) {
                 onSave={saveWhatsapp} onClear={clearWhatsapp}
                 saving={whatsappSaving} error={whatsappError} success={whatsappSuccess}
             >
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Phone Number ID" value={whatsapp.phoneNumberId} onChange={setW('phoneNumberId')}
                         placeholder="1065xxxxxxxxxxx" monospace />
                     <Field label="WhatsApp Business Account ID" value={whatsapp.businessAccountId} onChange={setW('businessAccountId')}

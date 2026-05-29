@@ -420,7 +420,7 @@ export default function InternalNotes({ dealId, contactId }) {
                                     {formatTime(note.createdAt)}
                                 </span>
                             </div>
-                            <div className="text-sm font-semibold leading-relaxed pl-10 whitespace-pre-wrap"
+                            <div className="text-sm font-semibold leading-relaxed pl-1 sm:pl-10 whitespace-pre-wrap"
                                 style={{ color: T.textSecondary }}>
                                 {renderNoteContent(note.content)}
                             </div>

@@ -38,7 +38,8 @@ export default function CompanyUsersTable({
             ) : users.length === 0 ? (
                 <div className="py-12 text-center text-sm" style={{ color: T.textMuted }}>No users yet</div>
             ) : (
-                <table className="w-full text-left">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[650px]">
                     <thead>
                         <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
                             {['User', 'Email', 'Role', 'Joined', 'Actions'].map(h => (
@@ -126,6 +127,7 @@ export default function CompanyUsersTable({
                         })}
                     </tbody>
                 </table>
+            </div>
             )}
         </div>
     )

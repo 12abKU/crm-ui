@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { T, ACTIVITY_TYPES, ACTIVITY_STYLES } from '../../constants/theme'
 import Skeleton from 'react-loading-skeleton'
 import { IconPlus, IconX, IconCheck } from '@tabler/icons-react'
@@ -79,7 +79,7 @@ export default function DealPanelActivities({ activities: initialActivities, loa
         <div className="px-6 py-5">
 
             {/* ── Header ──────────────────────────────── */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>
                         Activity Timeline
@@ -159,7 +159,7 @@ export default function DealPanelActivities({ activities: initialActivities, loa
                         </label>
                         <input type="datetime-local" value={form.scheduledAt}
                             onChange={e => set('scheduledAt', e.target.value)}
-                            className="px-3 py-2 rounded-lg text-sm outline-none"
+                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                             style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.textPrimary }} />
                     </div>
 

@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 
 const fmt = (s) => {
@@ -98,80 +98,86 @@ export default function CallLogTable({ logs = [], loading, compact = false }) {
 
                 return (
                     <div key={log.id}
-                        className="flex items-center gap-4 p-4 rounded-xl transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl transition-colors"
                         style={{ background: T.surfaceRaised, border: `1px solid ${T.border}` }}>
 
-                        {/* Direction icon */}
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ background: isOut ? T.primaryDim : T.secondaryDim }}>
-                            <span className="material-symbols-outlined text-[18px]"
-                                style={{ color: isOut ? T.primary : T.secondary }}>
-                                {isOut ? 'call_made' : 'call_received'}
-                            </span>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {/* Direction icon */}
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                style={{ background: isOut ? T.primaryDim : T.secondaryDim }}>
+                                <span className="material-symbols-outlined text-[18px]"
+                                    style={{ color: isOut ? T.primary : T.secondary }}>
+                                    {isOut ? 'call_made' : 'call_received'}
+                                </span>
+                            </div>
+
+                            {/* Contact */}
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold truncate" style={{ color: T.textPrimary }}>
+                                    {log.contactName || log.toNumber || log.fromNumber}
+                                </p>
+                                <p className="text-[11px] truncate" style={{ color: T.textMuted }}>
+                                    {isOut ? log.toNumber : log.fromNumber}
+                                    {!compact && log.agentName && ` · ${log.agentName}`}
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Contact */}
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold truncate" style={{ color: T.textPrimary }}>
-                                {log.contactName || log.toNumber || log.fromNumber}
-                            </p>
-                            <p className="text-[11px] truncate" style={{ color: T.textMuted }}>
-                                {isOut ? log.toNumber : log.fromNumber}
-                                {!compact && log.agentName && ` · ${log.agentName}`}
-                            </p>
-                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-3.5 flex-wrap sm:flex-nowrap border-t sm:border-t-0 pt-2.5 sm:pt-0 w-full sm:w-auto"
+                            style={{ borderColor: T.borderSubtle }}>
+                            {/* Duration */}
+                            <div className="text-left sm:text-right shrink-0">
+                                <p className="text-sm font-black" style={{ color: T.textPrimary }}>
+                                    {fmt(log.durationSeconds)}
+                                </p>
+                                <p className="text-[11px]" style={{ color: T.textMuted }}>{timeAgo(log.createdAt)}</p>
+                            </div>
 
-                        {/* Duration */}
-                        <div className="text-right shrink-0">
-                            <p className="text-sm font-black" style={{ color: T.textPrimary }}>
-                                {fmt(log.durationSeconds)}
-                            </p>
-                            <p className="text-[11px]" style={{ color: T.textMuted }}>{timeAgo(log.createdAt)}</p>
-                        </div>
+                            {/* Outcome / status badge */}
+                            {outcome ? (
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
+                                    style={{ background: outcome.bg, color: outcome.color }}>
+                                    {outcome.label}
+                                </span>
+                            ) : (
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
+                                    style={{ background: status.bg, color: status.color }}>
+                                    {log.status?.replace('_', ' ')}
+                                </span>
+                            )}
 
-                        {/* Outcome / status badge */}
-                        {outcome ? (
-                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
-                                style={{ background: outcome.bg, color: outcome.color }}>
-                                {outcome.label}
-                            </span>
-                        ) : (
-                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0"
-                                style={{ background: status.bg, color: status.color }}>
-                                {log.status?.replace('_', ' ')}
-                            </span>
-                        )}
+                            {/* Actions (Recording / Notes) */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {log.recordingUrl && (
+                                    <a href={log.recordingUrl} target="_blank" rel="noreferrer"
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                        style={{ background: T.primaryDim, color: T.primary }}>
+                                        <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                                    </a>
+                                )}
 
-                        {/* Recording */}
-                        {log.recordingUrl && (
-                            <a href={log.recordingUrl} target="_blank" rel="noreferrer"
-                                className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                                style={{ background: T.primaryDim, color: T.primary }}>
-                                <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                            </a>
-                        )}
-
-                        {/* Notes button — clickable, shows popover */}
-                        {log.notes && (
-                            <div className="relative shrink-0">
-                                <button
-                                    onClick={() => setOpenNote(noteOpen ? null : log.id)}
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                                    style={{
-                                        background: noteOpen ? T.secondary : T.secondaryDim,
-                                        color: noteOpen ? '#fff' : T.secondary,
-                                    }}
-                                    title="View note">
-                                    <span className="material-symbols-outlined text-[16px]">sticky_note_2</span>
-                                </button>
-                                {noteOpen && (
-                                    <NotesPopover
-                                        notes={log.notes}
-                                        onClose={() => setOpenNote(null)}
-                                    />
+                                {log.notes && (
+                                    <div className="relative font-normal">
+                                        <button
+                                            onClick={() => setOpenNote(noteOpen ? null : log.id)}
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                                            style={{
+                                                background: noteOpen ? T.secondary : T.secondaryDim,
+                                                color: noteOpen ? '#fff' : T.secondary,
+                                            }}
+                                            title="View note">
+                                            <span className="material-symbols-outlined text-[16px]">sticky_note_2</span>
+                                        </button>
+                                        {noteOpen && (
+                                            <NotesPopover
+                                                notes={log.notes}
+                                                onClose={() => setOpenNote(null)}
+                                            />
+                                        )}
+                                    </div>
                                 )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 )
             })}

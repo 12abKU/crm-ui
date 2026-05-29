@@ -105,8 +105,8 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                 onClick={onClose} />
 
             {/* Panel */}
-            <div className="fixed right-0 top-0 h-full z-50 flex overflow-hidden"
-                style={{ width: 1000, boxShadow: '0 0 60px rgba(0,0,0,0.30)' }}>
+            <div className="fixed right-0 top-0 h-full z-50 flex overflow-hidden w-full max-w-[1000px]"
+                style={{ boxShadow: '0 0 60px rgba(0,0,0,0.30)' }}>
 
                 {/* ── Vertical icon sidebar ──────────────── */}
                 <div className="flex flex-col items-center pt-5 pb-4 gap-1 shrink-0"

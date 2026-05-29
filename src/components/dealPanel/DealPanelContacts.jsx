@@ -68,7 +68,7 @@ export default function DealPanelContacts({ deal }) {
                 <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
                     Contact Details
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoCard label="Full Name">
                         <button onClick={() => navigate(`/contacts/${contact.id}`)}
                             className="hover:underline text-left font-bold"

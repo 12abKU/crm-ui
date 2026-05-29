@@ -85,7 +85,7 @@ export default function TodayFocus({ overdue, upcoming, loading }) {
                             {overdue.length}
                         </span>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         {overdue.map(activity => <FocusTaskCard key={activity.id} activity={activity} accent="red" />)}
                     </div>
                 </div>
@@ -101,7 +101,7 @@ export default function TodayFocus({ overdue, upcoming, loading }) {
                             {upcoming.length}
                         </span>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         {upcoming.map(activity => <FocusTaskCard key={activity.id} activity={activity} accent="blue" />)}
                     </div>
                 </div>
