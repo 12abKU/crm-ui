@@ -26,7 +26,8 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
             { key: 'lastName', label: 'Last Name' },
             { key: 'email', label: 'Email' },
             { key: 'phone', label: 'Phone' },
-            { key: 'designation', label: 'Designation' }
+            { key: 'designation', label: 'Designation' },
+            { key: 'accountId', label: 'Associated Account', displayKey: 'accountName' }
         ]
 
     // Initialize selected values from the default primary record
@@ -34,10 +35,15 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
         if (rec1 && rec2) {
             const initial = {}
             fieldsToCompare.forEach(f => {
-                // Default to primary record's value, or fallback to the other if primary is empty
-                const val1 = rec1[f.key] || ''
-                const val2 = rec2[f.key] || ''
-                initial[f.key] = primaryIdx === 0 ? (val1 || val2) : (val2 || val1)
+                const val1 = rec1[f.key] !== null && rec1[f.key] !== undefined ? rec1[f.key] : ''
+                const val2 = rec2[f.key] !== null && rec2[f.key] !== undefined ? rec2[f.key] : ''
+                
+                // If primary has a value, select it. If primary is empty, select duplicate's value.
+                if (primaryIdx === 0) {
+                    initial[f.key] = val1 !== '' ? val1 : val2
+                } else {
+                    initial[f.key] = val2 !== '' ? val2 : val1
+                }
             })
             setSelectedFields(initial)
         }
@@ -55,11 +61,20 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
 
         setMerging(true)
         try {
+            // Stringify all merged field values to map type requirements of backend DTO
+            const payloadFields = {}
+            fieldsToCompare.forEach(f => {
+                const val = selectedFields[f.key]
+                if (val !== undefined && val !== null && val !== '') {
+                    payloadFields[f.key] = String(val)
+                }
+            })
+
             await api.post('/api/de-duplication/merge', {
                 entityType,
                 primaryId: primary.id,
                 duplicateId: duplicate.id,
-                mergedFields: selectedFields
+                mergedFields: payloadFields
             })
             onSuccess()
             onClose()
@@ -72,7 +87,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-            <div className="w-full max-w-2xl rounded-2xl overflow-hidden flex flex-col transition-all duration-300"
+            <div className="w-full max-w-3xl rounded-2xl overflow-hidden flex flex-col transition-all duration-300"
                 style={{ background: T.surface, border: `1px solid ${T.border}`, boxShadow: SHADOW.xl }}>
                 
                 {/* Header */}
@@ -86,10 +101,10 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                         </div>
                         <div>
                             <h3 className="font-black text-base" style={{ color: T.textPrimary }}>
-                                Merge Duplicate {entityType === 'ACCOUNT' ? 'Accounts' : 'Contacts'}
+                                Compare & Resolve Duplicates
                             </h3>
                             <p className="text-[11px]" style={{ color: T.textMuted }}>
-                                Select the target primary record and choose which field values to retain.
+                                Select the primary record that will survive and configure which field values to retain.
                             </p>
                         </div>
                     </div>
@@ -103,95 +118,187 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                 </div>
 
                 {/* Compare Grid */}
-                <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[420px]" style={{ background: T.bg }}>
+                <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[500px]" style={{ background: T.bg }}>
                     
-                    {/* Primary Selector Grid */}
-                    <div className="flex flex-col sm:grid sm:grid-cols-12 gap-4 items-start sm:items-center mb-2">
-                        <div className="w-full sm:col-span-4 text-xs font-bold" style={{ color: T.textMuted }}>
-                            RECORDS
+                    {/* Information Banner */}
+                    <div className="flex items-start gap-3 p-3.5 rounded-xl text-xs leading-normal"
+                        style={{ background: `${T.primary}0B`, border: `1px solid ${T.primary}20`, color: T.textSecondary }}>
+                        <span className="material-symbols-outlined shrink-0 text-base mt-0.5" style={{ color: T.primary }}>info</span>
+                        <div>
+                            All associated <strong>deals</strong>, <strong>activities</strong>, and <strong>notes</strong> will be automatically linked to the surviving <strong>Primary</strong> record. The <strong>Duplicate</strong> record will be deleted.
                         </div>
-                        <div className="w-full sm:col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
+                    </div>
+
+                    {/* Primary Selector Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        {/* Record 1 Card */}
+                        <div className="p-4 rounded-xl border flex flex-col gap-1.5 transition-all cursor-pointer relative"
                             style={{
-                                background: primaryIdx === 0 ? T.primaryDim : T.surface,
+                                background: primaryIdx === 0 ? `${T.primary}0D` : T.surface,
                                 borderColor: primaryIdx === 0 ? T.primary : T.border,
-                                boxShadow: primaryIdx === 0 ? `0 0 0 2px ${T.primary}20` : 'none'
+                                boxShadow: primaryIdx === 0 ? `0 0 0 1px ${T.primary}` : 'none'
                             }}
                             onClick={() => setPrimaryIdx(0)}
                         >
-                            <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded"
-                                style={{ background: primaryIdx === 0 ? T.primary : T.borderSubtle, color: primaryIdx === 0 ? '#fff' : T.textMuted, width: 'max-content' }}>
-                                {primaryIdx === 0 ? 'Primary' : 'Duplicate'}
-                            </span>
-                            <span className="text-xs font-black truncate mt-1" style={{ color: T.textPrimary }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded"
+                                    style={{
+                                        background: primaryIdx === 0 ? T.primary : T.borderSubtle,
+                                        color: primaryIdx === 0 ? '#fff' : T.textMuted
+                                    }}>
+                                    {primaryIdx === 0 ? 'Primary (Surviving)' : 'Duplicate'}
+                                </span>
+                                <span className="text-[10px] font-bold" style={{ color: T.textMuted }}>
+                                    ID: {rec1.id}
+                                </span>
+                            </div>
+                            <h4 className="text-sm font-black truncate mt-1" style={{ color: T.textPrimary }}>
                                 {rec1.primaryText}
-                            </span>
-                            <span className="text-[10px]" style={{ color: T.textMuted }}>
-                                ID: {rec1.id} • Owner: {rec1.ownerName}
-                            </span>
+                            </h4>
+                            <p className="text-xs truncate" style={{ color: T.textSecondary }}>
+                                {rec1.secondaryText || '—'}
+                            </p>
+                            <div className="text-[10px] mt-2 pt-2 border-t flex justify-between" style={{ borderColor: T.borderSubtle, color: T.textMuted }}>
+                                <span>Owner: {rec1.ownerName || 'Unassigned'}</span>
+                                <span>Created: {new Date(rec1.createdAt).toLocaleDateString()}</span>
+                            </div>
                         </div>
-                        <div className="w-full sm:col-span-4 p-3 rounded-xl border flex flex-col gap-1 transition-all cursor-pointer"
+
+                        {/* Record 2 Card */}
+                        <div className="p-4 rounded-xl border flex flex-col gap-1.5 transition-all cursor-pointer relative"
                             style={{
-                                background: primaryIdx === 1 ? T.primaryDim : T.surface,
+                                background: primaryIdx === 1 ? `${T.primary}0D` : T.surface,
                                 borderColor: primaryIdx === 1 ? T.primary : T.border,
-                                boxShadow: primaryIdx === 1 ? `0 0 0 2px ${T.primary}20` : 'none'
+                                boxShadow: primaryIdx === 1 ? `0 0 0 1px ${T.primary}` : 'none'
                             }}
                             onClick={() => setPrimaryIdx(1)}
                         >
-                            <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded"
-                                style={{ background: primaryIdx === 1 ? T.primary : T.borderSubtle, color: primaryIdx === 1 ? '#fff' : T.textMuted, width: 'max-content' }}>
-                                {primaryIdx === 1 ? 'Primary' : 'Duplicate'}
-                            </span>
-                            <span className="text-xs font-black truncate mt-1" style={{ color: T.textPrimary }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded"
+                                    style={{
+                                        background: primaryIdx === 1 ? T.primary : T.borderSubtle,
+                                        color: primaryIdx === 1 ? '#fff' : T.textMuted
+                                    }}>
+                                    {primaryIdx === 1 ? 'Primary (Surviving)' : 'Duplicate'}
+                                </span>
+                                <span className="text-[10px] font-bold" style={{ color: T.textMuted }}>
+                                    ID: {rec2.id}
+                                </span>
+                            </div>
+                            <h4 className="text-sm font-black truncate mt-1" style={{ color: T.textPrimary }}>
                                 {rec2.primaryText}
-                            </span>
-                            <span className="text-[10px]" style={{ color: T.textMuted }}>
-                                ID: {rec2.id} • Owner: {rec2.ownerName}
-                            </span>
+                            </h4>
+                            <p className="text-xs truncate" style={{ color: T.textSecondary }}>
+                                {rec2.secondaryText || '—'}
+                            </p>
+                            <div className="text-[10px] mt-2 pt-2 border-t flex justify-between" style={{ borderColor: T.borderSubtle, color: T.textMuted }}>
+                                <span>Owner: {rec2.ownerName || 'Unassigned'}</span>
+                                <span>Created: {new Date(rec2.createdAt).toLocaleDateString()}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="text-[10px] uppercase font-black tracking-widest mb-1" style={{ color: T.textMuted }}>
-                        Field Comparison (Select values to keep in primary record)
-                    </div>
+                    {/* Field Comparison Section */}
+                    <div>
+                        <div className="text-[10px] uppercase font-black tracking-wider mb-3 flex items-center gap-1.5" style={{ color: T.textMuted }}>
+                            <span className="material-symbols-outlined text-[13px]">list</span>
+                            Select values to keep in primary record
+                        </div>
 
-                    {/* Side-by-side Fields */}
-                    <div className="flex flex-col gap-2.5">
-                        {fieldsToCompare.map(f => {
-                            const val1 = rec1[f.key] || ''
-                            const val2 = rec2[f.key] || ''
-                            return (
-                                <div key={f.key} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:gap-4 items-start sm:items-center py-2 border-b"
-                                    style={{ borderColor: T.borderSubtle }}>
-                                    <div className="w-full sm:col-span-4 text-xs font-bold" style={{ color: T.textSecondary }}>
-                                        {f.label}
+                        <div className="flex flex-col gap-2">
+                            {fieldsToCompare.map(f => {
+                                const rawVal1 = rec1[f.key] !== null && rec1[f.key] !== undefined ? rec1[f.key] : ''
+                                const rawVal2 = rec2[f.key] !== null && rec2[f.key] !== undefined ? rec2[f.key] : ''
+
+                                const displayVal1 = f.displayKey ? (rec1[f.displayKey] || '') : rawVal1
+                                const displayVal2 = f.displayKey ? (rec2[f.displayKey] || '') : rawVal2
+
+                                const isIdentical = String(rawVal1).trim() === String(rawVal2).trim()
+                                const isConflict = !isIdentical && rawVal1 !== '' && rawVal2 !== ''
+
+                                return (
+                                    <div key={f.key} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 sm:gap-4 items-stretch p-3 rounded-xl border transition-all"
+                                        style={{
+                                            background: isConflict ? 'rgba(217,119,6,0.03)' : T.surface,
+                                            borderColor: isConflict ? 'rgba(217,119,6,0.2)' : T.border
+                                        }}
+                                    >
+                                        {/* Field Name & Status */}
+                                        <div className="sm:col-span-4 flex flex-col justify-center min-w-0 pr-2">
+                                            <span className="text-xs font-bold truncate" style={{ color: isConflict ? '#D97706' : T.textSecondary }}>
+                                                {f.label}
+                                            </span>
+                                            {isConflict && (
+                                                <span className="text-[9px] font-semibold text-amber-600 flex items-center gap-0.5 mt-0.5">
+                                                    <span className="material-symbols-outlined text-[10px]">warning</span>
+                                                    Conflict
+                                                </span>
+                                            )}
+                                            {isIdentical && rawVal1 !== '' && (
+                                                <span className="text-[9px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+                                                    <span className="material-symbols-outlined text-[10px]">check_circle</span>
+                                                    Matching
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Record 1 Field Value */}
+                                        <div className="sm:col-span-4 flex items-stretch">
+                                            <button type="button"
+                                                onClick={() => handleSelectField(f.key, rawVal1)}
+                                                className="w-full flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-left transition-all border outline-none"
+                                                style={{
+                                                    background: selectedFields[f.key] === rawVal1 ? `${T.primary}0D` : 'transparent',
+                                                    borderColor: selectedFields[f.key] === rawVal1 ? T.primary : 'transparent'
+                                                }}
+                                            >
+                                                <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition-all"
+                                                    style={{
+                                                        borderColor: selectedFields[f.key] === rawVal1 ? T.primary : T.border,
+                                                        background: selectedFields[f.key] === rawVal1 ? T.primary : 'transparent'
+                                                    }}>
+                                                    {selectedFields[f.key] === rawVal1 && (
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs truncate font-medium" style={{ color: rawVal1 ? T.textPrimary : T.textMuted }}>
+                                                        {displayVal1 || '—'}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        {/* Record 2 Field Value */}
+                                        <div className="sm:col-span-4 flex items-stretch">
+                                            <button type="button"
+                                                onClick={() => handleSelectField(f.key, rawVal2)}
+                                                className="w-full flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-left transition-all border outline-none"
+                                                style={{
+                                                    background: selectedFields[f.key] === rawVal2 ? `${T.primary}0D` : 'transparent',
+                                                    borderColor: selectedFields[f.key] === rawVal2 ? T.primary : 'transparent'
+                                                }}
+                                            >
+                                                <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition-all"
+                                                    style={{
+                                                        borderColor: selectedFields[f.key] === rawVal2 ? T.primary : T.border,
+                                                        background: selectedFields[f.key] === rawVal2 ? T.primary : 'transparent'
+                                                    }}>
+                                                    {selectedFields[f.key] === rawVal2 && (
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs truncate font-medium" style={{ color: rawVal2 ? T.textPrimary : T.textMuted }}>
+                                                        {displayVal2 || '—'}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        </div>
                                     </div>
-                                    
-                                    {/* Record 1 Radio */}
-                                    <label className="w-full sm:col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
-                                        onClick={() => handleSelectField(f.key, val1)}>
-                                        <input type="radio" name={`field-${f.key}`} checked={selectedFields[f.key] === val1} readOnly
-                                            style={{ marginTop: 2, accentColor: T.primary }} />
-                                        <div className="min-w-0">
-                                            <p className="text-xs truncate font-medium" style={{ color: val1 ? T.textPrimary : T.textMuted }}>
-                                                {val1 || '—'}
-                                            </p>
-                                        </div>
-                                    </label>
-
-                                    {/* Record 2 Radio */}
-                                    <label className="w-full sm:col-span-4 flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition-all hover:bg-black/5"
-                                        onClick={() => handleSelectField(f.key, val2)}>
-                                        <input type="radio" name={`field-${f.key}`} checked={selectedFields[f.key] === val2} readOnly
-                                            style={{ marginTop: 2, accentColor: T.primary }} />
-                                        <div className="min-w-0">
-                                            <p className="text-xs truncate font-medium" style={{ color: val2 ? T.textPrimary : T.textMuted }}>
-                                                {val2 || '—'}
-                                            </p>
-                                        </div>
-                                    </label>
-                                </div>
-                            )
-                        })}
+                                )
+                            })}
+                        </div>
                     </div>
                 </div>
 
