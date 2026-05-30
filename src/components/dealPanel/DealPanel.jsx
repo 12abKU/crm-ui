@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { T, SHADOW } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
 import api from '../../api'
+import { profileCache, profileCacheGet, profileCacheSet, getCachePrefix, isFresh, PROFILE_TTL } from '../../utils/cacheUtils'
 import DealPanelOverview from './DealPanelOverview'
 import DealPanelAccount from './DealPanelAccount'
 import DealPanelConversation from './DealPanelConversation'
@@ -50,18 +51,36 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
         return true
     })
 
-    // ── Data loading (unchanged) ─────────────────────────────
-    const loadProfile = () => {
-        setLoading(true)
-        api.get(`/api/deals/${deal.id}/profile`)
-            .then(r => setProfile(r.data))
+    // ── Data loading ─────────────────────────────────────────
+    const loadProfile = (dealId = deal.id, bypassCache = false) => {
+        const cacheKey = `${getCachePrefix()}:${dealId}`
+        const cachedValue = profileCacheGet(cacheKey)
+        const cachedEntry = profileCache.get(cacheKey)
+        const fresh = isFresh(cachedEntry, PROFILE_TTL)
+
+        if (cachedValue && !bypassCache) {
+            setProfile(cachedValue)
+            setLoading(false)
+        } else {
+            setProfile(null)
+            setLoading(true)
+        }
+
+        if (fresh && !bypassCache) {
+            return
+        }
+
+        api.get(`/api/deals/${dealId}/profile`)
+            .then(r => {
+                setProfile(r.data)
+                profileCacheSet(cacheKey, r.data)
+            })
             .finally(() => setLoading(false))
     }
 
     useEffect(() => {
-        setProfile(null)
         setActiveTab(initialTab || 'overview')
-        loadProfile()
+        loadProfile(deal.id)
     }, [deal.id, initialTab])
 
     const activities = profile?.activities ?? []
@@ -85,7 +104,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                     activities={activities}
                     loading={loading}
                     deal={deal}
-                    onActivityAdded={loadProfile}
+                    onActivityAdded={() => loadProfile(deal.id, true)}
                 />
             )
             case 'journey':  return <DealPanelJourney deal={deal} />

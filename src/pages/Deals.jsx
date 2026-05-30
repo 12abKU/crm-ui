@@ -15,8 +15,9 @@ import DealCard from '../components/deals/DealCard'
 import LostDealReasonModal from '../components/deals/LostDealReasonModal'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
+import { profileCache, getCachePrefix } from '../utils/cacheUtils'
 
-// ── Constants (unchanged) ──────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────
 const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
 
 const STAGE_COLUMN_BG = {
@@ -46,7 +47,14 @@ const STAGE_COLUMN_BORDER = {
 export default function Deals() {
     const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
     const navigate = useNavigate()
-    const [deals, setDeals] = useState([])
+
+    // ── Pagination and Column Cache State Maps ─────────────────
+    const [dealsByStage, setDealsByStage] = useState({})
+    const [pagesByStage, setPagesByStage] = useState({})
+    const [totalPagesByStage, setTotalPagesByStage] = useState({})
+    const [loadingByStage, setLoadingByStage] = useState({})
+    const [stageTotalsByStage, setStageTotalsByStage] = useState({})
+
     const [accounts, setAccounts] = useState([])
     const [open, setOpen] = useState(false)
     const [selectedDeal, setSelectedDeal] = useState(null)
@@ -74,58 +82,148 @@ export default function Deals() {
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
 
-    const load = async (pipelineId) => {
-        const url = pipelineId ? `/api/deals/all?pipelineId=${pipelineId}` : '/api/deals/all'
-        const res = await api.get(url)
-        const all = res.data ?? []
-        setDeals(all.map(d => ({
-            ...d,
-            _assignedToMe: (d.assignees ?? []).some(u => String(u.id) === String(userId)),
-            _isOwner: String(d.owner?.id) === String(userId),
-        })))
+    // Ref for holding abort controllers per stage key to prevent race conditions
+    const abortControllersRef = useRef({})
+
+    // ── Load Stage Deals ───────────────────────────────────────
+    const loadStageDeals = async (stageKey, page, isAppend = false, currentSearch = '') => {
+        // Abort previous in-flight request for this stage
+        if (abortControllersRef.current[stageKey]) {
+            abortControllersRef.current[stageKey].abort()
+        }
+        const controller = new AbortController()
+        abortControllersRef.current[stageKey] = controller
+
+        setLoadingByStage(prev => ({ ...prev, [stageKey]: true }))
+        try {
+            const params = new URLSearchParams({
+                stage: stageKey,
+                page: String(page),
+                size: '30'
+            })
+            if (selectedPipelineId) params.set('pipelineId', String(selectedPipelineId))
+            if (currentSearch.trim()) params.set('search', currentSearch.trim())
+
+            const res = await api.get(`/api/deals/all?${params}`, {
+                signal: controller.signal
+            })
+            
+            const data = res.data ?? { content: [], totalPages: 0, stageTotalAmount: 0, stageTotalCount: 0 }
+            const content = data.content ?? []
+            const totalPages = data.totalPages ?? 0
+            const stageTotalAmount = data.stageTotalAmount ?? 0
+            const stageTotalCount = data.stageTotalCount ?? 0
+
+            const processed = content.map(d => ({
+                ...d,
+                _assignedToMe: (d.assignees ?? []).some(u => String(u.id) === String(userId)),
+                _isOwner: String(d.owner?.id) === String(userId),
+            }))
+
+            setDealsByStage(prev => ({
+                ...prev,
+                [stageKey]: isAppend ? [...(prev[stageKey] || []), ...processed] : processed
+            }))
+            setPagesByStage(prev => ({
+                ...prev,
+                [stageKey]: page
+            }))
+            setTotalPagesByStage(prev => ({
+                ...prev,
+                [stageKey]: totalPages
+            }))
+            setStageTotalsByStage(prev => ({
+                ...prev,
+                [stageKey]: { count: stageTotalCount, amount: stageTotalAmount }
+            }))
+        } catch (err) {
+            if (err.name === 'CanceledError' || err.message === 'canceled') return
+        } finally {
+            if (abortControllersRef.current[stageKey] === controller) {
+                setLoadingByStage(prev => ({ ...prev, [stageKey]: false }))
+            }
+        }
     }
 
+    // Clean up AbortControllers on unmount
+    useEffect(() => {
+        return () => {
+            Object.values(abortControllersRef.current).forEach(c => c.abort())
+        }
+    }, [])
+
+    // Load initial pipelines and accounts
     useEffect(() => {
         api.get('/api/pipelines').then(r => {
             const data = r.data ?? []
             setPipelines(data)
             if (data.length > 0) {
                 setSelectedPipelineId(data[0].id)
-                load(data[0].id)
-            } else {
-                load()
             }
         })
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
     }, [])
 
+    const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
+    const activeStages = activePipeline ? activePipeline.stages : []
+
+    // Trigger loading of stage columns with 350ms search query debounce
+    useEffect(() => {
+        if (activeStages.length === 0) return
+
+        const timer = setTimeout(() => {
+            activeStages.forEach(stageObj => {
+                loadStageDeals(stageObj.stageKey, 0, false, search)
+            })
+        }, 350)
+
+        return () => clearTimeout(timer)
+    }, [selectedPipelineId, search, activeStages.length])
+
+    // Highlight deal scrolling
     useEffect(() => {
         if (!highlightId || !highlightRef.current) return
         const timer = setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200)
         return () => clearTimeout(timer)
-    }, [highlightId, deals])
+    }, [highlightId, dealsByStage])
 
+    // Monitor URL parameters for selected deal profiles
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search)
         const dealIdParam = queryParams.get('dealId')
         if (dealIdParam) {
-            const found = deals.find(d => String(d.id) === String(dealIdParam))
+            let found = null
+            Object.values(dealsByStage).forEach(list => {
+                const f = list.find(d => String(d.id) === String(dealIdParam))
+                if (f) found = f
+            })
+
             if (found) {
                 setSelectedDeal(found)
             } else {
-                setSelectedDeal({
-                    id: parseInt(dealIdParam),
-                    stage: 'NEW',
-                    title: 'Loading Deal...'
-                })
+                // If the deal is not on page 0 in memory, pull directly from backend profile api
+                api.get(`/api/deals/${dealIdParam}/profile`)
+                    .then(r => {
+                        if (r.data?.deal) {
+                            setSelectedDeal({
+                                ...r.data.deal,
+                                _assignedToMe: (r.data.deal.assignees ?? []).some(u => String(u.id) === String(userId)),
+                                _isOwner: String(r.data.deal.owner?.id) === String(userId)
+                            })
+                        }
+                    })
+                    .catch(() => {
+                        setSelectedDeal({
+                            id: parseInt(dealIdParam),
+                            stage: 'NEW',
+                            title: 'Loading Deal...'
+                        })
+                    })
             }
         } else {
             setSelectedDeal(null)
         }
-    }, [location.search, deals])
-
-    const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
-    const activeStages = activePipeline ? activePipeline.stages : []
+    }, [location.search, dealsByStage])
 
     const getStageStyle = (stageKey) => {
         return getPipelineStageStyle(stageKey)
@@ -209,16 +307,84 @@ export default function Deals() {
         })
         setOpen(false)
         resetForm()
-        load(selectedPipelineId)
+        // Reload stage page 0
+        loadStageDeals(form.stage, 0, false, search)
     }
 
-    const persistStageChange = async (deal, stage, lostData = {}) => {
-        setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage, ...lostData } : d))
+    // ── Helper to scan and update cards in place ────────────────
+    const updateDealInStage = (dealId, updatedDeal) => {
+        const processed = {
+            ...updatedDeal,
+            _assignedToMe: (updatedDeal.assignees ?? []).some(u => String(u.id) === String(userId)),
+            _isOwner: String(updatedDeal.owner?.id) === String(userId),
+        }
+        setDealsByStage(prev => {
+            const next = { ...prev }
+            Object.keys(next).forEach(stg => {
+                if (next[stg] && next[stg].some(d => d.id === dealId)) {
+                    next[stg] = next[stg].map(d => d.id === dealId ? processed : d)
+                }
+            })
+            return next
+        })
+    }
+
+    // ── Unified persistStageChange with snapshotted optimistic recovery ──
+    const persistStageChange = async (deal, targetStage, lostData = {}) => {
+        const sourceStage = deal.stage
+        if (sourceStage === targetStage) return
+
+        // 1. Take snapshots
+        const prevDealsByStage = { ...dealsByStage }
+        const prevStageTotals = { ...stageTotalsByStage }
+
+        const sourceList = dealsByStage[sourceStage] || []
+        const dealToMove = sourceList.find(d => d.id === deal.id)
+        if (!dealToMove) return
+
+        const updatedDeal = { ...dealToMove, stage: targetStage, ...lostData }
+
+        // Remove from source and prepend to target
+        const newSourceList = sourceList.filter(d => d.id !== deal.id)
+        const targetList = dealsByStage[targetStage] || []
+        const newTargetList = [updatedDeal, ...targetList]
+
+        // Update stage totals (count and amount sum)
+        const amountDiff = deal.amount ?? 0
+        const newStageTotals = { ...prevStageTotals }
+
+        if (newStageTotals[sourceStage]) {
+            newStageTotals[sourceStage] = {
+                count: Math.max(0, newStageTotals[sourceStage].count - 1),
+                amount: Math.max(0, newStageTotals[sourceStage].amount - amountDiff)
+            }
+        }
+        if (newStageTotals[targetStage]) {
+            newStageTotals[targetStage] = {
+                count: newStageTotals[targetStage].count + 1,
+                amount: newStageTotals[targetStage].amount + amountDiff
+            }
+        } else {
+            newStageTotals[targetStage] = {
+                count: 1,
+                amount: amountDiff
+            }
+        }
+
+        // Apply Optimistic Update
+        setDealsByStage(prev => ({
+            ...prev,
+            [sourceStage]: newSourceList,
+            [targetStage]: newTargetList
+        }))
+        setStageTotalsByStage(newStageTotals)
+
         try {
+            profileCache.delete(`${getCachePrefix()}:${deal.id}`)
             const r = await api.put(`/api/deals/${deal.id}`, {
                 title: deal.title,
                 amount: deal.amount ?? null,
-                stage,
+                stage: targetStage,
                 expectedCloseDate: deal.expectedCloseDate ?? null,
                 accountId: deal.account?.id ?? null,
                 contactId: deal.contact?.id ?? null,
@@ -226,13 +392,22 @@ export default function Deals() {
                 lostReason: lostData.lostReason ?? deal.lostReason ?? null,
                 lostReasonNote: lostData.lostReasonNote ?? deal.lostReasonNote ?? null,
             })
-            setDeals(prev => prev.map(d => d.id === deal.id ? {
+
+            const savedDeal = {
                 ...r.data,
                 _assignedToMe: (r.data.assignees ?? []).some(u => String(u.id) === String(userId)),
                 _isOwner: String(r.data.owner?.id) === String(userId),
-            } : d))
+            }
+
+            // Sync targets
+            setDealsByStage(prev => ({
+                ...prev,
+                [targetStage]: (prev[targetStage] || []).map(d => d.id === deal.id ? savedDeal : d)
+            }))
         } catch {
-            load(selectedPipelineId)
+            // Restore snapshot state on API error/reject
+            setDealsByStage(prevDealsByStage)
+            setStageTotalsByStage(prevStageTotals)
         }
     }
 
@@ -260,24 +435,23 @@ export default function Deals() {
         await persistStageChange(deal, stage)
     }
 
-    const q = search.toLowerCase()
-    const filtered = deals.filter(d =>
-        !q || d.title?.toLowerCase().includes(q) || d.account?.name?.toLowerCase().includes(q)
-    )
+    // Sum total deals across the entire pipeline
+    const totalPipelineDealsCount = Object.values(stageTotalsByStage).reduce((sum, stats) => sum + (stats?.count || 0), 0)
 
     const subtitleText = isAgent
-        ? `${deals.length} deal${deals.length !== 1 ? 's' : ''} assigned to you`
-        : `${deals.length} deal${deals.length !== 1 ? 's' : ''} · ${activePipeline ? activePipeline.name : 'Kanban board'}`
+        ? `${totalPipelineDealsCount} deal${totalPipelineDealsCount !== 1 ? 's' : ''} assigned to you`
+        : `${totalPipelineDealsCount} deal${totalPipelineDealsCount !== 1 ? 's' : ''} · ${activePipeline ? activePipeline.name : 'Kanban board'}`
 
-    // ── Pipeline totals for summary strip
+    // ── Pipeline totals for summary strip (uses server aggregates)
     const pipelineTotals = activeStages.map(stageObj => {
-        const key = stageObj.stageKey;
-        const style = getStageStyle(key);
+        const key = stageObj.stageKey
+        const style = getStageStyle(key)
+        const stats = stageTotalsByStage[key] || { count: 0, amount: 0 }
         return {
             stage: key,
             label: stageObj.label,
-            count: filtered.filter(d => d.stage === key).length,
-            value: filtered.filter(d => d.stage === key).reduce((s, d) => s + (d.amount ?? 0), 0),
+            count: stats.count,
+            value: stats.amount,
             style: style,
         }
     })
@@ -288,25 +462,31 @@ export default function Deals() {
             <main className="p-4 sm:p-8 flex-1 overflow-hidden flex flex-col">
 
                 {/* ── Hero Banner ──────────────────────────── */}
-                <div className="relative rounded-3xl overflow-hidden mb-7"
+                <div className="relative rounded-3xl mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 120,
                     }}>
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle,  0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
-                        pointerEvents: 'none',
-                    }} />
+                    
+                    {/* Background layer that clips absolute orbs without clipping dropdown menus */}
+                    <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none"
+                        style={{
+                            background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
+                        }}>
+                        <div style={{
+                            position: 'absolute', top: -40, right: -40, width: 220, height: 220,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${T.primaryHover}30 0%, transparent 70%)`,
+                            pointerEvents: 'none',
+                        }} />
+                        <div style={{
+                            position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
+                            borderRadius: '50%',
+                            background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
+                            pointerEvents: 'none',
+                        }} />
+                    </div>
 
-                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div className="relative z-10 px-5 py-5 sm:px-9 sm:py-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                                 style={{
@@ -333,7 +513,6 @@ export default function Deals() {
                                         onChange={e => {
                                             const pid = Number(e.target.value)
                                             setSelectedPipelineId(pid)
-                                            load(pid)
                                         }}
                                         className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 outline-none cursor-pointer text-center"
                                         style={{
@@ -395,9 +574,10 @@ export default function Deals() {
                 <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
                     {activeStages.map(stageObj => {
                         const stage = stageObj.stageKey
-                        const stageDeals = filtered.filter(d => d.stage === stage)
+                        const stageDeals = dealsByStage[stage] || []
                         const style = getStageStyle(stage)
-                        const totalValue = stageDeals.reduce((s, d) => s + (d.amount ?? 0), 0)
+                        const stats = stageTotalsByStage[stage] || { count: 0, amount: 0 }
+                        const totalValue = stats.amount
                         const isOver = overStage === stage
                         const colBg = getStageColBg(stage)
                         const colBorder = isOver ? style.accent : getStageColBorder(stage)
@@ -438,7 +618,7 @@ export default function Deals() {
                                                 color: style.badgeColor,
                                                 border: `1px solid ${style.accent}30`,
                                             }}>
-                                            {stageDeals.length}
+                                            {stats.count}
                                         </span>
                                     </div>
                                     {totalValue > 0 && (
@@ -469,24 +649,47 @@ export default function Deals() {
                                                     assignedToMe={deal._assignedToMe}
                                                     canAssign={can.DEALS_ASSIGN}
                                                     onClick={() => setSelectedDeal(deal)}
-                                                    onAssigned={updated => setDeals(prev => prev.map(d => d.id === updated.id
-                                                        ? {
-                                                            ...updated,
-                                                            _assignedToMe: (updated.assignees ?? []).some(u => String(u.id) === String(userId)),
-                                                            _isOwner: String(updated.owner?.id) === String(userId),
-                                                        }
-                                                        : d
-                                                    ))}
+                                                    onAssigned={updated => updateDealInStage(deal.id, updated)}
                                                     onRemove={canDelete ? async () => {
+                                                        profileCache.delete(`${getCachePrefix()}:${deal.id}`)
                                                         await api.delete(`/api/deals/${deal.id}`)
-                                                        load(selectedPipelineId)
+                                                        loadStageDeals(stage, 0, false, search)
                                                     } : undefined}
                                                 />
                                             </div>
                                         )
                                     })}
 
-                                    {stageDeals.length === 0 && (
+                                    {/* Load More Button */}
+                                    {pagesByStage[stage] < totalPagesByStage[stage] - 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => loadStageDeals(stage, (pagesByStage[stage] || 0) + 1, true, search)}
+                                            disabled={loadingByStage[stage]}
+                                            className="w-full py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-dashed hover:border-solid mt-2 outline-none"
+                                            style={{
+                                                background: T.surface,
+                                                borderColor: style.accent + '40',
+                                                color: style.accent
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = style.badgeBg}
+                                            onMouseLeave={e => e.currentTarget.style.background = T.surface}
+                                        >
+                                            {loadingByStage[stage] ? (
+                                                <>
+                                                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent" />
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="material-symbols-outlined text-[15px]">expand_more</span>
+                                                    Load More
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+
+                                    {stageDeals.length === 0 && !loadingByStage[stage] && (
                                         <div className="flex-1 flex flex-col items-center justify-center py-10 gap-2 rounded-xl mx-0.5"
                                             style={{
                                                 border: `2px dashed ${isOver ? style.accent : style.accent + '30'}`,
@@ -575,9 +778,11 @@ export default function Deals() {
                     }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
                     onDelete={can.DEALS_DELETE && (isAdminOrAbove || selectedDeal._isOwner) ? async (id) => {
+                        profileCache.delete(`${getCachePrefix()}:${id}`)
                         await api.delete(`/api/deals/${id}`)
+                        const deletedStage = selectedDeal.stage
                         setSelectedDeal(null)
-                        load(selectedPipelineId)
+                        loadStageDeals(deletedStage, 0, false, search)
                         navigate(location.pathname, { replace: true })
                     } : undefined}
                 />

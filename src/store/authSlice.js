@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { clearAllCaches } from '../utils/cacheUtils'
 
 const readSession = () => ({
     token: localStorage.getItem('token') || '',
@@ -79,6 +80,7 @@ const authSlice = createSlice({
             Object.assign(state, updates)
         },
         signOut: (state) => {
+            clearAllCaches()
             localStorage.clear()
             Object.assign(state, {
                 token: '', name: 'User', role: 'AGENT',

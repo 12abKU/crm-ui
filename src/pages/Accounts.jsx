@@ -49,7 +49,7 @@ export default function Accounts() {
         setSearch,
         loadPage,
         goToPage,
-    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchAccounts })
+    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchAccounts, cacheKey: 'accounts' })
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 

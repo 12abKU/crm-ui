@@ -48,7 +48,7 @@ function FocusTaskCard({ activity, accent }) {
     )
 }
 
-export default function TodayFocus({ overdue, upcoming, loading }) {
+export default function TodayFocus({ overdue, upcoming, overdueCount, loading }) {
     if (loading) return (
         <div className="rounded-2xl p-5 mb-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
             <Skeleton height={14} width={160} borderRadius={6} className="mb-4" />
@@ -82,12 +82,17 @@ export default function TodayFocus({ overdue, upcoming, loading }) {
                         <p className="text-[12px] font-black" style={{ color: T.error }}>Overdue</p>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                             style={{ background: 'rgba(220,38,38,0.10)', color: T.error }}>
-                            {overdue.length}
+                            {overdueCount}
                         </span>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                         {overdue.map(activity => <FocusTaskCard key={activity.id} activity={activity} accent="red" />)}
                     </div>
+                    {overdueCount > overdue.length && (
+                        <p className="text-[11px] font-bold mt-2" style={{ color: T.textMuted }}>
+                            Showing first {overdue.length} overdue tasks. There are {overdueCount - overdue.length} more.
+                        </p>
+                    )}
                 </div>
             )}
             {overdue.length > 0 && upcoming.length > 0 && <div style={{ borderTop: `1px solid ${T.border}` }} />}

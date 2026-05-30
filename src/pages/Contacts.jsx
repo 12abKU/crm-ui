@@ -59,7 +59,7 @@ export default function Contacts() {
         setSearch,
         loadPage,
         goToPage,
-    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchContacts })
+    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchContacts, cacheKey: 'contacts' })
 
     useEffect(() => {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content || []))

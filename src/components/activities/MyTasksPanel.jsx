@@ -9,23 +9,51 @@ import { fmtScheduled, getStatus, STATUS_STYLES } from './activityUtils'
 export default function MyTasksPanel({ onComplete, onOutcome }) {
     const [tasks, setTasks] = useState([])
     const [loading, setLoading] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const [hasMore, setHasMore] = useState(false)
 
-    const load = useCallback(async () => {
+    const loadFirstPage = useCallback(async () => {
         setLoading(true)
         try {
-            const r = await api.get('/api/activities/my-tasks')
-            setTasks(r.data ?? [])
+            const r = await api.get('/api/activities/my-tasks?page=0&size=20')
+            setTasks(r.data.content ?? [])
+            setPage(0)
+            const totalP = r.data.totalPages ?? 0
+            setTotalPages(totalP)
+            setHasMore(0 < totalP - 1)
         } finally { setLoading(false) }
     }, [])
 
+    const loadNextPage = useCallback(async () => {
+        if (loadingMore || !hasMore) return
+        setLoadingMore(true)
+        try {
+            const nextPage = page + 1
+            const r = await api.get(`/api/activities/my-tasks?page=${nextPage}&size=20`)
+            setTasks(prev => [...prev, ...(r.data.content ?? [])])
+            setPage(nextPage)
+            const totalP = r.data.totalPages ?? 0
+            setTotalPages(totalP)
+            setHasMore(nextPage < totalP - 1)
+        } finally { setLoadingMore(false) }
+    }, [page, loadingMore, hasMore])
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        load()
-    }, [load])
+        loadFirstPage()
+    }, [loadFirstPage])
 
     const handleComplete = async (id, val) => {
         await onComplete(id, val)
-        setTasks(t => t.filter(x => x.id !== id))
+        setTasks(prev => {
+            const updated = prev.filter(x => x.id !== id)
+            if (updated.length < 5 && hasMore && !loadingMore) {
+                // Fetch next chunk immediately to keep checklist populated
+                loadNextPage()
+            }
+            return updated
+        })
     }
 
     if (loading) return (
@@ -89,6 +117,31 @@ export default function MyTasksPanel({ onComplete, onOutcome }) {
                     </div>
                 )
             })}
+            
+            {hasMore && (
+                <button
+                    onClick={loadNextPage}
+                    disabled={loadingMore}
+                    className="mt-2 w-full py-3 rounded-xl text-sm font-bold transition-all border flex items-center justify-center gap-2 hover:brightness-95"
+                    style={{
+                        background: T.surface,
+                        borderColor: T.border,
+                        color: T.textPrimary,
+                    }}
+                >
+                    {loadingMore ? (
+                        <>
+                            <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                            Loading...
+                        </>
+                    ) : (
+                        <>
+                            <span className="material-symbols-outlined text-[18px]">keyboard_double_arrow_down</span>
+                            Load More Tasks
+                        </>
+                    )}
+                </button>
+            )}
         </div>
     )
 }

@@ -18,6 +18,8 @@ import CalendarView from '../components/activities/CalendarView'
 import api from '../api'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
+import usePaginatedSearch from '../hooks/usePaginatedSearch'
+import { listCache, getCachePrefix } from '../utils/cacheUtils'
 
 // ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
@@ -30,20 +32,18 @@ const VIEW_MODES = [
 ]
 
 export default function Activities() {
-    // ── State (unchanged) ──────────────────────────────────────
-    const [activities, setActivities] = useState([])
+    // ── State ──────────────────────────────────────────────────
     const [accounts, setAccounts] = useState([])
-    const [page, setPage] = useState(0)
-    const [totalPages, setTotalPages] = useState(0)
-    const [totalElements, setTotalElements] = useState(0)
-    const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
-    const [search, setSearch] = useState('')
     const [filterAccountId, setFilterAccountId] = useState('')
     const [typeFilter, setTypeFilter] = useState('ALL')
     const [viewMode, setViewMode] = useState('table')
     const [loadCount, setLoadCount] = useState(0)
-    const [allTasks, setAllTasks] = useState([])
+    const [dashboardData, setDashboardData] = useState({
+        stats: { overdue: 0, dueToday: 0, done: 0, pending: 0 },
+        focus: { overdue: [], upcoming: [] }
+    })
+    const [dashboardLoading, setDashboardLoading] = useState(true)
     const [form, setForm] = useState(EMPTY_FORM)
     const [filteredContacts, setFilteredContacts] = useState([])
     const [filteredDeals, setFilteredDeals] = useState([])
@@ -51,94 +51,81 @@ export default function Activities() {
 
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')
-    const initialLoad = useRef(true)
 
     const role = useSelector(state => state.auth.role)
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
     const can = usePermissions(['ACTIVITIES_CREATE', 'ACTIVITIES_EDIT', 'ACTIVITIES_DELETE'])
 
-    // ── Data handlers (all unchanged) ─────────────────────────
-    const loadAllTasks = useCallback(async () => {
-        const r = await api.get('/api/activities/my-tasks')
-        setAllTasks(r.data ?? [])
+    const fetchActivities = useCallback(async ({ page, size, search }) => {
+        let url
+        if (filterAccountId) {
+            url = `/api/activities/account/${filterAccountId}?page=${page}&size=${size}`
+        } else {
+            const params = new URLSearchParams({ page, size })
+            if (search.trim()) params.set('search', search.trim())
+            url = `/api/activities?${params}`
+        }
+        const r = await api.get(url)
+        setLoadCount(c => c + 1)
+        return r.data
+    }, [filterAccountId])
+
+    const {
+        items: activities,
+        setItems: setActivities,
+        page,
+        setPage,
+        totalPages,
+        totalElements,
+        loading,
+        search,
+        setSearch,
+        loadPage,
+        goToPage,
+        reloadCurrentPage,
+        updateItemInCache,
+    } = usePaginatedSearch({
+        pageSize: PAGE_SIZE,
+        fetchPage: fetchActivities,
+        cacheKey: `activities:${filterAccountId}`
+    })
+
+    // ── Data handlers ──────────────────────────────────────────
+    const loadDashboard = useCallback(async () => {
+        setDashboardLoading(true)
+        try {
+            const r = await api.get('/api/activities/dashboard')
+            setDashboardData(r.data ?? {
+                stats: { overdue: 0, dueToday: 0, done: 0, pending: 0 },
+                focus: { overdue: [], upcoming: [] }
+            })
+        } finally {
+            setDashboardLoading(false)
+        }
     }, [])
-
-    const stats = useMemo(() => {
-        const now = new Date()
-        const overdue = allTasks.filter(a => !a.completed && a.scheduledAt && new Date(a.scheduledAt) < now).length
-        const dueToday = allTasks.filter(a => {
-            if (!a.scheduledAt || a.completed) return false
-            const d = new Date(a.scheduledAt)
-            const n = new Date()
-            return d >= new Date(n.setHours(0, 0, 0, 0)) && d <= new Date(n.setHours(23, 59, 59, 999))
-        }).length
-        const done = activities.filter(a => a.completed).length
-        const pending = allTasks.filter(a => !a.completed && a.scheduledAt).length
-        return { overdue, dueToday, done, pending }
-    }, [allTasks, activities])
-
-    const { overdueList, upcomingList } = useMemo(() => {
-        const now = new Date()
-        const overdueList = allTasks
-            .filter(a => !a.completed && a.scheduledAt && new Date(a.scheduledAt) < now)
-            .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt))
-        const upcomingList = allTasks
-            .filter(a => !a.completed && a.scheduledAt && new Date(a.scheduledAt) >= now)
-            .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt))
-            .slice(0, 3)
-        return { overdueList, upcomingList }
-    }, [allTasks])
 
     const displayActivities = useMemo(() => {
         if (typeFilter === 'ALL') return activities
         return activities.filter(a => a.type === typeFilter)
     }, [activities, typeFilter])
 
-    const loadPage = async (pageNum, accountId = filterAccountId, q = search) => {
-        setLoading(true)
-        try {
-            let url
-            if (accountId) {
-                url = `/api/activities/account/${accountId}?page=${pageNum}&size=${PAGE_SIZE}`
-            } else {
-                const params = new URLSearchParams({ page: pageNum, size: PAGE_SIZE })
-                if (q.trim()) params.set('search', q.trim())
-                url = `/api/activities?${params}`
-            }
-            const r = await api.get(url)
-            setActivities(r.data.content ?? [])
-            setTotalPages(r.data.totalPages ?? 0)
-            setTotalElements(r.data.totalElements ?? 0)
-        } finally {
-            setLoading(false)
-            setLoadCount(c => c + 1)
-        }
-    }
-
     useEffect(() => {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
-        loadAllTasks()
+        loadDashboard()
         if (highlightId) {
             api.get(`/api/activities/position/${highlightId}?size=${PAGE_SIZE}`, { suppressErrorToast: true })
-                .then(r => { const p = r.data.page ?? 0; setPage(p); loadPage(p, '') })
-                .catch(() => loadPage(0, ''))
-        } else {
-            loadPage(0, '')
+                .then(r => { 
+                    const p = r.data.page ?? 0
+                    setPage(p)
+                    loadPage(p, '') 
+                })
+                .catch(() => {})
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    useEffect(() => {
-        if (filterAccountId) return
-        if (initialLoad.current) { initialLoad.current = false; return }
-        const t = setTimeout(() => { setPage(0); loadPage(0, '', search) }, 350)
-        return () => clearTimeout(t)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search])
-
     const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]) }
-    const goToPage = (p) => { setPage(p); loadPage(p, filterAccountId, search) }
-    const onFilterChange = (accountId) => { setFilterAccountId(accountId); setSearch(''); setPage(0); loadPage(0, accountId, '') }
+    const onFilterChange = (accountId) => { setFilterAccountId(accountId); setSearch(''); setPage(0) }
 
     const onFormAccountChange = async (accountId) => {
         setForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
@@ -177,7 +164,13 @@ export default function Activities() {
             remindHourlyOneDayBefore: form.remindHourlyOneDayBefore || false
         })
         setOpen(false); resetForm(); setPage(0)
-        loadPage(0, filterAccountId, search)
+        const prefix = `${getCachePrefix()}:activities:${filterAccountId}:`
+        for (const key of listCache.keys()) {
+            if (key.startsWith(prefix)) {
+                listCache.delete(key)
+            }
+        }
+        loadPage(0, search)
     }
 
     const remove = async (id) => {
@@ -186,8 +179,14 @@ export default function Activities() {
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
         const targetPage = Math.min(page, maxPage)
         setPage(targetPage)
-        loadPage(targetPage, filterAccountId, search)
-        loadAllTasks()
+        const prefix = `${getCachePrefix()}:activities:${filterAccountId}:`
+        for (const key of listCache.keys()) {
+            if (key.startsWith(prefix)) {
+                listCache.delete(key)
+            }
+        }
+        loadPage(targetPage, search)
+        loadDashboard()
     }
 
     const updateActivity = async (id, field, value) => {
@@ -198,19 +197,19 @@ export default function Activities() {
             reminderAt: activity.reminderAt,
             [field]: value,
         })
-        setActivities(prev => prev.map(x => x.id === id ? { ...x, [field]: value } : x))
+        updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
     const toggleComplete = async (id, completed) => {
         await api.patch(`/api/activities/${id}/complete`, { completed })
-        setActivities(prev => prev.map(x => x.id === id ? { ...x, completed } : x))
-        loadAllTasks()
+        updateItemInCache(item => item.id === id, item => ({ ...item, completed }))
+        loadDashboard()
     }
 
     const saveOutcome = async (id, outcome) => {
         await api.patch(`/api/activities/${id}/outcome`, { outcome })
-        setActivities(prev => prev.map(x => x.id === id ? { ...x, outcome } : x))
-        loadAllTasks()
+        updateItemInCache(item => item.id === id, item => ({ ...item, outcome }))
+        loadDashboard()
     }
 
     return (
@@ -255,10 +254,10 @@ export default function Activities() {
                                     <p className="text-sm" style={{ color: T.heroSubText }}>
                                         {totalElements} logged
                                     </p>
-                                    {stats.overdue > 0 && (
+                                    {dashboardData.stats.overdue > 0 && (
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                                             style={{ background: 'rgba(220,38,38,0.25)', color: T.errorLight }}>
-                                            {stats.overdue} overdue
+                                            {dashboardData.stats.overdue} overdue
                                         </span>
                                     )}
                                 </div>
@@ -284,21 +283,26 @@ export default function Activities() {
                 {/* ── Stat cards ───────────────────────────── */}
                 <div className="flex flex-wrap gap-4 mb-6">
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <ActivityStatCard icon="warning"         label="Overdue"   value={loading ? '—' : stats.overdue}   sub="need follow-up"    loading={loading} accent="#DC2626" />
+                        <ActivityStatCard icon="warning"         label="Overdue"   value={dashboardLoading ? '—' : dashboardData.stats.overdue}   sub="need follow-up"    loading={dashboardLoading} accent="#DC2626" />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <ActivityStatCard icon="today"           label="Due today"  value={loading ? '—' : stats.dueToday}  sub="scheduled today"   loading={loading} accent="#D97706" />
+                        <ActivityStatCard icon="today"           label="Due today"  value={dashboardLoading ? '—' : dashboardData.stats.dueToday}  sub="scheduled today"   loading={dashboardLoading} accent="#D97706" />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <ActivityStatCard icon="task_alt"        label="Completed"  value={loading ? '—' : stats.done}      sub="on this page"      loading={loading} accent={T.success} />
+                        <ActivityStatCard icon="task_alt"        label="Completed"  value={dashboardLoading ? '—' : dashboardData.stats.done}      sub="completed last 30d"      loading={dashboardLoading} accent={T.success} />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <ActivityStatCard icon="pending_actions" label="Pending"    value={loading ? '—' : stats.pending}   sub="scheduled, open"   loading={loading} />
+                        <ActivityStatCard icon="pending_actions" label="Pending"    value={dashboardLoading ? '—' : dashboardData.stats.pending}   sub="scheduled, open"   loading={dashboardLoading} />
                     </div>
                 </div>
 
                 {/* ── Today focus ──────────────────────────── */}
-                <TodayFocus overdue={overdueList} upcoming={upcomingList} loading={loading} />
+                <TodayFocus 
+                    overdue={dashboardData.focus.overdue} 
+                    upcoming={dashboardData.focus.upcoming} 
+                    overdueCount={dashboardData.stats.overdue}
+                    loading={dashboardLoading} 
+                />
 
                 {/* ── Toolbar ──────────────────────────────── */}
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
