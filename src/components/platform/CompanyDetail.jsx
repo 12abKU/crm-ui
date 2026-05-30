@@ -191,8 +191,16 @@ export default function CompanyDetail({
     onRefreshUsers,
 }) {
     const [tab, setTab] = useState('overview')
+    const [planConfig, setPlanConfig] = useState(null)
     const days = daysLeft(company.trialEndsAt)
     const trialExpired = company.status === 'TRIAL' && company.trialEndsAt && days <= 0
+
+    // Fetch dynamic plan limits for the stats grid
+    useEffect(() => {
+        api.get(`/api/platform/companies/${company.id}/plan-config`)
+            .then(r => setPlanConfig(r.data))
+            .catch(() => setPlanConfig(null))
+    }, [company.id])
 
     return (
         <div>
@@ -244,7 +252,7 @@ export default function CompanyDetail({
                     onOpenTrialModal={() => { setFormError(''); setTrialDays('14'); setTrialDate(''); setTrialMode('days'); setShowTrialModal(true) }}
                 />
 
-                <CompanyStatsGrid stats={companyStats} plan={company.plan} />
+                <CompanyStatsGrid stats={companyStats} plan={company.plan} planConfig={planConfig} />
                 <CompanyNotes notes={notes} onChange={onNotesChange} saving={notesSaving} saved={notesSaved} />
 
                 {/* Tabs */}
@@ -277,7 +285,10 @@ export default function CompanyDetail({
                 {tab === 'plan-limits' && (
                     <div className="rounded-2xl p-6"
                         style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                        <PlanConfigPanel companyId={company.id} />
+                        <PlanConfigPanel
+                            companyId={company.id}
+                            onSaved={(saved) => setPlanConfig(saved)}
+                        />
                     </div>
                 )}
                 {tab === 'integrations' && <IntegrationsPanel companyId={company.id} />}

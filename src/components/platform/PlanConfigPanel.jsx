@@ -47,7 +47,7 @@ function Spinner() {
     )
 }
 
-export default function PlanConfigPanel({ companyId }) {
+export default function PlanConfigPanel({ companyId, onSaved }) {
     const [config, setConfig] = useState(null)
     const [form, setForm] = useState({})
     const [loading, setLoading] = useState(true)
@@ -101,6 +101,7 @@ export default function PlanConfigPanel({ companyId }) {
             setConfig(r.data)
             setDirty(false)
             setStatus({ type: 'success', msg: 'Plan limits saved successfully!' })
+            onSaved?.(r.data)   // notify parent to refresh stats grid
             setTimeout(() => setStatus(null), 3500)
         } catch (err) {
             setStatus({ type: 'error', msg: err?.response?.data?.message || 'Failed to save plan limits.' })
@@ -117,6 +118,7 @@ export default function PlanConfigPanel({ companyId }) {
             await api.delete(`/api/platform/companies/${companyId}/plan-config`)
             await load()
             setStatus({ type: 'success', msg: 'Plan limits reset to defaults.' })
+            onSaved?.(null)   // notify parent to refresh stats grid with defaults
             setTimeout(() => setStatus(null), 3500)
         } catch (err) {
             setStatus({ type: 'error', msg: 'Failed to reset plan limits.' })

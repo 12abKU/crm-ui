@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
+import { CRM_LANDING_URL } from '../constants/config'
 import UserMenu from './UserMenu'
 import NotificationBell from './NotificationBell'
 import api from '../api'
@@ -57,7 +58,7 @@ function SectionLabel({ label, count }) {
 
 export default function TopBar() {
     const navigate = useNavigate()
-    const { role, companyStatus, trialEndsAt } = useSelector(state => state.auth)
+    const { role, companyStatus, trialEndsAt, companyId, companyName, email } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
 
     const getTrialDaysLeft = () => {
@@ -318,7 +319,10 @@ export default function TopBar() {
                         <span className="material-symbols-outlined filled text-[14px]" style={{ color: T.primary }}>info</span>
                         <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in trial</span>
                         {role === 'ADMIN' && (
-                            <button onClick={() => navigate('/settings')}
+                            <button onClick={() => {
+                                const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`;
+                                window.location.href = `${CRM_LANDING_URL}/#pricing${params}`;
+                            }}
                                 className="ml-1.5 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white transition-all duration-100"
                                 style={{
                                     background: T.primary,
