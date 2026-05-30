@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, TAGS, EMPLOYEE_RANGES, TAG_COLORS, ROW_COLORS } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -30,13 +30,6 @@ export default function Accounts() {
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
 
-    const fetchAccounts = useCallback(async ({ page, size, search }) => {
-        const params = new URLSearchParams({ page, size })
-        if (search.trim()) params.set('search', search.trim())
-        const r = await api.get(`/api/accounts?${params}`)
-        return r.data
-    }, [])
-
     const {
         items: accounts,
         setItems: setAccounts,
@@ -49,7 +42,7 @@ export default function Accounts() {
         setSearch,
         loadPage,
         goToPage,
-    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchAccounts, cacheKey: 'accounts' })
+    } = usePaginatedSearch({ baseUrl: '/api/accounts', pageSize: PAGE_SIZE, cacheKey: 'accounts' })
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, ROW_COLORS, SHADOW } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -40,13 +40,6 @@ export default function Contacts() {
 
     const can = usePermissions(['CONTACTS_CREATE', 'CONTACTS_EDIT', 'CONTACTS_DELETE'])
 
-    const fetchContacts = useCallback(async ({ page, size, search }) => {
-        const params = new URLSearchParams({ page, size })
-        if (search.trim()) params.set('search', search.trim())
-        const r = await api.get(`/api/contacts?${params}`)
-        return r.data
-    }, [])
-
     const {
         items: contacts,
         setItems: setContacts,
@@ -59,7 +52,7 @@ export default function Contacts() {
         setSearch,
         loadPage,
         goToPage,
-    } = usePaginatedSearch({ pageSize: PAGE_SIZE, fetchPage: fetchContacts, cacheKey: 'contacts' })
+    } = usePaginatedSearch({ baseUrl: '/api/contacts', pageSize: PAGE_SIZE, cacheKey: 'contacts' })
 
     useEffect(() => {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content || []))

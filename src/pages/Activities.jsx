@@ -19,7 +19,6 @@ import api from '../api'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
-import { listCache, getCachePrefix } from '../utils/cacheUtils'
 
 // ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
@@ -56,19 +55,11 @@ export default function Activities() {
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
     const can = usePermissions(['ACTIVITIES_CREATE', 'ACTIVITIES_EDIT', 'ACTIVITIES_DELETE'])
 
-    const fetchActivities = useCallback(async ({ page, size, search }) => {
-        let url
-        if (filterAccountId) {
-            url = `/api/activities/account/${filterAccountId}?page=${page}&size=${size}`
-        } else {
-            const params = new URLSearchParams({ page, size })
-            if (search.trim()) params.set('search', search.trim())
-            url = `/api/activities?${params}`
-        }
-        const r = await api.get(url)
-        setLoadCount(c => c + 1)
-        return r.data
-    }, [filterAccountId])
+    // The URL bakes in filterAccountId — when it changes the hook detects the
+    // new string and re-fetches automatically (no unstable callback needed).
+    const activitiesBaseUrl = filterAccountId
+        ? `/api/activities/account/${filterAccountId}`
+        : '/api/activities'
 
     const {
         items: activities,
@@ -84,9 +75,10 @@ export default function Activities() {
         goToPage,
         reloadCurrentPage,
         updateItemInCache,
+        invalidateCacheForKey,
     } = usePaginatedSearch({
+        baseUrl: activitiesBaseUrl,
         pageSize: PAGE_SIZE,
-        fetchPage: fetchActivities,
         cacheKey: `activities:${filterAccountId}`
     })
 
@@ -108,6 +100,14 @@ export default function Activities() {
         if (typeFilter === 'ALL') return activities
         return activities.filter(a => a.type === typeFilter)
     }, [activities, typeFilter])
+
+    // Increment loadCount each time the list finishes loading so that
+    // highlighted activity rows re-mount and trigger their scroll animation
+    const prevLoading = useRef(false)
+    useEffect(() => {
+        if (prevLoading.current && !loading) setLoadCount(c => c + 1)
+        prevLoading.current = loading
+    }, [loading])
 
     useEffect(() => {
         api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
@@ -164,12 +164,7 @@ export default function Activities() {
             remindHourlyOneDayBefore: form.remindHourlyOneDayBefore || false
         })
         setOpen(false); resetForm(); setPage(0)
-        const prefix = `${getCachePrefix()}:activities:${filterAccountId}:`
-        for (const key of listCache.keys()) {
-            if (key.startsWith(prefix)) {
-                listCache.delete(key)
-            }
-        }
+        invalidateCacheForKey()
         loadPage(0, search)
     }
 
@@ -179,12 +174,7 @@ export default function Activities() {
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
         const targetPage = Math.min(page, maxPage)
         setPage(targetPage)
-        const prefix = `${getCachePrefix()}:activities:${filterAccountId}:`
-        for (const key of listCache.keys()) {
-            if (key.startsWith(prefix)) {
-                listCache.delete(key)
-            }
-        }
+        invalidateCacheForKey()
         loadPage(targetPage, search)
         loadDashboard()
     }
