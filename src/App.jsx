@@ -12,11 +12,11 @@ import Settings from './pages/Settings'
 import Calendar from './pages/Calendar'
 import Sidebar from './components/Sidebar'
 import Register from './pages/Register'
-import { T } from './constants/theme'
+import { T, getThemeName } from './constants/theme'
 import Conversations from './pages/Conversations'
 import Calls from './pages/Calls'
 import ApiErrorToast from './components/ui/ApiErrorToast'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setPermissions, updateCompanyStatus } from './store/authSlice'
 import api from './api'
@@ -137,6 +137,24 @@ function RouteKey({ prefix, children }) {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState(getThemeName())
+
+  useEffect(() => {
+    const handler = (e) => setTheme(e.detail)
+    window.addEventListener('crm-theme-changed', handler)
+    return () => window.removeEventListener('crm-theme-changed', handler)
+  }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--crm-bg', T.bg)
+    root.style.setProperty('--crm-surface', T.surface)
+    root.style.setProperty('--crm-border', T.border)
+    root.style.setProperty('--crm-text', T.textPrimary)
+    root.style.setProperty('--crm-text-muted', T.textMuted)
+    root.style.setProperty('--crm-primary', T.primary)
+  }, [theme])
+
   return (
     <BrowserRouter>
       <ApiErrorToast />

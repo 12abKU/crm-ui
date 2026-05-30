@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T } from '../constants/theme'
+import { T, getThemeName, toggleTheme } from '../constants/theme'
 import { CRM_LANDING_URL } from '../constants/config'
 import UserMenu from './UserMenu'
 import NotificationBell from './NotificationBell'
@@ -321,7 +321,7 @@ export default function TopBar() {
                         {role === 'ADMIN' && (
                             <button onClick={() => {
                                 const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`;
-                                window.location.href = `${CRM_LANDING_URL}/#pricing${params}`;
+                                window.location.href = `${CRM_LANDING_URL}/pricing${params}`;
                             }}
                                 className="ml-1.5 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white transition-all duration-100"
                                 style={{
@@ -334,6 +334,18 @@ export default function TopBar() {
                         )}
                     </div>
                 )}
+
+                {/* Dark Mode Toggle */}
+                <button onClick={toggleTheme}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer"
+                    style={{ color: T.textMuted }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}
+                    title={getThemeName() === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}>
+                    <span className="material-symbols-outlined text-[20px]">
+                        {getThemeName() === 'light' ? 'dark_mode' : 'light_mode'}
+                    </span>
+                </button>
 
                 {isSuperAdmin ? (
                     // Super admin: notification bell only (no search, no support link)

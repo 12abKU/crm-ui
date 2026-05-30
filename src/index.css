@@ -8,8 +8,8 @@
 }
 
 body {
-    background-color: #F0EBE3;
-    color: #1E293B;
+    background-color: var(--crm-bg, #F0EBE3);
+    color: var(--crm-text, #1E293B);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -31,7 +31,7 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-    background: #E8DDD4;
+    background: var(--crm-border, #E8DDD4);
     border-radius: 10px;
 }
 
@@ -74,36 +74,36 @@ button {
 /* ── Inputs ── */
 .crm-input {
     width: 100%;
-    background: #FFFFFF;
-    border: 1px solid #E8DDD4;
+    background: var(--crm-surface, #FFFFFF);
+    border: 1px solid var(--crm-border, #E8DDD4);
     border-radius: 10px;
     padding: 10px 14px;
     font-size: 14px;
     font-family: 'Manrope', sans-serif;
-    color: #1E293B;
+    color: var(--crm-text, #1E293B);
     outline: none;
     transition: border 0.15s, box-shadow 0.15s;
 }
 
 .crm-input:focus {
-    border-color: #2563EB;
+    border-color: var(--crm-primary, #2563EB);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .crm-input::placeholder {
-    color: #94A3B8;
+    color: var(--crm-text-muted, #94A3B8);
 }
 
 /* ── Select ── */
 .crm-select {
     width: 100%;
-    background: #FFFFFF;
-    border: 1px solid #E8DDD4;
+    background: var(--crm-surface, #FFFFFF);
+    border: 1px solid var(--crm-border, #E8DDD4);
     border-radius: 10px;
     padding: 10px 14px;
     font-size: 14px;
     font-family: 'Manrope', sans-serif;
-    color: #1E293B;
+    color: var(--crm-text, #1E293B);
     outline: none;
     cursor: pointer;
     appearance: none;
@@ -116,13 +116,13 @@ button {
 }
 
 .crm-select:focus {
-    border-color: #2563EB;
+    border-color: var(--crm-primary, #2563EB);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .crm-select option {
-    background: #FFFFFF;
-    color: #1E293B;
+    background: var(--crm-surface, #FFFFFF);
+    color: var(--crm-text, #1E293B);
 }
 
 /* ── Buttons ── */
@@ -151,9 +151,9 @@ button {
 }
 
 .crm-btn-ghost {
-    background: #FFFFFF;
-    color: #64748B;
-    border: 1px solid #E8DDD4;
+    background: var(--crm-surface, #FFFFFF);
+    color: var(--crm-text-muted, #64748B);
+    border: 1px solid var(--crm-border, #E8DDD4);
     border-radius: 10px;
     padding: 10px 20px;
     font-size: 13px;
@@ -164,8 +164,8 @@ button {
 }
 
 .crm-btn-ghost:hover {
-    background: #F8F5F1;
-    border-color: #D4C9BE;
+    background: var(--crm-border, #F8F5F1);
+    border-color: var(--crm-text-muted, #D4C9BE);
 }
 
 /* ── Badge ── */
@@ -193,15 +193,15 @@ button {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #94A3B8;
-    background: #F8F5F1;
-    border-bottom: 1px solid #E8DDD4;
+    color: var(--crm-text-muted, #94A3B8);
+    background: var(--crm-border, #F8F5F1);
+    border-bottom: 1px solid var(--crm-border, #E8DDD4);
 }
 
 .crm-table td {
     padding: 14px 24px;
     font-size: 14px;
-    border-bottom: 1px solid #F0EBE3;
+    border-bottom: 1px solid var(--crm-border, #F0EBE3);
 }
 
 .crm-sidebar nav a:hover {
