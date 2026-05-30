@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { store } from '../store'
 import { signOut } from '../store/authSlice'
+import { API_BASE_URL } from '../constants/config'
 
 const api = axios.create({
-    baseURL: 'http://localhost:8086',
+    baseURL: API_BASE_URL,
 })
 
 export const extractApiErrorMessage = (err, fallback = 'Something went wrong. Please try again.') => {

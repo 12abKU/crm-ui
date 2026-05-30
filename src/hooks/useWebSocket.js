@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Client } from '@stomp/stompjs'
+import { WS_BROKER_URL } from '../constants/config'
 
 export function useWebSocket(token, onNotification) {
     const clientRef = useRef(null)
@@ -14,7 +15,7 @@ export function useWebSocket(token, onNotification) {
         }
 
         const client = new Client({
-            brokerURL: 'ws://localhost:8086/ws',
+            brokerURL: WS_BROKER_URL,
             connectHeaders: {
                 Authorization: `Bearer ${token}`,
             },
