@@ -28,6 +28,7 @@ export default function CompaniesTable({
                     <option value="ACTIVE">Active</option>
                     <option value="TRIAL">Trial</option>
                     <option value="SUSPENDED">Suspended</option>
+                    <option value="INACTIVE">Inactive (Deleted)</option>
                 </select>
                 <select value={filterPlan} onChange={e => setFilterPlan(e.target.value)}
                     className="text-xs font-bold px-3 py-2 rounded-xl outline-none border-0 cursor-pointer"
@@ -59,7 +60,7 @@ export default function CompaniesTable({
                         ) : filteredCompanies.length === 0 ? (
                             <tr><td colSpan={6} className="px-5 py-10 text-center text-sm" style={{ color: T.textMuted }}>No companies match your filters</td></tr>
                         ) : filteredCompanies.map((company, i) => {
-                            const ss = STATUS_STYLES[company.status] || STATUS_STYLES.ACTIVE
+                            const ss = company.active === false ? { bg: 'rgba(239,68,68,0.10)', color: '#EF4444' } : (STATUS_STYLES[company.status] || STATUS_STYLES.ACTIVE)
                             const ps = PLAN_STYLES[company.plan] || PLAN_STYLES.FREE
                             const hasNotes = company.notes?.trim().length > 0
                             return (
@@ -86,7 +87,7 @@ export default function CompaniesTable({
                                     </td>
                                     <td className="px-5 py-3.5">
                                         <span className="text-[11px] font-bold px-2 py-1 rounded-lg"
-                                            style={{ background: ss.bg, color: ss.color }}>{company.status}</span>
+                                            style={{ background: ss.bg, color: ss.color }}>{company.active === false ? 'INACTIVE' : company.status}</span>
                                     </td>
                                     <td className="px-5 py-3.5">
                                         {company.status === 'TRIAL'

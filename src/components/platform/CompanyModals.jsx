@@ -1,4 +1,4 @@
-﻿import { IconCalendar } from '@tabler/icons-react'
+import { IconCalendar } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { Modal, InputField } from './PlatformModal'
 import { daysLeft } from './platformConstants'
@@ -79,14 +79,14 @@ export function TrialModal({
     )
 }
 
-// ── Delete Company Modal ─────────────────────────────────────────────────────
+// ── Deactivate Company Modal ─────────────────────────────────────────────────────
 export function DeleteCompanyModal({ company, onClose, formSaving, formError, onSubmit }) {
     return (
-        <Modal title="Delete Company" onClose={onClose}>
+        <Modal title="Deactivate Company" onClose={onClose}>
             <div className="mb-5 px-4 py-3 rounded-xl" style={{ background: T.errorDim, border: `1px solid ${T.error}33` }}>
-                <p className="text-sm font-bold mb-1" style={{ color: T.error }}>This cannot be undone.</p>
+                <p className="text-sm font-bold mb-1" style={{ color: T.error }}>This will deactivate the company.</p>
                 <p className="text-xs" style={{ color: T.textSecondary }}>
-                    Deletes <strong>{company.name}</strong> and all its users permanently.
+                    Deactivating <strong>{company.name}</strong> will block all of its users from logging in.
                 </p>
             </div>
             {formError && <p className="text-xs mb-3 font-semibold" style={{ color: T.error }}>{formError}</p>}
@@ -95,7 +95,7 @@ export function DeleteCompanyModal({ company, onClose, formSaving, formError, on
                     style={{ background: T.surfaceRaised, color: T.textSecondary }}>Cancel</button>
                 <button onClick={onSubmit} disabled={formSaving} className="flex-1 py-2.5 rounded-xl text-sm font-bold"
                     style={{ background: T.error, color: '#fff', opacity: formSaving ? 0.6 : 1 }}>
-                    {formSaving ? 'Deleting...' : 'Yes, Delete'}
+                    {formSaving ? 'Deactivating...' : 'Yes, Deactivate'}
                 </button>
             </div>
         </Modal>

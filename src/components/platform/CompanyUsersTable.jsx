@@ -5,7 +5,7 @@ import { ROLE_STYLES } from './platformConstants'
 export default function CompanyUsersTable({
     users, loading, updating, impersonating,
     onRefresh, onAddUser,
-    onImpersonate, onResetPassword, onDeleteUser, onChangeRole,
+    onImpersonate, onResetPassword, onDeleteUser, onActivateUser, onChangeRole,
 }) {
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -61,7 +61,12 @@ export default function CompanyUsersTable({
                                                 style={{ background: T.primaryDim, color: T.primary }}>
                                                 {u.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="text-sm font-semibold" style={{ color: T.textPrimary }}>{u.name}</span>
+                                            <span className="text-sm font-semibold" style={{ color: u.active ? T.textPrimary : T.textMuted }}>
+                                                {u.name}
+                                                {u.active === false && (
+                                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded ml-1.5" style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444' }}>INACTIVE</span>
+                                                )}
+                                            </span>
                                         </div>
                                     </td>
                                     {/* Email */}
@@ -110,15 +115,27 @@ export default function CompanyUsersTable({
                                                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
                                                     <IconKey size={14} />
                                                 </button>
-                                                <button title="Delete user"
-                                                    disabled={updating === 'del' + u.id}
-                                                    onClick={() => onDeleteUser(u.id)}
-                                                    className="p-1.5 rounded-lg"
-                                                    style={{ color: T.textMuted, opacity: updating === 'del' + u.id ? 0.4 : 1 }}
-                                                    onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
-                                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                                    <IconTrash size={14} />
-                                                </button>
+                                                {u.active ? (
+                                                    <button title="Deactivate user"
+                                                        disabled={updating === 'del' + u.id}
+                                                        onClick={() => onDeleteUser(u.id)}
+                                                        className="p-1.5 rounded-lg"
+                                                        style={{ color: T.textMuted, opacity: updating === 'del' + u.id ? 0.4 : 1 }}
+                                                        onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
+                                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                                        <IconTrash size={14} />
+                                                    </button>
+                                                ) : (
+                                                    <button title="Activate user"
+                                                        disabled={updating === 'del' + u.id}
+                                                        onClick={() => onActivateUser(u.id)}
+                                                        className="p-1.5 rounded-lg"
+                                                        style={{ color: '#22c55e', opacity: updating === 'del' + u.id ? 0.4 : 1 }}
+                                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.15)' }}
+                                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+                                                        <span className="material-symbols-outlined text-[15px] font-bold">check_circle</span>
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </td>

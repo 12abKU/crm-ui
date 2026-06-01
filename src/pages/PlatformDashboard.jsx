@@ -110,7 +110,8 @@ export default function PlatformDashboard() {
 
     const filteredCompanies = useMemo(() => companies.filter(c => {
         const matchQ = !searchQ || c.name.toLowerCase().includes(searchQ.toLowerCase()) || c.slug.toLowerCase().includes(searchQ.toLowerCase())
-        const matchStatus = filterStatus === 'ALL' || c.status === filterStatus
+        const matchStatus = filterStatus === 'ALL' || 
+            (filterStatus === 'INACTIVE' ? c.active === false : (c.active !== false && c.status === filterStatus))
         const matchPlan = filterPlan === 'ALL' || c.plan === filterPlan
         return matchQ && matchStatus && matchPlan
     }), [companies, searchQ, filterStatus, filterPlan])
@@ -194,11 +195,11 @@ export default function PlatformDashboard() {
     }
 
     const deleteUser = async (userId) => {
-        if (!confirm('Delete this user? Cannot be undone.')) return
+        if (!confirm('Deactivate this user?')) return
         setUpdating('del' + userId)
         try {
             await api.delete(`/api/platform/users/${userId}`)
-            setCompanyUsers(prev => prev.filter(u => u.id !== userId))
+            setCompanyUsers(prev => prev.map(u => u.id === userId ? { ...u, active: false } : u))
             setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers - 1 } : prev)
             if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users - 1 }))
         } finally { setUpdating(null) }
@@ -245,11 +246,40 @@ export default function PlatformDashboard() {
         setFormSaving(true); setFormError('')
         try {
             await api.delete(`/api/platform/companies/${selectedCompany.id}`)
-            setSelectedCompany(null)
-            await loadData()
+            const updated = { ...selectedCompany, active: false }
+            setSelectedCompany(updated)
+            setCompanies(prev => prev.map(c => c.id === updated.id ? updated : c))
+            api.get('/api/platform/stats').then(r => setStats(r.data))
             setShowDeleteCompany(false)
-        } catch (e) { setFormError(e?.response?.data?.message || 'Failed to delete') }
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed to deactivate') }
         finally { setFormSaving(false) }
+    }
+
+    const activateCompany = async (companyId) => {
+        setUpdating(companyId + 'active')
+        try {
+            const r = await api.patch(`/api/platform/companies/${companyId}/active`, { active: true })
+            const updated = r.data
+            setSelectedCompany(updated)
+            setCompanies(prev => prev.map(c => c.id === companyId ? updated : c))
+            api.get('/api/platform/stats').then(r => setStats(r.data))
+            
+            const usersRes = await api.get(`/api/platform/companies/${companyId}/users`)
+            setCompanyUsers(usersRes.data)
+        } catch (e) { console.error(e) }
+        finally { setUpdating(null) }
+    }
+
+    const activateUser = async (userId) => {
+        setUpdating('active' + userId)
+        try {
+            const r = await api.patch(`/api/platform/users/${userId}/active`, { active: true })
+            const updated = r.data
+            setCompanyUsers(prev => prev.map(u => u.id === userId ? updated : u))
+            setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers + 1 } : prev)
+            if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users + 1 }))
+        } catch (e) { console.error(e) }
+        finally { setUpdating(null) }
     }
 
     // ── Company detail view ──────────────────────────────────────────────────
@@ -280,6 +310,8 @@ export default function PlatformDashboard() {
                 onImpersonate={impersonate}
                 onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
                 onDeleteUser={deleteUser}
+                onActivateCompany={activateCompany}
+                onActivateUser={activateUser}
                 onChangeRole={changeUserRole}
                 onRefreshUsers={() => loadCompanyDetail(selectedCompany)}
             />

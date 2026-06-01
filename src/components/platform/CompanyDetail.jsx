@@ -189,6 +189,8 @@ export default function CompanyDetail({
     onSubmitTrial, onSubmitDeleteCompany, onSubmitAddUser, onSubmitResetPw,
     onImpersonate, onResetPassword, onDeleteUser, onChangeRole,
     onRefreshUsers,
+    onActivateCompany,
+    onActivateUser,
 }) {
     const [tab, setTab] = useState('overview')
     const [planConfig, setPlanConfig] = useState(null)
@@ -228,11 +230,19 @@ export default function CompanyDetail({
                             <p className="text-xs font-mono truncate" style={{ color: T.textMuted }}>{company.slug}</p>
                         </div>
                     </div>
-                    <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
-                        className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
-                        style={{ background: T.errorDim, color: T.error }}>
-                        <IconTrash size={13} /> Delete Company
-                    </button>
+                    {company.active ? (
+                        <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
+                            className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
+                            style={{ background: T.errorDim, color: T.error }}>
+                            <IconTrash size={13} /> Deactivate Company
+                        </button>
+                    ) : (
+                        <button onClick={() => onActivateCompany(company.id)}
+                            className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
+                            style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                            <span className="material-symbols-outlined text-[13px]">check_circle</span> Activate Company
+                        </button>
+                    )}
                 </div>
 
                 {trialExpired && (
@@ -279,6 +289,7 @@ export default function CompanyDetail({
                         onImpersonate={onImpersonate}
                         onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
                         onDeleteUser={onDeleteUser}
+                        onActivateUser={onActivateUser}
                         onChangeRole={onChangeRole}
                     />
                 )}
