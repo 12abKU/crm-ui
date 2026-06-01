@@ -39,6 +39,16 @@ export default function Contacts() {
     const [importResult, setImportResult] = useState(null)
     const [dragActive, setDragActive] = useState(false)
 
+    const [tableHeight, setTableHeight] = useState(window.innerHeight - 380)
+
+    useEffect(() => {
+        const handleResize = () => {
+            setTableHeight(Math.max(300, window.innerHeight - 380))
+        }
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
     const can = usePermissions(['CONTACTS_CREATE', 'CONTACTS_EDIT', 'CONTACTS_DELETE'])
 
     const {
@@ -239,6 +249,9 @@ export default function Contacts() {
                 {/* -- Table --------------------------------------- */}
                 <TableShell
                     headers={headers}
+                    colWidths={can.CONTACTS_DELETE
+                        ? ['22%', '25%', '15%', '16%', '18%', '4%']
+                        : ['22%', '26%', '16%', '17%', '19%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -268,15 +281,19 @@ export default function Contacts() {
                             items={contacts}
                             colSpan={headers.length}
                             rowHeight={76}
+                            maxHeight={tableHeight}
                             renderRow={(c, i) => {
                                 const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                                 const hover = virtualRowHandlers(rowBg)
+                                const colWidths = can.CONTACTS_DELETE
+                                    ? ['22%', '25%', '15%', '16%', '18%', '4%']
+                                    : ['22%', '26%', '16%', '17%', '19%']
                                 return (
                                     <tr key={c.id} className="group transition-all duration-150"
                                         style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
                                         onMouseEnter={hover.onMouseEnter}
                                         onMouseLeave={hover.onMouseLeave}>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4" style={{ width: colWidths[0] }}>
                                             <div className="flex items-center gap-3">
                                                 <EntityAvatar label={c.firstName} index={i} />
                                                 <div>
@@ -293,16 +310,16 @@ export default function Contacts() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
                                             <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
                                         </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
                                             <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
                                         </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[3] }}>
                                             <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4" style={{ width: colWidths[4] }}>
                                             {c.account && (
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
                                                     style={{ background: T.primaryFaint, color: T.primaryText, border: `1px solid ${T.primary}20` }}>
@@ -312,7 +329,7 @@ export default function Contacts() {
                                             )}
                                         </td>
                                         {can.CONTACTS_DELETE && (
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4" style={{ width: colWidths[5] }}>
                                                 <DeleteIconButton onClick={e => remove(c.id, e)} />
                                             </td>
                                         )}

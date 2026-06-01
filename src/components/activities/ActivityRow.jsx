@@ -7,7 +7,7 @@ import CompleteToggle from './CompleteToggle'
 import OutcomePicker from './OutcomePicker'
 import { fmtScheduled, getStatus, STATUS_STYLES } from './activityUtils'
 
-export default function ActivityRow({ activity, highlighted, rowBg, onRemove, onUpdate, onComplete, onOutcome, showOwner }) {
+export default function ActivityRow({ activity, highlighted, rowBg, onRemove, onUpdate, onComplete, onOutcome, showOwner, colWidths = [] }) {
     const navigate = useNavigate()
     const [blink, setBlink] = useState(false)
     const rowRef = useRef(null)
@@ -38,12 +38,12 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             onMouseLeave={e => { if (!blink) e.currentTarget.style.background = activity.completed ? T.surfaceRaised : rowBg }}>
 
             {/* Complete toggle — stop propagation */}
-            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+            <td className="px-4 py-3.5" style={{ width: colWidths[0] }} onClick={e => e.stopPropagation()}>
                 <CompleteToggle activityId={activity.id} completed={activity.completed} onToggle={onComplete} />
             </td>
 
             {/* Type badge — inline edit, stop propagation */}
-            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+            <td className="px-4 py-3.5" style={{ width: colWidths[1] }} onClick={e => e.stopPropagation()}>
                 <InlineEdit value={activity.type} options={ACTIVITY_TYPES} onSave={v => onUpdate(activity.id, 'type', v)}>
                     <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-bold w-fit"
                         style={{ background: s.bg, color: s.color }}>
@@ -54,7 +54,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             </td>
 
             {/* Subject + outcome — inline edit stops propagation, rest of td navigates */}
-            <td className="px-4 py-3.5">
+            <td className="px-4 py-3.5" style={{ width: colWidths[2] }}>
                 <div onClick={e => e.stopPropagation()}>
                     <InlineEdit value={activity.subject} placeholder="Add subject" onSave={v => onUpdate(activity.id, 'subject', v)}>
                         <p className="text-sm font-semibold"
@@ -72,7 +72,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             </td>
 
             {/* Account / contact — their own navigate, stop row propagation */}
-            <td className="px-4 py-3.5">
+            <td className="px-4 py-3.5" style={{ width: colWidths[3] }}>
                 {activity.account ? (
                     <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0"
@@ -98,7 +98,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             </td>
 
             {showOwner && (
-                <td className="px-4 py-3.5">
+                <td className="px-4 py-3.5" style={{ width: colWidths[4] }}>
                     {activity.owner ? (
                         <div className="flex items-center gap-1.5">
                             <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
@@ -112,7 +112,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             )}
 
             <td className="px-4 py-3.5 text-[12px]"
-                style={{ color: status === 'overdue' ? T.error : T.textSecondary, fontWeight: status === 'overdue' ? 700 : 400 }}>
+                style={{ width: colWidths[showOwner ? 5 : 4], color: status === 'overdue' ? T.error : T.textSecondary, fontWeight: status === 'overdue' ? 700 : 400 }}>
                 <div>{fmtScheduled(activity.scheduledAt)}</div>
                 {activity.reminderAt && (
                     <div className="flex items-center gap-1 mt-1 text-[10px] font-semibold" style={{ color: T.warning }}>
@@ -128,13 +128,13 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                 )}
             </td>
 
-            <td className="px-4 py-3.5">
+            <td className="px-4 py-3.5" style={{ width: colWidths[showOwner ? 6 : 5] }}>
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold"
                     style={{ background: ss.bg, color: ss.color }}>{ss.label}</span>
             </td>
 
             {/* Delete — stop propagation */}
-            <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+            <td className="px-4 py-3.5" style={{ width: colWidths[showOwner ? 7 : 6] }} onClick={e => e.stopPropagation()}>
                 <button onClick={() => onRemove(activity.id)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
                     style={{ color: T.textMuted }}

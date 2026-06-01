@@ -20,7 +20,7 @@ export default function VirtualTableBody({
                 <td colSpan={colSpan} style={{ padding: 0, border: 'none' }}>
                     <VirtualList
                         className="w-full"
-                        style={{ maxHeight, width: '100%' }}
+                        style={{ height: maxHeight, width: '100%' }}
                         items={items}
                         itemHeight={rowHeight}
                         onEndReached={onEndReached}

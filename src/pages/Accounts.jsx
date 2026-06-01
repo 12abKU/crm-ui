@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, TAGS, EMPLOYEE_RANGES, TAG_COLORS, ROW_COLORS } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -28,6 +28,16 @@ export default function Accounts() {
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+
+    const [tableHeight, setTableHeight] = useState(window.innerHeight - 380)
+
+    useEffect(() => {
+        const handleResize = () => {
+            setTableHeight(Math.max(300, window.innerHeight - 380))
+        }
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
 
@@ -162,6 +172,9 @@ export default function Accounts() {
                 {/* -- Table ------------------------------------- */}
                 <TableShell
                     headers={headers}
+                    colWidths={can.ACCOUNTS_DELETE 
+                        ? ['20%', '15%', '12%', '11%', '10%', '10%', '8%', '10%', '4%']
+                        : ['20%', '16%', '13%', '12%', '10%', '10%', '8%', '11%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -191,10 +204,14 @@ export default function Accounts() {
                             items={accounts}
                             colSpan={headers.length}
                             rowHeight={80}
+                            maxHeight={tableHeight}
                             renderRow={(a, i) => {
                             const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                             const hover = virtualRowHandlers(rowBg)
+                            const colWidths = can.ACCOUNTS_DELETE 
+                                ? ['20%', '15%', '12%', '11%', '10%', '10%', '8%', '10%', '4%']
+                                : ['20%', '16%', '13%', '12%', '10%', '10%', '8%', '11%']
                             return (
                                 <tr key={a.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
@@ -202,7 +219,7 @@ export default function Accounts() {
                                     onMouseLeave={hover.onMouseLeave}>
 
                                     {/* Company name + avatar */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4" style={{ width: colWidths[0] }}>
                                         <div className="flex items-center gap-3">
                                             <EntityAvatar label={a.name} rounded="xl" variant="primary" />
                                             <div>
@@ -219,27 +236,27 @@ export default function Accounts() {
                                     </td>
 
                                     {/* Website */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
                                         <InlineEdit value={a.website} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'website', v)} />
                                     </td>
 
                                     {/* Phone */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
                                         <InlineEdit value={a.phone} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'phone', v)} />
                                     </td>
 
                                     {/* Industry */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[3] }}>
                                         <InlineEdit value={a.industry} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'industry', v)} />
                                     </td>
 
                                     {/* Employees */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[4] }}>
                                         <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
                                     </td>
 
                                     {/* Tag */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4" style={{ width: colWidths[5] }}>
                                         <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'tag', v)}>
                                             {a.tag && (
                                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
@@ -251,7 +268,7 @@ export default function Accounts() {
                                     </td>
 
                                     {/* Contacts */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4" style={{ width: colWidths[6] }}>
                                         <div className="flex items-center gap-2">
                                             <div className="w-6 h-6 rounded-full flex items-center justify-center"
                                                 style={{ background: T.secondaryDim }}>
@@ -265,7 +282,7 @@ export default function Accounts() {
                                     </td>
 
                                     {/* Open Deals */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4" style={{ width: colWidths[7] }}>
                                         <span className="text-sm font-bold block" style={{ color: T.primaryText }}>
                                             ₹{(a.openDealAmount ?? 0).toLocaleString()}
                                         </span>
@@ -276,7 +293,7 @@ export default function Accounts() {
 
                                     {/* Delete */}
                                     {can.ACCOUNTS_DELETE && (
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4" style={{ width: colWidths[8] }}>
                                             <DeleteIconButton onClick={e => remove(a.id, e)} />
                                         </td>
                                     )}

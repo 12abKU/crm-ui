@@ -362,13 +362,23 @@ export default function Activities() {
                         {viewMode === 'table' ? (
                             <>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-left min-w-[900px]">
+                                    <table className="w-full text-left min-w-[900px]" style={{ tableLayout: 'fixed' }}>
                                         <thead>
                                             <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
-                                            {['', 'Type', 'Subject · Outcome', 'Account · Contact', 'Scheduled', 'Status', ''].map((header, i) => (
-                                                <th key={i} className="px-4 py-3.5 text-[10px] font-bold uppercase tracking-widest"
-                                                    style={{ color: T.textMuted }}>{header}</th>
-                                            ))}
+                                            {(() => {
+                                                const headers = ['', 'Type', 'Subject · Outcome', 'Account · Contact']
+                                                if (isAdmin) headers.push('Owner')
+                                                headers.push('Scheduled', 'Status', '')
+
+                                                const colWidths = isAdmin
+                                                    ? ['4%', '10%', '28%', '20%', '12%', '14%', '8%', '4%']
+                                                    : ['4%', '10%', '32%', '24%', '16%', '10%', '4%']
+
+                                                return headers.map((header, i) => (
+                                                    <th key={i} className="px-4 py-3.5 text-[10px] font-bold uppercase tracking-widest"
+                                                        style={{ color: T.textMuted, width: colWidths[i] }}>{header}</th>
+                                                ))
+                                            })()}
                                         </tr>
                                     </thead>
                                     {loading ? (
@@ -385,15 +395,18 @@ export default function Activities() {
                                         </tbody>
                                     ) : displayActivities.length === 0 ? (
                                         <tbody>
-                                            <EmptyTableRow colSpan={7} icon="event_note" title="No activities yet" />
+                                            <EmptyTableRow colSpan={isAdmin ? 8 : 7} icon="event_note" title="No activities yet" />
                                         </tbody>
                                     ) : (
                                         <VirtualTableBody
                                             items={displayActivities}
-                                            colSpan={7}
-                                            rowHeight={64}
+                                            colSpan={isAdmin ? 8 : 7}
+                                            rowHeight={96}
                                             renderRow={(activity, i) => {
                                                 const isHighlighted = String(activity.id) === highlightId
+                                                const colWidths = isAdmin
+                                                    ? ['4%', '10%', '28%', '20%', '12%', '14%', '8%', '4%']
+                                                    : ['4%', '10%', '32%', '24%', '16%', '10%', '4%']
                                                 return (
                                                     <ActivityRow
                                                         key={isHighlighted ? `${activity.id}-${loadCount}` : activity.id}
@@ -405,6 +418,7 @@ export default function Activities() {
                                                         onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined}
                                                         onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined}
                                                         showOwner={isAdmin}
+                                                        colWidths={colWidths}
                                                     />
                                                 )
                                             }}
