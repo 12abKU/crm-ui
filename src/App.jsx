@@ -30,6 +30,8 @@ const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
 const DeDuplicationPage = lazy(() => import('./pages/DeDuplicationPage'))
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
+import ImportProgressToast from './components/ui/ImportProgressToast'
+
 
 function WebSocketManager() {
   const token = useSelector(state => state.auth.token)
@@ -159,6 +161,7 @@ export default function App() {
     <BrowserRouter>
       <ApiErrorToast />
       <WebSocketToast />
+      <ImportProgressToast />
       <PermissionLoader />
       <CompanyStatusLoader />
       <PipelineStagesLoader />

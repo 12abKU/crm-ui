@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
@@ -26,6 +26,15 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
     const canCreate = isAdminOrAbove || can.DEALS_CREATE
 
+    const loadAccountOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/accounts?${params}`)
+        const nextAccounts = r.data.content ?? []
+        setAccounts(nextAccounts)
+        return nextAccounts.map(a => ({ id: String(a.id), label: a.name }))
+    }, [])
+
     // on open — reset and prefill
     useEffect(() => {
         if (!open) return
@@ -41,11 +50,6 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
             base.contactId = String(prefillContact.id)
         }
         setForm(base)
-
-        // load accounts only if not prefilled
-        if (!prefillAccount) {
-            api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
-        }
 
         // load contacts for prefilled account
         if (prefillAccount) {
@@ -134,7 +138,8 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                     label="Account"
                     value={form.accountId}
                     onChange={onAccountChange}
-                    options={accounts.map(a => ({ id: a.id, label: a.name }))}
+                    options={accounts.map(a => ({ id: String(a.id), label: a.name }))}
+                    onSearch={loadAccountOptions}
                     placeholder="Select account..."
                     error={errors.accountId || errors.account}
                 />

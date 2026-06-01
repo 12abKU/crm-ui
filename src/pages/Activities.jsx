@@ -98,6 +98,19 @@ export default function Activities() {
         }
     }, [])
 
+    const loadAccountOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/accounts?${params}`)
+        const nextAccounts = r.data.content ?? []
+        setAccounts(nextAccounts)
+        return nextAccounts.map(a => ({ id: a.id, label: a.name }))
+    }, [])
+
+    const loadAccountFilterOptions = useCallback(async (query = '') => {
+        return [{ id: '', label: 'All Accounts' }, ...(await loadAccountOptions(query))]
+    }, [loadAccountOptions])
+
     const displayActivities = useMemo(() => {
         if (typeFilter === 'ALL') return activities
         return activities.filter(a => a.type === typeFilter)
@@ -112,7 +125,6 @@ export default function Activities() {
     }, [loading])
 
     useEffect(() => {
-        api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
         loadDashboard()
         if (highlightId) {
             api.get(`/api/activities/position/${highlightId}?size=${PAGE_SIZE}`, { suppressErrorToast: true })
@@ -353,6 +365,7 @@ export default function Activities() {
                             </div>
                             <SearchableSelect value={filterAccountId} onChange={onFilterChange}
                                 options={[{ id: '', label: 'All Accounts' }, ...accounts.map(a => ({ id: String(a.id), label: a.name }))]}
+                                onSearch={loadAccountFilterOptions}
                                 placeholder="Filter by account..." />
                         </div>
                     )}
@@ -504,7 +517,10 @@ export default function Activities() {
                     </div>
                 </div>
                 <SearchableSelect label="Account" value={form.accountId} onChange={onFormAccountChange}
-                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" error={errors.accountId || errors.account} />
+                    options={accounts.map(a => ({ id: a.id, label: a.name }))}
+                    onSearch={loadAccountOptions}
+                    placeholder="Search account"
+                    error={errors.accountId || errors.account} />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
                     options={filteredContacts}
                     placeholder={form.accountId ? 'Select contact' : 'Select account first'}

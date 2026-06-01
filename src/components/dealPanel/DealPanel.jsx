@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T, SHADOW } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
@@ -52,7 +52,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
     })
 
     // ── Data loading ─────────────────────────────────────────
-    const loadProfile = (dealId = deal.id, bypassCache = false) => {
+    const loadProfile = useCallback((dealId = deal.id, bypassCache = false) => {
         const cacheKey = `${getCachePrefix()}:${dealId}`
         const cachedValue = profileCacheGet(cacheKey)
         const cachedEntry = profileCache.get(cacheKey)
@@ -76,12 +76,12 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                 profileCacheSet(cacheKey, r.data)
             })
             .finally(() => setLoading(false))
-    }
+    }, [deal.id])
 
     useEffect(() => {
         setActiveTab(initialTab || 'overview')
         loadProfile(deal.id)
-    }, [deal.id, initialTab])
+    }, [deal.id, initialTab, loadProfile])
 
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []

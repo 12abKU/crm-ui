@@ -1,18 +1,19 @@
 import { useSelector } from 'react-redux'
+import { useCallback } from 'react'
 import { STAGE_LABELS, STAGE_STYLES, T } from '../constants/theme'
 
 export function usePipelineStages() {
     const stages = useSelector(state => state.pipeline.stages) || []
 
-    const getStageLabel = (stageKey) => {
+    const getStageLabel = useCallback((stageKey) => {
         if (!stageKey) return '—'
         const keyUpper = stageKey.toUpperCase()
         const found = stages.find(s => s.stageKey.toUpperCase() === keyUpper)
         if (found) return found.label
         return STAGE_LABELS[keyUpper] || stageKey
-    }
+    }, [stages])
 
-    const getStageStyle = (stageKey) => {
+    const getStageStyle = useCallback((stageKey) => {
         if (!stageKey) return { accent: T.primary, badgeBg: T.primaryDim, badgeColor: T.primary }
         const keyUpper = stageKey.toUpperCase()
         if (STAGE_STYLES[keyUpper]) return STAGE_STYLES[keyUpper]
@@ -33,7 +34,7 @@ export function usePipelineStages() {
             return colors[index % colors.length]
         }
         return { accent: '#EA580C', badgeBg: 'rgba(234,88,12,0.12)', badgeColor: '#EA580C' } // fallback
-    }
+    }, [stages])
 
     return { stages, getStageLabel, getStageStyle }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { T, ACTIVITY_STYLES, ACTIVITY_TYPES } from '../constants/theme'
 import { useSelector } from 'react-redux'
 import TopBar from '../components/TopBar'
@@ -103,12 +103,20 @@ export default function Calendar() {
         }
     }
 
+    const loadAccountOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/accounts?${params}`)
+        const nextAccounts = r.data.content ?? []
+        setAccounts(nextAccounts)
+        return nextAccounts.map(a => ({ id: String(a.id), label: a.name }))
+    }, [])
+
     useEffect(() => {
         loadActivities()
     }, [year, month, selectedOwnerId])
 
     useEffect(() => {
-        api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
         loadTeam()
         loadSyncStatus()
     }, [])
@@ -393,7 +401,9 @@ export default function Calendar() {
                     </div>
                 </div>
                 <SearchableSelect label="Account" value={form.accountId} onChange={onFormAccountChange}
-                    options={accounts.map(a => ({ id: String(a.id), label: a.name }))} placeholder="Select account" />
+                    options={accounts.map(a => ({ id: String(a.id), label: a.name }))}
+                    onSearch={loadAccountOptions}
+                    placeholder="Select account" />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
                     options={filteredContacts}
                     placeholder={form.accountId ? 'Select contact' : 'Select account first'}

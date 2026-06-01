@@ -1,7 +1,9 @@
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { T } from '../../constants/theme'
 import { usePermissions } from '../../hooks/usePermission'
 import api from '../../api'
+
+const NOTES_PAGE_SIZE = 20
 
 // ── Clear All Confirmation Modal ───────────────────────────────
 function ClearAllModal({ noteCount, onConfirm, onCancel, clearing }) {
@@ -113,6 +115,10 @@ export default function InternalNotes({ dealId, contactId }) {
     const [team, setTeam] = useState([])
     const [content, setContent] = useState('')
     const [loading, setLoading] = useState(false)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const [totalElements, setTotalElements] = useState(0)
     const [submitting, setSubmitting] = useState(false)
     const [showClearModal, setShowClearModal] = useState(false)  // ← new
     const [clearing, setClearing] = useState(false)              // ← new
@@ -128,18 +134,25 @@ export default function InternalNotes({ dealId, contactId }) {
     const textareaRef = useRef(null)
     const dropdownRef = useRef(null)
 
-    const loadNotes = async () => {
-        setLoading(true)
+    const loadNotes = useCallback(async (pageNum = 0, append = false) => {
+        if (append) setLoadingMore(true)
+        else setLoading(true)
         try {
             const url = dealId ? `/api/notes/deal/${dealId}` : `/api/notes/contact/${contactId}`
-            const r = await api.get(url)
-            setNotes(r.data ?? [])
+            const r = await api.get(`${url}?page=${pageNum}&size=${NOTES_PAGE_SIZE}`)
+            const payload = r.data ?? {}
+            const content = Array.isArray(payload) ? payload : (payload.content ?? [])
+            setNotes(prev => append ? [...prev, ...content] : content)
+            setPage(payload.number ?? pageNum)
+            setTotalPages(payload.totalPages ?? 0)
+            setTotalElements(payload.totalElements ?? content.length)
         } catch (e) {
             console.error(e)
         } finally {
-            setLoading(false)
+            if (append) setLoadingMore(false)
+            else setLoading(false)
         }
-    }
+    }, [dealId, contactId])
 
     const loadTeam = async () => {
         try {
@@ -151,10 +164,9 @@ export default function InternalNotes({ dealId, contactId }) {
     }
 
     useEffect(() => {
-        loadNotes()
+        loadNotes(0, false)
         loadTeam()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dealId, contactId])
+    }, [dealId, contactId, loadNotes])
 
     const filteredTeam = team.filter(user =>
         user.name.toLowerCase().includes(mentionSearch.toLowerCase()) ||
@@ -237,7 +249,7 @@ export default function InternalNotes({ dealId, contactId }) {
                 contactId: contactId || null
             })
             setContent('')
-            loadNotes()
+            loadNotes(0, false)
         } catch (err) {
             console.error(err)
         } finally {
@@ -252,6 +264,9 @@ export default function InternalNotes({ dealId, contactId }) {
             const url = dealId ? `/api/notes/deal/${dealId}` : `/api/notes/contact/${contactId}`
             await api.delete(url)
             setNotes([])
+            setPage(0)
+            setTotalPages(0)
+            setTotalElements(0)
             setShowClearModal(false)
         } catch (e) {
             console.error('Failed to clear notes:', e)
@@ -298,7 +313,7 @@ export default function InternalNotes({ dealId, contactId }) {
             {/* ── Clear All Confirmation Modal ─────────────── */}
             {showClearModal && (
                 <ClearAllModal
-                    noteCount={notes.length}
+                    noteCount={totalElements || notes.length}
                     clearing={clearing}
                     onConfirm={handleClearConfirmed}
                     onCancel={() => !clearing && setShowClearModal(false)}
@@ -398,34 +413,47 @@ export default function InternalNotes({ dealId, contactId }) {
                         <p className="text-[10px]" style={{ color: T.textMuted }}>Collaborate with your team by posting comments here.</p>
                     </div>
                 ) : (
-                    notes.map((note) => (
-                        <div key={note.id} className="p-4 rounded-2xl flex flex-col gap-2 transition-all"
-                            style={{ background: T.surfaceRaised, border: `1.5px solid ${T.borderSubtle}` }}>
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0"
-                                        style={{ background: T.primaryDim, color: T.primaryText }}>
-                                        {note.createdBy?.name.charAt(0).toUpperCase()}
+                    <>
+                        {notes.map((note) => (
+                            <div key={note.id} className="p-4 rounded-2xl flex flex-col gap-2 transition-all"
+                                style={{ background: T.surfaceRaised, border: `1.5px solid ${T.borderSubtle}` }}>
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0"
+                                            style={{ background: T.primaryDim, color: T.primaryText }}>
+                                            {note.createdBy?.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black" style={{ color: T.textPrimary }}>
+                                                {note.createdBy?.name}
+                                            </p>
+                                            <p className="text-[9px] font-semibold mt-0.5" style={{ color: T.textMuted }}>
+                                                {note.createdBy?.role}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-xs font-black" style={{ color: T.textPrimary }}>
-                                            {note.createdBy?.name}
-                                        </p>
-                                        <p className="text-[9px] font-semibold mt-0.5" style={{ color: T.textMuted }}>
-                                            {note.createdBy?.role}
-                                        </p>
-                                    </div>
+                                    <span className="text-[9.5px] font-semibold" style={{ color: T.textMuted }}>
+                                        {formatTime(note.createdAt)}
+                                    </span>
                                 </div>
-                                <span className="text-[9.5px] font-semibold" style={{ color: T.textMuted }}>
-                                    {formatTime(note.createdAt)}
-                                </span>
+                                <div className="text-sm font-semibold leading-relaxed pl-1 sm:pl-10 whitespace-pre-wrap"
+                                    style={{ color: T.textSecondary }}>
+                                    {renderNoteContent(note.content)}
+                                </div>
                             </div>
-                            <div className="text-sm font-semibold leading-relaxed pl-1 sm:pl-10 whitespace-pre-wrap"
-                                style={{ color: T.textSecondary }}>
-                                {renderNoteContent(note.content)}
-                            </div>
-                        </div>
-                    ))
+                        ))}
+                        {page < totalPages - 1 && (
+                            <button
+                                type="button"
+                                onClick={() => loadNotes(page + 1, true)}
+                                disabled={loadingMore}
+                                className="self-center px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                style={{ background: T.surfaceRaised, color: T.primary, border: `1px solid ${T.border}` }}
+                            >
+                                {loadingMore ? 'Loading...' : `Load more (${Math.max(totalElements - notes.length, 0)} left)`}
+                            </button>
+                        )}
+                    </>
                 )}
             </div>
         </div>

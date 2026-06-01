@@ -127,10 +127,10 @@ export default function CompanyUsersTable({
                                                     </button>
                                                 ) : (
                                                     <button title="Activate user"
-                                                        disabled={updating === 'del' + u.id}
+                                                        disabled={updating === 'active' + u.id}
                                                         onClick={() => onActivateUser(u.id)}
                                                         className="p-1.5 rounded-lg"
-                                                        style={{ color: '#22c55e', opacity: updating === 'del' + u.id ? 0.4 : 1 }}
+                                                        style={{ color: '#22c55e', opacity: updating === 'active' + u.id ? 0.4 : 1 }}
                                                         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.15)' }}
                                                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
                                                         <span className="material-symbols-outlined text-[15px] font-bold">check_circle</span>

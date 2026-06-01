@@ -161,6 +161,11 @@ export default function Contacts() {
         if (!importFile) return
         setImporting(true)
         setImportError('')
+        
+        window.dispatchEvent(new CustomEvent('crm-import-start', {
+            detail: { fileName: importFile.name }
+        }))
+
         try {
             const formData = new FormData()
             formData.append('file', importFile)
@@ -168,8 +173,17 @@ export default function Contacts() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             })
             setImportResult(r.data)
+            
+            window.dispatchEvent(new CustomEvent('crm-import-success', {
+                detail: { result: r.data }
+            }))
         } catch (err) {
-            setImportError(extractApiErrorMessage(err, 'Failed to import contacts'))
+            const errMsg = extractApiErrorMessage(err, 'Failed to import contacts')
+            setImportError(errMsg)
+            
+            window.dispatchEvent(new CustomEvent('crm-import-error', {
+                detail: { message: errMsg }
+            }))
         } finally {
             setImporting(false)
         }

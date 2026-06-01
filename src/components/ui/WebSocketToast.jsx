@@ -8,7 +8,8 @@ const NOTIF_STYLES = {
     TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
     ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
-    MENTION: { icon: 'alternate_email', color: '#9333EA', label: 'Mentioned You' }
+    MENTION: { icon: 'alternate_email', color: '#9333EA', label: 'Mentioned You' },
+    AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' }
 }
 
 export default function WebSocketToast() {

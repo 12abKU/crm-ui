@@ -7,9 +7,6 @@ import api from '../../../api'
 
 export default function DealsTab({ data, activeStages = [] }) {
     const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
-    if (!data) return <TabSkeleton />
-    const winRate = data.winRate ?? 0
-
     const [velocity, setVelocity] = useState([])
     const [velocityLoading, setVelocityLoading] = useState(true)
 
@@ -24,7 +21,10 @@ export default function DealsTab({ data, activeStages = [] }) {
             })
             .catch(() => setVelocity([]))
             .finally(() => setVelocityLoading(false))
-    }, [])
+    }, [getStageLabel])
+
+    if (!data) return <TabSkeleton />
+    const winRate = data.winRate ?? 0
 
     const getStageStyle = (stageKey) => {
         return getPipelineStageStyle(stageKey)

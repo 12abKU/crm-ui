@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { LOST_DEAL_REASONS, T } from '../constants/theme'
@@ -158,7 +158,7 @@ export default function Deals() {
         }
     }, [])
 
-    // Load initial pipelines and accounts
+    // Load initial pipelines
     useEffect(() => {
         api.get('/api/pipelines').then(r => {
             const data = r.data ?? []
@@ -167,7 +167,15 @@ export default function Deals() {
                 setSelectedPipelineId(data[0].id)
             }
         })
-        api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content ?? []))
+    }, [])
+
+    const loadAccountOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/accounts?${params}`)
+        const nextAccounts = r.data.content ?? []
+        setAccounts(nextAccounts)
+        return nextAccounts.map(a => ({ id: a.id, label: a.name }))
     }, [])
 
     const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
@@ -824,7 +832,8 @@ export default function Deals() {
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))}
-                    placeholder="Select account..."
+                    onSearch={loadAccountOptions}
+                    placeholder="Search account..."
                     error={errors.accountId || errors.account}
                 />
                 <SearchableSelect
