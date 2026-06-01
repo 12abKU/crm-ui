@@ -5,7 +5,7 @@ import { ROLE_STYLES } from './platformConstants'
 export default function CompanyUsersTable({
     users, loading, updating, impersonating,
     onRefresh, onAddUser,
-    onImpersonate, onResetPassword, onDeleteUser, onActivateUser, onChangeRole,
+    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onActivateUser, onChangeRole,
 }) {
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -136,6 +136,15 @@ export default function CompanyUsersTable({
                                                         <span className="material-symbols-outlined text-[15px] font-bold">check_circle</span>
                                                     </button>
                                                 )}
+                                                <button title="Delete user forever"
+                                                    disabled={updating === 'delForever' + u.id}
+                                                    onClick={() => onDeleteUserForever(u.id)}
+                                                    className="p-1.5 rounded-lg"
+                                                    style={{ color: '#DC2626', opacity: updating === 'delForever' + u.id ? 0.4 : 1 }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background = T.errorDim }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+                                                    <span className="material-symbols-outlined text-[16px] font-bold">delete_forever</span>
+                                                </button>
                                             </div>
                                         )}
                                     </td>

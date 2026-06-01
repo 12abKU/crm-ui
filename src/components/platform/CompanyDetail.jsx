@@ -9,7 +9,7 @@ import CompanyNotes from './CompanyNotes'
 import CompanyUsersTable from './CompanyUsersTable'
 import IntegrationsPanel from './IntegrationsPanel'
 import PlanConfigPanel from './PlanConfigPanel'
-import { TrialModal, DeleteCompanyModal, AddUserModal, ResetPasswordModal } from './CompanyModals'
+import { TrialModal, DeleteCompanyModal, DeleteCompanyForeverModal, AddUserModal, ResetPasswordModal } from './CompanyModals'
 import { daysLeft } from './platformConstants'
 import { PRIORITY_STYLES, STATUS_STYLES, CATEGORY_ICONS, timeAgo } from '../support/supportConstants'
 import api from '../../api'
@@ -179,15 +179,15 @@ export default function CompanyDetail({
     company, companyStats, companyUsers, usersLoading,
     updating, impersonating,
     notes, notesSaving, notesSaved, onNotesChange,
-    showTrialModal, showDeleteCompany, showAddUser, showResetPw,
-    setShowTrialModal, setShowDeleteCompany, setShowAddUser, setShowResetPw,
+    showTrialModal, showDeleteCompany, showDeleteCompanyForever, showAddUser, showResetPw,
+    setShowTrialModal, setShowDeleteCompany, setShowDeleteCompanyForever, setShowAddUser, setShowResetPw,
     trialMode, setTrialMode, trialDays, setTrialDays, trialDate, setTrialDate,
     newUser, setNewUser, newPw, setNewPw,
     formSaving, formError, setFormError,
     onBack,
     onUpdatePlan, onUpdateStatus,
-    onSubmitTrial, onSubmitDeleteCompany, onSubmitAddUser, onSubmitResetPw,
-    onImpersonate, onResetPassword, onDeleteUser, onChangeRole,
+    onSubmitTrial, onSubmitDeleteCompany, onSubmitDeleteCompanyForever, onSubmitAddUser, onSubmitResetPw,
+    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onChangeRole,
     onRefreshUsers,
     onActivateCompany,
     onActivateUser,
@@ -230,19 +230,26 @@ export default function CompanyDetail({
                             <p className="text-xs font-mono truncate" style={{ color: T.textMuted }}>{company.slug}</p>
                         </div>
                     </div>
-                    {company.active ? (
-                        <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
-                            className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
-                            style={{ background: T.errorDim, color: T.error }}>
-                            <IconTrash size={13} /> Deactivate Company
+                    <div className="flex items-center gap-2 w-full lg:w-auto">
+                        {company.active ? (
+                            <button onClick={() => { setFormError(''); setShowDeleteCompany(true) }}
+                                className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl flex-1 lg:flex-initial shrink-0"
+                                style={{ background: T.errorDim, color: T.error }}>
+                                <IconTrash size={13} /> Deactivate Company
+                            </button>
+                        ) : (
+                            <button onClick={() => onActivateCompany(company.id)}
+                                className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl flex-1 lg:flex-initial shrink-0"
+                                style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                                <span className="material-symbols-outlined text-[13px]">check_circle</span> Activate Company
+                            </button>
+                        )}
+                        <button onClick={() => { setFormError(''); setShowDeleteCompanyForever(true) }}
+                            className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl flex-1 lg:flex-initial shrink-0"
+                            style={{ background: '#DC2626', color: '#fff' }}>
+                            <IconTrash size={13} /> Delete Forever
                         </button>
-                    ) : (
-                        <button onClick={() => onActivateCompany(company.id)}
-                            className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-xl w-full lg:w-auto shrink-0"
-                            style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
-                            <span className="material-symbols-outlined text-[13px]">check_circle</span> Activate Company
-                        </button>
-                    )}
+                    </div>
                 </div>
 
                 {trialExpired && (
@@ -289,6 +296,7 @@ export default function CompanyDetail({
                         onImpersonate={onImpersonate}
                         onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
                         onDeleteUser={onDeleteUser}
+                        onDeleteUserForever={onDeleteUserForever}
                         onActivateUser={onActivateUser}
                         onChangeRole={onChangeRole}
                     />
@@ -323,6 +331,13 @@ export default function CompanyDetail({
                     company={company} onClose={() => setShowDeleteCompany(false)}
                     formSaving={formSaving} formError={formError}
                     onSubmit={onSubmitDeleteCompany}
+                />
+            )}
+            {showDeleteCompanyForever && (
+                <DeleteCompanyForeverModal
+                    company={company} onClose={() => setShowDeleteCompanyForever(false)}
+                    formSaving={formSaving} formError={formError}
+                    onSubmit={onSubmitDeleteCompanyForever}
                 />
             )}
             {showAddUser && (

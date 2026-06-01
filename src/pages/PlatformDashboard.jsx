@@ -67,6 +67,7 @@ export default function PlatformDashboard() {
     const [showAddCompany, setShowAddCompany] = useState(false)
     const [showTrialModal, setShowTrialModal] = useState(false)
     const [showDeleteCompany, setShowDeleteCompany] = useState(false)
+    const [showDeleteCompanyForever, setShowDeleteCompanyForever] = useState(false)
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT' })
     const [newPw, setNewPw] = useState('')
     const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
@@ -205,6 +206,19 @@ export default function PlatformDashboard() {
         } finally { setUpdating(null) }
     }
 
+    const deleteUserForever = async (userId) => {
+        if (!confirm('CRITICAL: Delete this user permanently from the database? This action is irreversible.')) return
+        setUpdating('delForever' + userId)
+        try {
+            await api.delete(`/api/platform/users/${userId}/forever`)
+            setCompanyUsers(prev => prev.filter(u => u.id !== userId))
+            setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers - 1 } : prev)
+            if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users - 1 }))
+        } catch (e) {
+            alert(e?.response?.data?.message || 'Failed to delete user forever')
+        } finally { setUpdating(null) }
+    }
+
     const submitAddUser = async () => {
         if (!newUser.name || !newUser.email || !newUser.password) { setFormError('All fields required'); return }
         setFormSaving(true); setFormError('')
@@ -255,6 +269,18 @@ export default function PlatformDashboard() {
         finally { setFormSaving(false) }
     }
 
+    const submitDeleteCompanyForever = async () => {
+        setFormSaving(true); setFormError('')
+        try {
+            await api.delete(`/api/platform/companies/${selectedCompany.id}/forever`)
+            setCompanies(prev => prev.filter(c => c.id !== selectedCompany.id))
+            setSelectedCompany(null)
+            loadData() // Reload all platform stats and companies
+            setShowDeleteCompanyForever(false)
+        } catch (e) { setFormError(e?.response?.data?.message || 'Failed to delete company forever') }
+        finally { setFormSaving(false) }
+    }
+
     const activateCompany = async (companyId) => {
         setUpdating(companyId + 'active')
         try {
@@ -291,9 +317,9 @@ export default function PlatformDashboard() {
                 updating={updating} impersonating={impersonating}
                 notes={notes} notesSaving={notesSaving} notesSaved={notesSaved}
                 onNotesChange={handleNotesChange}
-                showTrialModal={showTrialModal} showDeleteCompany={showDeleteCompany}
+                showTrialModal={showTrialModal} showDeleteCompany={showDeleteCompany} showDeleteCompanyForever={showDeleteCompanyForever}
                 showAddUser={showAddUser} showResetPw={showResetPw}
-                setShowTrialModal={setShowTrialModal} setShowDeleteCompany={setShowDeleteCompany}
+                setShowTrialModal={setShowTrialModal} setShowDeleteCompany={setShowDeleteCompany} setShowDeleteCompanyForever={setShowDeleteCompanyForever}
                 setShowAddUser={setShowAddUser} setShowResetPw={setShowResetPw}
                 trialMode={trialMode} setTrialMode={setTrialMode}
                 trialDays={trialDays} setTrialDays={setTrialDays}
@@ -305,11 +331,13 @@ export default function PlatformDashboard() {
                 onUpdatePlan={updatePlan} onUpdateStatus={updateStatus}
                 onSubmitTrial={submitTrial}
                 onSubmitDeleteCompany={submitDeleteCompany}
+                onSubmitDeleteCompanyForever={submitDeleteCompanyForever}
                 onSubmitAddUser={submitAddUser}
                 onSubmitResetPw={submitResetPw}
                 onImpersonate={impersonate}
                 onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
                 onDeleteUser={deleteUser}
+                onDeleteUserForever={deleteUserForever}
                 onActivateCompany={activateCompany}
                 onActivateUser={activateUser}
                 onChangeRole={changeUserRole}
