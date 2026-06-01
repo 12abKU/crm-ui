@@ -5,6 +5,7 @@ import { T } from '../constants/theme'
 import api from '../api'
 import TopBar from '../components/TopBar'
 import MergeCompareModal from '../components/ui/MergeCompareModal'
+import Pagination from '../components/Pagination'
 
 export default function DeDuplicationPage() {
     const navigate = useNavigate()
@@ -12,7 +13,11 @@ export default function DeDuplicationPage() {
 
     const [activeTab, setActiveTab] = useState('ACCOUNT') // 'ACCOUNT' or 'CONTACT'
     const [groups, setGroups] = useState([])
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const [totalElements, setTotalElements] = useState(0)
     const [loading, setLoading] = useState(false)
+    const PAGE_SIZE = 25
     const [selectedGroup, setSelectedGroup] = useState(null)
     const [modalOpen, setModalOpen] = useState(false)
 
@@ -21,22 +26,28 @@ export default function DeDuplicationPage() {
         if (role === 'AGENT') navigate('/')
     }, [role, navigate])
 
-    const scanDuplicates = useCallback(async () => {
+    const scanDuplicates = useCallback(async (pageNum = 0) => {
         setLoading(true)
         try {
-            const res = await api.get(`/api/de-duplication/scan?type=${activeTab}`)
-            setGroups(res.data || [])
+            const res = await api.get(`/api/de-duplication/scan?type=${activeTab}&page=${pageNum}&size=${PAGE_SIZE}`)
+            const data = res.data ?? {}
+            setGroups(data.content ?? [])
+            setPage(data.page ?? pageNum)
+            setTotalPages(data.totalPages ?? 0)
+            setTotalElements(data.totalElements ?? 0)
         } catch (err) {
-            // error is handled globally by api interceptor
             setGroups([])
+            setTotalPages(0)
+            setTotalElements(0)
         } finally {
             setLoading(false)
         }
     }, [activeTab])
 
     useEffect(() => {
-        scanDuplicates()
-    }, [scanDuplicates])
+        setPage(0)
+        scanDuplicates(0)
+    }, [activeTab, scanDuplicates])
 
     const handleResolve = (group) => {
         setSelectedGroup(group)
@@ -48,7 +59,7 @@ export default function DeDuplicationPage() {
         window.dispatchEvent(new CustomEvent('crm-notification', {
             detail: { title: 'Merge Complete', body: 'Duplicate records were successfully merged.' }
         }))
-        scanDuplicates()
+        scanDuplicates(page)
     }
 
     return (
@@ -73,7 +84,7 @@ export default function DeDuplicationPage() {
                         </div>
                         
                         <button
-                            onClick={scanDuplicates}
+                            onClick={() => scanDuplicates(page)}
                             disabled={loading}
                             className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full lg:w-auto"
                             style={{
@@ -196,6 +207,18 @@ export default function DeDuplicationPage() {
                                     </button>
                                 </div>
                             ))}
+                        </div>
+                    )}
+
+                    {!loading && totalPages > 1 && (
+                        <div className="mt-6">
+                            <Pagination
+                                page={page}
+                                totalPages={totalPages}
+                                totalElements={totalElements}
+                                pageSize={PAGE_SIZE}
+                                onPage={(p) => scanDuplicates(p)}
+                            />
                         </div>
                     )}
                 </main>

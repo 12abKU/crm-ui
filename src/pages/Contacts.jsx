@@ -10,6 +10,7 @@ import SearchableSelect from '../components/SearchableSelect'
 import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
 import TableShell from '../components/ui/TableShell'
+import VirtualTableBody, { virtualRowHandlers } from '../components/ui/VirtualTableBody'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
@@ -240,9 +241,9 @@ export default function Contacts() {
                     headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
-                    <tbody>
-                        {loading ? (
-                            Array.from({ length: 8 }).map((_, i) => (
+                    {loading ? (
+                        <tbody>
+                            {Array.from({ length: 8 }).map((_, i) => (
                                 <tr key={i} style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -256,79 +257,70 @@ export default function Contacts() {
                                         </td>
                                     ))}
                                 </tr>
-                            ))
-                        ) : contacts.map((c, i) => {
-                            const rowBg = ROW_COLORS[i % ROW_COLORS.length]
-                            return (
-                                <tr key={c.id} className="group transition-all duration-150"
-                                    style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.background = T.surfaceHigh
-                                        e.currentTarget.style.transform = 'translateX(2px)'
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.background = rowBg
-                                        e.currentTarget.style.transform = 'none'
-                                    }}>
-
-                                    {/* Name + Avatar */}
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <EntityAvatar label={c.firstName} index={i} />
-                                            <div>
-                                                <p className="text-sm font-bold cursor-pointer hover:underline"
-                                                    style={{ color: T.primaryText }}
-                                                    onClick={() => navigate(`/contacts/${c.id}`)}>
-                                                    {c.firstName} {c.lastName}
-                                                </p>
-                                                {c.designation && (
-                                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
-                                                        {c.designation}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {/* Email */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
-                                    </td>
-
-                                    {/* Phone */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
-                                    </td>
-
-                                    {/* Designation */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
-                                        <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
-                                    </td>
-
-                                    {/* Account badge */}
-                                    <td className="px-6 py-4">
-                                        {c.account && (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
-                                                style={{ background: T.primaryFaint, color: T.primaryText, border: `1px solid ${T.primary}20` }}>
-                                                <span className="material-symbols-outlined text-[11px]">business</span>
-                                                {c.account.name}
-                                            </span>
-                                        )}
-                                    </td>
-
-                                    {/* Delete */}
-                                    {can.CONTACTS_DELETE && (
-                                        <td className="px-6 py-4">
-                                            <DeleteIconButton onClick={e => remove(c.id, e)} />
-                                        </td>
-                                    )}
-                                </tr>
-                            )
-                        })}
-                        {!loading && contacts.length === 0 && (
+                            ))}
+                        </tbody>
+                    ) : contacts.length === 0 ? (
+                        <tbody>
                             <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />
-                        )}
-                    </tbody>
+                        </tbody>
+                    ) : (
+                        <VirtualTableBody
+                            items={contacts}
+                            colSpan={headers.length}
+                            rowHeight={76}
+                            renderRow={(c, i) => {
+                                const rowBg = ROW_COLORS[i % ROW_COLORS.length]
+                                const hover = virtualRowHandlers(rowBg)
+                                return (
+                                    <tr key={c.id} className="group transition-all duration-150"
+                                        style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
+                                        onMouseEnter={hover.onMouseEnter}
+                                        onMouseLeave={hover.onMouseLeave}>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <EntityAvatar label={c.firstName} index={i} />
+                                                <div>
+                                                    <p className="text-sm font-bold cursor-pointer hover:underline"
+                                                        style={{ color: T.primaryText }}
+                                                        onClick={() => navigate(`/contacts/${c.id}`)}>
+                                                        {c.firstName} {c.lastName}
+                                                    </p>
+                                                    {c.designation && (
+                                                        <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
+                                                            {c.designation}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                            <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
+                                        </td>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                            <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
+                                        </td>
+                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>
+                                            <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {c.account && (
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
+                                                    style={{ background: T.primaryFaint, color: T.primaryText, border: `1px solid ${T.primary}20` }}>
+                                                    <span className="material-symbols-outlined text-[11px]">business</span>
+                                                    {c.account.name}
+                                                </span>
+                                            )}
+                                        </td>
+                                        {can.CONTACTS_DELETE && (
+                                            <td className="px-6 py-4">
+                                                <DeleteIconButton onClick={e => remove(c.id, e)} />
+                                            </td>
+                                        )}
+                                    </tr>
+                                )
+                            }}
+                        />
+                    )}
                 </TableShell>
             </main>
 

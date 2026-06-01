@@ -30,8 +30,8 @@ function CompanyTicketsPanel({ companyId, companyName }) {
     const [filter, setFilter] = useState('ALL')
 
     useEffect(() => {
-        api.get('/api/support/tickets/platform')
-            .then(r => setTickets((r.data ?? []).filter(t => t.companyId === companyId)))
+        api.get(`/api/support/tickets/platform?companyId=${companyId}&page=0&size=100`)
+            .then(r => setTickets(r.data?.content ?? []))
             .catch(() => setTickets([]))
             .finally(() => setLoading(false))
     }, [companyId])

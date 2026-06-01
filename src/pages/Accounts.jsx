@@ -9,6 +9,7 @@ import { Input, Select } from '../components/FormField'
 import PageHeader from '../components/ui/PageHeader'
 import SearchInput from '../components/ui/SearchInput'
 import TableShell from '../components/ui/TableShell'
+import VirtualTableBody, { virtualRowHandlers } from '../components/ui/VirtualTableBody'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
@@ -163,9 +164,9 @@ export default function Accounts() {
                     headers={headers}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
-                    <tbody>
-                        {loading ? (
-                            Array.from({ length: 8 }).map((_, i) => (
+                    {loading ? (
+                        <tbody>
+                            {Array.from({ length: 8 }).map((_, i) => (
                                 <tr key={i} style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -179,21 +180,26 @@ export default function Accounts() {
                                         </td>
                                     ))}
                                 </tr>
-                            ))
-                        ) : accounts.map((a, i) => {
+                            ))}
+                        </tbody>
+                    ) : accounts.length === 0 ? (
+                        <tbody>
+                            <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />
+                        </tbody>
+                    ) : (
+                        <VirtualTableBody
+                            items={accounts}
+                            colSpan={headers.length}
+                            rowHeight={80}
+                            renderRow={(a, i) => {
                             const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
+                            const hover = virtualRowHandlers(rowBg)
                             return (
                                 <tr key={a.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.background = T.surfaceHigh
-                                        e.currentTarget.style.transform = 'translateX(2px)'
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.background = rowBg
-                                        e.currentTarget.style.transform = 'none'
-                                    }}>
+                                    onMouseEnter={hover.onMouseEnter}
+                                    onMouseLeave={hover.onMouseLeave}>
 
                                     {/* Company name + avatar */}
                                     <td className="px-6 py-4">
@@ -276,11 +282,9 @@ export default function Accounts() {
                                     )}
                                 </tr>
                             )
-                        })}
-                        {!loading && accounts.length === 0 && (
-                            <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />
-                        )}
-                    </tbody>
+                        }}
+                        />
+                    )}
                 </TableShell>
             </main>
 

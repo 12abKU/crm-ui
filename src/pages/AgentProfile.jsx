@@ -89,12 +89,13 @@ export default function AgentProfile() {
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                         {canExport && (
                             <>
-                                <button onClick={() => {
-                                    api.get(`/api/dashboard/agent/${id}/report/pdf`, { responseType: 'blob' })
-                                        .then(response => {
-                                            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
-                                            window.open(url, '_blank')
-                                        })
+                                <button onClick={async () => {
+                                    const { openPdfAsync } = await import('../utils/downloadPdfAsync')
+                                    openPdfAsync({
+                                        startUrl: `/api/dashboard/agent/${id}/report/pdf/async`,
+                                        statusUrl: (jobId) => `/api/dashboard/agent/${id}/report/pdf/async/${jobId}`,
+                                        downloadUrl: (jobId) => `/api/dashboard/agent/${id}/report/pdf/async/${jobId}/download`,
+                                    }).catch(() => {})
                                 }}
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 group"
                                     style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}30` }}
@@ -104,17 +105,13 @@ export default function AgentProfile() {
                                     View Report
                                 </button>
 
-                                <button onClick={() => {
-                                    api.get(`/api/dashboard/agent/${id}/report/pdf`, { responseType: 'blob' })
-                                        .then(response => {
-                                            const url = window.URL.createObjectURL(new Blob([response.data]))
-                                            const link = document.createElement('a')
-                                            link.href = url
-                                            link.setAttribute('download', `agent_report_${id}.pdf`)
-                                            document.body.appendChild(link)
-                                            link.click()
-                                            link.remove()
-                                        })
+                                <button onClick={async () => {
+                                    const { downloadPdfAsync, savePdfBlob } = await import('../utils/downloadPdfAsync')
+                                    downloadPdfAsync({
+                                        startUrl: `/api/dashboard/agent/${id}/report/pdf/async`,
+                                        statusUrl: (jobId) => `/api/dashboard/agent/${id}/report/pdf/async/${jobId}`,
+                                        downloadUrl: (jobId) => `/api/dashboard/agent/${id}/report/pdf/async/${jobId}/download`,
+                                    }).then(({ blob, filename }) => savePdfBlob(blob, filename)).catch(() => {})
                                 }}
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 hover:opacity-90"
                                     style={{ background: T.primary, color: '#fff', boxShadow: `0 4px 12px ${T.primary}40` }}>

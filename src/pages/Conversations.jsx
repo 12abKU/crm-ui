@@ -288,7 +288,13 @@ export default function Conversations() {
     // WhatsApp channel state
     const [channel, setChannel] = useState('email') // 'email' | 'whatsapp'
     const [whatsappMessages, setWhatsappMessages] = useState([])
+    const [whatsappPage, setWhatsappPage] = useState(0)
+    const [whatsappHasOlder, setWhatsappHasOlder] = useState(false)
     const [whatsappLoading, setWhatsappLoading] = useState(false)
+    const [whatsappLoadingOlder, setWhatsappLoadingOlder] = useState(false)
+    const [gmailNextToken, setGmailNextToken] = useState(null)
+    const [gmailHasMore, setGmailHasMore] = useState(false)
+    const [emailsLoadingMore, setEmailsLoadingMore] = useState(false)
     const [whatsappBody, setWhatsappBody] = useState('')
     const [sendingWhatsapp, setSendingWhatsapp] = useState(false)
     const [whatsappError, setWhatsappError] = useState('')
@@ -338,31 +344,48 @@ export default function Conversations() {
             .finally(() => setContactsLoading(false))
     }, [])
 
-    const fetchEmails = useCallback(async (contact) => {
+    const fetchEmails = useCallback(async (contact, append = false, pageToken = null) => {
         if (!contact?.email) { setEmails([]); return }
-        setEmailsLoading(true)
+        if (append) setEmailsLoadingMore(true)
+        else setEmailsLoading(true)
         try {
-            const r = await api.get(`/api/gmail/emails/contact?contactId=${contact.id}`)
-            const data = r.data ?? []
-            setEmails(data)
-            setEmailCounts(prev => ({ ...prev, [contact.id]: data.length }))
+            const params = new URLSearchParams({ contactId: String(contact.id), size: '25' })
+            if (pageToken) params.set('pageToken', pageToken)
+            const r = await api.get(`/api/gmail/emails/contact?${params}`)
+            const data = r.data ?? {}
+            const batch = data.messages ?? []
+            setEmails(prev => append ? [...prev, ...batch] : batch)
+            setGmailNextToken(data.nextPageToken ?? null)
+            setGmailHasMore(Boolean(data.hasMore))
+            if (!append) {
+                setEmailCounts(prev => ({ ...prev, [contact.id]: batch.length }))
+            }
         } catch {
-            setEmails([])
+            if (!append) setEmails([])
         } finally {
             setEmailsLoading(false)
+            setEmailsLoadingMore(false)
         }
     }, [])
 
-    const fetchWhatsappMessages = useCallback(async (contact) => {
+    const fetchWhatsappMessages = useCallback(async (contact, loadOlder = false, currentPage = 0) => {
         if (!contact?.id) { setWhatsappMessages([]); return }
-        setWhatsappLoading(true)
+        if (loadOlder) setWhatsappLoadingOlder(true)
+        else setWhatsappLoading(true)
         try {
-            const r = await api.get(`/api/whatsapp/messages?contactId=${contact.id}`)
-            setWhatsappMessages(r.data ?? [])
+            const page = loadOlder ? Math.max(0, currentPage - 1) : 0
+            const latest = !loadOlder
+            const r = await api.get(`/api/whatsapp/messages?contactId=${contact.id}&page=${page}&size=40&latest=${latest}`)
+            const data = r.data ?? {}
+            const batch = data.content ?? []
+            setWhatsappMessages(prev => loadOlder ? [...batch, ...prev] : batch)
+            setWhatsappPage(data.page ?? page)
+            setWhatsappHasOlder(Boolean(data.hasMore))
         } catch {
-            setWhatsappMessages([])
+            if (!loadOlder) setWhatsappMessages([])
         } finally {
             setWhatsappLoading(false)
+            setWhatsappLoadingOlder(false)
         }
     }, [])
 
@@ -394,6 +417,10 @@ export default function Conversations() {
         setSelectedContact(contact)
         setEmails([])
         setWhatsappMessages([])
+        setGmailNextToken(null)
+        setGmailHasMore(false)
+        setWhatsappPage(0)
+        setWhatsappHasOlder(false)
         setCompose(null)
         setWhatsappError('')
     }
@@ -771,6 +798,17 @@ export default function Conversations() {
                                             </div>
                                         ) : (
                                             <>
+                                                {gmailHasMore && (
+                                                    <button
+                                                        type="button"
+                                                        disabled={emailsLoadingMore}
+                                                        onClick={() => fetchEmails(selectedContact, true, gmailNextToken)}
+                                                        className="w-full mb-4 py-2 rounded-xl text-xs font-bold"
+                                                        style={{ background: T.surfaceHigh, color: T.textSecondary, border: `1px solid ${T.border}` }}
+                                                    >
+                                                        {emailsLoadingMore ? 'Loading…' : 'Load more emails'}
+                                                    </button>
+                                                )}
                                                 {emails.map(email => (
                                                     <EmailBubble
                                                         key={email.id}
@@ -817,6 +855,17 @@ export default function Conversations() {
                                             </div>
                                         ) : (
                                             <>
+                                                {whatsappHasOlder && (
+                                                    <button
+                                                        type="button"
+                                                        disabled={whatsappLoadingOlder}
+                                                        onClick={() => fetchWhatsappMessages(selectedContact, true, whatsappPage)}
+                                                        className="w-full mb-4 py-2 rounded-xl text-xs font-bold"
+                                                        style={{ background: T.surfaceHigh, color: T.textSecondary, border: `1px solid ${T.border}` }}
+                                                    >
+                                                        {whatsappLoadingOlder ? 'Loading…' : 'Load older messages'}
+                                                    </button>
+                                                )}
                                                 {whatsappMessages.map(msg => (
                                                     <WhatsAppBubble
                                                         key={msg.id}

@@ -10,6 +10,7 @@ import { Input, Select } from '../components/FormField'
 import SearchInput from '../components/ui/SearchInput'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import ActivityRow from '../components/activities/ActivityRow'
+import VirtualTableBody from '../components/ui/VirtualTableBody'
 import ActivityStatCard from '../components/activities/ActivityStatCard'
 import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
@@ -370,9 +371,9 @@ export default function Activities() {
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {loading ? (
-                                            Array.from({ length: 8 }).map((_, i) => (
+                                    {loading ? (
+                                        <tbody>
+                                            {Array.from({ length: 8 }).map((_, i) => (
                                                 <tr key={i} style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
                                                     {[20, 80, 160, 130, 100, 70, 20].map((width, j) => (
                                                         <td key={j} className="px-4 py-3.5">
@@ -380,27 +381,35 @@ export default function Activities() {
                                                         </td>
                                                     ))}
                                                 </tr>
-                                            ))
-                                        ) : displayActivities.map((activity, i) => {
-                                            const isHighlighted = String(activity.id) === highlightId
-                                            return (
-                                                <ActivityRow
-                                                    key={isHighlighted ? `${activity.id}-${loadCount}` : activity.id}
-                                                    activity={activity}
-                                                    rowBg={ROW_COLORS[i % ROW_COLORS.length]}
-                                                    highlighted={isHighlighted}
-                                                    onRemove={can.ACTIVITIES_DELETE ? remove : undefined}
-                                                    onUpdate={can.ACTIVITIES_EDIT ? updateActivity : undefined}
-                                                    onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined}
-                                                    onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined}
-                                                    showOwner={isAdmin}
-                                                />
-                                            )
-                                        })}
-                                        {!loading && displayActivities.length === 0 && (
+                                            ))}
+                                        </tbody>
+                                    ) : displayActivities.length === 0 ? (
+                                        <tbody>
                                             <EmptyTableRow colSpan={7} icon="event_note" title="No activities yet" />
-                                        )}
-                                    </tbody>
+                                        </tbody>
+                                    ) : (
+                                        <VirtualTableBody
+                                            items={displayActivities}
+                                            colSpan={7}
+                                            rowHeight={64}
+                                            renderRow={(activity, i) => {
+                                                const isHighlighted = String(activity.id) === highlightId
+                                                return (
+                                                    <ActivityRow
+                                                        key={isHighlighted ? `${activity.id}-${loadCount}` : activity.id}
+                                                        activity={activity}
+                                                        rowBg={ROW_COLORS[i % ROW_COLORS.length]}
+                                                        highlighted={isHighlighted}
+                                                        onRemove={can.ACTIVITIES_DELETE ? remove : undefined}
+                                                        onUpdate={can.ACTIVITIES_EDIT ? updateActivity : undefined}
+                                                        onComplete={can.ACTIVITIES_EDIT ? toggleComplete : undefined}
+                                                        onOutcome={can.ACTIVITIES_EDIT ? saveOutcome : undefined}
+                                                        showOwner={isAdmin}
+                                                    />
+                                                )
+                                            }}
+                                        />
+                                    )}
                                     </table>
                                 </div>
                                 <Pagination page={page} totalPages={totalPages}

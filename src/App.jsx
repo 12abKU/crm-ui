@@ -1,33 +1,33 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Accounts from './pages/Accounts'
-import Contacts from './pages/Contacts'
-import Deals from './pages/Deals'
-import Activities from './pages/Activities'
-import AccountProfile from './pages/AccountProfile'
-import ContactProfile from './pages/ContactProfile'
-import Profile from './pages/Profile'
-import Settings from './pages/Settings'
-import Calendar from './pages/Calendar'
 import Sidebar from './components/Sidebar'
-import Register from './pages/Register'
 import { T, getThemeName } from './constants/theme'
-import Conversations from './pages/Conversations'
-import Calls from './pages/Calls'
 import ApiErrorToast from './components/ui/ApiErrorToast'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setPermissions, updateCompanyStatus } from './store/authSlice'
 import api from './api'
-import PlatformDashboard from './pages/PlatformDashboard'
-import ActivityProfile from './pages/ActivityProfile'
-import AgentProfile from './pages/AgentProfile'
-import PlatformProfile from './pages/PlatformProfile'
-import PlatformTickets from './pages/PlatformTickets'
-import Support from './pages/Support'
-import AuditLogPage from './pages/AuditLogPage'
-import DeDuplicationPage from './pages/DeDuplicationPage'
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Accounts = lazy(() => import('./pages/Accounts'))
+const Contacts = lazy(() => import('./pages/Contacts'))
+const Deals = lazy(() => import('./pages/Deals'))
+const Activities = lazy(() => import('./pages/Activities'))
+const AccountProfile = lazy(() => import('./pages/AccountProfile'))
+const ContactProfile = lazy(() => import('./pages/ContactProfile'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Settings = lazy(() => import('./pages/Settings'))
+const Calendar = lazy(() => import('./pages/Calendar'))
+const Conversations = lazy(() => import('./pages/Conversations'))
+const Calls = lazy(() => import('./pages/Calls'))
+const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard'))
+const ActivityProfile = lazy(() => import('./pages/ActivityProfile'))
+const AgentProfile = lazy(() => import('./pages/AgentProfile'))
+const PlatformProfile = lazy(() => import('./pages/PlatformProfile'))
+const PlatformTickets = lazy(() => import('./pages/PlatformTickets'))
+const Support = lazy(() => import('./pages/Support'))
+const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
+const DeDuplicationPage = lazy(() => import('./pages/DeDuplicationPage'))
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 
@@ -79,7 +79,7 @@ function CompanyStatusLoader() {
         }
       })
       .catch(() => { })
-  }, [token, role, pathname, dispatch])
+  }, [token, role, dispatch])
 
   return null
 }
@@ -164,6 +164,7 @@ export default function App() {
       <PipelineStagesLoader />
       <WebSocketManager />
       <PushNotificationManager />
+      <Suspense fallback={<div className="flex h-screen items-center justify-center text-sm font-bold" style={{ color: T.textMuted }}>Loading…</div>}>
       <Routes>
 
         <Route path="/login" element={<Login />} />
@@ -193,6 +194,7 @@ export default function App() {
 
         <Route path="*" element={<SmartRedirect />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

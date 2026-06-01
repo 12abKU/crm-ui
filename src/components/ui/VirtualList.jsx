@@ -18,19 +18,28 @@ export default function VirtualList({
         const node = ref.current
         if (!node) return
 
+        let rafId = 0
         const update = () => {
             setViewport({ scrollTop: node.scrollTop, height: node.clientHeight })
             if (onEndReached && node.scrollHeight - node.scrollTop - node.clientHeight < endThreshold) {
                 onEndReached()
             }
         }
+        const onScroll = () => {
+            if (rafId) return
+            rafId = requestAnimationFrame(() => {
+                rafId = 0
+                update()
+            })
+        }
 
         update()
-        node.addEventListener('scroll', update, { passive: true })
+        node.addEventListener('scroll', onScroll, { passive: true })
         const resizeObserver = new ResizeObserver(update)
         resizeObserver.observe(node)
         return () => {
-            node.removeEventListener('scroll', update)
+            node.removeEventListener('scroll', onScroll)
+            if (rafId) cancelAnimationFrame(rafId)
             resizeObserver.disconnect()
         }
     }, [onEndReached, endThreshold])

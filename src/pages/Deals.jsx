@@ -19,6 +19,8 @@ import { profileCache, getCachePrefix } from '../utils/cacheUtils'
 
 // ── Constants ──────────────────────────────────────────────────
 const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
+const MAX_KANBAN_CARDS_PER_STAGE = 120
+const DEALS_PER_PAGE = 30
 
 const STAGE_COLUMN_BG = {
     NEW:      'rgba(120,113,108,0.05)',
@@ -120,10 +122,13 @@ export default function Deals() {
                 _isOwner: String(d.owner?.id) === String(userId),
             }))
 
-            setDealsByStage(prev => ({
-                ...prev,
-                [stageKey]: isAppend ? [...(prev[stageKey] || []), ...processed] : processed
-            }))
+            setDealsByStage(prev => {
+                const merged = isAppend ? [...(prev[stageKey] || []), ...processed] : processed
+                return {
+                    ...prev,
+                    [stageKey]: merged.slice(0, MAX_KANBAN_CARDS_PER_STAGE),
+                }
+            })
             setPagesByStage(prev => ({
                 ...prev,
                 [stageKey]: page
@@ -167,16 +172,63 @@ export default function Deals() {
     const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
     const activeStages = activePipeline ? activePipeline.stages : []
 
-    // Trigger loading of stage columns with 350ms search query debounce
+    const loadAllStages = async (currentSearch = '', page = 0) => {
+        if (activeStages.length === 0) return
+        const stageKeys = activeStages.map(s => s.stageKey)
+        Object.keys(abortControllersRef.current).forEach(key => {
+            abortControllersRef.current[key]?.abort()
+        })
+        setLoadingByStage(prev => {
+            const next = { ...prev }
+            stageKeys.forEach(k => { next[k] = true })
+            return next
+        })
+        try {
+            const params = new URLSearchParams({ page: String(page), size: String(DEALS_PER_PAGE) })
+            stageKeys.forEach(k => params.append('stages', k))
+            if (selectedPipelineId) params.set('pipelineId', String(selectedPipelineId))
+            if (currentSearch.trim()) params.set('search', currentSearch.trim())
+
+            const res = await api.get(`/api/deals/board?${params}`)
+            const stagesData = res.data?.stages ?? {}
+            const nextDeals = {}
+            const nextPages = {}
+            const nextTotalPages = {}
+            const nextTotals = {}
+
+            stageKeys.forEach(stageKey => {
+                const data = stagesData[stageKey.toUpperCase()] ?? stagesData[stageKey] ?? {}
+                const content = (data.content ?? []).map(d => ({
+                    ...d,
+                    _assignedToMe: (d.assignees ?? []).some(u => String(u.id) === String(userId)),
+                    _isOwner: String(d.owner?.id) === String(userId),
+                }))
+                nextDeals[stageKey] = content
+                nextPages[stageKey] = page
+                nextTotalPages[stageKey] = data.totalPages ?? 0
+                nextTotals[stageKey] = { count: data.stageTotalCount ?? 0, amount: data.stageTotalAmount ?? 0 }
+            })
+
+            setDealsByStage(nextDeals)
+            setPagesByStage(nextPages)
+            setTotalPagesByStage(nextTotalPages)
+            setStageTotalsByStage(nextTotals)
+        } catch (err) {
+            if (err.name === 'CanceledError' || err.message === 'canceled') return
+            stageKeys.forEach(stageKey => loadStageDeals(stageKey, page, false, currentSearch))
+        } finally {
+            setLoadingByStage(prev => {
+                const next = { ...prev }
+                stageKeys.forEach(k => { next[k] = false })
+                return next
+            })
+        }
+    }
+
+    // Trigger loading of stage columns with 350ms search query debounce (single board request)
     useEffect(() => {
         if (activeStages.length === 0) return
-
-        const timer = setTimeout(() => {
-            activeStages.forEach(stageObj => {
-                loadStageDeals(stageObj.stageKey, 0, false, search)
-            })
-        }, 350)
-
+        const timer = setTimeout(() => loadAllStages(search, 0), 350)
         return () => clearTimeout(timer)
     }, [selectedPipelineId, search, activeStages.length])
 
@@ -661,7 +713,8 @@ export default function Deals() {
                                     })}
 
                                     {/* Load More Button */}
-                                    {pagesByStage[stage] < totalPagesByStage[stage] - 1 && (
+                                    {pagesByStage[stage] < totalPagesByStage[stage] - 1
+                                        && (stageDeals.length < MAX_KANBAN_CARDS_PER_STAGE) && (
                                         <button
                                             type="button"
                                             onClick={() => loadStageDeals(stage, (pagesByStage[stage] || 0) + 1, true, search)}

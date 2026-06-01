@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import api from '../api'
+import { downloadPdfAsync, openPdfAsync, savePdfBlob } from '../utils/downloadPdfAsync'
 
 // ─── CSV ─────────────────────────────────────────────────────────────────────
 function downloadCSV(stats, name) {
@@ -55,26 +55,22 @@ export default function DownloadReport({ stats }) {
         return () => document.removeEventListener('mousedown', handler)
     }, [])
 
+    const pdfJobUrls = {
+        startUrl: '/api/dashboard/report/pdf/async',
+        statusUrl: (jobId) => `/api/dashboard/report/pdf/async/${jobId}`,
+        downloadUrl: (jobId) => `/api/dashboard/report/pdf/async/${jobId}/download`,
+    }
+
     const handlePdfDownload = async () => {
         setOpen(false)
         setPdfDownloading(true)
         try {
-            const response = await api.get('/api/dashboard/report/pdf', {
-                responseType: 'blob'
-            })
-            const blob = new Blob([response.data], { type: 'application/pdf' })
-            const url = window.URL.createObjectURL(blob)
-            const link = document.createElement('a')
+            const { blob, filename } = await downloadPdfAsync(pdfJobUrls)
             const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-')
-            link.href = url
-            link.setAttribute('download', `nexus-executive-report-${dateStr}.pdf`)
-            document.body.appendChild(link)
-            link.click()
-            link.remove()
-            window.URL.revokeObjectURL(url)
+            savePdfBlob(blob, filename || `nexus-executive-report-${dateStr}.pdf`)
         } catch (err) {
             window.dispatchEvent(new CustomEvent('crm-api-error', {
-                detail: { message: 'Failed to download PDF report from backend', status: 500 }
+                detail: { message: err?.message || 'Failed to download PDF report', status: 500 }
             }))
         } finally {
             setPdfDownloading(false)
@@ -85,15 +81,10 @@ export default function DownloadReport({ stats }) {
         setOpen(false)
         setPdfDownloading(true)
         try {
-            const response = await api.get('/api/dashboard/report/pdf', {
-                responseType: 'blob'
-            })
-            const blob = new Blob([response.data], { type: 'application/pdf' })
-            const url = window.URL.createObjectURL(blob)
-            window.open(url, '_blank')
+            await openPdfAsync(pdfJobUrls)
         } catch (err) {
             window.dispatchEvent(new CustomEvent('crm-api-error', {
-                detail: { message: 'Failed to view PDF report', status: 500 }
+                detail: { message: err?.message || 'Failed to view PDF report', status: 500 }
             }))
         } finally {
             setPdfDownloading(false)
