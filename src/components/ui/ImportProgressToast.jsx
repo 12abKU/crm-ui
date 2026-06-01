@@ -56,16 +56,29 @@ export default function ImportProgressToast() {
             const total = result.totalProcessed ?? 0
             const skipped = result.skippedDuplicates ?? 0
 
-            setState(prev => ({
-                ...prev,
-                status: 'success',
-                progress: 100,
-                message: `Successfully imported ${imported} contacts! (${total} processed, ${skipped} skipped)`,
-            }))
+            if (result.limitReached) {
+                setState(prev => ({
+                    ...prev,
+                    status: 'error',
+                    progress: 100,
+                    message: result.errorMessage || `Limit reached. Successfully imported ${imported} contacts! (${total} processed, ${skipped} skipped)`,
+                }))
 
-            closeTimerRef.current = setTimeout(() => {
-                setState(prev => ({ ...prev, visible: false }))
-            }, 6000)
+                closeTimerRef.current = setTimeout(() => {
+                    setState(prev => ({ ...prev, visible: false }))
+                }, 9000)
+            } else {
+                setState(prev => ({
+                    ...prev,
+                    status: 'success',
+                    progress: 100,
+                    message: `Successfully imported ${imported} contacts! (${total} processed, ${skipped} skipped)`,
+                }))
+
+                closeTimerRef.current = setTimeout(() => {
+                    setState(prev => ({ ...prev, visible: false }))
+                }, 6000)
+            }
         }
 
         const onError = (e) => {
