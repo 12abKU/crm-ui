@@ -72,8 +72,9 @@ export default function NotificationBell({ isSuperAdmin }) {
         setOpen(true)
         setLoading(true)
         try {
-            const r = await api.get('/api/notifications')
-            setNotifications(r.data)
+            const r = await api.get('/api/notifications?page=0&size=50')
+            const payload = r.data?.content ?? r.data ?? []
+            setNotifications(Array.isArray(payload) ? payload : [])
             if (unread > 0) {
                 await api.post('/api/notifications/mark-all-read')
                 setUnread(0)

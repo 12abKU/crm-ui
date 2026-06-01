@@ -1,7 +1,10 @@
 import { useEffect, useState, useMemo } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
+import Pagination from '../components/Pagination'
 import api from '../api'
+
+const PAGE_SIZE = 50
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const PRIORITY_STYLES = {
@@ -196,6 +199,9 @@ function TicketDrawer({ ticket, onClose, onStatusChange, statusUpdating }) {
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function PlatformTickets() {
     const [tickets, setTickets] = useState([])
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const [totalElements, setTotalElements] = useState(0)
     const [loading, setLoading] = useState(true)
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [statusUpdating, setStatusUpdating] = useState(null)
@@ -205,16 +211,20 @@ export default function PlatformTickets() {
     const [filterStatus, setFilterStatus] = useState('ALL')
     const [filterPriority, setFilterPriority] = useState('ALL')
 
-    const load = async () => {
+    const load = async (pageNum = 0) => {
         setLoading(true)
         try {
-            const r = await api.get('/api/support/tickets/platform?page=0&size=500')
-            setTickets(r.data)
+            const r = await api.get(`/api/support/tickets/platform?page=${pageNum}&size=${PAGE_SIZE}`)
+            const data = r.data
+            setTickets(data.content ?? [])
+            setTotalPages(data.totalPages ?? 0)
+            setTotalElements(data.totalElements ?? 0)
+            setPage(data.number ?? pageNum)
         } catch { }
         finally { setLoading(false) }
     }
 
-    useEffect(() => { load() }, [])
+    useEffect(() => { load(0) }, [])
 
     const updateStatus = async (ticketId, status) => {
         setStatusUpdating(ticketId)
@@ -236,12 +246,12 @@ export default function PlatformTickets() {
 
     // Summary stats
     const stats = useMemo(() => ({
-        total: tickets.length,
+        total: totalElements,
         open: tickets.filter(t => t.status === 'OPEN').length,
         inProgress: tickets.filter(t => t.status === 'IN_PROGRESS').length,
         resolved: tickets.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED').length,
         urgent: tickets.filter(t => t.priority === 'URGENT').length,
-    }), [tickets])
+    }), [tickets, totalElements])
 
     const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.07)'/%3E%3C/svg%3E")`
 
@@ -483,6 +493,18 @@ export default function PlatformTickets() {
                     )}
                     </div>
                 </div>
+
+                {totalPages > 1 && (
+                    <div style={{ marginTop: 16 }}>
+                        <Pagination
+                            page={page}
+                            totalPages={totalPages}
+                            totalElements={totalElements}
+                            pageSize={PAGE_SIZE}
+                            onPage={(p) => load(p)}
+                        />
+                    </div>
+                )}
             </main>
 
             {/* Ticket drawer */}

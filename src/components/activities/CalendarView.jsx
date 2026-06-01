@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import api from '../../api'
+import { toIsoDate } from '../../utils/cacheUtils'
 
 export default function CalendarView({ onLogActivity }) {
     const [currentDate, setCurrentDate] = useState(new Date())
@@ -30,8 +31,12 @@ export default function CalendarView({ onLogActivity }) {
     const loadEvents = async () => {
         setLoading(true)
         try {
+            const year = currentDate.getFullYear()
+            const month = currentDate.getMonth()
             const params = new URLSearchParams()
             if (selectedOwnerId) params.append('ownerId', selectedOwnerId)
+            params.append('start', toIsoDate(new Date(year, month, 1)))
+            params.append('end', toIsoDate(new Date(year, month + 1, 0)))
             const r = await api.get(`/api/activities/calendar?${params}`)
             setActivities(r.data ?? [])
         } catch (e) {

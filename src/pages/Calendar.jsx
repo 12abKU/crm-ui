@@ -7,6 +7,7 @@ import { Input, Select } from '../components/FormField'
 import SearchableSelect from '../components/SearchableSelect'
 import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
+import { toIsoDate } from '../utils/cacheUtils'
 
 function getDaysInMonth(year, month) {
     return new Date(year, month + 1, 0).getDate()
@@ -50,6 +51,10 @@ export default function Calendar() {
         setLoading(true)
         const params = new URLSearchParams()
         if (selectedOwnerId) params.append('ownerId', selectedOwnerId)
+        const rangeStart = new Date(year, month, 1)
+        const rangeEnd = new Date(year, month + 1, 0)
+        params.append('start', toIsoDate(rangeStart))
+        params.append('end', toIsoDate(rangeEnd))
         api.get(`/api/activities/calendar?${params}`)
             .then(res => setActivities(res.data))
             .catch(console.error)

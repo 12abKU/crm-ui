@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import api from '../api'
-import { listCache, getCachePrefix, isFresh, LIST_TTL } from '../utils/cacheUtils'
+import { listCache, listCacheSet, getCachePrefix, isFresh, LIST_TTL } from '../utils/cacheUtils'
 
 /**
  * usePaginatedSearch
@@ -70,7 +70,7 @@ export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initia
                 totalElements: data.totalElements  ?? 0,
             }
 
-            listCache.set(key, { value: result, cachedAt: Date.now() })
+            listCacheSet(key, result)
             setItems(result.content)
             setTotalPages(result.totalPages)
             setTotalElements(result.totalElements)
@@ -152,10 +152,7 @@ export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initia
                 const updatedContent = cached.value.content.map(item =>
                     predicate(item) ? updater(item) : item
                 )
-                listCache.set(key, {
-                    ...cached,
-                    value: { ...cached.value, content: updatedContent }
-                })
+                listCacheSet(key, { ...cached.value, content: updatedContent })
             }
         }
     }, [cacheKey])
