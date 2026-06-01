@@ -147,13 +147,17 @@ export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initia
 
         // 2. Update all matching listCache entries for this cacheKey prefix
         const prefix = `${getCachePrefix()}:${cacheKey}:`
+        const targets = []
         for (const [key, cached] of listCache.entries()) {
             if (key.startsWith(prefix)) {
-                const updatedContent = cached.value.content.map(item =>
-                    predicate(item) ? updater(item) : item
-                )
-                listCacheSet(key, { ...cached.value, content: updatedContent })
+                targets.push({ key, cached })
             }
+        }
+        for (const { key, cached } of targets) {
+            const updatedContent = cached.value.content.map(item =>
+                predicate(item) ? updater(item) : item
+            )
+            listCacheSet(key, { ...cached.value, content: updatedContent })
         }
     }, [cacheKey])
 

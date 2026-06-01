@@ -14,7 +14,7 @@ import DealPanel from '../components/dealPanel/DealPanel'
 import DealCard from '../components/deals/DealCard'
 import LostDealReasonModal from '../components/deals/LostDealReasonModal'
 import { usePermissions } from '../hooks/usePermission'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import { profileCache, getCachePrefix } from '../utils/cacheUtils'
 
 // ── Constants ──────────────────────────────────────────────────
@@ -62,6 +62,7 @@ export default function Deals() {
     const [selectedDeal, setSelectedDeal] = useState(null)
     const [search, setSearch] = useState('')
     const [form, setForm] = useState(EMPTY_FORM)
+    const [errors, setErrors] = useState({})
     const [filteredContacts, setFilteredContacts] = useState([])
     const [loadingContacts, setLoadingContacts] = useState(false)
     const [draggingId, setDraggingId] = useState(null)
@@ -315,6 +316,7 @@ export default function Deals() {
             lostReasonNote: ''
         })
         setFilteredContacts([]) 
+        setErrors({})
     }
 
     const openCreateForm = () => {
@@ -329,6 +331,7 @@ export default function Deals() {
             lostReason: LOST_DEAL_REASONS[0],
             lostReasonNote: ''
         })
+        setErrors({})
         setOpen(true)
     }
 
@@ -346,21 +349,30 @@ export default function Deals() {
 
     const submit = async (e) => {
         e.preventDefault()
-        await api.post('/api/deals', {
-            title: form.title,
-            amount: form.amount ? parseFloat(form.amount) : null,
-            stage: form.stage,
-            expectedCloseDate: form.expectedCloseDate || null,
-            accountId: form.accountId || null,
-            contactId: form.contactId || null,
-            pipelineId: form.pipelineId || selectedPipelineId,
-            lostReason: form.stage === 'LOST' ? form.lostReason : null,
-            lostReasonNote: form.stage === 'LOST' ? form.lostReasonNote || null : null,
-        })
-        setOpen(false)
-        resetForm()
-        // Reload stage page 0
-        loadStageDeals(form.stage, 0, false, search)
+        try {
+            await api.post('/api/deals', {
+                title: form.title,
+                amount: form.amount ? parseFloat(form.amount) : null,
+                stage: form.stage,
+                expectedCloseDate: form.expectedCloseDate || null,
+                accountId: form.accountId || null,
+                contactId: form.contactId || null,
+                pipelineId: form.pipelineId || selectedPipelineId,
+                lostReason: form.stage === 'LOST' ? form.lostReason : null,
+                lostReasonNote: form.stage === 'LOST' ? form.lostReasonNote || null : null,
+            })
+            setOpen(false)
+            resetForm()
+            setErrors({})
+            // Reload stage page 0
+            loadStageDeals(form.stage, 0, false, search)
+        } catch (err) {
+            if (err?.response?.data?.fields) {
+                setErrors(err.response.data.fields)
+            } else {
+                setErrors({ general: extractApiErrorMessage(err) })
+            }
+        }
     }
 
     // ── Helper to scan and update cards in place ────────────────
@@ -768,8 +780,11 @@ export default function Deals() {
 
             {/* Create Deal slide form */}
             <SlideForm open={open} onClose={() => { setOpen(false); resetForm() }} title="New Deal" onSubmit={submit}>
-                <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required />
-                <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} />
+                {errors.general && (
+                    <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
+                )}
+                <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
+                <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} error={errors.amount} />
                 
                 {pipelines.length > 0 && (
                     <Select label="Pipeline *" value={form.pipelineId || ''} onChange={e => {
@@ -780,12 +795,12 @@ export default function Deals() {
                         if (selectedPipe && selectedPipe.stages.length > 0) {
                             setField('stage', selectedPipe.stages[0].stageKey);
                         }
-                    }} required>
+                    }} required error={errors.pipelineId || errors.pipeline}>
                         {pipelines.map(p => (<option key={p.id} value={p.id}>{p.name}</option>))}
                     </Select>
                 )}
 
-                <Select label="Stage" value={form.stage} onChange={setEvent('stage')}>
+                <Select label="Stage" value={form.stage} onChange={setEvent('stage')} error={errors.stage}>
                     {(pipelines.find(p => p.id === Number(form.pipelineId || selectedPipelineId))?.stages || []).map(s => (
                         <option key={s.stageKey} value={s.stageKey}>{s.label}</option>
                     ))}
@@ -793,22 +808,24 @@ export default function Deals() {
 
                 {form.stage === 'LOST' && (
                     <>
-                        <Select label="Lost Reason *" value={form.lostReason} onChange={setEvent('lostReason')} required>
+                        <Select label="Lost Reason *" value={form.lostReason} onChange={setEvent('lostReason')} required error={errors.lostReason}>
                             {LOST_DEAL_REASONS.map(reason => <option key={reason} value={reason}>{reason}</option>)}
                         </Select>
                         <Textarea label="Lost Reason Note" value={form.lostReasonNote}
                             onChange={setEvent('lostReasonNote')}
-                            placeholder="Optional competitor, pricing issue, missing feature..." />
+                            placeholder="Optional competitor, pricing issue, missing feature..."
+                            error={errors.lostReasonNote} />
                     </>
                 )}
 
-                <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} />
+                <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} error={errors.expectedCloseDate} />
                 <SearchableSelect
                     label="Account"
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))}
                     placeholder="Select account..."
+                    error={errors.accountId || errors.account}
                 />
                 <SearchableSelect
                     label="Contact"
@@ -817,6 +834,7 @@ export default function Deals() {
                     options={filteredContacts}
                     placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
                     disabled={!form.accountId || loadingContacts}
+                    error={errors.contactId || errors.contact}
                 />
             </SlideForm>
 

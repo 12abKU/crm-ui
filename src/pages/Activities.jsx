@@ -16,7 +16,7 @@ import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
 import TodayFocus from '../components/activities/TodayFocus'
 import CalendarView from '../components/activities/CalendarView'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
@@ -45,6 +45,7 @@ export default function Activities() {
     })
     const [dashboardLoading, setDashboardLoading] = useState(true)
     const [form, setForm] = useState(EMPTY_FORM)
+    const [errors, setErrors] = useState({})
     const [filteredContacts, setFilteredContacts] = useState([])
     const [filteredDeals, setFilteredDeals] = useState([])
     const [loadingRelated, setLoadingRelated] = useState(false)
@@ -125,7 +126,8 @@ export default function Activities() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]) }
+    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]); setErrors({}) }
+    const handleOpenModal = () => { setErrors({}); setOpen(true) }
     const onFilterChange = (accountId) => { setFilterAccountId(accountId); setSearch(''); setPage(0) }
 
     const onFormAccountChange = async (accountId) => {
@@ -156,17 +158,26 @@ export default function Activities() {
 
     const submit = async (e) => {
         e.preventDefault()
-        await api.post('/api/activities', {
-            ...form,
-            accountId: form.accountId || null,
-            contactId: form.contactId || null,
-            dealId: form.dealId || null,
-            reminderAt: form.reminderAt || null,
-            remindHourlyOneDayBefore: form.remindHourlyOneDayBefore || false
-        })
-        setOpen(false); resetForm(); setPage(0)
-        invalidateCacheForKey()
-        loadPage(0, search)
+        try {
+            await api.post('/api/activities', {
+                ...form,
+                accountId: form.accountId || null,
+                contactId: form.contactId || null,
+                dealId: form.dealId || null,
+                reminderAt: form.reminderAt || null,
+                remindHourlyOneDayBefore: form.remindHourlyOneDayBefore || false
+            })
+            setOpen(false); resetForm(); setPage(0)
+            invalidateCacheForKey()
+            loadPage(0, search)
+            setErrors({})
+        } catch (err) {
+            if (err?.response?.data?.fields) {
+                setErrors(err.response.data.fields)
+            } else {
+                setErrors({ general: extractApiErrorMessage(err) })
+            }
+        }
     }
 
     const remove = async (id) => {
@@ -255,7 +266,7 @@ export default function Activities() {
                             </div>
                         </div>
                         {can.ACTIVITIES_CREATE && (
-                            <button onClick={() => setOpen(true)}
+                            <button onClick={handleOpenModal}
                                 className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
                                 style={{
                                     background: T.heroBadgeBg,
@@ -354,6 +365,7 @@ export default function Activities() {
                     <CalendarView onLogActivity={(prefillDate) => {
                         if (!can.ACTIVITIES_CREATE) return;
                         setForm({ ...EMPTY_FORM, scheduledAt: prefillDate })
+                        setErrors({})
                         setOpen(true)
                     }} />
                 ) : (
@@ -441,18 +453,21 @@ export default function Activities() {
             <SlideForm title="Log Activity" open={open}
                 onClose={() => { setOpen(false); resetForm() }}
                 onSubmit={submit}>
-                <Select label="Type" value={form.type} onChange={e => setF('type', e.target.value)}>
+                {errors.general && (
+                    <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
+                )}
+                <Select label="Type" value={form.type} onChange={e => setF('type', e.target.value)} error={errors.type}>
                     {ACTIVITY_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                 </Select>
                 <Input label="Subject *" value={form.subject} onChange={e => setF('subject', e.target.value)}
-                    placeholder="Initial discussion" required />
+                    placeholder="Initial discussion" required error={errors.subject} />
                 <Input label="Description" value={form.description} onChange={e => setF('description', e.target.value)}
-                    placeholder="Details..." />
+                    placeholder="Details..." error={errors.description} />
                 <Input label="Scheduled At" type="datetime-local" value={form.scheduledAt}
-                    onChange={e => setF('scheduledAt', e.target.value)} />
+                    onChange={e => setF('scheduledAt', e.target.value)} error={errors.scheduledAt} />
                 <div className="flex flex-col gap-2">
                     <Input label="Reminder At" type="datetime-local" value={form.reminderAt}
-                        onChange={e => setF('reminderAt', e.target.value)} />
+                        onChange={e => setF('reminderAt', e.target.value)} error={errors.reminderAt} />
                     <div className="grid grid-cols-3 gap-2">
                         {/* Presets */}
                         {[
@@ -489,15 +504,15 @@ export default function Activities() {
                     </div>
                 </div>
                 <SearchableSelect label="Account" value={form.accountId} onChange={onFormAccountChange}
-                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
+                    options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" error={errors.accountId || errors.account} />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
                     options={filteredContacts}
                     placeholder={form.accountId ? 'Select contact' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} />
+                    disabled={!form.accountId} loading={loadingRelated} error={errors.contactId || errors.contact} />
                 <SearchableSelect label="Deal" value={form.dealId} onChange={value => setF('dealId', value)}
                     options={filteredDeals}
                     placeholder={form.accountId ? 'Select deal' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} />
+                    disabled={!form.accountId} loading={loadingRelated} error={errors.dealId || errors.deal} />
             </SlideForm>
         </div>
     )

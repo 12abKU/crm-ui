@@ -30,6 +30,12 @@ export default function Contacts() {
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+    const [errors, setErrors] = useState({})
+
+    const handleOpenModal = () => {
+        setErrors({})
+        setOpen(true)
+    }
 
     // Import Contacts states
     const [importOpen, setImportOpen] = useState(false)
@@ -63,6 +69,8 @@ export default function Contacts() {
         setSearch,
         loadPage,
         goToPage,
+        invalidateCacheForKey,
+        updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/contacts', pageSize: PAGE_SIZE, cacheKey: 'contacts' })
 
     useEffect(() => {
@@ -91,12 +99,22 @@ export default function Contacts() {
     }
 
     const executeSave = async () => {
-        await api.post('/api/contacts', { ...form, accountId: form.accountId || null })
-        setOpen(false)
-        setShowDuplicateModal(false)
-        setDuplicates([])
-        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
-        setPage(0); loadPage(0, search)
+        try {
+            await api.post('/api/contacts', { ...form, accountId: form.accountId || null })
+            setOpen(false)
+            setShowDuplicateModal(false)
+            setDuplicates([])
+            setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
+            setErrors({})
+            invalidateCacheForKey()
+            setPage(0); loadPage(0, search)
+        } catch (err) {
+            if (err?.response?.data?.fields) {
+                setErrors(err.response.data.fields)
+            } else {
+                setErrors({ general: extractApiErrorMessage(err) })
+            }
+        }
     }
 
     const remove = async (id, e) => {
@@ -105,6 +123,7 @@ export default function Contacts() {
         const newTotal = totalElements - 1
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
         const targetPage = Math.min(page, maxPage)
+        invalidateCacheForKey()
         setPage(targetPage); loadPage(targetPage, search)
     }
 
@@ -115,7 +134,7 @@ export default function Contacts() {
             firstName: c.firstName, lastName: c.lastName, email: c.email,
             phone: c.phone, designation: c.designation, accountId: c.account?.id || null, [field]: value
         })
-        setContacts(p => p.map(x => x.id === id ? { ...x, [field]: value } : x))
+        updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
     const handleDrag = (e) => {
@@ -228,7 +247,7 @@ export default function Contacts() {
                                         <span className="material-symbols-outlined text-[18px]">upload</span>
                                         Import
                                     </button>
-                                    <button onClick={() => setOpen(true)}
+                                    <button onClick={handleOpenModal}
                                         className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                         style={{
                                             background: T.heroBadgeBg,
@@ -344,13 +363,16 @@ export default function Contacts() {
             {/* -- Slide Form ----------------------------------- */}
             {can.CONTACTS_CREATE && (
                 <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                    <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required />
-                    <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" />
-                    <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" />
-                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
-                    <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" />
+                    {errors.general && (
+                        <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
+                    )}
+                    <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required error={errors.firstName} />
+                    <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" error={errors.lastName} />
+                    <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" error={errors.email} />
+                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
+                    <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" error={errors.designation} />
                     <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
-                        options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" />
+                        options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" error={errors.accountId || errors.account} />
                 </SlideForm>
             )}
 

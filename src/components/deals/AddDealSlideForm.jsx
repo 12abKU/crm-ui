@@ -6,7 +6,7 @@ import { usePermissions } from '../../hooks/usePermission'
 import SlideForm from '../SlideForm'
 import { Input, Select } from '../FormField'
 import SearchableSelect from '../SearchableSelect'
-import api from '../../api'
+import api, { extractApiErrorMessage } from '../../api'
 
 const EMPTY = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
 
@@ -17,6 +17,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     const [contacts, setContacts] = useState([])
     const [loadingContacts, setLoadingContacts] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [errors, setErrors] = useState({})
 
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE'])
@@ -28,6 +29,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     // on open — reset and prefill
     useEffect(() => {
         if (!open) return
+        setErrors({})
         const base = { ...EMPTY }
         if (stages.length > 0) {
             base.stage = stages[0].stageKey
@@ -82,7 +84,14 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 accountId: form.accountId ? Number(form.accountId) : null,
                 contactId: form.contactId ? Number(form.contactId) : null,
             })
+            setErrors({})
             onSuccess?.()
+        } catch (err) {
+            if (err?.response?.data?.fields) {
+                setErrors(err.response.data.fields)
+            } else {
+                setErrors({ general: extractApiErrorMessage(err) })
+            }
         } finally {
             setSubmitting(false)
         }
@@ -98,12 +107,15 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
             onSubmit={submit}
             submitLabel={submitting ? 'Saving...' : 'Create Deal'}
         >
-            <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required />
-            <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} />
-            <Select label="Stage" value={form.stage} onChange={setEvent('stage')}>
+            {errors.general && (
+                <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
+            )}
+            <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
+            <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} error={errors.amount} />
+            <Select label="Stage" value={form.stage} onChange={setEvent('stage')} error={errors.stage}>
                 {stages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
             </Select>
-            <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} />
+            <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} error={errors.expectedCloseDate} />
 
             {/* Account — locked if prefilled */}
             {prefillAccount ? (
@@ -124,6 +136,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))}
                     placeholder="Select account..."
+                    error={errors.accountId || errors.account}
                 />
             )}
 
@@ -147,6 +160,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                     options={contacts}
                     placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
                     disabled={!form.accountId || loadingContacts}
+                    error={errors.contactId || errors.contact}
                 />
             )}
         </SlideForm>

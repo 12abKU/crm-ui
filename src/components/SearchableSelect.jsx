@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Field } from './FormField'
 import { T } from '../constants/theme'
 
-export default function SearchableSelect({ label, value, onChange, options = [], placeholder = 'Select...', disabled = false, loading = false }) {
+export default function SearchableSelect({ label, value, onChange, options = [], placeholder = 'Select...', disabled = false, loading = false, error }) {
     const [open, setOpen] = useState(false)
     const [search, setSearch] = useState('')
     const ref = useRef(null)
@@ -25,8 +25,16 @@ export default function SearchableSelect({ label, value, onChange, options = [],
         <div className="relative" ref={ref}>
             <button type="button" disabled={disabled}
                 onClick={() => !disabled && setOpen(o => !o)}
-                className="crm-select w-full flex items-center justify-between gap-2 text-left"
-                style={{ opacity: disabled ? 0.4 : 1, cursor: disabled ? 'not-allowed' : 'pointer', color: selectedLabel ? T.textPrimary : T.textMuted, paddingRight: 10, minWidth: isToolbar ? 200 : undefined }}>
+                className="crm-select w-full flex items-center justify-between gap-2 text-left transition-all duration-150"
+                style={{ 
+                    opacity: disabled ? 0.4 : 1, 
+                    cursor: disabled ? 'not-allowed' : 'pointer', 
+                    color: selectedLabel ? T.textPrimary : T.textMuted, 
+                    paddingRight: 10, 
+                    minWidth: isToolbar ? 200 : undefined,
+                    borderColor: error ? T.error : undefined,
+                    boxShadow: error ? `0 0 0 3px ${T.error}15` : undefined
+                }}>
                 <span className="truncate text-sm">{selectedLabel || placeholder}</span>
                 <div className="flex items-center gap-1 shrink-0">
                     {selectedLabel && !disabled && (
@@ -98,5 +106,5 @@ export default function SearchableSelect({ label, value, onChange, options = [],
         </div>
     )
 
-    return label ? <Field label={label}>{content}</Field> : content
+    return label ? <Field label={label} error={error}>{content}</Field> : content
 }

@@ -16,7 +16,7 @@ import EntityAvatar from '../components/ui/EntityAvatar'
 import DuplicateModal from '../components/ui/DuplicateModal'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
-import api from '../api'
+import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
 
 const PAGE_SIZE = 20
@@ -28,6 +28,12 @@ export default function Accounts() {
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+    const [errors, setErrors] = useState({})
+
+    const handleOpenModal = () => {
+        setErrors({})
+        setOpen(true)
+    }
 
     const [tableHeight, setTableHeight] = useState(window.innerHeight - 380)
 
@@ -53,6 +59,8 @@ export default function Accounts() {
         setSearch,
         loadPage,
         goToPage,
+        invalidateCacheForKey,
+        updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/accounts', pageSize: PAGE_SIZE, cacheKey: 'accounts' })
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -77,12 +85,22 @@ export default function Accounts() {
     }
 
     const executeSave = async () => {
-        await api.post('/api/accounts', form)
-        setOpen(false)
-        setShowDuplicateModal(false)
-        setDuplicates([])
-        setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
-        setPage(0); loadPage(0, search)
+        try {
+            await api.post('/api/accounts', form)
+            setOpen(false)
+            setShowDuplicateModal(false)
+            setDuplicates([])
+            setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+            setErrors({})
+            invalidateCacheForKey()
+            setPage(0); loadPage(0, search)
+        } catch (err) {
+            if (err?.response?.data?.fields) {
+                setErrors(err.response.data.fields)
+            } else {
+                setErrors({ general: extractApiErrorMessage(err) })
+            }
+        }
     }
 
     const remove = async (id, e) => {
@@ -91,6 +109,7 @@ export default function Accounts() {
         const newTotal = totalElements - 1
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
         const targetPage = Math.min(page, maxPage)
+        invalidateCacheForKey()
         setPage(targetPage); loadPage(targetPage, search)
     }
 
@@ -101,7 +120,7 @@ export default function Accounts() {
             name: a.name, website: a.website, phone: a.phone,
             industry: a.industry, employeeRange: a.employeeRange, tag: a.tag, [field]: value
         })
-        setAccounts(p => p.map(x => x.id === id ? { ...x, [field]: value } : x))
+        updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
     const headers = ['Company', 'Website', 'Phone', 'Industry', 'Employees', 'Tag', 'Contacts', 'Open Deals']
@@ -152,7 +171,7 @@ export default function Accounts() {
                         <div className="flex flex-wrap items-center gap-3 shrink-0 w-full lg:w-auto">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
                             {can.ACCOUNTS_CREATE && (
-                                <button onClick={() => setOpen(true)}
+                                <button onClick={handleOpenModal}
                                     className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                     style={{
                                         background: T.heroBadgeBg,
@@ -308,17 +327,20 @@ export default function Accounts() {
             {/* -- Slide Form --------------------------------- */}
             {can.ACCOUNTS_CREATE && (
                 <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
-                    <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required />
-                    <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" />
-                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" />
-                    <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" />
-                    <Select label="Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)}>
+                    {errors.general && (
+                        <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
+                    )}
+                    <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required error={errors.name} />
+                    <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" error={errors.website} />
+                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
+                    <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" error={errors.industry} />
+                    <Select label="Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} error={errors.employeeRange}>
                         <option value="">Select range</option>
-                        {EMPLOYEE_RANGES.map(r => <option key={r}>{r}</option>)}
+                        {EMPLOYEE_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
                     </Select>
-                    <Select label="Tag" value={form.tag} onChange={e => set('tag', e.target.value)}>
+                    <Select label="Tag" value={form.tag} onChange={e => set('tag', e.target.value)} error={errors.tag}>
                         <option value="">Select tag</option>
-                        {TAGS.map(t => <option key={t}>{t}</option>)}
+                        {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
                     </Select>
                 </SlideForm>
             )}
