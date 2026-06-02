@@ -1,6 +1,7 @@
 import { T } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
-import { Empty, fmt, fmtK } from './DashboardWidgets'
+import { Empty } from './DashboardWidgets'
+import { fmt, fmtK } from './dashboardDesign'
 import {
   BarChart as RechartBarChart,
   Bar,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { T, ACTIVITY_STYLES } from '../constants/theme'
+import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import DashboardStatCard from '../components/dashboard/DashboardStatCard'
 import RecentActivityList from '../components/dashboard/RecentActivityList'
@@ -9,6 +9,8 @@ import api from '../api'
 import DownloadReport from '../components/Downloadreport'
 import usePermission from '../hooks/usePermission'
 import { FunnelChart, WinRateDonut } from '../components/dashboard/DashboardCharts'
+import { Card, CardTitle } from '../components/dashboard/DashboardWidgets'
+import { DASHBOARD_ACCENTS } from '../components/dashboard/dashboardDesign'
 
 export default function Dashboard() {
     const role = useSelector(state => state.auth.role)
@@ -20,7 +22,6 @@ function AgentDashboard() {
     const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(true)
     const name = useSelector(state => state.auth.name)
-    const role = useSelector(s => s.auth.role)
     const canExport = usePermission('REPORTS_EXPORT')
 
     useEffect(() => {
@@ -38,24 +39,17 @@ function AgentDashboard() {
             <main className="p-4 md:p-8">
 
                 {/* ── Hero Welcome Banner ──────────────────────────── */}
-                <section className="relative rounded-3xl mb-8"
+                <section className="relative mb-8 overflow-hidden"
                     style={{
+                        borderRadius: 26,
                         background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
                         minHeight: 148,
+                        border: '1px solid rgba(255,255,255,0.10)',
+                        boxShadow: '0 22px 54px rgba(15,23,42,0.18)',
                     }}>
-                    {/* Glow elements constrained to background */}
-                    <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-                        <div style={{
-                            position: 'absolute', top: -50, right: -50, width: 220, height: 220,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)`,
-                        }} />
-                        <div style={{
-                            position: 'absolute', bottom: -30, left: '40%', width: 160, height: 160,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
-                        }} />
-                    </div>
+                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent)' }} />
+                    <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
+                        style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
 
                     <div className="relative px-6 py-6 lg:px-10 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div>
@@ -77,8 +71,9 @@ function AgentDashboard() {
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                                     style={{
-                                        background: 'rgba(255,255,255,0.08)',
-                                        border: '1px solid rgba(255,255,255,0.13)',
+                                        background: 'rgba(255,255,255,0.10)',
+                                        border: '1px solid rgba(255,255,255,0.18)',
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
                                     }}>
                                     <span className="material-symbols-outlined filled text-[16px]"
                                         style={{ color: T.successLight }}>handshake</span>
@@ -88,8 +83,9 @@ function AgentDashboard() {
                                 </div>
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                                     style={{
-                                        background: 'rgba(255,255,255,0.08)',
-                                        border: '1px solid rgba(255,255,255,0.13)',
+                                        background: 'rgba(255,255,255,0.10)',
+                                        border: '1px solid rgba(255,255,255,0.18)',
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
                                     }}>
                                     <span className="material-symbols-outlined filled text-[16px]"
                                         style={{ color: T.sidebarText }}>groups</span>
@@ -120,16 +116,8 @@ function AgentDashboard() {
 
                 {/* ── Charts Panel ─────────────────────────────────── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-                    <div className="lg:col-span-2 rounded-2xl p-6"
-                        style={{
-                            background: T.surface,
-                            border: `1px solid ${T.border}`,
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                        }}>
-                        <div className="flex items-center gap-2.5 mb-5" style={{ color: T.textPrimary }}>
-                            <span className="material-symbols-outlined text-[18px]">filter_alt</span>
-                            <h3 className="text-sm font-black">My Deal Stage Funnel</h3>
-                        </div>
+                    <Card className="lg:col-span-2" accent={DASHBOARD_ACCENTS.blue}>
+                        <CardTitle icon="filter_alt" accent={DASHBOARD_ACCENTS.blue}>My Deal Stage Funnel</CardTitle>
                         <div className="py-2">
                             {loading ? (
                                 <div className="h-[220px] bg-slate-100/50 animate-pulse rounded-xl" />
@@ -137,17 +125,9 @@ function AgentDashboard() {
                                 <FunnelChart stages={stats?.openDealsByStage} />
                             )}
                         </div>
-                    </div>
-                    <div className="rounded-2xl p-6"
-                        style={{
-                            background: T.surface,
-                            border: `1px solid ${T.border}`,
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                        }}>
-                        <div className="flex items-center gap-2.5 mb-5" style={{ color: T.textPrimary }}>
-                            <span className="material-symbols-outlined text-[18px]">percent</span>
-                            <h3 className="text-sm font-black">Win Rate Analytics</h3>
-                        </div>
+                    </Card>
+                    <Card accent={DASHBOARD_ACCENTS.green}>
+                        <CardTitle icon="percent" accent={DASHBOARD_ACCENTS.green}>Win Rate Analytics</CardTitle>
                         <div className="py-4 flex justify-center items-center h-[220px]">
                             {loading ? (
                                 <div className="w-24 h-24 rounded-full border-4 border-slate-200 border-t-transparent animate-spin" />
@@ -155,40 +135,22 @@ function AgentDashboard() {
                                 <WinRateDonut winRate={stats?.winRate ?? 0} wonCount={stats?.wonCount ?? 0} lostCount={stats?.lostCount ?? 0} />
                             )}
                         </div>
-                    </div>
+                    </Card>
                 </div>
 
                 {/* ── Recent Activity Card ──────────────────────────── */}
-                <div className="rounded-2xl overflow-hidden"
-                    style={{
-                        background: T.surface,
-                        border: `1px solid ${T.border}`,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                    }}>
-                    {/* Card header */}
-                    <div className="flex items-center justify-between px-6 py-4"
-                        style={{ borderBottom: `1px solid ${T.border}`, background: T.primaryFaint }}>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                                style={{ background: T.primaryDim }}>
-                                <span className="material-symbols-outlined filled text-[17px]"
-                                    style={{ color: T.primary }}>event_note</span>
-                            </div>
-                            <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>
-                                Recent Activity
-                            </h3>
+                    <Card accent={DASHBOARD_ACCENTS.teal}>
+                        <CardTitle
+                            icon="event_note"
+                            accent={DASHBOARD_ACCENTS.teal}
+                            meta={stats?.recentActivities?.length > 0 ? `${stats.recentActivities.length} activities` : undefined}
+                        >
+                            Recent Activity
+                        </CardTitle>
+                        <div>
+                            <RecentActivityList activities={stats?.recentActivities} loading={loading} />
                         </div>
-                        {stats?.recentActivities?.length > 0 && (
-                            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-                                style={{ background: T.primaryDim, color: T.primaryText }}>
-                                {stats.recentActivities.length} activities
-                            </span>
-                        )}
-                    </div>
-                    <div className="p-4">
-                        <RecentActivityList activities={stats?.recentActivities} loading={loading} />
-                    </div>
-                </div>
+                    </Card>
 
             </main>
         </div>

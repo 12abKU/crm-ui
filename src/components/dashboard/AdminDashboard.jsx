@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import TopBar from '../TopBar'
 import { TabSkeleton } from './DashboardWidgets'
+import { DASHBOARD_ACCENTS, luxeShadow } from './dashboardDesign'
 import SummaryTab from './tabs/SummaryTab'
 import DealsTab from './tabs/DealsTab'
 import ContactsTab from './tabs/ContactsTab'
@@ -52,14 +53,16 @@ export default function AdminDashboard() {
                 : `/api/dashboard/${tab}`
             const r = await api.get(url)
             setTabData(p => ({ ...p, [cacheKey]: r.data }))
-        } catch { }
+        } catch {
+            setTabData(p => ({ ...p, [cacheKey]: null }))
+        }
         finally { setTabLoading(false) }
     }, [tabData])
 
     useEffect(() => {
         api.get('/api/dashboard')
             .then(r => setSummary(r.data))
-            .catch(() => { })
+            .catch(() => undefined)
             .finally(() => setLoading(false))
 
         api.get('/api/pipelines').then(r => {
@@ -96,30 +99,25 @@ export default function AdminDashboard() {
             <main className="p-4 md:p-8">
 
                 {/* ── Hero Header ───────────────────────────────── */}
-                <div className="relative rounded-3xl overflow-hidden mb-7"
+                <div className="relative overflow-hidden mb-7"
                     style={{
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
+                        borderRadius: 26,
+                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 52%, ${T.heroBgTo} 100%)`,
                         minHeight: 118,
+                        border: '1px solid rgba(255,255,255,0.10)',
+                        boxShadow: '0 22px 54px rgba(15,23,42,0.18)',
                     }}>
-                    {/* Orbs */}
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 200, height: 200,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle,  0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '50%', width: 130, height: 130,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
-                        pointerEvents: 'none',
-                    }} />
+                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent)' }} />
+                    <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
+                        style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
 
                     <div className="relative px-9 py-7 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                        <div className="w-12 h-12 flex items-center justify-center shrink-0"
                             style={{
+                                borderRadius: 14,
                                 background: 'rgba(255,255,255,0.10)',
                                 border: '1px solid rgba(255,255,255,0.18)',
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
                              }}>
                             <span className="material-symbols-outlined filled text-[24px]"
                                 style={{ color: T.sidebarActiveText }}>analytics</span>
@@ -136,30 +134,37 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ── Tab Bar ───────────────────────────────────── */}
-                <div className="flex items-center gap-2 mb-7 flex-wrap">
+                <div className="flex items-center gap-2.5 mb-7 flex-wrap p-2"
+                    style={{
+                        borderRadius: 22,
+                        background: T.surface,
+                        border: `1px solid ${T.border}80`,
+                        boxShadow: luxeShadow(T.primary),
+                    }}>
                     {TABS.map(tab => {
                         const active = activeTab === tab.key
                         return (
                             <button key={tab.key} onClick={() => handleTab(tab.key)}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200"
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-black transition-all duration-200"
                                 style={{
+                                    borderRadius: 16,
                                     background: active
-                                        ? `linear-gradient(135deg, ${T.primary}, ${T.primaryHover})`
-                                        : T.surface,
+                                        ? `linear-gradient(135deg, ${T.primary}, ${DASHBOARD_ACCENTS.gold})`
+                                        : 'transparent',
                                     color: active ? '#fff' : T.textMuted,
-                                    border: active ? `1px solid ${T.primary}` : `1px solid ${T.border}`,
-                                    boxShadow: active ? `0 4px 14px ${T.primary}40` : '0 1px 3px rgba(0,0,0,0.04)',
+                                    border: active ? `1px solid ${T.primary}55` : '1px solid transparent',
+                                    boxShadow: active ? `0 10px 22px ${T.primary}24` : 'none',
                                     transform: active ? 'translateY(-1px)' : 'none',
                                 }}
                                 onMouseEnter={e => {
                                     if (!active) {
-                                        e.currentTarget.style.background = T.surfaceHigh
+                                        e.currentTarget.style.background = T.primaryFaint
                                         e.currentTarget.style.transform = 'translateY(-1px)'
                                     }
                                 }}
                                 onMouseLeave={e => {
                                     if (!active) {
-                                        e.currentTarget.style.background = T.surface
+                                        e.currentTarget.style.background = 'transparent'
                                         e.currentTarget.style.transform = 'none'
                                     }
                                 }}>
@@ -175,11 +180,11 @@ export default function AdminDashboard() {
                     {/* Pipeline selector and Download button — right side of tab bar */}
                     <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
                         {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 0 && (
-                            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200"
+                            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-200"
                                 style={{
-                                    background: T.surface,
-                                    border: `1px solid ${T.border}`,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                                    borderRadius: 16,
+                                    background: T.primaryFaint,
+                                    border: `1px solid ${T.border}80`,
                                 }}>
                                 <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Pipeline:</span>
                                 <select
