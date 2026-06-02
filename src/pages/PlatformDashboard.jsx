@@ -68,6 +68,8 @@ export default function PlatformDashboard() {
     const [showTrialModal, setShowTrialModal] = useState(false)
     const [showDeleteCompany, setShowDeleteCompany] = useState(false)
     const [showDeleteCompanyForever, setShowDeleteCompanyForever] = useState(false)
+    const [showDeleteUserForever, setShowDeleteUserForever] = useState(null)
+    const [showDeactivateUser, setShowDeactivateUser] = useState(null)
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT' })
     const [newPw, setNewPw] = useState('')
     const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
@@ -195,29 +197,44 @@ export default function PlatformDashboard() {
         } finally { setUpdating(null) }
     }
 
-    const deleteUser = async (userId) => {
-        if (!confirm('Deactivate this user?')) return
-        setUpdating('del' + userId)
+    const deleteUser = (userId) => {
+        const u = companyUsers.find(user => user.id === userId)
+        setShowDeactivateUser(u)
+    }
+
+    const submitDeactivateUser = async () => {
+        if (!showDeactivateUser) return
+        setUpdating('del' + showDeactivateUser.id)
         try {
-            await api.delete(`/api/platform/users/${userId}`)
-            setCompanyUsers(prev => prev.map(u => u.id === userId ? { ...u, active: false } : u))
+            await api.delete(`/api/platform/users/${showDeactivateUser.id}`)
+            setCompanyUsers(prev => prev.map(u => u.id === showDeactivateUser.id ? { ...u, active: false } : u))
             setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers - 1 } : prev)
             if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users - 1 }))
+            setShowDeactivateUser(null)
         } finally { setUpdating(null) }
     }
 
-    const deleteUserForever = async (userId) => {
-        if (!confirm('CRITICAL: Delete this user permanently from the database? This action is irreversible.')) return
-        setUpdating('delForever' + userId)
+    const deleteUserForever = (userId) => {
+        const u = companyUsers.find(user => user.id === userId)
+        setFormError('')
+        setShowDeleteUserForever(u)
+    }
+
+    const submitDeleteUserForever = async () => {
+        if (!showDeleteUserForever) return
+        setFormSaving(true)
+        setFormError('')
         try {
-            await api.delete(`/api/platform/users/${userId}/forever`)
-            setCompanyUsers(prev => prev.filter(u => u.id !== userId))
+            await api.delete(`/api/platform/users/${showDeleteUserForever.id}/forever`)
+            setCompanyUsers(prev => prev.filter(u => u.id !== showDeleteUserForever.id))
             setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers - 1 } : prev)
             if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users - 1 }))
+            setShowDeleteUserForever(null)
         } catch (e) {
-            alert(e?.response?.data?.message || 'Failed to delete user forever')
-        } finally { setUpdating(null) }
+            setFormError(e?.response?.data?.message || 'Failed to delete user forever')
+        } finally { setFormSaving(false) }
     }
+
 
     const submitAddUser = async () => {
         if (!newUser.name || !newUser.email || !newUser.password) { setFormError('All fields required'); return }
@@ -318,9 +335,9 @@ export default function PlatformDashboard() {
                 notes={notes} notesSaving={notesSaving} notesSaved={notesSaved}
                 onNotesChange={handleNotesChange}
                 showTrialModal={showTrialModal} showDeleteCompany={showDeleteCompany} showDeleteCompanyForever={showDeleteCompanyForever}
-                showAddUser={showAddUser} showResetPw={showResetPw}
+                showAddUser={showAddUser} showResetPw={showResetPw} showDeleteUserForever={showDeleteUserForever} showDeactivateUser={showDeactivateUser}
                 setShowTrialModal={setShowTrialModal} setShowDeleteCompany={setShowDeleteCompany} setShowDeleteCompanyForever={setShowDeleteCompanyForever}
-                setShowAddUser={setShowAddUser} setShowResetPw={setShowResetPw}
+                setShowAddUser={setShowAddUser} setShowResetPw={setShowResetPw} setShowDeleteUserForever={setShowDeleteUserForever} setShowDeactivateUser={setShowDeactivateUser}
                 trialMode={trialMode} setTrialMode={setTrialMode}
                 trialDays={trialDays} setTrialDays={setTrialDays}
                 trialDate={trialDate} setTrialDate={setTrialDate}
@@ -332,6 +349,8 @@ export default function PlatformDashboard() {
                 onSubmitTrial={submitTrial}
                 onSubmitDeleteCompany={submitDeleteCompany}
                 onSubmitDeleteCompanyForever={submitDeleteCompanyForever}
+                onSubmitDeleteUserForever={submitDeleteUserForever}
+                onSubmitDeactivateUser={submitDeactivateUser}
                 onSubmitAddUser={submitAddUser}
                 onSubmitResetPw={submitResetPw}
                 onImpersonate={impersonate}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import api from '../../api'
+import ConfirmModal from '../ui/ConfirmModal'
 
 const LIMIT_FIELDS = [
     {
@@ -53,6 +54,7 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [resetting, setResetting] = useState(false)
+    const [showConfirmReset, setShowConfirmReset] = useState(false)
     const [status, setStatus] = useState(null) // { type: 'success'|'error', msg }
     const [dirty, setDirty] = useState(false)
 
@@ -110,8 +112,12 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
         }
     }
 
-    const handleReset = async () => {
-        if (!window.confirm('Reset plan limits to system defaults? This cannot be undone.')) return
+    const handleReset = () => {
+        setShowConfirmReset(true)
+    }
+
+    const executeReset = async () => {
+        setShowConfirmReset(false)
         setResetting(true)
         setStatus(null)
         try {
@@ -258,6 +264,17 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
                     </button>
                 </div>
             </form>
+
+            {showConfirmReset && (
+                <ConfirmModal
+                    isOpen={showConfirmReset}
+                    title="Reset Plan Limits"
+                    message="Are you sure you want to reset all plan limits to system defaults? This action cannot be undone."
+                    confirmText="Reset to Defaults"
+                    onConfirm={executeReset}
+                    onCancel={() => setShowConfirmReset(false)}
+                />
+            )}
         </div>
     )
 }

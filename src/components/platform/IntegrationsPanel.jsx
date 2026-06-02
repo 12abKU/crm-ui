@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff, IconBrandWhatsapp } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import api from '../../api'
+import ConfirmModal from '../ui/ConfirmModal'
 
 
 
@@ -97,6 +98,7 @@ const Section = ({ icon: Icon, title, color, configured, children, onSave, onCle
 
 export default function IntegrationsPanel({ companyId }) {
     const [loading, setLoading] = useState(true)
+    const [confirmClear, setConfirmClear] = useState(null) // 'twilio' | 'google' | 'whatsapp'
 
     // Twilio
     const [twilio, setTwilio] = useState({
@@ -177,8 +179,9 @@ export default function IntegrationsPanel({ companyId }) {
     }
 
 
-    const clearTwilio = async () => {
-        if (!confirm('Clear Twilio config? Company will use platform defaults.')) return
+    const clearTwilio = () => setConfirmClear('twilio')
+
+    const executeClearTwilio = async () => {
         setTwilioSaving(true); setTwilioError('')
         try {
             await api.delete(`/api/platform/companies/${companyId}/integrations/twilio`)
@@ -204,8 +207,9 @@ export default function IntegrationsPanel({ companyId }) {
     }
 
 
-    const clearGoogle = async () => {
-        if (!confirm('Clear Google config? Company will use platform defaults.')) return
+    const clearGoogle = () => setConfirmClear('google')
+
+    const executeClearGoogle = async () => {
         setGoogleSaving(true); setGoogleError('')
         try {
             await api.delete(`/api/platform/companies/${companyId}/integrations/google`)
@@ -230,8 +234,9 @@ export default function IntegrationsPanel({ companyId }) {
         } finally { setWhatsappSaving(false) }
     }
 
-    const clearWhatsapp = async () => {
-        if (!confirm('Clear WhatsApp config? Company will use platform defaults.')) return
+    const clearWhatsapp = () => setConfirmClear('whatsapp')
+
+    const executeClearWhatsapp = async () => {
         setWhatsappSaving(true); setWhatsappError('')
         try {
             await api.delete(`/api/platform/companies/${companyId}/integrations/whatsapp`)
@@ -322,6 +327,22 @@ export default function IntegrationsPanel({ companyId }) {
                     </div>
                 </div>
             </Section>
+
+            {confirmClear && (
+                <ConfirmModal
+                    isOpen={!!confirmClear}
+                    title={`Clear ${confirmClear === 'twilio' ? 'Twilio' : confirmClear === 'google' ? 'Google OAuth' : 'WhatsApp Business'} Configuration`}
+                    message={`Are you sure you want to clear this company's custom ${confirmClear === 'google' ? 'Google' : confirmClear === 'twilio' ? 'Twilio' : 'WhatsApp'} configuration? The company will revert to using platform defaults.`}
+                    confirmText="Clear Configuration"
+                    onConfirm={() => {
+                        if (confirmClear === 'twilio') executeClearTwilio()
+                        else if (confirmClear === 'google') executeClearGoogle()
+                        else if (confirmClear === 'whatsapp') executeClearWhatsapp()
+                        setConfirmClear(null)
+                    }}
+                    onCancel={() => setConfirmClear(null)}
+                />
+            )}
         </div>
     )
 }

@@ -8,6 +8,7 @@ import InviteUserModal from './InviteUserModal'
 import usePermission from '../../hooks/usePermission'
 import api from '../../api'
 import { useSelector } from 'react-redux'
+import ConfirmModal from '../ui/ConfirmModal'
 
 const PERMISSION_META = {
     ACCOUNTS_VIEW: { icon: 'business', label: 'View accounts' },
@@ -60,6 +61,7 @@ export default function AgentSettings() {
     const [users, setUsers] = useState([])
     const [loadingUsers, setLoadingUsers] = useState(false)
     const [showInvite, setShowInvite] = useState(false)
+    const [userToDelete, setUserToDelete] = useState(null)
     const currentUserId = Number(useSelector(state => state.auth.userId))
 
     const loadUsers = () => {
@@ -86,9 +88,14 @@ export default function AgentSettings() {
         loadUsers()
     }
 
-    const deleteUser = async (id) => {
-        if (!confirm('Delete this user? This cannot be undone.')) return
-        await api.delete(`/api/management/users/${id}`)
+    const deleteUser = (id) => {
+        setUserToDelete(id)
+    }
+
+    const executeDeleteUser = async () => {
+        if (!userToDelete) return
+        await api.delete(`/api/management/users/${userToDelete}`)
+        setUserToDelete(null)
         loadUsers()
     }
 
@@ -249,6 +256,17 @@ export default function AgentSettings() {
                     </p>
                 </div>
             </div>
+
+            {userToDelete && (
+                <ConfirmModal
+                    isOpen={!!userToDelete}
+                    title="Delete Agent"
+                    message="Are you sure you want to delete this agent? This action cannot be undone."
+                    confirmText="Delete"
+                    onConfirm={executeDeleteUser}
+                    onCancel={() => setUserToDelete(null)}
+                />
+            )}
         </div>
     )
 }

@@ -198,3 +198,26 @@ export function DeleteCompanyForeverModal({ company, onClose, formSaving, formEr
         </Modal>
     )
 }
+
+// ── Delete User Forever Modal ──────────────────────────────────────────────────
+export function DeleteUserForeverModal({ user, onClose, formSaving, formError, onSubmit }) {
+    return (
+        <Modal title="Delete User Forever" onClose={onClose}>
+            <div className="mb-5 px-4 py-3 rounded-xl" style={{ background: T.errorDim, border: `1px solid ${T.error}33` }}>
+                <p className="text-sm font-bold mb-1" style={{ color: T.error }}>CRITICAL WARNING: This action is permanent and cannot be undone.</p>
+                <p className="text-xs" style={{ color: T.textSecondary }}>
+                    Deleting user <strong>{user?.name || user?.email}</strong> permanently will erase this account from the database.
+                </p>
+            </div>
+            {formError && <p className="text-xs mb-3 font-semibold" style={{ color: T.error }}>{formError}</p>}
+            <div className="flex gap-2">
+                <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                    style={{ background: T.surfaceRaised, color: T.textSecondary }}>Cancel</button>
+                <button onClick={onSubmit} disabled={formSaving} className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                    style={{ background: T.error, color: '#fff', opacity: formSaving ? 0.6 : 1 }}>
+                    {formSaving ? 'Deleting Forever...' : 'Yes, Delete Forever'}
+                </button>
+            </div>
+        </Modal>
+    )
+}

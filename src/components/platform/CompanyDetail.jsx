@@ -9,7 +9,8 @@ import CompanyNotes from './CompanyNotes'
 import CompanyUsersTable from './CompanyUsersTable'
 import IntegrationsPanel from './IntegrationsPanel'
 import PlanConfigPanel from './PlanConfigPanel'
-import { TrialModal, DeleteCompanyModal, DeleteCompanyForeverModal, AddUserModal, ResetPasswordModal } from './CompanyModals'
+import { TrialModal, DeleteCompanyModal, DeleteCompanyForeverModal, AddUserModal, ResetPasswordModal, DeleteUserForeverModal } from './CompanyModals'
+import ConfirmModal from '../ui/ConfirmModal'
 import { daysLeft } from './platformConstants'
 import { PRIORITY_STYLES, STATUS_STYLES, CATEGORY_ICONS, timeAgo } from '../support/supportConstants'
 import api from '../../api'
@@ -179,14 +180,14 @@ export default function CompanyDetail({
     company, companyStats, companyUsers, usersLoading,
     updating, impersonating,
     notes, notesSaving, notesSaved, onNotesChange,
-    showTrialModal, showDeleteCompany, showDeleteCompanyForever, showAddUser, showResetPw,
-    setShowTrialModal, setShowDeleteCompany, setShowDeleteCompanyForever, setShowAddUser, setShowResetPw,
+    showTrialModal, showDeleteCompany, showDeleteCompanyForever, showAddUser, showResetPw, showDeleteUserForever, showDeactivateUser,
+    setShowTrialModal, setShowDeleteCompany, setShowDeleteCompanyForever, setShowAddUser, setShowResetPw, setShowDeleteUserForever, setShowDeactivateUser,
     trialMode, setTrialMode, trialDays, setTrialDays, trialDate, setTrialDate,
     newUser, setNewUser, newPw, setNewPw,
     formSaving, formError, setFormError,
     onBack,
     onUpdatePlan, onUpdateStatus,
-    onSubmitTrial, onSubmitDeleteCompany, onSubmitDeleteCompanyForever, onSubmitAddUser, onSubmitResetPw,
+    onSubmitTrial, onSubmitDeleteCompany, onSubmitDeleteCompanyForever, onSubmitAddUser, onSubmitResetPw, onSubmitDeleteUserForever, onSubmitDeactivateUser,
     onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onChangeRole,
     onRefreshUsers,
     onActivateCompany,
@@ -354,6 +355,24 @@ export default function CompanyDetail({
                     onClose={() => setShowResetPw(null)}
                     formSaving={formSaving} formError={formError}
                     onSubmit={onSubmitResetPw}
+                />
+            )}
+            {showDeleteUserForever && (
+                <DeleteUserForeverModal
+                    user={showDeleteUserForever}
+                    onClose={() => setShowDeleteUserForever(null)}
+                    formSaving={formSaving} formError={formError}
+                    onSubmit={onSubmitDeleteUserForever}
+                />
+            )}
+            {showDeactivateUser && (
+                <ConfirmModal
+                    isOpen={!!showDeactivateUser}
+                    title="Deactivate User"
+                    message={`Are you sure you want to deactivate ${showDeactivateUser.name || showDeactivateUser.email}? They will no longer be able to log in.`}
+                    confirmText="Deactivate"
+                    onConfirm={onSubmitDeactivateUser}
+                    onCancel={() => setShowDeactivateUser(null)}
                 />
             )}
         </div>
