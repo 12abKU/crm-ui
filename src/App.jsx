@@ -31,6 +31,7 @@ const DeDuplicationPage = lazy(() => import('./pages/DeDuplicationPage'))
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 import ImportProgressToast from './components/ui/ImportProgressToast'
+import TrialUpgradePopup from './components/ui/TrialUpgradePopup'
 
 
 function WebSocketManager() {
@@ -112,7 +113,10 @@ const CrmLayout = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
-      <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
+      <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">
+        {children}
+        <TrialUpgradePopup />
+      </div>
     </div>
   )
 }
