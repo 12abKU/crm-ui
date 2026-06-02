@@ -17,14 +17,15 @@ export const extractApiErrorMessage = (err, fallback = 'Something went wrong. Pl
 
     const data = err?.response?.data
     if (data) {
-        const fields = data.fields && typeof data.fields === 'object'
-            ? Object.entries(data.fields)
-                .filter(([, message]) => Boolean(message))
-                .map(([field, message]) => `${field}: ${message}`)
-            : []
+        if (data.fields && typeof data.fields === 'object') {
+            const fieldErrors = Object.values(data.fields).filter(Boolean)
+            if (fieldErrors.length > 0) {
+                return fieldErrors.join(', ')
+            }
+        }
 
         if (typeof data.message === 'string' && data.message.trim()) {
-            return fields.length ? `${data.message} (${fields.join(', ')})` : data.message
+            return data.message
         }
 
         if (typeof data.error === 'string' && data.error.trim()) return data.error

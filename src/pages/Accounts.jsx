@@ -25,6 +25,8 @@ export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+    const [customEmployeeRange, setCustomEmployeeRange] = useState(false)
+    const [customTag, setCustomTag] = useState(false)
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
@@ -32,6 +34,8 @@ export default function Accounts() {
 
     const handleOpenModal = () => {
         setErrors({})
+        setCustomEmployeeRange(false)
+        setCustomTag(false)
         setOpen(true)
     }
 
@@ -91,6 +95,8 @@ export default function Accounts() {
             setShowDuplicateModal(false)
             setDuplicates([])
             setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+            setCustomEmployeeRange(false)
+            setCustomTag(false)
             setErrors({})
             invalidateCacheForKey()
             setPage(0); loadPage(0, search)
@@ -271,12 +277,12 @@ export default function Accounts() {
 
                                     {/* Employees */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[4] }}>
-                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
+                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} allowCustom={true} onSave={v => updateField(a.id, 'employeeRange', v)} />
                                     </td>
 
                                     {/* Tag */}
                                     <td className="px-6 py-4" style={{ width: colWidths[5] }}>
-                                        <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'tag', v)}>
+                                        <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} allowCustom={true} onSave={v => updateField(a.id, 'tag', v)}>
                                             {a.tag && (
                                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
                                                     style={{ background: tag.bg, color: tag.color }}>
@@ -334,14 +340,53 @@ export default function Accounts() {
                     <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" error={errors.website} />
                     <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
                     <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" error={errors.industry} />
-                    <Select label="Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} error={errors.employeeRange}>
-                        <option value="">Select range</option>
-                        {EMPLOYEE_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
-                    </Select>
-                    <Select label="Tag" value={form.tag} onChange={e => set('tag', e.target.value)} error={errors.tag}>
-                        <option value="">Select tag</option>
-                        {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
-                    </Select>
+                    {customEmployeeRange ? (
+                        <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                                <Input label="Custom Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} placeholder="e.g. 500-1000" error={errors.employeeRange} />
+                            </div>
+                            <button type="button" onClick={() => { setCustomEmployeeRange(false); set('employeeRange', '') }} className="text-xs mb-3 font-semibold underline" style={{ color: T.primary }}>
+                                Choose from list
+                            </button>
+                        </div>
+                    ) : (
+                        <Select label="Employee Range" value={form.employeeRange} onChange={e => {
+                            if (e.target.value === '__custom__') {
+                                setCustomEmployeeRange(true)
+                                set('employeeRange', '')
+                            } else {
+                                set('employeeRange', e.target.value)
+                            }
+                        }} error={errors.employeeRange}>
+                            <option value="">Select range</option>
+                            {EMPLOYEE_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
+                            <option value="__custom__">+ Add Custom Range...</option>
+                        </Select>
+                    )}
+
+                    {customTag ? (
+                        <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                                <Input label="Custom Tag" value={form.tag} onChange={e => set('tag', e.target.value)} placeholder="e.g. Partner" error={errors.tag} />
+                            </div>
+                            <button type="button" onClick={() => { setCustomTag(false); set('tag', '') }} className="text-xs mb-3 font-semibold underline" style={{ color: T.primary }}>
+                                Choose from list
+                            </button>
+                        </div>
+                    ) : (
+                        <Select label="Tag" value={form.tag} onChange={e => {
+                            if (e.target.value === '__custom__') {
+                                setCustomTag(true)
+                                set('tag', '')
+                            } else {
+                                set('tag', e.target.value)
+                            }
+                        }} error={errors.tag}>
+                            <option value="">Select tag</option>
+                            {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
+                            <option value="__custom__">+ Add Custom Tag...</option>
+                        </Select>
+                    )}
                 </SlideForm>
             )}
             {/* -- Duplicate Modal ----------------------------------- */}

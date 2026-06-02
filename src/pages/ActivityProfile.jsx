@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T, ACTIVITY_STYLES } from '../constants/theme'
@@ -8,6 +8,9 @@ import api from '../api'
 import Skeleton from 'react-loading-skeleton'
 import { getStatus, STATUS_STYLES, fmtScheduled, OUTCOMES } from '../components/activities/activityUtils'
 import { timeAgo } from '../utils/date'
+import { usePermissions } from '../hooks/usePermission'
+import SearchableSelect from '../components/SearchableSelect'
+import InlineEdit from '../components/InlineEdit'
 
 // ── InfoCard ──────────────────────────────────────────────────
 const InfoCard = ({ label, children, value }) => (
@@ -68,6 +71,14 @@ const LinkedCard = ({ icon, iconBg, iconColor, label, title, subtitle, badge, on
     )
 }
 
+const toDatetimeLocal = (str) => {
+    if (!str) return ''
+    const parts = str.split('.')
+    const base = parts[0]
+    const match = base.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)
+    return match ? match[0] : ''
+}
+
 export default function ActivityProfile() {
     const { getStageLabel, getStageStyle } = usePipelineStages()
     const { id } = useParams()
@@ -79,6 +90,88 @@ export default function ActivityProfile() {
     const [activity, setActivity] = useState(null)
     const [loading, setLoading] = useState(true)
     const [completing, setCompleting] = useState(false)
+
+    // ── Edit relations states ──────────────────────────────────
+    const can = usePermissions(['ACTIVITIES_EDIT'])
+    const [editingRelations, setEditingRelations] = useState(false)
+    const [relationsForm, setRelationsForm] = useState({ accountId: '', contactId: '', dealId: '' })
+    const [relationContacts, setRelationContacts] = useState([])
+    const [relationDeals, setRelationDeals] = useState([])
+    const [savingRelations, setSavingRelations] = useState(false)
+    const [loadingRelated, setLoadingRelated] = useState(false)
+
+    const loadAccountOptions = async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/accounts?${params}`)
+        const content = r.data.content ?? []
+        return content.map(a => ({ id: String(a.id), label: a.name }))
+    }
+
+    const onRelationAccountChange = async (accountId) => {
+        setRelationsForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
+        setRelationContacts([])
+        setRelationDeals([])
+        if (!accountId) return
+        setLoadingRelated(true)
+        try {
+            const r = await api.get(`/api/accounts/${accountId}/profile`)
+            setRelationContacts((r.data.contacts ?? []).map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` })))
+            setRelationDeals((r.data.openDeals ?? []).map(d => ({ id: String(d.id), label: d.title })))
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoadingRelated(false)
+        }
+    }
+
+    const startEditingRelations = async () => {
+        setRelationsForm({
+            accountId: activity.account?.id ? String(activity.account.id) : '',
+            contactId: activity.contact?.id ? String(activity.contact.id) : '',
+            dealId: activity.deal?.id ? String(activity.deal.id) : ''
+        })
+        setEditingRelations(true)
+        setRelationContacts([])
+        setRelationDeals([])
+
+        if (activity.account?.id) {
+            setLoadingRelated(true)
+            try {
+                const r = await api.get(`/api/accounts/${activity.account.id}/profile`)
+                setRelationContacts((r.data.contacts ?? []).map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` })))
+                setRelationDeals((r.data.openDeals ?? []).map(d => ({ id: String(d.id), label: d.title })))
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoadingRelated(false)
+            }
+        }
+    }
+
+    const saveRelations = async () => {
+        setSavingRelations(true)
+        try {
+            const r = await api.put(`/api/activities/${activity.id}/relations`, {
+                accountId: relationsForm.accountId || null,
+                contactId: relationsForm.contactId || null,
+                dealId: relationsForm.dealId || null
+            })
+            setActivity(r.data)
+            setEditingRelations(false)
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setSavingRelations(false)
+        }
+    }
+
+    const accountOptions = useMemo(() => {
+        if (activity?.account) {
+            return [{ id: String(activity.account.id), label: activity.account.name }]
+        }
+        return []
+    }, [activity])
 
     // ── Load (unchanged) ───────────────────────────────────────
     const load = () => {
@@ -104,6 +197,27 @@ export default function ActivityProfile() {
             const r = await api.patch(`/api/activities/${activity.id}/complete`, { completed: !activity.completed })
             setActivity(r.data)
         } finally { setCompleting(false) }
+    }
+
+    const updateField = async (field, value) => {
+        try {
+            const payload = {
+                type: activity.type,
+                subject: activity.subject,
+                description: activity.description,
+                scheduledAt: activity.scheduledAt,
+                reminderAt: activity.reminderAt,
+                completed: activity.completed,
+                outcome: activity.outcome,
+                remindHourlyOneDayBefore: activity.remindHourlyOneDayBefore,
+                [field]: value
+            }
+            const r = await api.put(`/api/activities/${activity.id}`, payload)
+            setActivity(r.data)
+        } catch (err) {
+            console.error(err)
+            throw err
+        }
     }
 
     const fmtDate = (str) => {
@@ -217,15 +331,17 @@ export default function ActivityProfile() {
 
                             <div>
                                 <div className="flex items-center gap-3 flex-wrap mb-1">
-                                    <h1 className="text-2xl font-black"
-                                        style={{
-                                            color: '#fff',
-                                            letterSpacing: '-0.02em',
-                                            textDecoration: activity.completed ? 'line-through' : 'none',
-                                            opacity: activity.completed ? 0.6 : 1,
-                                        }}>
-                                        {activity.subject || 'Untitled Activity'}
-                                    </h1>
+                                    <InlineEdit value={activity.subject} readonly={!(can.ACTIVITIES_EDIT || isAdmin)} onSave={v => updateField('subject', v)} placeholder="Untitled Activity">
+                                        <h1 className="text-2xl font-black"
+                                            style={{
+                                                color: '#fff',
+                                                letterSpacing: '-0.02em',
+                                                textDecoration: activity.completed ? 'line-through' : 'none',
+                                                opacity: activity.completed ? 0.6 : 1,
+                                            }}>
+                                            {activity.subject || 'Untitled Activity'}
+                                        </h1>
+                                    </InlineEdit>
                                     {/* Type badge */}
                                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
                                         style={{ background: `${s.color}22`, color: s.color, border: `1px solid ${s.color}40` }}>
@@ -287,13 +403,20 @@ export default function ActivityProfile() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <InfoCard label="Type">
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="material-symbols-outlined filled text-[14px]"
-                                            style={{ color: s.color }}>{s.icon}</span>
-                                        <span className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                                            {activity.type}
-                                        </span>
-                                    </div>
+                                    <InlineEdit
+                                        value={activity.type}
+                                        options={['CALL', 'EMAIL', 'NOTE', 'MEETING']}
+                                        readonly={!(can.ACTIVITIES_EDIT || isAdmin)}
+                                        onSave={v => updateField('type', v)}
+                                    >
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="material-symbols-outlined filled text-[14px]"
+                                                style={{ color: s.color }}>{s.icon}</span>
+                                            <span className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                                                {activity.type}
+                                            </span>
+                                        </div>
+                                    </InlineEdit>
                                 </InfoCard>
 
                                 <InfoCard label="Status">
@@ -304,29 +427,58 @@ export default function ActivityProfile() {
                                     </span>
                                 </InfoCard>
 
-                                <InfoCard label="Scheduled At" value={fmtScheduled(activity.scheduledAt) || '—'} />
-                                <InfoCard label="Reminder">
-                                    {activity.reminderAt ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold mt-0.5 w-fit"
-                                            style={{ background: T.warningDim, color: T.warning }}>
-                                            <span className="material-symbols-outlined text-[12px]">notifications_active</span>
-                                            {fmtScheduled(activity.reminderAt)}
+                                <InfoCard label="Scheduled At">
+                                    <InlineEdit
+                                        type="datetime-local"
+                                        value={toDatetimeLocal(activity.scheduledAt)}
+                                        readonly={!(can.ACTIVITIES_EDIT || isAdmin)}
+                                        onSave={v => updateField('scheduledAt', v)}
+                                        placeholder="Set scheduled time"
+                                    >
+                                        <span className="text-sm font-semibold" style={{ color: activity.scheduledAt ? T.textPrimary : T.textMuted }}>
+                                            {fmtScheduled(activity.scheduledAt) || '—'}
                                         </span>
-                                    ) : (
-                                        <span className="text-sm font-semibold" style={{ color: T.textMuted }}>Not set</span>
-                                    )}
+                                    </InlineEdit>
+                                </InfoCard>
+
+                                <InfoCard label="Reminder">
+                                    <InlineEdit
+                                        type="datetime-local"
+                                        value={toDatetimeLocal(activity.reminderAt)}
+                                        readonly={!(can.ACTIVITIES_EDIT || isAdmin)}
+                                        onSave={v => updateField('reminderAt', v || null)}
+                                        placeholder="Set reminder time"
+                                    >
+                                        {activity.reminderAt ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold mt-0.5 w-fit"
+                                                style={{ background: T.warningDim, color: T.warning }}>
+                                                <span className="material-symbols-outlined text-[12px]">notifications_active</span>
+                                                {fmtScheduled(activity.reminderAt)}
+                                            </span>
+                                        ) : (
+                                            <span className="text-sm font-semibold" style={{ color: T.textMuted }}>Not set</span>
+                                        )}
+                                    </InlineEdit>
                                 </InfoCard>
                                 <InfoCard label="Created At" value={fmtDate(activity.createdAt)} />
 
                                 <InfoCard label="Outcome">
-                                    {activity.outcome ? (
-                                        <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold mt-0.5 w-fit"
-                                            style={{ background: T.secondaryDim, color: T.secondaryText }}>
-                                            {activity.outcome}
-                                        </span>
-                                    ) : (
-                                        <span className="text-sm font-semibold" style={{ color: T.textMuted }}>Not set</span>
-                                    )}
+                                    <InlineEdit
+                                        value={activity.outcome || 'Not set'}
+                                        options={['Not set', ...outcomes]}
+                                        readonly={!(can.ACTIVITIES_EDIT || isAdmin)}
+                                        onSave={v => updateField('outcome', v === 'Not set' ? null : v)}
+                                        placeholder="Set outcome"
+                                    >
+                                        {activity.outcome ? (
+                                            <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold mt-0.5 w-fit"
+                                                style={{ background: T.secondaryDim, color: T.secondaryText }}>
+                                                {activity.outcome}
+                                            </span>
+                                        ) : (
+                                            <span className="text-sm font-semibold" style={{ color: T.textMuted }}>Not set</span>
+                                        )}
+                                    </InlineEdit>
                                 </InfoCard>
 
                                 <InfoCard label="Completed">
@@ -343,77 +495,138 @@ export default function ActivityProfile() {
                                 </InfoCard>
                             </div>
 
-                            {/* Description (unchanged logic) */}
-                            {activity.description && (
-                                <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
-                                    <p className="text-[10px] font-black uppercase tracking-widest mb-2"
-                                        style={{ color: T.textMuted }}>Description</p>
+                            {/* Description (always render to allow linking/editing later) */}
+                            <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
+                                <p className="text-[10px] font-black uppercase tracking-widest mb-2"
+                                    style={{ color: T.textMuted }}>Description</p>
+                                <InlineEdit
+                                    type="textarea"
+                                    value={activity.description}
+                                    readonly={!(can.ACTIVITIES_EDIT || isAdmin)}
+                                    onSave={v => updateField('description', v)}
+                                    placeholder="Add description..."
+                                >
                                     <p className="text-sm leading-relaxed whitespace-pre-wrap"
-                                        style={{ color: T.textSecondary }}>
-                                        {activity.description}
+                                        style={{ color: activity.description ? T.textSecondary : T.textMuted }}>
+                                        {activity.description || 'Add description...'}
                                     </p>
-                                </div>
-                            )}
+                                </InlineEdit>
+                            </div>
                         </div>
 
                         {/* Related entities */}
                         <div className="rounded-2xl p-6" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                            <div className="flex items-center gap-2 mb-5">
-                                <span className="material-symbols-outlined filled text-[16px]"
-                                    style={{ color: T.primary }}>link</span>
-                                <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Related To</h3>
+                            <div className="flex items-center justify-between mb-5">
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined filled text-[16px]"
+                                        style={{ color: T.primary }}>link</span>
+                                    <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Related To</h3>
+                                </div>
+                                {(can.ACTIVITIES_EDIT || isAdmin) && !editingRelations && (
+                                    <button onClick={startEditingRelations}
+                                        className="p-1.5 rounded-lg transition-colors hover:bg-surface-raised flex items-center justify-center"
+                                        style={{ color: T.primary }}>
+                                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex flex-col gap-3">
-
-                                {/* Account (unchanged navigate logic) */}
-                                {activity.account ? (
-                                    <LinkedCard
-                                        icon={activity.account.name.charAt(0).toUpperCase()}
-                                        iconBg={T.primaryDim} iconColor={T.primary}
+                            
+                            {editingRelations ? (
+                                <div className="flex flex-col gap-4">
+                                    <SearchableSelect
                                         label="Account"
-                                        title={activity.account.name}
-                                        onClick={() => navigate(`/accounts/${activity.account.id}`)}
+                                        value={relationsForm.accountId}
+                                        onChange={onRelationAccountChange}
+                                        options={accountOptions}
+                                        onSearch={loadAccountOptions}
+                                        placeholder="Search account to link..."
                                     />
-                                ) : (
-                                    <LinkedCard icon="business" label="Account" empty />
-                                )}
-
-                                {/* Contact (unchanged navigate logic) */}
-                                {activity.contact ? (
-                                    <LinkedCard
-                                        icon={activity.contact.firstName?.charAt(0).toUpperCase()}
-                                        iconBg={T.secondaryDim} iconColor={T.secondaryText}
+                                    
+                                    <SearchableSelect
                                         label="Contact"
-                                        title={`${activity.contact.firstName} ${activity.contact.lastName}`}
-                                        subtitle={activity.contact.designation}
-                                        onClick={() => navigate(`/contacts/${activity.contact.id}`)}
+                                        value={relationsForm.contactId}
+                                        onChange={val => setRelationsForm(f => ({ ...f, contactId: val }))}
+                                        options={relationContacts}
+                                        placeholder={relationsForm.accountId ? "Select contact..." : "Select account first"}
+                                        disabled={!relationsForm.accountId}
+                                        loading={loadingRelated}
                                     />
-                                ) : (
-                                    <LinkedCard icon="person" label="Contact" empty />
-                                )}
-
-                                {/* Deal (unchanged navigate logic) */}
-                                {activity.deal ? (
-                                    <LinkedCard
-                                        icon={<span className="material-symbols-outlined filled text-[18px]">handshake</span>}
-                                        iconBg={T.tertiaryDim} iconColor={T.tertiaryText}
+                                    
+                                    <SearchableSelect
                                         label="Deal"
-                                        title={activity.deal.title}
-                                        badge={activity.deal.stage && (() => {
-                                            const ds = getStageStyle(activity.deal.stage)
-                                            return (
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block"
-                                                    style={{ background: ds.badgeBg, color: ds.badgeColor }}>
-                                                    {getStageLabel(activity.deal.stage)}
-                                                </span>
-                                            )
-                                        })()}
-                                        onClick={() => navigate(`/deals?highlight=${activity.deal.id}`)}
+                                        value={relationsForm.dealId}
+                                        onChange={val => setRelationsForm(f => ({ ...f, dealId: val }))}
+                                        options={relationDeals}
+                                        placeholder={relationsForm.accountId ? "Select deal..." : "Select account first"}
+                                        disabled={!relationsForm.accountId}
+                                        loading={loadingRelated}
                                     />
-                                ) : (
-                                    <LinkedCard icon="handshake" label="Deal" empty />
-                                )}
-                            </div>
+                                    
+                                    <div className="flex gap-2 justify-end mt-2 pt-4" style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
+                                        <button onClick={() => setEditingRelations(false)} disabled={savingRelations}
+                                            className="px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                                            style={{ background: T.surfaceHigh, color: T.textSecondary }}>
+                                            Cancel
+                                        </button>
+                                        <button onClick={saveRelations} disabled={savingRelations}
+                                            className="px-4 py-2 rounded-xl text-xs font-bold transition-all text-white flex items-center gap-1.5"
+                                            style={{ background: T.primary }}>
+                                            {savingRelations ? 'Saving...' : 'Save Relations'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-3">
+                                    {/* Account (unchanged navigate logic) */}
+                                    {activity.account ? (
+                                        <LinkedCard
+                                            icon={activity.account.name.charAt(0).toUpperCase()}
+                                            iconBg={T.primaryDim} iconColor={T.primary}
+                                            label="Account"
+                                            title={activity.account.name}
+                                            onClick={() => navigate(`/accounts/${activity.account.id}`)}
+                                        />
+                                    ) : (
+                                        <LinkedCard icon="business" label="Account" empty />
+                                    )}
+
+                                    {/* Contact (unchanged navigate logic) */}
+                                    {activity.contact ? (
+                                        <LinkedCard
+                                            icon={activity.contact.firstName?.charAt(0).toUpperCase()}
+                                            iconBg={T.secondaryDim} iconColor={T.secondaryText}
+                                            label="Contact"
+                                            title={`${activity.contact.firstName} ${activity.contact.lastName}`}
+                                            subtitle={activity.contact.designation}
+                                            onClick={() => navigate(`/contacts/${activity.contact.id}`)}
+                                        />
+                                    ) : (
+                                        <LinkedCard icon="person" label="Contact" empty />
+                                    )}
+
+                                    {/* Deal (unchanged navigate logic) */}
+                                    {activity.deal ? (
+                                        <LinkedCard
+                                            icon={<span className="material-symbols-outlined filled text-[18px]">handshake</span>}
+                                            iconBg={T.tertiaryDim} iconColor={T.tertiaryText}
+                                            label="Deal"
+                                            title={activity.deal.title}
+                                            badge={activity.deal.stage && (() => {
+                                                const ds = getStageStyle(activity.deal.stage)
+                                                return (
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold mt-1 inline-block"
+                                                        style={{ background: ds.badgeBg, color: ds.badgeColor }}>
+                                                        {getStageLabel(activity.deal.stage)}
+                                                    </span>
+                                                )
+                                            })()}
+                                            onClick={() => navigate(`/deals?highlight=${activity.deal.id}`)}
+                                        />
+                                    ) : (
+                                        <LinkedCard icon="handshake" label="Deal" empty />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -18,3 +18,9 @@
   - [x] Check build correctness using `npm run build`
   - [x] Dashboard responsiveness
   - [x] Dashboard.jsx stat grid columns and marginszard flow
+  - [x] Make all activity details (subject, type, scheduled time, reminder, outcome, description) inline-editable for admins and authorized users in ActivityProfile.jsx.
+- [x] Support clearing optional activity fields (reminder time and outcome) from both frontend and backend on update.
+- [x] Make empty activity descriptions display a placeholder ("Add description...") and remain editable at any time.
+- [x] Add readonly and allowCustom controls to InlineEdit component to prevent unauthorized editing and restrict custom inputs on enum-based dropdowns.
+- [x] Verify frontend build compilation with `npm run build`.
+- [x] Write and run a python verification script `verify_activity_editing.py` to assert that editing and clearing fields work correctly.
