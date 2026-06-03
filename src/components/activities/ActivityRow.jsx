@@ -98,14 +98,16 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
             </td>
 
             {showOwner && (
-                <td className="px-4 py-3.5" style={{ width: colWidths[4] }}>
+                <td className="px-4 py-3.5" style={{ width: colWidths[4] }} onClick={e => e.stopPropagation()}>
                     {activity.owner ? (
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
+                        <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-85"
+                            onClick={() => navigate(`/team/${activity.owner.id}`)}
+                            title={`View ${activity.owner.name}'s Profile`}>
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-transform duration-150 hover:scale-105"
                                 style={{ background: T.secondaryDim, color: T.secondaryText }}>
                                 {activity.owner.name?.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-[12px] font-semibold" style={{ color: T.textSecondary }}>{activity.owner.name}</p>
+                            <p className="text-[12px] font-semibold hover:text-primary transition-colors hover:underline" style={{ color: T.textSecondary }}>{activity.owner.name}</p>
                         </div>
                     ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
                 </td>

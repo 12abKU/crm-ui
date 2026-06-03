@@ -95,6 +95,50 @@ function EntityBadge({ entityType }) {
     )
 }
 
+function renderDetail(detail, users, navigate) {
+    if (!detail) return '—'
+    if (!users || users.length === 0) return detail
+
+    const sortedUsers = [...users].sort((a, b) => (b.name || '').length - (a.name || '').length)
+    const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    
+    const userMap = {}
+    const names = []
+    for (const u of sortedUsers) {
+        if (u.name) {
+            userMap[u.name.toLowerCase()] = u
+            names.push(escapeRegex(u.name))
+        }
+    }
+
+    if (names.length === 0) return detail
+
+    const pattern = new RegExp(`\\b(${names.join('|')})\\b`, 'gi')
+    const parts = detail.split(pattern)
+
+    return parts.map((part, index) => {
+        const lowerPart = part.toLowerCase()
+        const matchedUser = userMap[lowerPart]
+        if (matchedUser) {
+            return (
+                <span
+                    key={index}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/team/${matchedUser.id}`)
+                    }}
+                    className="cursor-pointer font-semibold transition-colors hover:underline text-primary"
+                    style={{ color: T.primary }}
+                    title={`View ${matchedUser.name}'s Profile`}
+                >
+                    {part}
+                </span>
+            )
+        }
+        return part
+    })
+}
+
 export default function AuditLogPage() {
     const navigate = useNavigate()
     const { role } = useSelector(state => state.auth)
@@ -342,10 +386,14 @@ export default function AuditLogPage() {
                                         onMouseLeave={() => setHoveredRow(null)}>
 
                                         {/* Actor */}
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <Avatar name={log.actor?.name} size={30} />
+                                        <div className="flex items-center gap-2.5 min-w-0 cursor-pointer group/actor"
+                                            onClick={() => log.actor?.id && navigate(`/team/${log.actor.id}`)}
+                                            title={log.actor?.name ? `View ${log.actor.name}'s Profile` : ''}>
+                                            <div className="transition-transform duration-150 group-hover/actor:scale-105 active:scale-95">
+                                                <Avatar name={log.actor?.name} size={30} />
+                                            </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>
+                                                <p className="text-sm font-semibold truncate group-hover/actor:text-primary transition-colors group-hover/actor:underline" style={{ color: T.textPrimary }}>
                                                     {log.actor?.name || 'Unknown'}
                                                 </p>
                                                 <p className="text-[11px] truncate" style={{ color: T.textMuted }}>
@@ -368,11 +416,11 @@ export default function AuditLogPage() {
                                             </button>
                                         </div>
 
-                                        {/* Detail */}
-                                        <p className="text-xs truncate" style={{ color: T.textSecondary }}
-                                            title={log.detail}>
-                                            {log.detail || '—'}
-                                        </p>
+                                         {/* Detail */}
+                                         <p className="text-xs truncate" style={{ color: T.textSecondary }}
+                                             title={log.detail}>
+                                             {renderDetail(log.detail, users, navigate)}
+                                         </p>
 
                                         {/* Time */}
                                         <div className="flex flex-col gap-0.5">

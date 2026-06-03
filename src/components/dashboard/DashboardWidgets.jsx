@@ -134,12 +134,13 @@ export function MetricPill({ label, value, color = T.primary }) {
     )
 }
 
-export function TableCard({ children }) {
+export function TableCard({ children, className = '', style = {} }) {
     return (
-        <div className="overflow-auto rounded-2xl p-2"
+        <div className={`overflow-auto rounded-2xl p-2 ${className}`}
             style={{
                 background: dashboardPanelBg(),
                 border: `1px solid ${T.borderSubtle}`,
+                ...style,
             }}>
             {children}
         </div>

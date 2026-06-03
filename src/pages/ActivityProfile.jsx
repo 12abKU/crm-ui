@@ -641,17 +641,28 @@ export default function ActivityProfile() {
                                 <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Created By</h3>
                             </div>
                             {activity.owner ? (
-                                <div className="flex items-center gap-3 p-3 rounded-xl"
-                                    style={{ background: T.borderSubtle }}>
-                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0"
+                                <div className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-150 border border-transparent"
+                                    onClick={() => navigate(`/team/${activity.owner.id}`)}
+                                    title={`View ${activity.owner.name}'s Profile`}
+                                    style={{ background: T.borderSubtle }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.background = T.primaryFaint;
+                                        e.currentTarget.style.borderColor = `${T.primary}20`;
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = T.borderSubtle;
+                                        e.currentTarget.style.borderColor = 'transparent';
+                                    }}>
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0 transition-transform duration-150 hover:scale-105 active:scale-95"
                                         style={{
                                             background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                             color: '#fff',
+                                            boxShadow: `0 2px 8px ${T.primary}20`
                                         }}>
                                         {activity.owner.name?.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-bold truncate" style={{ color: T.textPrimary }}>
+                                        <p className="text-sm font-bold truncate hover:text-primary transition-colors hover:underline" style={{ color: T.textPrimary }}>
                                             {activity.owner.name}
                                         </p>
                                         <p className="text-[11px] truncate mt-0.5" style={{ color: T.textMuted }}>

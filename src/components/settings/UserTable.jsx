@@ -3,12 +3,14 @@ import RoleBadge from './RoleBadge'
 import PermissionEditor from './PermissionEditor'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 export default function UserTable({ users, loading, currentUserId, canPromote, canDemote, canDelete, onPromote, onDemote, onDelete }) {
 
     const [editingUser, setEditingUser] = useState(null)
     const currentUserRole = useSelector(state => state.auth.role)
     const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'SUPER_ADMIN'
+    const navigate = useNavigate()
 
 
     if (loading) {
@@ -53,12 +55,17 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                                     onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? T.surface : T.surfaceRaised}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
-                                                style={{ background: T.primaryDim, color: T.primary }}>
+                                            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 cursor-pointer transition-transform duration-150 hover:scale-105 active:scale-95"
+                                                onClick={() => navigate(`/team/${u.id}`)}
+                                                style={{ background: T.primaryDim, color: T.primary }}
+                                                title={`View ${u.name}'s Profile`}>
                                                 {u.name?.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{u.name}</p>
+                                                <p className="text-sm font-semibold cursor-pointer hover:text-primary transition-colors"
+                                                    onClick={() => navigate(`/team/${u.id}`)}
+                                                    style={{ color: T.textPrimary }}
+                                                    title={`View ${u.name}'s Profile`}>{u.name}</p>
                                                 {isSelf && <p className="text-[10px] font-bold" style={{ color: T.primary }}>You</p>}
                                             </div>
                                         </div>
@@ -69,47 +76,62 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {!isSuperAdmin && !isSelf && (
-                                            <div className="flex items-center ">
-                                                {canPromote && u.role === 'AGENT' && (
-                                                    <button onClick={() => onPromote(u.id)}
-                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                                                        style={{ background: T.primaryDim, color: T.primary }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = T.primary + '33'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = T.primaryDim}>
-                                                        <span className="material-symbols-outlined text-[13px]">arrow_upward</span>
-                                                        Make Admin
-                                                    </button>
-                                                )}
-                                                {canDemote && u.role === 'ADMIN' && (
-                                                    <button onClick={() => onDemote(u.id)}
-                                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                                                        style={{ background: T.warningDim, color: T.warning }}
-                                                        onMouseEnter={e => e.currentTarget.style.background = T.warning + '22'}
-                                                        onMouseLeave={e => e.currentTarget.style.background = T.warningDim}>
-                                                        <span className="material-symbols-outlined text-[13px]">arrow_downward</span>
-                                                        Make Agent
-                                                    </button>
-                                                )}
-                                                {canDelete && (
-                                                    <button onClick={() => onDelete(u.id)}
-                                                        className="p-1.5 rounded-lg transition-colors"
-                                                        style={{ color: T.textMuted }}
-                                                        onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
-                                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
-                                                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                        {isAdmin && (
-                                            <button onClick={() => setEditingUser(u)}
-                                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
-                                                style={{ background: T.primaryDim, color: T.primary }}>
-                                                <span className="material-symbols-outlined text-[13px]">shield</span>
-                                                Permissions
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {/* Profile Link Button */}
+                                            <button onClick={() => navigate(`/team/${u.id}`)}
+                                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200"
+                                                style={{ background: T.primaryDim, color: T.primary, border: `1.5px solid ${T.primary}20` }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}28`; e.currentTarget.style.boxShadow = `0 2px 8px ${T.primary}15` }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
+                                                <span className="material-symbols-outlined text-[13px]">person</span>
+                                                Profile
                                             </button>
-                                        )}
+
+                                            {isAdmin && (
+                                                <button onClick={() => setEditingUser(u)}
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200"
+                                                    style={{ background: T.primaryDim, color: T.primary, border: `1px solid ${T.primary}20` }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background = `${T.primary}28`; e.currentTarget.style.boxShadow = `0 2px 8px ${T.primary}15` }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background = T.primaryDim; e.currentTarget.style.boxShadow = 'none' }}>
+                                                    <span className="material-symbols-outlined text-[13px]">shield</span>
+                                                    Permissions
+                                                </button>
+                                            )}
+
+                                            {!isSuperAdmin && !isSelf && (
+                                                <>
+                                                    {canPromote && u.role === 'AGENT' && (
+                                                        <button onClick={() => onPromote(u.id)}
+                                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                                                            style={{ background: T.primaryDim, color: T.primary }}
+                                                            onMouseEnter={e => e.currentTarget.style.background = T.primary + '33'}
+                                                            onMouseLeave={e => e.currentTarget.style.background = T.primaryDim}>
+                                                            <span className="material-symbols-outlined text-[13px]">arrow_upward</span>
+                                                            Make Admin
+                                                        </button>
+                                                    )}
+                                                    {canDemote && u.role === 'ADMIN' && (
+                                                        <button onClick={() => onDemote(u.id)}
+                                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                                                            style={{ background: T.warningDim, color: T.warning }}
+                                                            onMouseEnter={e => e.currentTarget.style.background = T.warning + '22'}
+                                                            onMouseLeave={e => e.currentTarget.style.background = T.warningDim}>
+                                                            <span className="material-symbols-outlined text-[13px]">arrow_downward</span>
+                                                            Make Agent
+                                                        </button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <button onClick={() => onDelete(u.id)}
+                                                            className="p-1.5 rounded-lg transition-colors ml-auto"
+                                                            style={{ color: T.textMuted }}
+                                                            onMouseEnter={e => { e.currentTarget.style.background = T.errorDim; e.currentTarget.style.color = T.error }}
+                                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMuted }}>
+                                                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             )

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { T } from '../../constants/theme'
 import api from '../../api'
 
@@ -48,6 +49,50 @@ function Avatar({ name, size = 28 }) {
     )
 }
 
+function renderDetail(detail, users, navigate) {
+    if (!detail) return '—'
+    if (!users || users.length === 0) return detail
+
+    const sortedUsers = [...users].sort((a, b) => (b.name || '').length - (a.name || '').length)
+    const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    
+    const userMap = {}
+    const names = []
+    for (const u of sortedUsers) {
+        if (u.name) {
+            userMap[u.name.toLowerCase()] = u
+            names.push(escapeRegex(u.name))
+        }
+    }
+
+    if (names.length === 0) return detail
+
+    const pattern = new RegExp(`\\b(${names.join('|')})\\b`, 'gi')
+    const parts = detail.split(pattern)
+
+    return parts.map((part, index) => {
+        const lowerPart = part.toLowerCase()
+        const matchedUser = userMap[lowerPart]
+        if (matchedUser) {
+            return (
+                <span
+                    key={index}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/team/${matchedUser.id}`)
+                    }}
+                    className="cursor-pointer font-semibold transition-colors hover:underline text-primary"
+                    style={{ color: T.primary }}
+                    title={`View ${matchedUser.name}'s Profile`}
+                >
+                    {part}
+                </span>
+            )
+        }
+        return part
+    })
+}
+
 /**
  * Reusable entity-level audit history widget.
  * Embeds directly inside Account, Contact, or Deal profile pages.
@@ -58,13 +103,21 @@ function Avatar({ name, size = 28 }) {
  */
 export default function EntityAuditHistory({ entityType, entityId }) {
     const role = useSelector(state => state.auth.role)
+    const navigate = useNavigate()
 
     const [logs, setLogs] = useState([])
     const [total, setTotal] = useState(0)
     const [page, setPage] = useState(0)
     const [loading, setLoading] = useState(false)
     const [hasMore, setHasMore] = useState(false)
+    const [users, setUsers] = useState([])
     const PAGE_SIZE = 8
+
+    useEffect(() => {
+        if (role !== 'AGENT') {
+            api.get('/api/management/users').then(r => setUsers(r.data || [])).catch(() => {})
+        }
+    }, [role])
 
     const fetchLogs = useCallback(async (reset = false) => {
         if (!entityType || !entityId) return
@@ -181,9 +234,13 @@ export default function EntityAuditHistory({ entityType, entityId }) {
                                         <div className="flex-1 min-w-0 pt-0.5">
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 {/* Actor */}
-                                                <div className="flex items-center gap-1.5">
-                                                    <Avatar name={log.actor?.name} size={20} />
-                                                    <span className="text-xs font-bold"
+                                                <div className="flex items-center gap-1.5 cursor-pointer group/actor"
+                                                    onClick={() => log.actor?.id && navigate(`/team/${log.actor.id}`)}
+                                                    title={log.actor?.name ? `View ${log.actor.name}'s Profile` : ''}>
+                                                    <div className="transition-transform duration-150 group-hover/actor:scale-105 active:scale-95">
+                                                        <Avatar name={log.actor?.name} size={20} />
+                                                    </div>
+                                                    <span className="text-xs font-bold group-hover/actor:text-primary group-hover/actor:underline transition-colors"
                                                         style={{ color: T.textPrimary }}>
                                                         {log.actor?.name || 'Unknown'}
                                                     </span>
@@ -200,7 +257,7 @@ export default function EntityAuditHistory({ entityType, entityId }) {
                                             {log.detail && (
                                                 <p className="text-[11px] mt-1 leading-relaxed"
                                                     style={{ color: T.textSecondary }}>
-                                                    {log.detail}
+                                                    {renderDetail(log.detail, users, navigate)}
                                                 </p>
                                             )}
 

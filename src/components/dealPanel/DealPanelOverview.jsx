@@ -169,15 +169,25 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
             )}
 
             {isAdminOrAbove && deal.owner && (
-                <div className="flex items-center gap-3 p-4 rounded-xl"
-                    style={{ background: T.borderSubtle, border: `1px solid ${T.border}` }}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                <div className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-150 border border-transparent"
+                    onClick={() => navigate(`/team/${deal.owner.id}`)}
+                    title={`View ${deal.owner.name}'s Profile`}
+                    style={{ background: T.borderSubtle }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = T.primaryFaint;
+                        e.currentTarget.style.borderColor = `${T.primary}20`;
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = T.borderSubtle;
+                        e.currentTarget.style.borderColor = 'transparent';
+                    }}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-transform duration-150 hover:scale-105 active:scale-95"
                         style={{ background: T.primaryDim, color: T.primary }}>
                         {deal.owner.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Created by</p>
-                        <p className="text-sm font-bold" style={{ color: T.textPrimary }}>
+                        <p className="text-sm font-bold hover:text-primary transition-colors hover:underline" style={{ color: T.textPrimary }}>
                             {deal.owner.name}
                             <span className="ml-2 text-[11px] font-normal" style={{ color: T.textMuted }}>({deal.owner.role})</span>
                         </p>
@@ -195,13 +205,15 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 ) : (
                     <div className="flex flex-col gap-2">
                         {assignees.map(u => (
-                            <div key={u.id} className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                            <div key={u.id} className="flex items-center gap-2.5 cursor-pointer hover:opacity-85"
+                                onClick={() => navigate(`/team/${u.id}`)}
+                                title={`View ${u.name}'s Profile`}>
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-transform duration-150 hover:scale-105 active:scale-95"
                                     style={{ background: T.primaryDim, color: T.primary }}>
                                     {u.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{u.name}</p>
+                                    <p className="text-sm font-semibold hover:text-primary transition-colors hover:underline" style={{ color: T.textPrimary }}>{u.name}</p>
                                     <p className="text-[11px]" style={{ color: T.textMuted }}>{u.role}</p>
                                 </div>
                             </div>

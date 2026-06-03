@@ -111,12 +111,14 @@ export default function BottlenecksTab({ data, activeStages = [] }) {
                 </Card>
             </div>
 
-            <Card accent={DASHBOARD_ACCENTS.red}>
+            <Card accent={DASHBOARD_ACCENTS.red}
+                className="lg:sticky lg:top-20 flex flex-col"
+                style={{ maxHeight: 'calc(100vh - 100px)' }}>
                 <CardTitle icon="list" accent={DASHBOARD_ACCENTS.red} meta={data.stuckDeals?.length ? `${data.stuckDeals.length} stuck` : undefined}>
                     Deals Stuck
                 </CardTitle>
                 {data.stuckDeals?.length ? (
-                    <TableCard>
+                    <TableCard className="flex-1">
                         <table className="w-full text-sm" style={tableSurface}>
                             <thead>
                                 <tr>

@@ -213,11 +213,16 @@ export default function AgentProfile() {
                 </div>
 
                 {/* ── Open Deals + Recent Activities ────────── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
                     {/* Open Deals */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                        <div className="px-5 py-4 flex items-center gap-2"
+                    <div className="rounded-2xl overflow-hidden lg:sticky lg:top-20 flex flex-col"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            maxHeight: 'calc(100vh - 100px)'
+                        }}>
+                        <div className="px-5 py-4 flex items-center gap-2 shrink-0"
                             style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
                             <span className="material-symbols-outlined filled text-[16px]" style={{ color: T.primary }}>handshake</span>
                             <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Open Deals</h3>
@@ -226,7 +231,7 @@ export default function AgentProfile() {
                                 {agent.openDeals?.length || 0}
                             </span>
                         </div>
-                        <div className="p-3">
+                        <div className="p-3 overflow-y-auto flex-1">
                             {agent.openDeals?.length ? agent.openDeals.map((d) => {
                                 const s = getStageStyle(d.stage)
                                 return (
@@ -256,13 +261,18 @@ export default function AgentProfile() {
                     </div>
 
                     {/* Recent Activities */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                        <div className="px-5 py-4 flex items-center gap-2"
+                    <div className="rounded-2xl overflow-hidden lg:sticky lg:top-20 flex flex-col"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            maxHeight: 'calc(100vh - 100px)'
+                        }}>
+                        <div className="px-5 py-4 flex items-center gap-2 shrink-0"
                             style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
                             <span className="material-symbols-outlined filled text-[16px]" style={{ color: T.primary }}>event_note</span>
                             <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Recent Activities</h3>
                         </div>
-                        <div className="p-3">
+                        <div className="p-3 overflow-y-auto flex-1">
                             {agent.recentActivities?.length ? agent.recentActivities.map((a) => {
                                 const s = ACTIVITY_STYLES[a.type] || ACTIVITY_STYLES.NOTE
                                 return (

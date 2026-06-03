@@ -3,15 +3,17 @@ import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
+import { useNavigate } from 'react-router-dom'
 import AssignDealModal from './AssignDealModal'
 
 // ── Helpers ───────────────────────────────────────────────────────
-function OwnerAvatar({ name }) {
-    const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+function OwnerAvatar({ user, onClick }) {
+    const name = user?.name || '?'
+    const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     const colors = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#6366F1']
-    const color = colors[(name || '').charCodeAt(0) % colors.length]
+    const color = colors[name.charCodeAt(0) % colors.length]
     return (
-        <div title={`Owner: ${name}`} style={{
+        <div title={`Owner: ${name}`} onClick={onClick} className={onClick ? "cursor-pointer hover:scale-105 active:scale-95 transition-transform" : ""} style={{
             width: 22, height: 22, borderRadius: '50%',
             background: color + '22', border: `1.5px solid ${color}44`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -32,6 +34,7 @@ export default function DealCard({
     const [hovered, setHovered] = useState(false)
     const wasDragging = useRef(false)
 
+    const navigate = useNavigate()
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
 
@@ -43,6 +46,7 @@ export default function DealCard({
     const assignedToMe = isAgent && assignees.some(u => String(u.id) === String(userId))
     const assignedByName = deal.owner?.name ?? 'Admin'
     const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? '—'
+    const creatorUser = deal.createdBy || deal.owner
 
     const { getStageStyle } = usePipelineStages()
     const stageStyle = getStageStyle(stage)
@@ -123,7 +127,15 @@ export default function DealCard({
                             <div />
                         )}
                         
-                        {isAdminOrAbove && <OwnerAvatar name={createdByName} />}
+                        {isAdminOrAbove && creatorUser && (
+                            <OwnerAvatar 
+                                user={creatorUser} 
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    if (creatorUser?.id) navigate(`/team/${creatorUser.id}`)
+                                }}
+                            />
+                        )}
                     </div>
 
                     {/* Agent assigned notification */}
@@ -184,7 +196,8 @@ export default function DealCard({
                                         {assignees.slice(0, 3).map((u, i) => (
                                             <div key={u.id}
                                                 title={`Assignee: ${u.name}`}
-                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
+                                                onClick={e => { e.stopPropagation(); navigate(`/team/${u.id}`) }}
+                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                                                 style={{
                                                     background: T.primaryDim,
                                                     color: T.primary,
