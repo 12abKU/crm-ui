@@ -29,6 +29,7 @@ const Support = lazy(() => import('./pages/Support'))
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
 const DeDuplicationPage = lazy(() => import('./pages/DeDuplicationPage'))
 const DocumentList = lazy(() => import('./pages/DocumentList'))
+const TeammatesChat = lazy(() => import('./pages/TeammatesChat'))
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 import ImportProgressToast from './components/ui/ImportProgressToast'
@@ -193,6 +194,7 @@ export default function App() {
         <Route path="/profile" element={<CrmLayout><Profile /></CrmLayout>} />
         <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
+        <Route path="/chat" element={<CrmLayout><TeammatesChat /></CrmLayout>} />
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
         <Route path="/team/:id" element={<CrmLayout><AgentProfile /></CrmLayout>} />
         <Route path="/support" element={<CrmLayout><Support /></CrmLayout>} />

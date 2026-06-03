@@ -17,9 +17,10 @@ export default function Sidebar() {
         setIsOpen(false)
     }, [pathname])
 
-    const { name, role, companyName } = useSelector(state => state.auth)
+    const { userId, name, role, companyName } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
     const [openTickets, setOpenTickets] = useState(0)
+    const [unreadChatCount, setUnreadChatCount] = useState(0)
     const can = usePermissions(['ACCOUNTS_CREATE'])
 
     // Listen to sidebar toggle events
@@ -54,6 +55,44 @@ export default function Sidebar() {
         }, 300000)
         return () => clearInterval(interval)
     }, [isSuperAdmin])
+
+    // Poll chat unread count and listen to chat WebSocket/read receipt events
+    useEffect(() => {
+        if (isSuperAdmin) return;
+
+        const loadChatUnread = () => {
+            api.get('/api/chat/messages/unread')
+                .then(r => {
+                    const map = r.data || {};
+                    const total = Object.values(map).reduce((sum, count) => sum + count, 0);
+                    setUnreadChatCount(total);
+                })
+                .catch(() => {});
+        };
+
+        loadChatUnread();
+
+        const handleChatMsg = (e) => {
+            const msg = e.detail;
+            if (!msg) return;
+            // Re-fetch to get accurate unread count from server
+            loadChatUnread();
+        };
+
+        const handleUnreadUpdated = (e) => {
+            if (typeof e.detail === 'number') {
+                setUnreadChatCount(e.detail);
+            }
+        };
+
+        window.addEventListener('crm-chat', handleChatMsg);
+        window.addEventListener('crm-chat-unread-updated', handleUnreadUpdated);
+
+        return () => {
+            window.removeEventListener('crm-chat', handleChatMsg);
+            window.removeEventListener('crm-chat-unread-updated', handleUnreadUpdated);
+        };
+    }, [isSuperAdmin]);
 
     // Shared NavLink style factory
     const navStyle = ({ isActive }) => ({
@@ -154,7 +193,7 @@ export default function Sidebar() {
                         <p className="px-4 pt-2 pb-2 text-[9px] font-black uppercase tracking-widest"
                             style={{ color: T.heroSubText }}>Main Menu</p>
 
-                        {NAV_LINKS.map(({ to, icon, label }) => (
+                        {NAV_LINKS.filter(({ to }) => !(role === 'AGENT' && to === '/documents')).map(({ to, icon, label }) => (
                             <NavLink key={to} to={to} end={to === '/'}
                                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
                                 style={navStyle}>
@@ -169,6 +208,13 @@ export default function Sidebar() {
                                             <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
                                                 style={{ background: '#DC2626', color: '#fff' }}>
                                                 {overdue > 99 ? '99+' : overdue}
+                                            </span>
+                                        )}
+                                        {/* Unread badge on Chat */}
+                                        {to === '/chat' && unreadChatCount > 0 && (
+                                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
+                                                style={{ background: '#DC2626', color: '#fff' }}>
+                                                {unreadChatCount > 99 ? '99+' : unreadChatCount}
                                             </span>
                                         )}
                                     </>

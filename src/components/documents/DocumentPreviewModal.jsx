@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { documentAPI } from '../../api/documents';
+import { chatAPI } from '../../api/chat';
 import { T } from '../../constants/theme';
 import { extractApiErrorMessage } from '../../api';
 
-export default function DocumentPreviewModal({ open, onClose, doc }) {
+export default function DocumentPreviewModal({ open, onClose, doc, isChatAttachment = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -23,7 +24,9 @@ export default function DocumentPreviewModal({ open, onClose, doc }) {
       setPreviewMode(null);
 
       try {
-        const response = await documentAPI.download(doc.id);
+        const response = isChatAttachment
+          ? await chatAPI.downloadAttachment(doc.id)
+          : await documentAPI.download(doc.id);
         const fileBlob = response.data;
         const type = doc.fileType?.toLowerCase() || '';
 
@@ -69,7 +72,9 @@ export default function DocumentPreviewModal({ open, onClose, doc }) {
 
   const handleDownload = async () => {
     try {
-      const response = await documentAPI.download(doc.id);
+      const response = isChatAttachment
+        ? await chatAPI.downloadAttachment(doc.id)
+        : await documentAPI.download(doc.id);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = window.document.createElement('a');
       link.href = url;

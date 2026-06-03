@@ -9,7 +9,8 @@ const NOTIF_STYLES = {
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
     ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
     MENTION: { icon: 'alternate_email', color: '#9333EA', label: 'Mentioned You' },
-    AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' }
+    AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' },
+    CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' }
 }
 
 export default function WebSocketToast() {
@@ -48,6 +49,8 @@ export default function WebSocketToast() {
             }
         } else if (notice.type === 'ACTIVITY_REMINDER' && notice.activityId) {
             navigate(`/activities?highlight=${notice.activityId}`)
+        } else if (notice.type === 'CHAT_MESSAGE') {
+            navigate('/chat', { state: { selectColleagueId: notice.contactId } })
         } else if (notice.ticketId) {
             navigate('/support', { state: { openTicketId: notice.ticketId } })
         }

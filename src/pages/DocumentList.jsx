@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { documentAPI } from '../api/documents';
 import { T } from '../constants/theme';
 import { extractApiErrorMessage } from '../api';
@@ -9,6 +11,12 @@ import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 
 export default function DocumentList({ entityType, entityId }) {
   const isNested = !!entityType;
+  const role = useSelector((state) => state.auth.role);
+  const navigate = useNavigate();
+
+  if (!isNested && role === 'AGENT') {
+    return <Navigate to="/" replace />;
+  }
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -98,6 +106,17 @@ export default function DocumentList({ entityType, entityId }) {
   const triggerPreview = (doc) => {
     setSelectedDocForPreview(doc);
     setPreviewOpen(true);
+  };
+
+  const handleLinkedToClick = (doc, e) => {
+    e.stopPropagation();
+    if (doc.dealId) {
+      navigate(`/deals?dealId=${doc.dealId}`);
+    } else if (doc.accountId) {
+      navigate(`/accounts/${doc.accountId}`);
+    } else if (doc.contactId) {
+      navigate(`/contacts/${doc.contactId}`);
+    }
   };
 
   const getFileIcon = (contentType) => {
@@ -212,101 +231,231 @@ export default function DocumentList({ entityType, entityId }) {
               </button>
             </div>
           )}
-          <div className="overflow-hidden rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr style={{ background: T.primaryFaint, borderBottom: `1px solid ${T.border}` }}>
-                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Document</th>
-                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Linked To</th>
-                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Uploaded By</th>
-                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Size</th>
-                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Date</th>
-                    <th className="px-5 py-3 text-right text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y" style={{ borderColor: T.border }}>
-                  {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                      <td className="px-5 py-3.5 cursor-pointer group" onClick={() => triggerPreview(doc)}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: T.primaryDim }}>
-                            <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>
-                              {getFileIcon(doc.fileType)}
-                            </span>
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold truncate max-w-[200px] group-hover:underline" style={{ color: T.textPrimary }} title={doc.name}>
-                              {doc.name}
-                            </p>
-                            {doc.description && (
-                              <p className="text-[10px] mt-0.5 truncate max-w-[200px]" style={{ color: T.textMuted }}>
-                                {doc.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {doc.dealId ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(37,99,235,0.1)', color: T.chartBlue }}>
-                            Deal: {doc.dealTitle}
-                          </span>
-                        ) : doc.accountId ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(83,141,141,0.1)', color: T.chartTeal }}>
-                            Account: {doc.accountName}
-                          </span>
-                        ) : doc.contactId ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(219,39,119,0.1)', color: T.chartPink }}>
-                            Contact: {doc.contactName}
-                          </span>
-                        ) : (
-                          <span className="text-[10px]" style={{ color: T.textMuted }}>—</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textSecondary }}>
-                        {doc.uploaderName || 'Unknown'}
-                      </td>
-                      <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textSecondary }}>
-                        {formatFileSize(doc.fileSize)}
-                      </td>
-                      <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textMuted }}>
-                        {new Date(doc.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => triggerPreview(doc)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                            style={{ color: T.primary }}
-                            title="Preview"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">visibility</span>
-                          </button>
-                          <button
-                            onClick={() => handleDownload(doc)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                            style={{ color: T.primary }}
-                            title="Download"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">download</span>
-                          </button>
-                          <button
-                            onClick={() => confirmDelete(doc)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/10 transition-colors"
-                            style={{ color: T.error }}
-                            title="Delete"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+          {/* 📱 Card View for Mobile/Tablet or Nested Panel */}
+          <div className={isNested ? "block" : "block md:hidden"}>
+            <div className={isNested ? "grid grid-cols-1 gap-3" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
+              {documents.map((doc) => (
+                <div 
+                  key={doc.id} 
+                  className="p-4 rounded-2xl border flex flex-col gap-3 transition-all hover:shadow-md"
+                  style={{ background: T.surface, borderColor: T.border }}
+                >
+                  {/* Top row: Icon and Title */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: T.primaryDim }}>
+                      <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>
+                        {getFileIcon(doc.fileType)}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 
+                        className="text-xs font-bold truncate cursor-pointer hover:underline" 
+                        style={{ color: T.textPrimary }} 
+                        onClick={() => triggerPreview(doc)} 
+                        title={doc.name}
+                      >
+                        {doc.name}
+                      </h4>
+                      {doc.description && (
+                        <p className="text-[10px] mt-0.5 truncate" style={{ color: T.textMuted }}>
+                          {doc.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Linked to Section */}
+                  {(doc.dealId || doc.accountId || doc.contactId) && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {doc.dealId && (
+                        <span 
+                          onClick={(e) => handleLinkedToClick(doc, e)}
+                          className="px-2 py-0.5 rounded text-[9px] font-bold truncate max-w-full cursor-pointer hover:opacity-80 transition-opacity" 
+                          style={{ background: 'rgba(37,99,235,0.1)', color: T.chartBlue }}
+                        >
+                          Deal: {doc.dealTitle}
+                        </span>
+                      )}
+                      {doc.accountId && (
+                        <span 
+                          onClick={(e) => handleLinkedToClick(doc, e)}
+                          className="px-2 py-0.5 rounded text-[9px] font-bold truncate max-w-full cursor-pointer hover:opacity-80 transition-opacity" 
+                          style={{ background: 'rgba(83,141,141,0.1)', color: T.chartTeal }}
+                        >
+                          Account: {doc.accountName}
+                        </span>
+                      )}
+                      {doc.contactId && (
+                        <span 
+                          onClick={(e) => handleLinkedToClick(doc, e)}
+                          className="px-2 py-0.5 rounded text-[9px] font-bold truncate max-w-full cursor-pointer hover:opacity-80 transition-opacity" 
+                          style={{ background: 'rgba(219,39,119,0.1)', color: T.chartPink }}
+                        >
+                          Contact: {doc.contactName}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Metadata section */}
+                  <div className="grid grid-cols-2 gap-2 pt-2.5 border-t text-[10px] font-semibold" style={{ borderColor: T.borderSubtle, color: T.textSecondary }}>
+                    <div>
+                      <span className="block text-[8px] uppercase tracking-wider font-bold" style={{ color: T.textMuted }}>Uploaded By</span>
+                      <span className="truncate block mt-0.5">{doc.uploaderName || 'Unknown'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[8px] uppercase tracking-wider font-bold" style={{ color: T.textMuted }}>Size</span>
+                      <span className="block mt-0.5">{formatFileSize(doc.fileSize)}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="block text-[8px] uppercase tracking-wider font-bold" style={{ color: T.textMuted }}>Date</span>
+                      <span className="block mt-0.5">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions footer */}
+                  <div className="flex items-center justify-end gap-1.5 pt-2.5 border-t" style={{ borderColor: T.borderSubtle }}>
+                    <button
+                      onClick={() => triggerPreview(doc)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      style={{ color: T.primary }}
+                      title="Preview"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">visibility</span>
+                    </button>
+                    <button
+                      onClick={() => handleDownload(doc)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                      style={{ color: T.primary }}
+                      title="Download"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">download</span>
+                    </button>
+                    <button
+                      onClick={() => confirmDelete(doc)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/10 transition-colors"
+                      style={{ color: T.error }}
+                      title="Delete"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* 💻 Table View for Desktop (Only when not nested) */}
+          {!isNested && (
+            <div className="hidden md:block overflow-hidden rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr style={{ background: T.primaryFaint, borderBottom: `1px solid ${T.border}` }}>
+                      <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Document</th>
+                      <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Linked To</th>
+                      <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Uploaded By</th>
+                      <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Size</th>
+                      <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Date</th>
+                      <th className="px-5 py-3 text-right text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: T.border }}>
+                    {documents.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <td className="px-5 py-3.5 cursor-pointer group" onClick={() => triggerPreview(doc)}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: T.primaryDim }}>
+                              <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>
+                                {getFileIcon(doc.fileType)}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold truncate max-w-[200px] group-hover:underline" style={{ color: T.textPrimary }} title={doc.name}>
+                                {doc.name}
+                              </p>
+                              {doc.description && (
+                                <p className="text-[10px] mt-0.5 truncate max-w-[200px]" style={{ color: T.textMuted }}>
+                                  {doc.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          {doc.dealId ? (
+                            <span 
+                              onClick={(e) => handleLinkedToClick(doc, e)}
+                              className="px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+                              style={{ background: 'rgba(37,99,235,0.1)', color: T.chartBlue }}
+                            >
+                              Deal: {doc.dealTitle}
+                            </span>
+                          ) : doc.accountId ? (
+                            <span 
+                              onClick={(e) => handleLinkedToClick(doc, e)}
+                              className="px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+                              style={{ background: 'rgba(83,141,141,0.1)', color: T.chartTeal }}
+                            >
+                              Account: {doc.accountName}
+                            </span>
+                          ) : doc.contactId ? (
+                            <span 
+                              onClick={(e) => handleLinkedToClick(doc, e)}
+                              className="px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+                              style={{ background: 'rgba(219,39,119,0.1)', color: T.chartPink }}
+                            >
+                              Contact: {doc.contactName}
+                            </span>
+                          ) : (
+                            <span className="text-[10px]" style={{ color: T.textMuted }}>—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textSecondary }}>
+                          {doc.uploaderName || 'Unknown'}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textSecondary }}>
+                          {formatFileSize(doc.fileSize)}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textMuted }}>
+                          {new Date(doc.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => triggerPreview(doc)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                              style={{ color: T.primary }}
+                              title="Preview"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">visibility</span>
+                            </button>
+                            <button
+                              onClick={() => handleDownload(doc)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                              style={{ color: T.primary }}
+                              title="Download"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">download</span>
+                            </button>
+                            <button
+                              onClick={() => confirmDelete(doc)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/10 transition-colors"
+                              style={{ color: T.error }}
+                              title="Delete"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

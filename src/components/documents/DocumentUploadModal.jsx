@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { documentAPI } from '../../api/documents';
 import { T } from '../../constants/theme';
-import { extractApiErrorMessage } from '../../api';
+import api, { extractApiErrorMessage } from '../../api';
+import SearchableSelect from '../SearchableSelect';
 
 export default function DocumentUploadModal({ open, onClose, entityType, entityId, onUploadSuccess }) {
   const [file, setFile] = useState(null);
@@ -12,7 +13,41 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Link to section states
+  const [linkType, setLinkType] = useState(''); // '', 'deal', 'account', 'contact'
+  const [selectedEntityId, setSelectedEntityId] = useState('');
+  const [dealOptions, setDealOptions] = useState([]);
+  const [accountOptions, setAccountOptions] = useState([]);
+  const [contactOptions, setContactOptions] = useState([]);
+
   if (!open) return null;
+
+  const loadDealOptions = async (query = '') => {
+    const params = new URLSearchParams({ page: '0', size: '10' });
+    if (query.trim()) params.set('search', query.trim());
+    const r = await api.get(`/api/deals/all?${params}`);
+    const content = r.data.content ?? [];
+    setDealOptions(content);
+    return content.map(d => ({ id: String(d.id), label: d.title }));
+  };
+
+  const loadAccountOptions = async (query = '') => {
+    const params = new URLSearchParams({ page: '0', size: '10' });
+    if (query.trim()) params.set('search', query.trim());
+    const r = await api.get(`/api/accounts?${params}`);
+    const content = r.data.content ?? [];
+    setAccountOptions(content);
+    return content.map(a => ({ id: String(a.id), label: a.name }));
+  };
+
+  const loadContactOptions = async (query = '') => {
+    const params = new URLSearchParams({ page: '0', size: '10' });
+    if (query.trim()) params.set('search', query.trim());
+    const r = await api.get(`/api/contacts?${params}`);
+    const content = r.data.content ?? [];
+    setContactOptions(content);
+    return content.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }));
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -42,6 +77,10 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
       setError('Please select a file to upload');
       return;
     }
+    if (linkType && !selectedEntityId) {
+      setError(`Please select a ${linkType} to link`);
+      return;
+    }
     setError(null);
     setUploading(true);
     setProgress(10);
@@ -51,12 +90,22 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
     formData.append('name', name || file.name);
     formData.append('description', description);
 
-    if (entityType === 'deal') {
-      formData.append('dealId', entityId);
-    } else if (entityType === 'account') {
-      formData.append('accountId', entityId);
-    } else if (entityType === 'contact') {
-      formData.append('contactId', entityId);
+    if (entityType) {
+      if (entityType === 'deal') {
+        formData.append('dealId', entityId);
+      } else if (entityType === 'account') {
+        formData.append('accountId', entityId);
+      } else if (entityType === 'contact') {
+        formData.append('contactId', entityId);
+      }
+    } else if (linkType && selectedEntityId) {
+      if (linkType === 'deal') {
+        formData.append('dealId', selectedEntityId);
+      } else if (linkType === 'account') {
+        formData.append('accountId', selectedEntityId);
+      } else if (linkType === 'contact') {
+        formData.append('contactId', selectedEntityId);
+      }
     }
 
     try {
@@ -90,6 +139,8 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
     setFile(null);
     setName('');
     setDescription('');
+    setLinkType('');
+    setSelectedEntityId('');
     setProgress(0);
     setError(null);
     setUploading(false);
@@ -105,13 +156,13 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex justify-center items-start md:items-center p-4">
       <div 
-        className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 border"
+        className="w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200 border relative my-auto"
         style={{ background: T.surface, borderColor: T.border }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.border, background: T.primaryFaint }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: T.border, background: T.primaryFaint, borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }}>
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>upload_file</span>
             <h3 className="text-sm font-black" style={{ color: T.textPrimary }}>Upload Document</h3>
@@ -202,6 +253,71 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
                 }}
               />
             </div>
+
+            {/* Link to Entity Option (Only when uploaded from main Documents page) */}
+            {!entityType && (
+              <div className="flex flex-col gap-3 border-t pt-3" style={{ borderColor: T.borderSubtle }}>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Link to Entity (Optional)</label>
+                  <select
+                    value={linkType}
+                    onChange={(e) => {
+                      setLinkType(e.target.value);
+                      setSelectedEntityId('');
+                    }}
+                    disabled={uploading}
+                    className="px-3 py-2 text-xs font-semibold rounded-lg border outline-none focus:ring-2 focus:ring-opacity-50"
+                    style={{
+                      background: T.surface,
+                      borderColor: T.border,
+                      color: T.textPrimary,
+                      '--tw-ring-color': T.primary
+                    }}
+                  >
+                    <option value="">Do not link</option>
+                    <option value="deal">Deal</option>
+                    <option value="account">Account</option>
+                    <option value="contact">Contact</option>
+                  </select>
+                </div>
+
+                {linkType === 'deal' && (
+                  <SearchableSelect
+                    label="Select Deal *"
+                    value={selectedEntityId}
+                    onChange={(v) => setSelectedEntityId(v)}
+                    options={dealOptions.map(d => ({ id: String(d.id), label: d.title }))}
+                    onSearch={loadDealOptions}
+                    placeholder="Type to search deals..."
+                    disabled={uploading}
+                  />
+                )}
+
+                {linkType === 'account' && (
+                  <SearchableSelect
+                    label="Select Account *"
+                    value={selectedEntityId}
+                    onChange={(v) => setSelectedEntityId(v)}
+                    options={accountOptions.map(a => ({ id: String(a.id), label: a.name }))}
+                    onSearch={loadAccountOptions}
+                    placeholder="Type to search accounts..."
+                    disabled={uploading}
+                  />
+                )}
+
+                {linkType === 'contact' && (
+                  <SearchableSelect
+                    label="Select Contact *"
+                    value={selectedEntityId}
+                    onChange={(v) => setSelectedEntityId(v)}
+                    options={contactOptions.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }))}
+                    onSearch={loadContactOptions}
+                    placeholder="Type to search contacts..."
+                    disabled={uploading}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* Progress or Error */}

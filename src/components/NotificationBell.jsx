@@ -23,7 +23,8 @@ const TYPE_META = {
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
     ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
     MENTION: { icon: 'alternate_email', color: '#EA580C', label: 'Mentioned You' },
-    AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' }
+    AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' },
+    CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' }
 }
 
 function getMeta(type) {
@@ -99,6 +100,11 @@ export default function NotificationBell({ isSuperAdmin }) {
             } else if (n.contactId) {
                 navigate(`/contacts/${n.contactId}?tab=notes`)
             }
+            return
+        }
+
+        if (n.type === 'CHAT_MESSAGE') {
+            navigate('/chat', { state: { selectColleagueId: n.contactId } })
             return
         }
 

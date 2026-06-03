@@ -40,6 +40,18 @@ export function useWebSocket(token, onNotification) {
                     }
                 })
 
+                // Subscribe to internal chat messages
+                client.subscribe('/user/queue/chat', (message) => {
+                    if (message.body) {
+                        try {
+                            const chatMsg = JSON.parse(message.body)
+                            window.dispatchEvent(new CustomEvent('crm-chat', { detail: chatMsg }))
+                        } catch (e) {
+                            console.error('Failed to parse chat WebSocket message', e)
+                        }
+                    }
+                })
+
                 // Subscribe to WhatsApp updates
                 client.subscribe('/topic/whatsapp', (message) => {
                     if (message.body) {
