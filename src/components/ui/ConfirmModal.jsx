@@ -18,16 +18,18 @@ export default function ConfirmModal({ isOpen, title, message, onConfirm, onCanc
                 </div>
 
                 <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ background: T.surfaceRaised, borderTop: `1px solid ${T.border}` }}>
-                    <button 
-                        type="button" 
-                        onClick={onCancel} 
-                        className="px-4 py-2 text-sm font-bold rounded-xl transition-all" 
-                        style={{ color: T.textPrimary, background: 'transparent' }} 
-                        onMouseEnter={e => e.currentTarget.style.background = T.borderSubtle} 
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                        Cancel
-                    </button>
+                    {onCancel && (
+                        <button 
+                            type="button" 
+                            onClick={onCancel} 
+                            className="px-4 py-2 text-sm font-bold rounded-xl transition-all" 
+                            style={{ color: T.textPrimary, background: 'transparent' }} 
+                            onMouseEnter={e => e.currentTarget.style.background = T.borderSubtle} 
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            Cancel
+                        </button>
+                    )}
                     <button 
                         type="button" 
                         onClick={onConfirm} 

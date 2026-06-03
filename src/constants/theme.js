@@ -270,5 +270,6 @@ export const NAV_LINKS = [
     { to: '/calendar', icon: 'calendar_month', label: 'Calendar' },
     { to: '/calls', icon: 'call', label: 'Calls' },
     { to: '/conversations', icon: 'forum', label: 'Conversations' },
+    { to: '/documents', icon: 'description', label: 'Documents' },
     { to: '/settings', icon: 'settings', label: 'Settings' },
 ]

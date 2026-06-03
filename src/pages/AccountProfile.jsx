@@ -10,6 +10,8 @@ import AddDealSlideForm from '../components/deals/AddDealSlideForm'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
+import DocumentList from './DocumentList'
+
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
@@ -395,6 +397,13 @@ export default function AccountProfile() {
                                 </div>
                             )}
                         </SectionCard>
+
+                        {/* Documents */}
+                        {role !== 'AGENT' && (
+                            <SectionCard title="Documents" icon="folder_open">
+                                <DocumentList entityType="account" entityId={Number(id)} />
+                            </SectionCard>
+                        )}
                     </div>
 
                     {/* Right sidebar: Recent Activity + Audit */}

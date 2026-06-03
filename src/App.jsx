@@ -28,6 +28,7 @@ const PlatformTickets = lazy(() => import('./pages/PlatformTickets'))
 const Support = lazy(() => import('./pages/Support'))
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
 const DeDuplicationPage = lazy(() => import('./pages/DeDuplicationPage'))
+const DocumentList = lazy(() => import('./pages/DocumentList'))
 import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 import ImportProgressToast from './components/ui/ImportProgressToast'
@@ -197,6 +198,7 @@ export default function App() {
         <Route path="/support" element={<CrmLayout><Support /></CrmLayout>} />
         <Route path="/audit-log" element={<CrmLayout><AuditLogPage /></CrmLayout>} />
         <Route path="/de-duplication" element={<CrmLayout><DeDuplicationPage /></CrmLayout>} />
+        <Route path="/documents" element={<CrmLayout><DocumentList /></CrmLayout>} />
 
 
         <Route path="*" element={<SmartRedirect />} />

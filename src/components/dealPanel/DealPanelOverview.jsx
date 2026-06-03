@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux'
 import api from '../../api'
 import { extractApiErrorMessage } from '../../api'
 import LostDealReasonModal from '../deals/LostDealReasonModal'
+import DocumentList from '../../pages/DocumentList'
+
 
 // ── Shared InfoCard ───────────────────────────────────────────
 const InfoCard = ({ label, children }) => (
@@ -263,6 +265,13 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                     </InfoCard>
                 </div>
             </div>
+
+            {/* ── Documents Section ────────────────────── */}
+            {!isAgent && (
+                <div className="p-4 rounded-xl" style={{ background: T.borderSubtle, border: `1px solid ${T.border}` }}>
+                    <DocumentList entityType="deal" entityId={Number(deal.id)} />
+                </div>
+            )}
 
             <LostDealReasonModal
                 open={Boolean(pendingLostStage)}
