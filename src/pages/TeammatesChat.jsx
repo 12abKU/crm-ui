@@ -9,6 +9,41 @@ import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import TopBar from '../components/TopBar';
 
+const SingleTick = ({ className = '', size = 16, color = 'currentColor' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={{ display: 'inline-block', verticalAlign: 'middle' }}
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const DoubleTick = ({ className = '', size = 16, color = 'currentColor' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={{ display: 'inline-block', verticalAlign: 'middle' }}
+  >
+    <path d="M17 5L9.5 12.5L6 9" />
+    <path d="M22 5L14.5 12.5L13 11" />
+  </svg>
+);
+
 export default function TeammatesChat() {
   const { userId: rawUserId, email: currentUserEmail, role } = useSelector((state) => state.auth);
   const currentUserId = Number(rawUserId);
@@ -718,12 +753,12 @@ export default function TeammatesChat() {
                   )}
                 </div>
               </div>
-
               {/* Message Streams */}
               <div
                 ref={chatContainerRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4"
+                className="flex-1 overflow-y-auto p-6 flex flex-col"
+                style={{ background: T.borderSubtle }}
               >
                 {loadingMore && (
                   <div className="flex justify-center py-2 shrink-0">
@@ -747,43 +782,77 @@ export default function TeammatesChat() {
                     </p>
                   </div>
                 ) : (
-                  messages.map((msg, index) => {
-                    const isMe = Number(msg.senderId) === (resolvedUserId || currentUserId);
+                  (() => {
+                    const rendered = [];
+                    let lastDateStr = null;
+                    let lastSenderId = null;
 
-                    return (
-                      <div
-                        key={msg.id || index}
-                        className={`flex gap-3 max-w-[70%] group/msg relative items-end ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
-                      >
-                        {/* Multiselect Checkbox */}
-                        {selectionMode && (
-                          <div className="flex items-center justify-center px-1 shrink-0">
-                            <input
-                              type="checkbox"
-                              checked={selectedMessageIds.includes(msg.id)}
-                              onChange={() => toggleMessageSelection(msg.id)}
-                              className="w-4 h-4 cursor-pointer rounded border-gray-300"
-                              style={{ accentColor: T.primary }}
-                            />
+                    messages.forEach((msg, index) => {
+                      const isMe = Number(msg.senderId) === (resolvedUserId || currentUserId);
+                      
+                      let dateStr = '';
+                      if (msg.createdAt) {
+                        try {
+                          const date = new Date(msg.createdAt);
+                          const today = new Date();
+                          const yesterday = new Date();
+                          yesterday.setDate(today.getDate() - 1);
+
+                          if (date.toDateString() === today.toDateString()) {
+                            dateStr = 'Today';
+                          } else if (date.toDateString() === yesterday.toDateString()) {
+                            dateStr = 'Yesterday';
+                          } else {
+                            dateStr = date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                          }
+                        } catch {
+                          dateStr = '';
+                        }
+                      }
+
+                      let showDateSeparator = false;
+                      if (dateStr && dateStr !== lastDateStr) {
+                        showDateSeparator = true;
+                        rendered.push(
+                          <div key={`date-${msg.id || index}`} className="flex justify-center my-3 shrink-0 select-none">
+                            <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wide"
+                                  style={{ background: T.surface, color: T.textMuted, border: `1px solid ${T.border}`, boxShadow: '0 1px 0.5px rgba(0,0,0,0.05)' }}>
+                              {dateStr}
+                            </span>
                           </div>
-                        )}
+                        );
+                        lastDateStr = dateStr;
+                      }
 
-                        {/* Avatar */}
+                      const isFirstInGroup = showDateSeparator || msg.senderId !== lastSenderId;
+                      lastSenderId = msg.senderId;
+
+                      const isImageOnly = msg.hasAttachment && msg.fileType?.startsWith('image/') && !msg.message;
+                      const hasImage = msg.hasAttachment && msg.fileType?.startsWith('image/');
+                      const hasDoc = msg.hasAttachment && !hasImage;
+
+                      rendered.push(
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0"
-                          style={{
-                            background: isMe ? T.primary : T.borderSubtle,
-                            color: isMe ? '#fff' : T.primary,
-                            border: `1px solid ${T.border}`,
-                          }}
+                          key={msg.id || index}
+                          className={`flex gap-3 max-w-[75%] group/msg relative items-end ${
+                            isMe ? 'self-end' : 'self-start'
+                          } ${isFirstInGroup ? 'mt-3' : 'mt-[2px]'}`}
                         >
-                          {msg.senderName.charAt(0).toUpperCase()}
-                        </div>
+                          {/* Multiselect Checkbox */}
+                          {selectionMode && (
+                            <div className="flex items-center justify-center px-1 shrink-0">
+                              <input
+                                type="checkbox"
+                                checked={selectedMessageIds.includes(msg.id)}
+                                onChange={() => toggleMessageSelection(msg.id)}
+                                className="w-4 h-4 cursor-pointer rounded border-gray-300"
+                                style={{ accentColor: T.primary }}
+                              />
+                            </div>
+                          )}
 
-                        {/* Speech Bubble */}
-                        <div className="flex flex-col gap-1">
+                          {/* Speech Bubble */}
                           <div
-                            className="rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed border cursor-pointer select-none"
                             onContextMenu={(e) => handleContextMenu(e, msg)}
                             onClick={(e) => {
                               if (selectionMode) {
@@ -791,121 +860,262 @@ export default function TeammatesChat() {
                                 toggleMessageSelection(msg.id);
                               }
                             }}
+                            className={`whatsapp-bubble cursor-pointer shadow-[0_1px_0.5px_rgba(0,0,0,0.05)] ${
+                              isFirstInGroup ? (isMe ? 'whatsapp-bubble-sent-tail' : 'whatsapp-bubble-received-tail') : ''
+                            }`}
                             style={{
                               background: isMe ? T.primary : T.surface,
-                              borderColor: isMe ? T.primary : T.border,
                               color: isMe ? '#fff' : T.textPrimary,
+                              border: isMe ? 'none' : `1px solid ${T.border}`,
+                              borderRadius: isFirstInGroup
+                                ? (isMe ? '8px 0px 8px 8px' : '0px 8px 8px 8px')
+                                : '8px',
+                              padding: isImageOnly ? '3px' : hasImage ? '4px 4px 6px 4px' : '6px 8px 6px 8px',
+                              minWidth: isImageOnly ? 'auto' : '80px',
+                              '--bubble-bg': isMe ? T.primary : T.surface,
                             }}
                           >
-                            {/* Message text */}
-                            {msg.message && <p className="whitespace-pre-wrap">{msg.message}</p>}
+                            {/* 1. Image Only Layout */}
+                            {isImageOnly && (
+                              <div
+                                className="relative group cursor-pointer overflow-hidden rounded-lg"
+                                onClick={(e) => {
+                                  if (selectionMode) {
+                                    e.stopPropagation();
+                                    toggleMessageSelection(msg.id);
+                                  } else {
+                                    handleAttachmentClick(msg);
+                                  }
+                                }}
+                              >
+                                <img
+                                  src={`/api/chat/messages/${msg.id}/download`}
+                                  alt={msg.fileName}
+                                  className="max-h-64 max-w-sm w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] rounded-lg"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                  <span className="material-symbols-outlined text-white">visibility</span>
+                                </div>
+                                {/* Translucent Metadata Overlay */}
+                                <div
+                                  className="absolute bottom-2 right-2 flex items-center gap-1 select-none pointer-events-none px-2 py-0.5 rounded-full text-white"
+                                  style={{
+                                    background: 'rgba(0, 0, 0, 0.45)',
+                                    backdropFilter: 'blur(2px)',
+                                  }}
+                                >
+                                  <span className="text-[9px] font-semibold">
+                                    {formatTime(msg.createdAt)}
+                                  </span>
+                                  {isMe && (
+                                    <span className="flex items-center shrink-0">
+                                      {msg.read ? (
+                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#10B981' }}>done_all</span>
+                                      ) : msg.delivered ? (
+                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#fff' }}>done_all</span>
+                                      ) : (
+                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#fff' }}>done</span>
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
 
-                            {/* Message attachments */}
-                            {msg.hasAttachment && (
-                              <div className={`mt-2 flex flex-col gap-2 ${msg.message ? 'border-t pt-2 border-white/20' : ''}`}>
-                                {msg.fileType?.startsWith('image/') ? (
-                                  <div className="relative group cursor-pointer overflow-hidden rounded-lg max-w-xs border"
-                                       style={{ borderColor: T.border }}
-                                       onClick={(e) => {
-                                         if (selectionMode) {
-                                           e.stopPropagation();
-                                           toggleMessageSelection(msg.id);
-                                         } else {
-                                           handleAttachmentClick(msg);
-                                         }
-                                       }}>
-                                    <img
-                                      src={`/api/chat/messages/${msg.id}/download`}
-                                      alt={msg.fileName}
-                                      className="max-h-40 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                      <span className="material-symbols-outlined text-white">visibility</span>
-                                    </div>
+                            {/* 2. Image + Text Layout */}
+                            {!isImageOnly && hasImage && (
+                              <div className="flex flex-col gap-1.5">
+                                <div
+                                  className="relative group cursor-pointer overflow-hidden rounded-lg"
+                                  onClick={(e) => {
+                                    if (selectionMode) {
+                                      e.stopPropagation();
+                                      toggleMessageSelection(msg.id);
+                                    } else {
+                                      handleAttachmentClick(msg);
+                                    }
+                                  }}
+                                >
+                                  <img
+                                    src={`/api/chat/messages/${msg.id}/download`}
+                                    alt={msg.fileName}
+                                    className="max-h-64 max-w-sm w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] rounded-lg"
+                                  />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <span className="material-symbols-outlined text-white">visibility</span>
                                   </div>
-                                ) : (
-                                  <div
-                                    className="flex items-center gap-3 p-3 rounded-xl border text-left max-w-xs select-none"
-                                    style={{
-                                      background: isMe ? 'rgba(255,255,255,0.1)' : T.borderSubtle,
-                                      borderColor: isMe ? 'rgba(255,255,255,0.2)' : T.border,
-                                    }}
-                                  >
-                                    <span className="material-symbols-outlined text-[24px]" style={{ color: isMe ? '#fff' : T.primary }}>
+                                </div>
+                                
+                                <div style={{ display: 'flow-root', padding: '2px 4px' }}>
+                                  <span style={{ fontSize: '13.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isMe ? '#fff' : T.textPrimary, lineHeight: '1.45' }}>
+                                    {msg.message}
+                                  </span>
+                                  <span style={{
+                                    float: 'right',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    marginLeft: '10px',
+                                    marginTop: '6px',
+                                    fontSize: '10px',
+                                    color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted,
+                                    position: 'relative',
+                                    bottom: '-2px',
+                                    verticalAlign: 'bottom',
+                                    userSelect: 'none'
+                                  }}>
+                                    <span>{formatTime(msg.createdAt)}</span>
+                                    {isMe && (
+                                      <span className="flex items-center shrink-0">
+                                        {msg.read ? (
+                                          <DoubleTick color="#10B981" />
+                                        ) : msg.delivered ? (
+                                          <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                        ) : (
+                                          <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                        )}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 3. Document Layout */}
+                            {hasDoc && (
+                              <div className="flex flex-col">
+                                <div
+                                  className="flex items-center gap-3 p-2.5 rounded-lg text-left select-none mb-1.5"
+                                  style={{
+                                    background: isMe ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)',
+                                    border: isMe ? '1px solid rgba(255, 255, 255, 0.15)' : `1px solid ${T.border}`,
+                                  }}
+                                >
+                                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: isMe ? 'rgba(0, 0, 0, 0.2)' : T.borderSubtle }}>
+                                    <span className="material-symbols-outlined text-[22px]" style={{ color: isMe ? '#fff' : T.primary }}>
                                       {getFileIcon(msg.fileType)}
                                     </span>
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-[11px] font-bold truncate" style={{ color: isMe ? '#fff' : T.textPrimary }}>
-                                        {msg.fileName}
-                                      </p>
-                                      <p className="text-[9px] mt-0.5" style={{ color: isMe ? 'rgba(255,255,255,0.7)' : T.textMuted }}>
-                                        {formatFileSize(msg.fileSize)}
-                                      </p>
-                                    </div>
-                                    <div className="flex gap-1 shrink-0">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (selectionMode) {
-                                            toggleMessageSelection(msg.id);
-                                          } else {
-                                            handleAttachmentClick(msg);
-                                          }
-                                        }}
-                                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
-                                        style={{ color: isMe ? '#white' : T.primary }}
-                                        title="Preview"
-                                      >
-                                        <span className="material-symbols-outlined text-[16px] text-white">visibility</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (selectionMode) {
-                                            toggleMessageSelection(msg.id);
-                                          } else {
-                                            handleAttachmentDownload(msg);
-                                          }
-                                        }}
-                                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
-                                        style={{ color: isMe ? '#white' : T.primary }}
-                                        title="Download"
-                                      >
-                                        <span className="material-symbols-outlined text-[16px] text-white">download</span>
-                                      </button>
-                                    </div>
                                   </div>
-                                )}
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[12px] font-semibold truncate" style={{ color: isMe ? '#fff' : T.textPrimary }}>
+                                      {msg.fileName}
+                                    </p>
+                                    <p className="text-[10px] mt-0.5" style={{ color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted }}>
+                                      {formatFileSize(msg.fileSize)}
+                                    </p>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectionMode) {
+                                          toggleMessageSelection(msg.id);
+                                        } else {
+                                          handleAttachmentClick(msg);
+                                        }
+                                      }}
+                                      className={`w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors ${isMe ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-gray-700'}`}
+                                      title="Preview"
+                                    >
+                                      <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (selectionMode) {
+                                          toggleMessageSelection(msg.id);
+                                        } else {
+                                          handleAttachmentDownload(msg);
+                                        }
+                                      }}
+                                      className={`w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors ${isMe ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-gray-700'}`}
+                                      title="Download"
+                                    >
+                                      <span className="material-symbols-outlined text-[18px]">download</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flow-root', padding: '2px 4px' }}>
+                                  {msg.message && (
+                                    <span style={{ fontSize: '13.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isMe ? '#fff' : T.textPrimary, lineHeight: '1.45' }}>
+                                      {msg.message}
+                                    </span>
+                                  )}
+                                  <span style={{
+                                    float: 'right',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    marginLeft: '10px',
+                                    marginTop: '6px',
+                                    fontSize: '10px',
+                                    color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted,
+                                    position: 'relative',
+                                    bottom: '-2px',
+                                    verticalAlign: 'bottom',
+                                    userSelect: 'none'
+                                  }}>
+                                    <span>{formatTime(msg.createdAt)}</span>
+                                    {isMe && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                        {msg.read ? (
+                                          <DoubleTick color="#10B981" />
+                                        ) : msg.delivered ? (
+                                          <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                        ) : (
+                                          <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                        )}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 4. Text Only Layout */}
+                            {!msg.hasAttachment && (
+                              <div style={{ display: 'flow-root', padding: '2px 4px' }}>
+                                <span style={{ fontSize: '13.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isMe ? '#fff' : T.textPrimary, lineHeight: '1.45' }}>
+                                  {msg.message}
+                                </span>
+                                <span style={{
+                                  float: 'right',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  marginLeft: '10px',
+                                  marginTop: '6px',
+                                  fontSize: '10px',
+                                  color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted,
+                                  position: 'relative',
+                                  bottom: '-2px',
+                                  verticalAlign: 'bottom',
+                                  userSelect: 'none'
+                                }}>
+                                  <span>{formatTime(msg.createdAt)}</span>
+                                  {isMe && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                      {msg.read ? (
+                                        <DoubleTick color="#10B981" />
+                                      ) : msg.delivered ? (
+                                        <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                      ) : (
+                                        <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                      )}
+                                    </span>
+                                  )}
+                                </span>
                               </div>
                             )}
                           </div>
-                          {/* Timestamp */}
-                          <div className={`flex items-center gap-1.5 mt-0.5 ${isMe ? 'justify-end self-end' : 'self-start'}`}>
-                            <span
-                              className="text-[9px] font-semibold"
-                              style={{ color: T.textMuted }}
-                            >
-                              {formatTime(msg.createdAt)}
-                            </span>
-                            {isMe && (
-                              <span className="flex items-center select-none shrink-0" style={{ marginLeft: '1px' }}>
-                                {msg.read ? (
-                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: '#10B981' }}>done_all</span>
-                                ) : msg.delivered ? (
-                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: T.textMuted }}>done_all</span>
-                                ) : (
-                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: T.textMuted }}>done</span>
-                                )}
-                              </span>
-                            )}
-                          </div>
-
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    });
+                    return rendered;
+                  })()
                 )}
                 <div ref={messagesEndRef} />
               </div>

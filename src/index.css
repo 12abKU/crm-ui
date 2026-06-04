@@ -216,3 +216,37 @@ button {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
+
+/* ── WhatsApp Speech Bubble & Ticks ── */
+.whatsapp-bubble {
+  position: relative;
+}
+
+/* Sent message bubble tail */
+.whatsapp-bubble-sent-tail::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: -8px !important;
+  width: 8px !important;
+  height: 13px !important;
+  background-color: var(--bubble-bg) !important;
+  clip-path: polygon(0 0, 100% 0, 0 100%) !important;
+}
+
+/* Received message bubble tail */
+.whatsapp-bubble-received-tail::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -8px !important;
+  width: 8px !important;
+  height: 13px !important;
+  background-color: var(--bubble-bg) !important;
+  clip-path: polygon(100% 0, 100% 100%, 0 0) !important;
+}
+
+/* Thin ticks helper */
+.whatsapp-tick {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20 !important;
+}
