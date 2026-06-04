@@ -1,18 +1,34 @@
+import { useNavigate } from 'react-router-dom'
 import Skeleton from 'react-loading-skeleton'
 import { T, ACTIVITY_STYLES } from '../../constants/theme'
 import { fmtScheduled, getStatus, STATUS_STYLES } from './activityUtils'
 
 function FocusTaskCard({ activity, accent }) {
+    const navigate = useNavigate()
     const s = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.NOTE
     const status = getStatus(activity.scheduledAt, activity.completed)
     const ss = STATUS_STYLES[status]
 
     return (
-        <div className="flex-1 p-4 rounded-xl flex flex-col gap-2 min-w-0"
+        <div className="flex-1 p-4 rounded-xl flex flex-col gap-2 min-w-0 cursor-pointer transition-all duration-200"
             style={{
                 background: accent === 'red' ? 'rgba(220,38,38,0.06)' : T.primaryDim,
                 border: `1px solid ${accent === 'red' ? 'rgba(220,38,38,0.20)' : T.primary + '30'}`,
-            }}>
+            }}
+            onClick={() => navigate(`/activities/${activity.id}`)}
+            onMouseEnter={e => {
+                e.currentTarget.style.background = accent === 'red' ? 'rgba(220,38,38,0.12)' : `${T.primary}25`
+                e.currentTarget.style.borderColor = accent === 'red' ? 'rgba(220,38,38,0.40)' : `${T.primary}60`
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)'
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.background = accent === 'red' ? 'rgba(220,38,38,0.06)' : T.primaryDim
+                e.currentTarget.style.borderColor = accent === 'red' ? 'rgba(220,38,38,0.20)' : `${T.primary}30`
+                e.currentTarget.style.transform = 'none'
+                e.currentTarget.style.boxShadow = 'none'
+            }}
+        >
             <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
                     style={{ background: s.bg, color: s.color }}>
