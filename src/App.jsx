@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import { T, getThemeName } from './constants/theme'
 import ApiErrorToast from './components/ui/ApiErrorToast'
@@ -41,7 +41,6 @@ function WebSocketManager() {
   useWebSocket(token)
   return null
 }
-
 import { registerServiceWorkerAndSubscribe } from './utils/pushNotifications'
 
 function PushNotificationManager() {
@@ -51,6 +50,66 @@ function PushNotificationManager() {
       registerServiceWorkerAndSubscribe()
     }
   }, [token])
+  return null
+}
+
+function DesktopNotificationManager() {
+  const token = useSelector(state => state.auth.token)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!token) return
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+
+    const handleNotification = (event) => {
+      const notif = event.detail
+      if (!notif) return
+
+      if (document.visibilityState === 'hidden' || !document.hasFocus()) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const title = notif.title || 'CRM Notification'
+          const options = {
+            body: notif.body || '',
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: notif.id ? `notif-${notif.id}` : undefined,
+          }
+          const notification = new Notification(title, options)
+
+          notification.onclick = (e) => {
+            e.preventDefault()
+            window.focus()
+            notification.close()
+
+            if (notif.type === 'MENTION') {
+              if (notif.dealId) {
+                navigate(`/deals?dealId=${notif.dealId}&tab=notes`)
+              } else if (notif.contactId) {
+                navigate(`/contacts/${notif.contactId}?tab=notes`)
+              }
+            } else if (notif.type === 'ACTIVITY_REMINDER' && notif.activityId) {
+              navigate(`/activities?highlight=${notif.activityId}`)
+            } else if (notif.type === 'CHAT_MESSAGE') {
+              navigate('/chat', { state: { selectColleagueId: notif.contactId } })
+            } else if (notif.ticketId) {
+              navigate('/support', { state: { openTicketId: notif.ticketId } })
+            } else {
+              navigate('/')
+            }
+          }
+        }
+      }
+    }
+
+    window.addEventListener('crm-notification', handleNotification)
+    return () => {
+      window.removeEventListener('crm-notification', handleNotification)
+    }
+  }, [token, navigate])
+
   return null
 }
 
@@ -173,6 +232,7 @@ export default function App() {
       <PipelineStagesLoader />
       <WebSocketManager />
       <PushNotificationManager />
+      <DesktopNotificationManager />
       <Suspense fallback={<div className="flex h-screen items-center justify-center text-sm font-bold" style={{ color: T.textMuted }}>Loading…</div>}>
       <Routes>
 

@@ -22,6 +22,8 @@ export default function TeammatesChat() {
   const [search, setSearch] = useState('');
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadingTeam, setLoadingTeam] = useState(true);
+  const [onlineUserIds, setOnlineUserIds] = useState(new Set());
+
 
   // Message Form States
   const [textInput, setTextInput] = useState('');
@@ -99,6 +101,14 @@ export default function TeammatesChat() {
 
         const unreadResponse = await chatAPI.getUnreadCounts();
         setUnreadCounts(unreadResponse.data || {});
+
+        try {
+          const onlineResponse = await api.get('/api/user/online');
+          setOnlineUserIds(new Set((onlineResponse.data || []).map(Number)));
+        } catch (onlineErr) {
+          console.error('Failed to load online status:', onlineErr);
+        }
+
       } catch (err) {
         console.error('Failed to load chat metadata:', err);
       } finally {
@@ -109,18 +119,45 @@ export default function TeammatesChat() {
     loadTeamData();
   }, [currentUserId, currentUserEmail]);
 
-  // 1.5 Select colleague from notification state redirection
+  // Listen to real-time online status changes from WebSocket
   useEffect(() => {
-    if (colleagues.length > 0 && location.state?.selectColleagueId) {
-      const targetId = Number(location.state.selectColleagueId);
-      const match = colleagues.find((c) => Number(c.id) === targetId);
-      if (match) {
-        setActiveColleague(match);
-        // Clear state to avoid force-select on refresh
-        navigate(location.pathname, { replace: true, state: {} });
+    const handleStatusChange = (e) => {
+      const { userId, status } = e.detail;
+      if (!userId) return;
+      setOnlineUserIds((prev) => {
+        const next = new Set(prev);
+        if (status === 'online') {
+          next.add(Number(userId));
+        } else {
+          next.delete(Number(userId));
+        }
+        return next;
+      });
+    };
+    window.addEventListener('crm-user-status', handleStatusChange);
+    return () => {
+      window.removeEventListener('crm-user-status', handleStatusChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (colleagues.length > 0) {
+      const searchParams = new URLSearchParams(location.search);
+      const queryColleagueId = searchParams.get('colleagueId');
+      const targetId = queryColleagueId
+        ? Number(queryColleagueId)
+        : (location.state?.selectColleagueId ? Number(location.state.selectColleagueId) : null);
+
+      if (targetId) {
+        const match = colleagues.find((c) => Number(c.id) === targetId);
+        if (match) {
+          setActiveColleague(match);
+          // Clear state and query parameters to avoid force-select on refresh
+          navigate(location.pathname, { replace: true, state: {} });
+        }
       }
     }
-  }, [colleagues, location.state, navigate, location.pathname]);
+  }, [colleagues, location.state, location.search, navigate, location.pathname]);
 
   // Close context menu and dropdown on click outside
   useEffect(() => {
@@ -198,11 +235,46 @@ export default function TeammatesChat() {
       const msg = e.detail;
       if (!msg) return;
 
+      if (msg.type === 'READ_RECEIPT') {
+        const colleagueId = Number(msg.senderId);
+        if (activeColleague && colleagueId === activeColleague.id) {
+          setMessages((prev) =>
+            prev.map((m) => {
+              const isSentByMe = Number(m.senderId) === (resolvedUserId || currentUserId);
+              const isToColleague = Number(m.recipientId) === colleagueId;
+              if (isSentByMe && isToColleague) {
+                return { ...m, read: true, delivered: true };
+              }
+              return m;
+            })
+          );
+        }
+        return;
+      }
+
+      if (msg.type === 'DELIVERY_RECEIPT') {
+        const colleagueId = Number(msg.recipientId);
+        if (activeColleague && colleagueId === activeColleague.id) {
+          setMessages((prev) =>
+            prev.map((m) => {
+              const isSentByMe = Number(m.senderId) === (resolvedUserId || currentUserId);
+              const isToColleague = Number(m.recipientId) === colleagueId;
+              if (isSentByMe && isToColleague) {
+                return { ...m, delivered: true };
+              }
+              return m;
+            })
+          );
+        }
+        return;
+      }
+
       // Handle real-time deletion
       if (msg.deleted) {
         setMessages((prev) => prev.filter((m) => m.id !== msg.id));
         return;
       }
+
 
       if (msg.sideDeleted) {
         if (Number(msg.deletedByUserId) === (resolvedUserId || currentUserId)) {
@@ -484,6 +556,7 @@ export default function TeammatesChat() {
               filteredColleagues.map((colleague) => {
                 const isActive = activeColleague?.id === colleague.id;
                 const unreadCount = unreadCounts[colleague.id] || 0;
+                const isOnline = onlineUserIds.has(Number(colleague.id));
 
                 return (
                   <button
@@ -508,11 +581,12 @@ export default function TeammatesChat() {
                       <span
                         className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
                         style={{
-                          background: '#16A34A', // online status
+                          background: isOnline ? '#16A34A' : '#94A3B8', // online status
                           borderColor: T.surface,
                         }}
                       />
                     </div>
+
 
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-1">
@@ -583,9 +657,17 @@ export default function TeammatesChat() {
                     <h3 className="text-xs font-black" style={{ color: T.textPrimary }}>
                       {activeColleague.name}
                     </h3>
-                    <p className="text-[10px]" style={{ color: T.textMuted }}>
-                      {activeColleague.email} • {activeColleague.role}
+                    <p className="text-[10px] flex items-center gap-1.5" style={{ color: T.textMuted }}>
+                      <span>{activeColleague.email}</span>
+                      <span>•</span>
+                      <span>{activeColleague.role}</span>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: onlineUserIds.has(Number(activeColleague.id)) ? '#16A34A' : '#94A3B8' }} />
+                        <span>{onlineUserIds.has(Number(activeColleague.id)) ? 'Online' : 'Offline'}</span>
+                      </span>
                     </p>
+
                   </div>
                 </div>
 
@@ -807,7 +889,19 @@ export default function TeammatesChat() {
                             >
                               {formatTime(msg.createdAt)}
                             </span>
+                            {isMe && (
+                              <span className="flex items-center select-none shrink-0" style={{ marginLeft: '1px' }}>
+                                {msg.read ? (
+                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: '#10B981' }}>done_all</span>
+                                ) : msg.delivered ? (
+                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: T.textMuted }}>done_all</span>
+                                ) : (
+                                  <span className="material-symbols-outlined text-[14px] font-bold" style={{ color: T.textMuted }}>done</span>
+                                )}
+                              </span>
+                            )}
                           </div>
+
                         </div>
                       </div>
                     );

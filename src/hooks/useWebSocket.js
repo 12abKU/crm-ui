@@ -63,6 +63,19 @@ export function useWebSocket(token, onNotification) {
                         }
                     }
                 })
+
+                // Subscribe to user status changes
+                client.subscribe('/topic/user-status', (message) => {
+                    if (message.body) {
+                        try {
+                            const statusUpdate = JSON.parse(message.body)
+                            window.dispatchEvent(new CustomEvent('crm-user-status', { detail: statusUpdate }))
+                        } catch (e) {
+                            console.error('Failed to parse user status change', e)
+                        }
+                    }
+                })
+
             },
             onStompError: (frame) => {
                 console.error('Broker reported error: ' + frame.headers['message'])
