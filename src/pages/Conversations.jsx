@@ -337,12 +337,26 @@ export default function Conversations() {
             .finally(() => setStatusLoading(false))
     }, [])
 
+    const [debouncedSearch, setDebouncedSearch] = useState('')
+
     useEffect(() => {
-        api.get('/api/contacts?page=0&size=100')
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search)
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [search])
+
+    useEffect(() => {
+        setContactsLoading(true)
+        const q = debouncedSearch.trim()
+        const url = q 
+            ? `/api/contacts?page=0&size=100&search=${encodeURIComponent(q)}`
+            : '/api/contacts?page=0&size=100'
+        api.get(url)
             .then(r => setContacts(r.data.content ?? []))
             .catch(() => setContacts([]))
             .finally(() => setContactsLoading(false))
-    }, [])
+    }, [debouncedSearch])
 
     const fetchEmails = useCallback(async (contact, append = false, pageToken = null) => {
         if (!contact?.email) { setEmails([]); return }

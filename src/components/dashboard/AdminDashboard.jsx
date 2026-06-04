@@ -14,6 +14,7 @@ import TeamTab from './tabs/TeamTab'
 import BottlenecksTab from './tabs/BottlenecksTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
+import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../../utils/cacheUtils'
 
 // ── Tabs definition (unchanged) ──────────────────
 const TABS = [
@@ -46,6 +47,14 @@ export default function AdminDashboard() {
         const cacheKey = isPipelineDependent ? `${tab}_${pipelineId || 'all'}` : tab;
         if (tabData[cacheKey]) return
         
+        const prefix = getCachePrefix()
+        const fullKey = `${prefix}:dashboard:${cacheKey}`
+        const cached = listCache.get(fullKey)
+        if (cached && isFresh(cached, LIST_TTL)) {
+            setTabData(p => ({ ...p, [cacheKey]: cached.value }))
+            return
+        }
+        
         setTabLoading(true)
         try {
             const url = isPipelineDependent && pipelineId
@@ -53,6 +62,7 @@ export default function AdminDashboard() {
                 : `/api/dashboard/${tab}`
             const r = await api.get(url)
             setTabData(p => ({ ...p, [cacheKey]: r.data }))
+            listCacheSet(fullKey, r.data)
         } catch {
             setTabData(p => ({ ...p, [cacheKey]: null }))
         }
@@ -60,10 +70,21 @@ export default function AdminDashboard() {
     }, [tabData])
 
     useEffect(() => {
-        api.get('/api/dashboard')
-            .then(r => setSummary(r.data))
-            .catch(() => undefined)
-            .finally(() => setLoading(false))
+        const prefix = getCachePrefix()
+        const fullKey = `${prefix}:dashboard:summary`
+        const cached = listCache.get(fullKey)
+        if (cached && isFresh(cached, LIST_TTL)) {
+            setSummary(cached.value)
+            setLoading(false)
+        } else {
+            api.get('/api/dashboard')
+                .then(r => {
+                    setSummary(r.data)
+                    listCacheSet(fullKey, r.data)
+                })
+                .catch(() => undefined)
+                .finally(() => setLoading(false))
+        }
 
         api.get('/api/pipelines').then(r => {
             const list = r.data ?? []

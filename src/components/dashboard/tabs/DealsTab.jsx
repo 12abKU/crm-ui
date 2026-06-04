@@ -80,12 +80,14 @@ export default function DealsTab({ data, activeStages = [] }) {
                 </Card>
             </div>
 
-            <Card accent={DASHBOARD_ACCENTS.teal}>
+            <Card accent={DASHBOARD_ACCENTS.teal}
+                className="lg:sticky lg:top-20 flex flex-col"
+                style={{ maxHeight: 'calc(100vh - 100px)' }}>
                 <CardTitle icon="list" accent={DASHBOARD_ACCENTS.teal} meta={data.openDeals?.length ? `${data.openDeals.length} open` : undefined}>
                     Open Deals
                 </CardTitle>
                 {data.openDeals?.length ? (
-                    <TableCard>
+                    <TableCard className="flex-1">
                         <table className="w-full text-sm" style={tableSurface}>
                             <thead>
                                 <tr>

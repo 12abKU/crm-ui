@@ -24,7 +24,6 @@ const PAGE_SIZE = 20
 
 export default function Contacts() {
     const navigate = useNavigate()
-    const [accounts, setAccounts] = useState([])
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
     const [duplicates, setDuplicates] = useState([])
@@ -73,9 +72,10 @@ export default function Contacts() {
         updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/contacts', pageSize: PAGE_SIZE, cacheKey: 'contacts' })
 
-    useEffect(() => {
-        api.get('/api/accounts?page=0&size=100').then(r => setAccounts(r.data.content || []))
-    }, [])
+    const loadAccountOptions = async (searchQuery) => {
+        const r = await api.get(`/api/accounts?search=${encodeURIComponent(searchQuery)}&size=10`)
+        return (r.data.content || []).map(a => ({ id: a.id, label: a.name }))
+    }
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -386,7 +386,7 @@ export default function Contacts() {
                     <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
                     <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" error={errors.designation} />
                     <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
-                        options={accounts.map(a => ({ id: a.id, label: a.name }))} placeholder="Select account" error={errors.accountId || errors.account} />
+                        onSearch={loadAccountOptions} placeholder="Select account" error={errors.accountId || errors.account} />
                 </SlideForm>
             )}
 
