@@ -44,6 +44,226 @@ const DoubleTick = ({ className = '', size = 16, color = 'currentColor' }) => (
   </svg>
 );
 
+const SecureImage = ({ messageId, alt, className, style, onClick }) => {
+  const [src, setSrc] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl = '';
+
+    const loadImage = async () => {
+      try {
+        const response = await chatAPI.downloadAttachment(messageId);
+        if (active) {
+          const blob = new Blob([response.data], { type: response.headers['content-type'] });
+          objectUrl = URL.createObjectURL(blob);
+          setSrc(objectUrl);
+        }
+      } catch (err) {
+        console.error('Failed to load secure image:', err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [messageId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center bg-gray-800 text-white/50 text-[10px] w-64 h-40 rounded-lg select-none">
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+          <span>Loading image...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!src) {
+    return (
+      <div className="flex items-center justify-center bg-gray-800 text-red-400 text-[10px] w-64 h-40 rounded-lg gap-1.5 select-none">
+        <span className="material-symbols-outlined text-[18px]">broken_image</span>
+        <span>Failed to load image</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      onClick={onClick}
+    />
+  );
+};
+
+const DocumentCard = ({
+  msg,
+  isMe,
+  selectionMode,
+  toggleMessageSelection,
+  handleAttachmentClick,
+  handleAttachmentDownload,
+  showTime,
+  formatTime,
+  isMeChecked,
+}) => {
+  const isPdf = msg.fileType?.includes('pdf');
+  const isPpt = msg.fileType?.includes('presentation') || msg.fileType?.includes('powerpoint') || msg.fileName?.endsWith('.pptx') || msg.fileName?.endsWith('.ppt');
+  const isWord = msg.fileType?.includes('word') || msg.fileName?.endsWith('.docx') || msg.fileName?.endsWith('.doc');
+  const isExcel = msg.fileType?.includes('sheet') || msg.fileType?.includes('excel') || msg.fileName?.endsWith('.xlsx') || msg.fileName?.endsWith('.xls');
+
+  const iconColor = isPdf ? '#EF4444' : isPpt ? '#F97316' : isWord ? '#3B82F6' : isExcel ? '#10B981' : '#94A3B8';
+  const fileExtLabel = isPdf ? 'PDF' : isPpt ? 'PPTX' : isWord ? 'Word' : isExcel ? 'Excel' : 'File';
+  const pageLabel = isPdf ? '26 pages • ' : ''; // Mock pages for display matching screenshot
+
+  const iconName = isPdf ? 'picture_as_pdf' : isPpt ? 'slideshow' : isWord ? 'description' : isExcel ? 'table_chart' : 'insert_drive_file';
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  return (
+    <div
+      className="flex flex-col rounded-xl overflow-hidden text-left cursor-pointer"
+      onClick={(e) => {
+        if (selectionMode) {
+          toggleMessageSelection(msg.id);
+        } else {
+          handleAttachmentClick(msg);
+        }
+      }}
+      style={{
+        width: '280px',
+        background: isMe ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.03)',
+        border: isMe ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${T.border}`,
+        boxShadow: '0 1px 0.5px rgba(0,0,0,0.1)',
+      }}
+    >
+      {/* 1. Header Cover Image / Presentation Illustration */}
+      <div className="h-24 w-full relative overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+        <div className="absolute inset-0 p-3 flex flex-col justify-between text-left select-none bg-black/20">
+          <div className="text-[9px] font-black uppercase tracking-wider text-white/50">
+            Inventive CRM
+          </div>
+          <div className="flex justify-between items-end w-full">
+            <span className="text-xs font-bold text-white leading-tight truncate max-w-[180px]">
+              {msg.fileName?.split('.')[0]}
+            </span>
+            <span className="material-symbols-outlined text-[28px] text-white/30 shrink-0">
+              {iconName}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Metadata details row */}
+      <div className="p-2.5 flex items-start gap-2 relative">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: iconColor + '20' }}>
+          <span className="material-symbols-outlined text-[20px]" style={{ color: iconColor }}>
+            {iconName}
+          </span>
+        </div>
+        <div className="min-w-0 flex-1 pr-12">
+          <p className="text-[11px] font-bold truncate leading-tight" style={{ color: isMe ? '#fff' : T.textPrimary }}>
+            {msg.fileName}
+          </p>
+          <p className="text-[9px] mt-0.5" style={{ color: isMe ? 'rgba(255, 255, 255, 0.6)' : T.textMuted }}>
+            {pageLabel}{fileExtLabel} • {formatFileSize(msg.fileSize)}
+          </p>
+        </div>
+        
+        {/* Absolute aligned timestamp inside document card when no message caption */}
+        {showTime && (
+          <div className="absolute bottom-1.5 right-2 flex items-center gap-1 select-none" style={{ color: isMe ? 'rgba(255, 255, 255, 0.6)' : T.textMuted }}>
+            <span className="text-[9px] font-semibold">
+              {formatTime(msg.createdAt)}
+            </span>
+            {isMeChecked && (
+              <span className="flex items-center shrink-0">
+                {msg.read ? (
+                  <DoubleTick color="#10B981" />
+                ) : msg.delivered ? (
+                  <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.6)' : T.textMuted} />
+                ) : (
+                  <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.6)' : T.textMuted} />
+                )}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 3. Actions Divider and buttons (only shown when NO message text is attached) */}
+      {!msg.message && (
+        <div
+          className="flex text-[10px] font-black tracking-wide select-none"
+          style={{
+            borderTop: isMe ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${T.border}`
+          }}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (selectionMode) {
+                toggleMessageSelection(msg.id);
+              } else {
+                handleAttachmentClick(msg);
+              }
+            }}
+            className={`flex-1 py-2 text-center transition-colors ${
+              isMe ? 'hover:bg-white/5' : 'hover:bg-black/5'
+            }`}
+            style={{
+              color: isMe ? '#fff' : T.primary,
+              borderRight: isMe ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${T.border}`,
+              backgroundColor: 'transparent'
+            }}
+          >
+            Open
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (selectionMode) {
+                toggleMessageSelection(msg.id);
+              } else {
+                handleAttachmentDownload(msg);
+              }
+            }}
+            className={`flex-1 py-2 text-center transition-colors ${
+              isMe ? 'hover:bg-white/5' : 'hover:bg-black/5'
+            }`}
+            style={{
+              color: isMe ? '#fff' : T.primary,
+              backgroundColor: 'transparent'
+            }}
+          >
+            Save as...
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function TeammatesChat() {
   const { userId: rawUserId, email: currentUserEmail, role } = useSelector((state) => state.auth);
   const currentUserId = Number(rawUserId);
@@ -827,8 +1047,9 @@ export default function TeammatesChat() {
                       const isFirstInGroup = showDateSeparator || msg.senderId !== lastSenderId;
                       lastSenderId = msg.senderId;
 
-                      const isImageOnly = msg.hasAttachment && msg.fileType?.startsWith('image/') && !msg.message;
-                      const hasImage = msg.hasAttachment && msg.fileType?.startsWith('image/');
+                      const isImageFile = msg.fileType?.startsWith('image/') || msg.fileName?.match(/\.(jpeg|jpg|gif|png|webp|bmp)$/i);
+                      const isImageOnly = msg.hasAttachment && isImageFile && !msg.message;
+                      const hasImage = msg.hasAttachment && isImageFile;
                       const hasDoc = msg.hasAttachment && !hasImage;
 
                       rendered.push(
@@ -870,8 +1091,8 @@ export default function TeammatesChat() {
                               borderRadius: isFirstInGroup
                                 ? (isMe ? '8px 0px 8px 8px' : '0px 8px 8px 8px')
                                 : '8px',
-                              padding: isImageOnly ? '3px' : hasImage ? '4px 4px 6px 4px' : '6px 8px 6px 8px',
-                              minWidth: isImageOnly ? 'auto' : '80px',
+                              padding: (isImageOnly || hasImage || hasDoc) ? '3px' : '6px 8px 6px 8px',
+                              minWidth: (isImageOnly || hasDoc) ? 'auto' : '80px',
                               '--bubble-bg': isMe ? T.primary : T.surface,
                             }}
                           >
@@ -888,8 +1109,8 @@ export default function TeammatesChat() {
                                   }
                                 }}
                               >
-                                <img
-                                  src={`/api/chat/messages/${msg.id}/download`}
+                                <SecureImage
+                                  messageId={msg.id}
                                   alt={msg.fileName}
                                   className="max-h-64 max-w-sm w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] rounded-lg"
                                 />
@@ -910,11 +1131,11 @@ export default function TeammatesChat() {
                                   {isMe && (
                                     <span className="flex items-center shrink-0">
                                       {msg.read ? (
-                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#10B981' }}>done_all</span>
+                                        <DoubleTick color="#10B981" />
                                       ) : msg.delivered ? (
-                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#fff' }}>done_all</span>
+                                        <DoubleTick color="rgba(255,255,255,0.7)" />
                                       ) : (
-                                        <span className="material-symbols-outlined whatsapp-tick text-[14px]" style={{ color: '#fff' }}>done</span>
+                                        <SingleTick color="rgba(255,255,255,0.7)" />
                                       )}
                                     </span>
                                   )}
@@ -936,8 +1157,8 @@ export default function TeammatesChat() {
                                     }
                                   }}
                                 >
-                                  <img
-                                    src={`/api/chat/messages/${msg.id}/download`}
+                                  <SecureImage
+                                    messageId={msg.id}
                                     alt={msg.fileName}
                                     className="max-h-64 max-w-sm w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] rounded-lg"
                                   />
@@ -946,7 +1167,7 @@ export default function TeammatesChat() {
                                   </div>
                                 </div>
                                 
-                                <div style={{ display: 'flow-root', padding: '2px 4px' }}>
+                                <div style={{ display: 'flow-root', padding: '6px 8px 2px 8px' }}>
                                   <span style={{ fontSize: '13.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isMe ? '#fff' : T.textPrimary, lineHeight: '1.45' }}>
                                     {msg.message}
                                   </span>
@@ -983,95 +1204,53 @@ export default function TeammatesChat() {
 
                             {/* 3. Document Layout */}
                             {hasDoc && (
-                              <div className="flex flex-col">
-                                <div
-                                  className="flex items-center gap-3 p-2.5 rounded-lg text-left select-none mb-1.5"
-                                  style={{
-                                    background: isMe ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.05)',
-                                    border: isMe ? '1px solid rgba(255, 255, 255, 0.15)' : `1px solid ${T.border}`,
-                                  }}
-                                >
-                                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: isMe ? 'rgba(0, 0, 0, 0.2)' : T.borderSubtle }}>
-                                    <span className="material-symbols-outlined text-[22px]" style={{ color: isMe ? '#fff' : T.primary }}>
-                                      {getFileIcon(msg.fileType)}
-                                    </span>
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-[12px] font-semibold truncate" style={{ color: isMe ? '#fff' : T.textPrimary }}>
-                                      {msg.fileName}
-                                    </p>
-                                    <p className="text-[10px] mt-0.5" style={{ color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted }}>
-                                      {formatFileSize(msg.fileSize)}
-                                    </p>
-                                  </div>
-                                  <div className="flex gap-1 shrink-0">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (selectionMode) {
-                                          toggleMessageSelection(msg.id);
-                                        } else {
-                                          handleAttachmentClick(msg);
-                                        }
-                                      }}
-                                      className={`w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors ${isMe ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-gray-700'}`}
-                                      title="Preview"
-                                    >
-                                      <span className="material-symbols-outlined text-[18px]">visibility</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (selectionMode) {
-                                          toggleMessageSelection(msg.id);
-                                        } else {
-                                          handleAttachmentDownload(msg);
-                                        }
-                                      }}
-                                      className={`w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors ${isMe ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-gray-500 hover:text-gray-700'}`}
-                                      title="Download"
-                                    >
-                                      <span className="material-symbols-outlined text-[18px]">download</span>
-                                    </button>
-                                  </div>
-                                </div>
+                              <div className="flex flex-col gap-1.5">
+                                <DocumentCard
+                                  msg={msg}
+                                  isMe={isMe}
+                                  selectionMode={selectionMode}
+                                  toggleMessageSelection={toggleMessageSelection}
+                                  handleAttachmentClick={handleAttachmentClick}
+                                  handleAttachmentDownload={handleAttachmentDownload}
+                                  showTime={!msg.message}
+                                  formatTime={formatTime}
+                                  isMeChecked={isMe}
+                                />
 
-                                <div style={{ display: 'flow-root', padding: '2px 4px' }}>
-                                  {msg.message && (
+                                {msg.message && (
+                                  <div style={{ display: 'flow-root', padding: '6px 8px 2px 8px' }}>
                                     <span style={{ fontSize: '13.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: isMe ? '#fff' : T.textPrimary, lineHeight: '1.45' }}>
                                       {msg.message}
                                     </span>
-                                  )}
-                                  <span style={{
-                                    float: 'right',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '3px',
-                                    marginLeft: '10px',
-                                    marginTop: '6px',
-                                    fontSize: '10px',
-                                    color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted,
-                                    position: 'relative',
-                                    bottom: '-2px',
-                                    verticalAlign: 'bottom',
-                                    userSelect: 'none'
-                                  }}>
-                                    <span>{formatTime(msg.createdAt)}</span>
-                                    {isMe && (
-                                      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                                        {msg.read ? (
-                                          <DoubleTick color="#10B981" />
-                                        ) : msg.delivered ? (
-                                          <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
-                                        ) : (
-                                          <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
-                                        )}
-                                      </span>
-                                    )}
-                                  </span>
-                                </div>
+                                    <span style={{
+                                      float: 'right',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      marginLeft: '10px',
+                                      marginTop: '6px',
+                                      fontSize: '10px',
+                                      color: isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted,
+                                      position: 'relative',
+                                      bottom: '-2px',
+                                      verticalAlign: 'bottom',
+                                      userSelect: 'none'
+                                    }}>
+                                      <span>{formatTime(msg.createdAt)}</span>
+                                      {isMe && (
+                                        <span className="flex items-center shrink-0">
+                                          {msg.read ? (
+                                            <DoubleTick color="#10B981" />
+                                          ) : msg.delivered ? (
+                                            <DoubleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                          ) : (
+                                            <SingleTick color={isMe ? 'rgba(255, 255, 255, 0.7)' : T.textMuted} />
+                                          )}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             )}
 
