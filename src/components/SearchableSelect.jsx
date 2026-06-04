@@ -14,6 +14,7 @@ export default function SearchableSelect({
     onSearch,
     searchDelay = 250,
     minSearchLength = 0,
+    menuPlacement = 'bottom',
 }) {
     const [open, setOpen] = useState(false)
     const [search, setSearch] = useState('')
@@ -67,9 +68,10 @@ export default function SearchableSelect({
     }, [open, search, onSearch, searchDelay, minSearchLength])
 
     const displayOptions = onSearch ? remoteOptions : options
+    const maxItems = 7
     const filtered = onSearch
-        ? displayOptions.slice(0, 10)
-        : options.filter(o => o.label.toLowerCase().includes(search.toLowerCase())).slice(0, 6)
+        ? displayOptions.slice(0, maxItems)
+        : options.filter(o => o.label.toLowerCase().includes(search.toLowerCase())).slice(0, maxItems)
     const selectedLabel = [...options, ...displayOptions].find(o => String(o.id) === String(value))?.label
     const isLoading = loading || remoteLoading
 
@@ -104,12 +106,12 @@ export default function SearchableSelect({
             </button>
 
             {open && (
-                <div className="absolute mt-1 rounded-xl overflow-hidden z-50"
+                <div className={`absolute ${menuPlacement === 'top' ? 'mb-1' : 'mt-1'} rounded-xl overflow-hidden z-50`}
                     style={{
                         background: T.surface,
                         border: `1px solid ${T.border}`,
                         boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                        top: '100%',
+                        ...(menuPlacement === 'top' ? { bottom: '100%' } : { top: '100%' }),
                         // toolbar: pin to right edge, fixed width; form: stretch full width
                         ...(isToolbar
                             ? { right: 0, left: 'auto', minWidth: 240 }
@@ -148,9 +150,9 @@ export default function SearchableSelect({
                                         </button>
                                     )
                                 })}
-                                {options.length > 6 && (
+                                {displayOptions.length > maxItems && (
                                     <p className="text-center text-[10px] py-2" style={{ color: T.textMuted, borderTop: `1px solid ${T.borderSubtle}` }}>
-                                        {options.length - 6} more — type to search
+                                        {onSearch ? 'Type to search for more' : `${displayOptions.length - maxItems} more — type to search`}
                                     </p>
                                 )}
                             </>

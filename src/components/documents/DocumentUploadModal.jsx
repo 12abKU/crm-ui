@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { documentAPI } from '../../api/documents';
 import { T } from '../../constants/theme';
 import api, { extractApiErrorMessage } from '../../api';
@@ -20,34 +20,34 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
   const [accountOptions, setAccountOptions] = useState([]);
   const [contactOptions, setContactOptions] = useState([]);
 
-  if (!open) return null;
-
-  const loadDealOptions = async (query = '') => {
+  const loadDealOptions = useCallback(async (query = '') => {
     const params = new URLSearchParams({ page: '0', size: '10' });
     if (query.trim()) params.set('search', query.trim());
     const r = await api.get(`/api/deals/all?${params}`);
     const content = r.data.content ?? [];
     setDealOptions(content);
     return content.map(d => ({ id: String(d.id), label: d.title }));
-  };
+  }, []);
 
-  const loadAccountOptions = async (query = '') => {
+  const loadAccountOptions = useCallback(async (query = '') => {
     const params = new URLSearchParams({ page: '0', size: '10' });
     if (query.trim()) params.set('search', query.trim());
     const r = await api.get(`/api/accounts?${params}`);
     const content = r.data.content ?? [];
     setAccountOptions(content);
     return content.map(a => ({ id: String(a.id), label: a.name }));
-  };
+  }, []);
 
-  const loadContactOptions = async (query = '') => {
+  const loadContactOptions = useCallback(async (query = '') => {
     const params = new URLSearchParams({ page: '0', size: '10' });
     if (query.trim()) params.set('search', query.trim());
     const r = await api.get(`/api/contacts?${params}`);
     const content = r.data.content ?? [];
     setContactOptions(content);
     return content.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }));
-  };
+  }, []);
+
+  if (!open) return null;
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -290,6 +290,7 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
                     onSearch={loadDealOptions}
                     placeholder="Type to search deals..."
                     disabled={uploading}
+                    menuPlacement="top"
                   />
                 )}
 
@@ -302,6 +303,7 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
                     onSearch={loadAccountOptions}
                     placeholder="Type to search accounts..."
                     disabled={uploading}
+                    menuPlacement="top"
                   />
                 )}
 
@@ -314,6 +316,7 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
                     onSearch={loadContactOptions}
                     placeholder="Type to search contacts..."
                     disabled={uploading}
+                    menuPlacement="top"
                   />
                 )}
               </div>
