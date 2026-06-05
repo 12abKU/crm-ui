@@ -6,7 +6,7 @@ export default function ContactRow({ contact, selected, onClick, emailCount, isP
     const isActive = selected?.id === contact.id
 
     return (
-        <button onClick={onClick} className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors group"
+        <div role="button" tabIndex={0} onClick={onClick} onKeyDown={e => e.key === 'Enter' && onClick()} className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors group cursor-pointer"
             style={{
                 background: isActive ? T.primaryDim : 'transparent',
                 borderLeft: `3px solid ${isActive ? T.primary : 'transparent'}`,
@@ -48,6 +48,6 @@ export default function ContactRow({ contact, selected, onClick, emailCount, isP
                     </span>
                 </button>
             </div>
-        </button>
+        </div>
     )
 }

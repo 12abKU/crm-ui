@@ -7,6 +7,7 @@ import ContactRow from '../components/conversations/ContactRow'
 import EmailBubble from '../components/conversations/EmailBubble'
 import WhatsAppBubble from '../components/conversations/WhatsAppBubble'
 import GmailNotConnected from '../components/conversations/GmailNotConnected'
+import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
 
 // ── Compose Panel ──────────────────────────────────────────────────────────────
@@ -56,7 +57,7 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
                 editorRef.current.innerHTML = interpolatedBody
             }
         }
-        e.target.value = "" // reset select
+        // No need to reset e.target.value since CustomSelect is stateless without a value prop
     }
 
     const execCmd = (cmd, val = null) => {
@@ -154,7 +155,7 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
 
             {/* Formatting Toolbar */}
             <div style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+                display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, padding: '6px 12px',
                 background: T.surfaceRaised, borderBottom: `1px solid ${T.borderSubtle}`,
                 flexShrink: 0,
             }}>
@@ -205,19 +206,20 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
 
                 {/* Templates Selector */}
                 {templates.length > 0 && (
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, minWidth: '140px', maxWidth: '250px', flex: '0 1 auto' }}>
                         <span className="material-symbols-outlined text-[15px]" style={{ color: T.textMuted }}>description</span>
-                        <select
-                            onChange={handleTemplateSelect}
-                            className="text-[11px] font-bold border px-2.5 py-1 rounded-lg outline-none cursor-pointer"
-                            style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
-                            defaultValue=""
-                        >
-                            <option value="" disabled>-- Insert Template --</option>
-                            {templates.map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                        </select>
+                        <div className="flex-1 min-w-0">
+                            <CustomSelect
+                                onChange={handleTemplateSelect}
+                                placeholder="Insert Template"
+                                menuPlacement="bottom"
+                            >
+                                <option value="" disabled>-- Insert Template --</option>
+                                {templates.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </CustomSelect>
+                        </div>
                     </div>
                 )}
             </div>
@@ -653,68 +655,74 @@ export default function Conversations() {
                             )}
 
                             {/* Contact header bar */}
-                            <div className="px-6 py-3 flex items-center gap-4 shrink-0"
+                            <div className="px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4 shrink-0"
                                 style={{ background: T.surface, borderBottom: `1px solid ${T.border}` }}>
-                                <button 
-                                    onClick={() => setSelectedContact(null)}
-                                    className="md:hidden flex items-center justify-center p-2 rounded-xl text-orange-600 transition-colors cursor-pointer shrink-0"
-                                    style={{ color: T.primary }}
-                                    onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-                                </button>
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
-                                    style={{
-                                        background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
-                                        color: '#fff',
-                                    }}>
-                                    {selectedContact.firstName.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <p className="text-sm font-black" style={{ color: T.textPrimary }}>
-                                            {selectedContact.firstName} {selectedContact.lastName}
-                                        </p>
-                                        <button 
-                                            onClick={() => togglePin(selectedContact.id)}
-                                            className="p-1 rounded-lg transition-all"
-                                            style={{ color: pinnedIds.includes(selectedContact.id) ? T.primary : T.textMuted }}
-                                            title={pinnedIds.includes(selectedContact.id) ? "Unpin contact" : "Pin contact"}
-                                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                        >
-                                            <span className="material-symbols-outlined text-[16px] block select-none" style={{ fontVariationSettings: pinnedIds.includes(selectedContact.id) ? "'FILL' 1" : "'FILL' 0" }}>
-                                                push_pin
-                                            </span>
-                                        </button>
-                                        {selectedContact.account?.name && (
-                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                style={{ background: T.surfaceHigh, color: T.textMuted, border: `1px solid ${T.borderSubtle}` }}>
-                                                <span className="material-symbols-outlined text-[11px]">business</span>
-                                                {selectedContact.account.name}
-                                            </span>
-                                        )}
+                                
+                                {/* Left side: Back, Avatar, Details */}
+                                <div className="flex items-center gap-3 flex-1 min-w-[200px]">
+                                    <button 
+                                        onClick={() => setSelectedContact(null)}
+                                        className="md:hidden flex items-center justify-center p-1.5 rounded-xl text-orange-600 transition-colors cursor-pointer shrink-0 -ml-1.5"
+                                        style={{ color: T.primary }}
+                                        onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                                    </button>
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                                        style={{
+                                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
+                                            color: '#fff',
+                                        }}>
+                                        {selectedContact.firstName.charAt(0).toUpperCase()}
                                     </div>
-                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
-                                        {selectedContact.email || 'No email address'} {selectedContact.phone && `· ${selectedContact.phone}`}
-                                    </p>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <p className="text-sm font-black truncate" style={{ color: T.textPrimary }}>
+                                                {selectedContact.firstName} {selectedContact.lastName}
+                                            </p>
+                                            <button 
+                                                onClick={() => togglePin(selectedContact.id)}
+                                                className="p-1 rounded-lg transition-all shrink-0"
+                                                style={{ color: pinnedIds.includes(selectedContact.id) ? T.primary : T.textMuted }}
+                                                title={pinnedIds.includes(selectedContact.id) ? "Unpin contact" : "Pin contact"}
+                                                onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                <span className="material-symbols-outlined text-[16px] block select-none" style={{ fontVariationSettings: pinnedIds.includes(selectedContact.id) ? "'FILL' 1" : "'FILL' 0" }}>
+                                                    push_pin
+                                                </span>
+                                            </button>
+                                            {selectedContact.account?.name && (
+                                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 truncate max-w-[120px]"
+                                                    style={{ background: T.surfaceHigh, color: T.textMuted, border: `1px solid ${T.borderSubtle}` }}>
+                                                    <span className="material-symbols-outlined text-[11px] shrink-0">business</span>
+                                                    <span className="truncate">{selectedContact.account.name}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-[11px] mt-0.5 truncate" style={{ color: T.textMuted }}>
+                                            {selectedContact.email || 'No email address'} {selectedContact.phone && `· ${selectedContact.phone}`}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
+
+                                {/* Right side: Actions */}
+                                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                                     {channel === 'email' && emails.length > 0 && (
-                                        <span className="text-[11px] font-bold px-3 py-1 rounded-full"
+                                        <span className="text-[11px] font-bold px-3 py-1 rounded-full shrink-0"
                                             style={{ background: T.primaryDim, color: T.primary }}>
                                             {emails.length} emails
                                         </span>
                                     )}
                                     {channel === 'whatsapp' && whatsappMessages.length > 0 && (
-                                        <span className="text-[11px] font-bold px-3 py-1 rounded-full"
+                                        <span className="text-[11px] font-bold px-3 py-1 rounded-full shrink-0"
                                             style={{ background: T.primaryDim, color: T.primary }}>
                                             {whatsappMessages.length} messages
                                         </span>
                                     )}
                                     <button onClick={() => channel === 'email' ? fetchEmails(selectedContact) : fetchWhatsappMessages(selectedContact)}
-                                        className="p-2 rounded-xl transition-all"
+                                        className="p-2 rounded-xl transition-all shrink-0"
                                         style={{ color: T.textMuted }}
                                         title="Refresh thread"
                                         onMouseEnter={e => { e.currentTarget.style.background = T.border; e.currentTarget.style.color = T.textPrimary }}
@@ -725,7 +733,7 @@ export default function Conversations() {
                                     {channel === 'email' && gmailStatus?.connected && selectedContact.email && (
                                         <button
                                             onClick={() => setCompose('new')}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-[12px] transition-all"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-bold text-[12px] transition-all shrink-0 flex-1 sm:flex-none"
                                             style={{ background: T.primary, color: '#fff', boxShadow: `0 2px 8px ${T.primary}40` }}
                                             onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
                                             onMouseLeave={e => e.currentTarget.style.background = T.primary}>

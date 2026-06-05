@@ -164,14 +164,14 @@ export default function Calls() {
                         </div>
 
                         {/* Filter pills */}
-                        <div className="flex items-center gap-1 p-1 rounded-xl"
+                        <div className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto max-w-full"
                             style={{ background: T.bg, border: `1px solid ${T.border}` }}>
                             {FILTERS.map(item => {
                                 const meta = FILTER_META[item]
                                 const isActive = filter === item
                                 return (
                                     <button key={item} onClick={() => handleFilterChange(item)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0"
                                         style={{
                                             background: isActive ? T.primary : 'transparent',
                                             color: isActive ? '#fff' : T.textMuted,

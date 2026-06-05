@@ -7,7 +7,7 @@ import { extractApiErrorMessage } from '../api';
 import DocumentUploadModal from '../components/documents/DocumentUploadModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
-
+import TopBar from '../components/TopBar';
 
 export default function DocumentList({ entityType, entityId }) {
   const isNested = !!entityType;
@@ -138,14 +138,19 @@ export default function DocumentList({ entityType, entityId }) {
 
   if (loading && !isNested) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-xs font-bold" style={{ color: T.textMuted }}>
-        Loading documents…
+      <div className="flex flex-col min-h-screen">
+        <TopBar />
+        <div className="flex-1 flex items-center justify-center p-8 text-xs font-bold" style={{ color: T.textMuted }}>
+          Loading documents…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={isNested ? "flex flex-col gap-4" : "p-6 flex flex-col gap-6"}>
+    <>
+      {!isNested && <TopBar />}
+      <div className={isNested ? "flex flex-col gap-4" : "p-4 md:p-8 flex flex-col gap-6"}>
       
       {/* Page Header (Only when full page) */}
       {!isNested && (
@@ -502,5 +507,6 @@ export default function DocumentList({ entityType, entityId }) {
         confirmColor={T.primary}
       />
     </div>
+    </>
   );
 }

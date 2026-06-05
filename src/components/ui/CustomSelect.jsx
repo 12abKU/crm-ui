@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 
-export default function CustomSelect({ value, onChange, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name }) {
+export default function CustomSelect({ value, onChange, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom' }) {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
@@ -71,13 +71,14 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
             </button>
 
             {open && (
-                <div className="absolute mt-1.5 rounded-xl overflow-hidden z-[100]"
+                <div className={`absolute ${menuPlacement === 'top' ? 'mb-1.5' : 'mt-1.5'} rounded-xl overflow-hidden z-[100]`}
                     style={{
                         background: T.surface,
                         border: `1px solid ${T.border}`,
                         boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)',
                         left: 0,
                         right: 0,
+                        ...(menuPlacement === 'top' ? { bottom: '100%' } : { top: '100%' }),
                         maxHeight: '260px',
                         overflowY: 'auto'
                     }}>

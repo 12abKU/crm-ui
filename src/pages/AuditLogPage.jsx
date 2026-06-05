@@ -5,6 +5,7 @@ import { T } from '../constants/theme'
 import api from '../api'
 import TopBar from '../components/TopBar'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import CustomSelect from '../components/ui/CustomSelect'
 
 const ACTION_META = {
     CREATED:       { label: 'Created',       color: '#10B981', bg: '#10B98120', icon: 'add_circle' },
@@ -221,26 +222,26 @@ export default function AuditLogPage() {
     const chipLabels = { '': 'All', ACCOUNT: 'Accounts', CONTACT: 'Contacts', DEAL: 'Deals', ACTIVITY: 'Activities' }
 
     return (
-        <div>
+        <div className="max-w-[100vw] overflow-x-hidden">
             <TopBar />
-            <main className="p-4 md:p-8">
+            <main className="p-4 md:p-8 w-full max-w-full min-w-0">
 
                     {/* ── Header ─────────────────────────────── */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                         <div>
                             <div className="flex items-center gap-3 mb-1">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                                     style={{ background: T.primaryDim }}>
                                     <span className="material-symbols-outlined filled text-[19px]"
                                         style={{ color: T.primary }}>history</span>
                                 </div>
-                                <h1 className="text-2xl font-black" style={{ color: T.textPrimary }}>Audit Log</h1>
+                                <h1 className="text-2xl font-black truncate" style={{ color: T.textPrimary }}>Audit Log</h1>
                             </div>
                             <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
                                 Complete history of every action performed in your CRM
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full lg:w-auto justify-center"
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full lg:w-auto justify-center shrink-0"
                             style={{ background: T.surfaceHigh, color: T.textMuted }}>
                             <span className="material-symbols-outlined text-[16px]">bar_chart</span>
                             {total.toLocaleString()} total events
@@ -249,14 +250,14 @@ export default function AuditLogPage() {
 
                     {/* ── Filters ────────────────────────────── */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto min-w-0">
                             {/* Entity type chips */}
-                            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl w-full lg:w-auto"
+                            <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl w-full sm:w-auto"
                                 style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                 {filterChips.map(chip => (
                                     <button key={chip}
                                         onClick={() => setEntityFilter(chip)}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer flex-1 sm:flex-none text-center justify-center"
+                                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer flex-1 sm:flex-none text-center justify-center min-w-[70px]"
                                         style={{
                                             background: entityFilter === chip ? T.primary : 'transparent',
                                             color: entityFilter === chip ? '#fff' : T.textMuted,
@@ -273,29 +274,28 @@ export default function AuditLogPage() {
                             </div>
 
                             {/* User filter */}
-                            <select
-                                value={actorFilter}
-                                onChange={e => setActorFilter(e.target.value)}
-                                className="text-sm px-3 py-2 rounded-xl outline-none border cursor-pointer w-full lg:w-auto"
-                                style={{
-                                    background: T.surface,
-                                    color: actorFilter ? T.textPrimary : T.textMuted,
-                                    border: `1px solid ${actorFilter ? T.primary : T.border}`,
-                                    boxShadow: actorFilter ? `0 0 0 3px ${T.primaryDim}` : 'none',
-                                }}>
-                                <option value="">All Users</option>
-                                {users.map(u => (
-                                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                                ))}
-                            </select>
+                            <div className="w-full sm:w-auto min-w-[140px] flex-1 sm:flex-none">
+                                <CustomSelect
+                                    value={actorFilter}
+                                    onChange={e => setActorFilter(e.target.value)}
+                                    className="px-3 py-2 rounded-xl font-bold"
+                                    style={{
+                                        border: `1px solid ${actorFilter ? T.primary : T.border}`,
+                                    }}>
+                                    <option value="">All Users</option>
+                                    {users.map(u => (
+                                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                                    ))}
+                                </CustomSelect>
+                            </div>
 
                             {(entityFilter || actorFilter) && (
                                 <button
                                     onClick={() => { setEntityFilter(''); setActorFilter('') }}
-                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full lg:w-auto"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full sm:w-auto"
                                     style={{ background: '#EF444420', color: '#EF4444' }}>
                                     <span className="material-symbols-outlined text-[13px]">close</span>
-                                    Clear Filters
+                                    Clear
                                 </button>
                             )}
                         </div>

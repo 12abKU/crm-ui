@@ -4,6 +4,8 @@ import { T } from '../../constants/theme';
 import api, { extractApiErrorMessage } from '../../api';
 import SearchableSelect from '../SearchableSelect';
 
+import CustomSelect from '../ui/CustomSelect';
+
 export default function DocumentUploadModal({ open, onClose, entityType, entityId, onUploadSuccess }) {
   const [file, setFile] = useState(null);
   const [name, setName] = useState('');
@@ -259,7 +261,7 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
               <div className="flex flex-col gap-3 border-t pt-3" style={{ borderColor: T.borderSubtle }}>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Link to Entity (Optional)</label>
-                  <select
+                  <CustomSelect
                     value={linkType}
                     onChange={(e) => {
                       setLinkType(e.target.value);
@@ -273,12 +275,13 @@ export default function DocumentUploadModal({ open, onClose, entityType, entityI
                       color: T.textPrimary,
                       '--tw-ring-color': T.primary
                     }}
+                    menuPlacement="top"
                   >
                     <option value="">Do not link</option>
                     <option value="deal">Deal</option>
                     <option value="account">Account</option>
                     <option value="contact">Contact</option>
-                  </select>
+                  </CustomSelect>
                 </div>
 
                 {linkType === 'deal' && (

@@ -399,8 +399,8 @@ export default function AutomatedSequencesSettings() {
                 description="Configure rules to automatically trigger follow-ups, tasks, notifications, WhatsApp messages, and more when deals, contacts, accounts, or activities change."
                 noPad
             >
-                <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <div className="flex flex-wrap items-center gap-4">
                         <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
                             {rules.length} rule{rules.length !== 1 ? 's' : ''} configured
                         </p>
@@ -422,7 +422,7 @@ export default function AutomatedSequencesSettings() {
                             ))}
                         </div>
                     </div>
-                    <button onClick={openCreate} className="crm-btn-primary flex items-center gap-2 text-sm">
+                    <button onClick={openCreate} className="crm-btn-primary flex items-center justify-center gap-2 text-sm w-full sm:w-auto">
                         <span className="material-symbols-outlined text-[16px]">bolt</span>
                         Create Automation Rule
                     </button>
