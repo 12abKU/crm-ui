@@ -58,6 +58,7 @@ export default function AdminSettings() {
     const agents = users.filter(u => u.role === 'AGENT')
 
     const limitItems = stats ? [
+        { label: 'Storage (MB)', value: Math.round((stats.currentStorageBytes || 0) / 1024 / 1024), limit: stats.maxStorageBytes ? Math.round(stats.maxStorageBytes / 1024 / 1024) : 0 },
         { label: 'Accounts', value: stats.totalAccounts, limit: stats.maxAccounts },
         { label: 'Contacts', value: stats.totalContacts, limit: stats.maxContacts },
         { label: 'Deals', value: stats.activeDeals, limit: stats.maxDeals },

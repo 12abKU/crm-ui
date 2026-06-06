@@ -8,6 +8,7 @@ import { extractApiErrorMessage } from '../api';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import TopBar from '../components/TopBar';
+import StorageLimitBar from '../components/ui/StorageLimitBar';
 
 const SingleTick = ({ className = '', size = 16, color = 'currentColor' }) => (
   <svg
@@ -300,6 +301,7 @@ export default function TeammatesChat() {
   const [threeDotOpen, setThreeDotOpen] = useState(false);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [adminBlockOpen, setAdminBlockOpen] = useState(false);
+  const [storageRefreshTrigger, setStorageRefreshTrigger] = useState(0);
 
   // Dispatch unread counts to global window listeners for real-time sidebar badges
   useEffect(() => {
@@ -606,6 +608,9 @@ export default function TeammatesChat() {
 
     try {
       await chatAPI.sendMessage(formData);
+      if (attachedFile) {
+          setStorageRefreshTrigger(prev => prev + 1);
+      }
       setTextInput('');
       setAttachedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -973,6 +978,12 @@ export default function TeammatesChat() {
                   )}
                 </div>
               </div>
+              
+              {/* Storage Limit Bar */}
+              <div className="px-6 pt-4 pb-1 border-b shrink-0 flex justify-center" style={{ background: T.surface, borderColor: T.border }}>
+                  <StorageLimitBar refreshTrigger={storageRefreshTrigger} />
+              </div>
+              
               {/* Message Streams */}
               <div
                 ref={chatContainerRef}

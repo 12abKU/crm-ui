@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import Pagination from '../components/Pagination'
+import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
 
 const PAGE_SIZE = 50
@@ -378,20 +379,20 @@ export default function PlatformTickets() {
                     </div>
 
                     {/* Status filter */}
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                    <CustomSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                         className="w-full md:w-auto"
-                        style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, padding: '0 12px', cursor: 'pointer', outline: 'none' }}>
+                        style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, minWidth: 140, outline: 'none' }}>
                         <option value="ALL">All Status</option>
                         {Object.entries(STATUS_STYLES).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
-                    </select>
+                    </CustomSelect>
 
                     {/* Priority filter */}
-                    <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
+                    <CustomSelect value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
                         className="w-full md:w-auto"
-                        style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, padding: '0 12px', cursor: 'pointer', outline: 'none' }}>
+                        style={{ height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary, fontSize: 13, minWidth: 140, outline: 'none' }}>
                         <option value="ALL">All Priority</option>
                         {Object.entries(PRIORITY_STYLES).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
-                    </select>
+                    </CustomSelect>
 
                     <span className="w-full md:w-auto text-right md:text-left" style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, whiteSpace: 'nowrap' }}>
                         {filtered.length} ticket{filtered.length !== 1 ? 's' : ''}

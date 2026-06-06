@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 
-export default function CustomSelect({ value, onChange, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom' }) {
+const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom', wrapperClassName = '', wrapperStyle = {} }, forwardedRef) => {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
@@ -9,6 +9,7 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
     useEffect(() => {
         const handler = (e) => {
             if (ref.current && !ref.current.contains(e.target)) {
+                if (open && onBlur) onBlur();
                 setOpen(false)
             }
         }
@@ -16,18 +17,31 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
         return () => document.removeEventListener('mousedown', handler)
     }, [])
 
-    // Parse options from standard <option> children
-    const options = React.Children.toArray(children).map(child => {
-        if (child && (child.type === 'option' || child.props?.value !== undefined)) {
-            return {
-                value: child.props.value,
-                label: child.props.children
+    // Parse options and optgroups from standard <option> and <optgroup> children
+    const parsedItems = []
+    let flatOptions = []
+    React.Children.forEach(children, child => {
+        if (!child) return
+        if (child.type === 'option' || child.props?.value !== undefined) {
+            const opt = { type: 'option', value: child.props.value, label: child.props.children }
+            parsedItems.push(opt)
+            flatOptions.push(opt)
+        } else if (child.type === 'optgroup') {
+            const groupOptions = []
+            React.Children.forEach(child.props.children, o => {
+                if (o && (o.type === 'option' || o.props?.value !== undefined)) {
+                    const opt = { type: 'option', value: o.props.value, label: o.props.children }
+                    groupOptions.push(opt)
+                    flatOptions.push(opt)
+                }
+            })
+            if (groupOptions.length > 0) {
+                parsedItems.push({ type: 'optgroup', label: child.props.label, options: groupOptions })
             }
         }
-        return null
-    }).filter(Boolean)
+    })
 
-    const selectedOption = options.find(o => String(o.value) === String(value))
+    const selectedOption = flatOptions.find(o => String(o.value) === String(value))
     const displayLabel = selectedOption ? selectedOption.label : placeholder
 
     const handleSelect = (val) => {
@@ -40,11 +54,17 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
             })
         }
         setOpen(false)
+        if (onBlur) onBlur();
     }
 
+    // Extract width-related classes to apply to the wrapper so that flex grids and columns respect the desired width
+    const widthClasses = className.split(' ').filter(c => /(?:^|:)w-/.test(c)).join(' ')
+    const defaultWidth = widthClasses ? '' : '' // If no width classes are passed, we don't force anything, allowing it to shrink to content or stretch via flex parent
+
     return (
-        <div className="relative min-w-0" ref={ref} style={{ width: '100%' }}>
+        <div className={`relative min-w-0 ${widthClasses} ${defaultWidth} ${wrapperClassName}`.trim()} ref={ref} style={wrapperStyle}>
             <button
+                ref={forwardedRef}
                 type="button"
                 disabled={disabled}
                 onClick={() => !disabled && setOpen(o => !o)}
@@ -83,13 +103,49 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
                         overflowY: 'auto'
                     }}>
                     <div className="py-1 flex flex-col">
-                        {options.map((opt, idx) => {
-                            const active = String(opt.value) === String(value)
+                        {parsedItems.map((item, idx) => {
+                            if (item.type === 'optgroup') {
+                                return (
+                                    <div key={`group-${idx}`} className="flex flex-col">
+                                        <div className="px-4 py-1.5 mt-1 text-[10px] font-black uppercase tracking-wider" style={{ color: T.textMuted }}>
+                                            {item.label}
+                                        </div>
+                                        {item.options.map((opt, oIdx) => {
+                                            const active = String(opt.value) === String(value)
+                                            return (
+                                                <button
+                                                    key={`${opt.value}-${idx}-${oIdx}`}
+                                                    type="button"
+                                                    onClick={() => handleSelect(opt.value)}
+                                                    className="w-full text-left px-4 py-2.5 pl-6 text-sm transition-all flex items-center justify-between font-bold"
+                                                    style={{
+                                                        background: active ? T.primary : 'transparent',
+                                                        color: active ? '#FFFFFF' : T.textSecondary
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        if (!active) e.currentTarget.style.background = T.surfaceHigh
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        if (!active) e.currentTarget.style.background = 'transparent'
+                                                    }}
+                                                >
+                                                    <span className="truncate">{opt.label}</span>
+                                                    {active && (
+                                                        <span className="material-symbols-outlined text-[16px] text-white">check</span>
+                                                    )}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )
+                            }
+                            
+                            const active = String(item.value) === String(value)
                             return (
                                 <button
-                                    key={`${opt.value}-${idx}`}
+                                    key={`${item.value}-${idx}`}
                                     type="button"
-                                    onClick={() => handleSelect(opt.value)}
+                                    onClick={() => handleSelect(item.value)}
                                     className="w-full text-left px-4 py-2.5 text-sm transition-all flex items-center justify-between font-bold"
                                     style={{
                                         background: active ? T.primary : 'transparent',
@@ -102,7 +158,7 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
                                         if (!active) e.currentTarget.style.background = 'transparent'
                                     }}
                                 >
-                                    <span className="truncate">{opt.label}</span>
+                                    <span className="truncate">{item.label}</span>
                                     {active && (
                                         <span className="material-symbols-outlined text-[16px] text-white">check</span>
                                     )}
@@ -114,4 +170,6 @@ export default function CustomSelect({ value, onChange, placeholder = 'Select...
             )}
         </div>
     )
-}
+})
+
+export default CustomSelect

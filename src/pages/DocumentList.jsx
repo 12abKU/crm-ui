@@ -8,6 +8,7 @@ import DocumentUploadModal from '../components/documents/DocumentUploadModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import TopBar from '../components/TopBar';
+import StorageLimitBar from '../components/ui/StorageLimitBar';
 
 export default function DocumentList({ entityType, entityId }) {
   const isNested = !!entityType;
@@ -22,6 +23,7 @@ export default function DocumentList({ entityType, entityId }) {
   const [search, setSearch] = useState('');
   const [uploadOpen, setUploadOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [storageRefreshTrigger, setStorageRefreshTrigger] = useState(0);
 
   // Custom preview and popup states
   const [selectedDocForPreview, setSelectedDocForPreview] = useState(null);
@@ -100,6 +102,7 @@ export default function DocumentList({ entityType, entityId }) {
       triggerAlert('Delete Failed', 'Failed to delete document: ' + extractApiErrorMessage(err));
     } finally {
       setSelectedDocForDelete(null);
+      setStorageRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -151,6 +154,9 @@ export default function DocumentList({ entityType, entityId }) {
     <>
       {!isNested && <TopBar />}
       <div className={isNested ? "flex flex-col gap-4" : "p-4 md:p-8 flex flex-col gap-6"}>
+      
+      {/* Storage Limit Bar */}
+      <StorageLimitBar refreshTrigger={storageRefreshTrigger} />
       
       {/* Page Header (Only when full page) */}
       {!isNested && (
@@ -470,7 +476,10 @@ export default function DocumentList({ entityType, entityId }) {
         onClose={() => setUploadOpen(false)}
         entityType={entityType}
         entityId={entityId}
-        onUploadSuccess={loadDocuments}
+        onUploadSuccess={() => {
+            loadDocuments();
+            setStorageRefreshTrigger(prev => prev + 1);
+        }}
       />
 
       {/* Preview Modal */}

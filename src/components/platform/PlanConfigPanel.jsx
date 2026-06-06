@@ -36,6 +36,14 @@ const LIMIT_FIELDS = [
         color: '#8B5CF6',
         bg: 'rgba(139,92,246,0.12)',
     },
+    {
+        key: 'maxStorageBytes',
+        label: 'Max Storage (MB)',
+        icon: 'hard_drive',
+        desc: 'Maximum total storage capacity for documents and chat files in MB',
+        color: '#E11D48',
+        bg: 'rgba(225,29,72,0.12)',
+    },
 ]
 
 function Spinner() {
@@ -62,12 +70,17 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
         setLoading(true)
         try {
             const r = await api.get(`/api/platform/companies/${companyId}/plan-config`)
-            setConfig(r.data)
+            const configData = {
+                ...r.data,
+                maxStorageBytes: Math.floor(r.data.maxStorageBytes / (1024 * 1024)),
+            }
+            setConfig(configData)
             setForm({
-                maxUsers: r.data.maxUsers,
-                maxContacts: r.data.maxContacts,
-                maxAccounts: r.data.maxAccounts,
-                maxDeals: r.data.maxDeals,
+                maxUsers: configData.maxUsers,
+                maxContacts: configData.maxContacts,
+                maxAccounts: configData.maxAccounts,
+                maxDeals: configData.maxDeals,
+                maxStorageBytes: configData.maxStorageBytes,
             })
             setDirty(false)
         } catch (e) {
@@ -99,8 +112,13 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
         setSaving(true)
         setStatus(null)
         try {
-            const r = await api.put(`/api/platform/companies/${companyId}/plan-config`, form)
-            setConfig(r.data)
+            const payload = { ...form, maxStorageBytes: parseInt(form.maxStorageBytes) * 1024 * 1024 }
+            const r = await api.put(`/api/platform/companies/${companyId}/plan-config`, payload)
+            const configData = {
+                ...r.data,
+                maxStorageBytes: Math.floor(r.data.maxStorageBytes / (1024 * 1024)),
+            }
+            setConfig(configData)
             setDirty(false)
             setStatus({ type: 'success', msg: 'Plan limits saved successfully!' })
             onSaved?.(r.data)   // notify parent to refresh stats grid
@@ -213,10 +231,11 @@ export default function PlanConfigPanel({ companyId, onSaved }) {
                                 />
                                 {/* Quick-set buttons */}
                                 <div className="flex flex-col gap-1">
-                                    {[5, 25, 100, 500, 1000].filter(v => {
+                                    {[5, 25, 100, 500, 1000, 5120, 10240].filter(v => {
                                         // Show relevant presets based on type
                                         if (key === 'maxUsers') return [5, 10, 25, 50, 100].includes(v)
                                         if (key === 'maxDeals') return [20, 100, 500, 1000].includes(v)
+                                        if (key === 'maxStorageBytes') return [500, 1000, 5120, 10240].includes(v)
                                         return true
                                     }).slice(0, 3).map(preset => (
                                         <button key={preset} type="button"

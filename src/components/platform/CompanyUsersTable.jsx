@@ -1,6 +1,7 @@
 import { IconRefresh, IconPlus, IconCrown, IconLogin, IconKey, IconTrash } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { ROLE_STYLES } from './platformConstants'
+import CustomSelect from '../ui/CustomSelect'
 
 export default function CompanyUsersTable({
     users, loading, updating, impersonating,
@@ -79,13 +80,13 @@ export default function CompanyUsersTable({
                                                 <IconCrown size={10} /> SUPER_ADMIN
                                             </span>
                                         ) : (
-                                            <select value={u.role} disabled={updating === 'role' + u.id}
+                                            <CustomSelect value={u.role} disabled={updating === 'role' + u.id}
                                                 onChange={e => onChangeRole(u.id, e.target.value)}
-                                                className="text-[11px] font-bold px-2 py-1 rounded-full border-0 cursor-pointer outline-none"
-                                                style={{ background: rs.bg, color: rs.color }}>
+                                                className="text-[11px] font-bold px-2 py-1 rounded-full outline-none"
+                                                style={{ background: rs.bg, color: rs.color, minWidth: 90, border: 'none' }}>
                                                 <option value="AGENT">AGENT</option>
                                                 <option value="ADMIN">ADMIN</option>
-                                            </select>
+                                            </CustomSelect>
                                         )}
                                     </td>
                                     {/* Joined */}

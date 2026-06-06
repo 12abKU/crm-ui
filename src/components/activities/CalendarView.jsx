@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import api from '../../api'
 import { toIsoDate } from '../../utils/cacheUtils'
+import CustomSelect from '../ui/CustomSelect'
 
 export default function CalendarView({ onLogActivity }) {
     const [currentDate, setCurrentDate] = useState(new Date())
@@ -254,17 +255,17 @@ export default function CalendarView({ onLogActivity }) {
                     {isAdmin && (
                         <div className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[16px]" style={{ color: T.textMuted }}>group</span>
-                            <select
+                            <CustomSelect
                                 value={selectedOwnerId}
                                 onChange={e => setSelectedOwnerId(e.target.value)}
-                                className="px-3.5 py-2 rounded-xl text-xs font-bold outline-none cursor-pointer"
-                                style={{ background: T.surfaceRaised, border: `1.5px solid ${T.border}`, color: T.textPrimary }}
+                                className="px-3.5 py-2 rounded-xl text-xs font-bold outline-none"
+                                style={{ background: T.surfaceRaised, border: `1.5px solid ${T.border}`, color: T.textPrimary, minWidth: 160 }}
                             >
                                 <option value="">All Team Calendars</option>
                                 {team.map(user => (
                                     <option key={user.id} value={user.id}>{user.name}'s Calendar</option>
                                 ))}
-                            </select>
+                            </CustomSelect>
                         </div>
                     )}
 

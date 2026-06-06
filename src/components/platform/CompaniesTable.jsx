@@ -2,6 +2,7 @@ import { IconSearch, IconChevronRight, IconNote } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { STATUS_STYLES, PLAN_STYLES } from './platformConstants'
 import TrialBadge from './TrialBadge'
+import CustomSelect from '../ui/CustomSelect'
 
 export default function CompaniesTable({
     companies, filteredCompanies,
@@ -21,23 +22,23 @@ export default function CompaniesTable({
                         placeholder="Search companies..."
                         className="bg-transparent outline-none text-sm w-full" style={{ color: T.textPrimary }} />
                 </div>
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                    className="text-xs font-bold px-3 py-2 rounded-xl outline-none border-0 cursor-pointer"
-                    style={{ background: T.surfaceRaised, color: T.textSecondary, border: `1px solid ${T.border}` }}>
+                <CustomSelect value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                    className="text-xs font-bold px-3 py-2 rounded-xl outline-none"
+                    style={{ background: T.surfaceRaised, color: T.textSecondary, border: `1px solid ${T.border}`, minWidth: 130 }}>
                     <option value="ALL">All Status</option>
                     <option value="ACTIVE">Active</option>
                     <option value="TRIAL">Trial</option>
                     <option value="SUSPENDED">Suspended</option>
                     <option value="INACTIVE">Inactive (Deleted)</option>
-                </select>
-                <select value={filterPlan} onChange={e => setFilterPlan(e.target.value)}
-                    className="text-xs font-bold px-3 py-2 rounded-xl outline-none border-0 cursor-pointer"
-                    style={{ background: T.surfaceRaised, color: T.textSecondary, border: `1px solid ${T.border}` }}>
+                </CustomSelect>
+                <CustomSelect value={filterPlan} onChange={e => setFilterPlan(e.target.value)}
+                    className="text-xs font-bold px-3 py-2 rounded-xl outline-none"
+                    style={{ background: T.surfaceRaised, color: T.textSecondary, border: `1px solid ${T.border}`, minWidth: 130 }}>
                     <option value="ALL">All Plans</option>
                     <option value="FREE">Free</option>
                     <option value="PRO">Pro</option>
                     <option value="ENTERPRISE">Enterprise</option>
-                </select>
+                </CustomSelect>
                 <span className="sm:ml-auto text-xs" style={{ color: T.textMuted }}>
                     {filteredCompanies.length} of {companies.length}
                 </span>

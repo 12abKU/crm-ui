@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { T } from '../constants/theme'
 import { extractApiErrorMessage } from '../api'
+import CustomSelect from './ui/CustomSelect'
 
 export default function InlineEdit({ value, onSave, options, placeholder = '—', type = 'text', readonly = false, allowCustom = false, children }) {
     const [editing, setEditing] = useState(false)
@@ -44,7 +45,7 @@ export default function InlineEdit({ value, onSave, options, placeholder = '—'
             {editing && !readonly ? (
                 <div className="relative flex items-center" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     {options && !isCustom ? (
-                        <select ref={inputRef} value={draft} onChange={e => {
+                        <CustomSelect ref={inputRef} value={draft} onChange={e => {
                             if (e.target.value === '__custom__') {
                                 isSwitchingToCustom.current = true
                                 setIsCustom(true)
@@ -53,14 +54,14 @@ export default function InlineEdit({ value, onSave, options, placeholder = '—'
                                 setDraft(e.target.value)
                             }
                         }}
-                            onBlur={save} onKeyDown={onKeyDown} className="crm-select text-sm py-1 pl-2 pr-7"
+                            onBlur={save} className="text-sm py-1"
                             style={{ 
                                 minWidth: 110,
                                 border: `1.5px solid ${error ? T.error : 'transparent'}`
                             }}>
                             {options.map(o => <option key={o} value={o}>{o}</option>)}
                             {allowCustom && <option value="__custom__">+ Custom...</option>}
-                        </select>
+                        </CustomSelect>
                     ) : type === 'textarea' ? (
                         <textarea ref={inputRef} value={draft ?? ''} onChange={e => setDraft(e.target.value)}
                             onBlur={save} placeholder={placeholder}

@@ -2,6 +2,7 @@ import { IconCalendar } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { Modal, InputField } from './PlatformModal'
 import { daysLeft } from './platformConstants'
+import CustomSelect from '../ui/CustomSelect'
 
 // ── Trial Modal ──────────────────────────────────────────────────────────────
 export function TrialModal({
@@ -112,12 +113,12 @@ export function AddUserModal({ company, newUser, setNewUser, onClose, formSaving
             <InputField label="Password" type="password" value={newUser.password} onChange={set('password')} placeholder="Min 6 characters" />
             <div className="mb-4">
                 <label className="block text-[11px] font-bold mb-1.5 uppercase tracking-widest" style={{ color: T.textMuted }}>Role</label>
-                <select value={newUser.role} onChange={set('role')}
+                <CustomSelect value={newUser.role} onChange={set('role')}
                     className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                     style={{ background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary }}>
                     <option value="AGENT">Agent</option>
                     <option value="ADMIN">Admin</option>
-                </select>
+                </CustomSelect>
             </div>
             {formError && <p className="text-xs mb-3 font-semibold" style={{ color: T.error }}>{formError}</p>}
             <div className="flex gap-2">

@@ -1,6 +1,7 @@
 import { IconClock } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import { STATUS_STYLES, PLAN_STYLES, daysLeft } from './platformConstants'
+import CustomSelect from '../ui/CustomSelect'
 
 export default function CompanyControls({
     company, updating,
@@ -18,23 +19,23 @@ export default function CompanyControls({
             {/* Plan */}
             <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>Plan</p>
-                <select value={company.plan} disabled={updating === company.id + 'plan'}
+                <CustomSelect value={company.plan} disabled={updating === company.id + 'plan'}
                     onChange={e => onUpdatePlan(company.id, e.target.value)}
-                    className="w-full text-sm font-bold px-3 py-2.5 rounded-xl cursor-pointer outline-none border-0"
-                    style={{ background: ps.bg, color: ps.color }}>
+                    className="w-full text-sm font-bold px-3 py-2.5 rounded-xl outline-none"
+                    style={{ background: ps.bg, color: ps.color, border: 'none' }}>
                     {['FREE', 'PRO', 'ENTERPRISE'].map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
+                </CustomSelect>
             </div>
 
             {/* Status */}
             <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.textMuted }}>Status</p>
-                <select value={company.status} disabled={updating === company.id + 'status'}
+                <CustomSelect value={company.status} disabled={updating === company.id + 'status'}
                     onChange={e => onUpdateStatus(company.id, e.target.value)}
-                    className="w-full text-sm font-bold px-3 py-2.5 rounded-xl cursor-pointer outline-none border-0"
-                    style={{ background: ss.bg, color: ss.color }}>
+                    className="w-full text-sm font-bold px-3 py-2.5 rounded-xl outline-none"
+                    style={{ background: ss.bg, color: ss.color, border: 'none' }}>
                     {['ACTIVE', 'SUSPENDED', 'TRIAL'].map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                </CustomSelect>
             </div>
 
             {/* Trial ends */}

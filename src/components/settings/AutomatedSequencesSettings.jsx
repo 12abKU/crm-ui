@@ -4,6 +4,7 @@ import { usePipelineStages } from '../../hooks/usePipelineStages'
 import SettingsSection from './SettingsSection'
 import api, { extractApiErrorMessage } from '../../api'
 import ConfirmModal from '../ui/ConfirmModal'
+import CustomSelect from '../ui/CustomSelect'
 
 // ─── Trigger Events ────────────────────────────────────────────────────────────
 const EVENTS = [
@@ -243,9 +244,9 @@ export default function AutomatedSequencesSettings() {
         if (triggerValueConfig.type === 'stage_picker') return (
             <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>{triggerValueConfig.label}</label>
-                <select className="crm-input w-full" value={triggerValue} onChange={e => setTriggerValue(e.target.value)}>
+                <CustomSelect className="crm-input w-full" value={triggerValue} onChange={e => setTriggerValue(e.target.value)}>
                     {stages.map(st => <option key={st.stageKey} value={st.stageKey}>{st.label}</option>)}
-                </select>
+                </CustomSelect>
             </div>
         )
 
@@ -265,10 +266,10 @@ export default function AutomatedSequencesSettings() {
         if (triggerValueConfig.type === 'activity_type') return (
             <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>{triggerValueConfig.label}</label>
-                <select className="crm-input w-full" value={triggerValue} onChange={e => setTriggerValue(e.target.value)}>
+                <CustomSelect className="crm-input w-full" value={triggerValue} onChange={e => setTriggerValue(e.target.value)}>
                     <option value="">Any Activity Type</option>
                     {ACTIVITY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
+                </CustomSelect>
             </div>
         )
 
@@ -283,10 +284,10 @@ export default function AutomatedSequencesSettings() {
                 {templates.length === 0 ? (
                     <p className="text-xs" style={{ color: T.error }}>No email templates found. Create one in Email Templates settings first.</p>
                 ) : (
-                    <select className="crm-input w-full" value={emailTemplateId} onChange={e => setEmailTemplateId(e.target.value)} required>
+                    <CustomSelect className="crm-input w-full" value={emailTemplateId} onChange={e => setEmailTemplateId(e.target.value)} required>
                         <option value="">-- Choose Template --</option>
                         {templates.map(t => <option key={t.id} value={t.id}>{t.name} — {t.subject}</option>)}
-                    </select>
+                    </CustomSelect>
                 )}
                 <span className="text-[10px]" style={{ color: T.textMuted }}>Sent via the Gmail account connected by the deal/contact owner.</span>
             </div>
@@ -296,10 +297,10 @@ export default function AutomatedSequencesSettings() {
         if (actionMode === 'stage_picker') return (
             <div className="flex flex-col gap-2 p-4 rounded-xl" style={{ background: T.bg, border: `1px solid ${T.border}` }}>
                 <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Target Stage</label>
-                <select className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)} required>
+                <CustomSelect className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)} required>
                     <option value="">-- Select Stage --</option>
                     {stages.map(st => <option key={st.stageKey} value={st.stageKey}>{st.label}</option>)}
-                </select>
+                </CustomSelect>
                 <span className="text-[10px]" style={{ color: T.textMuted }}>The deal will be moved to this stage automatically.</span>
             </div>
         )
@@ -308,10 +309,10 @@ export default function AutomatedSequencesSettings() {
         if (actionMode === 'user_picker') return (
             <div className="flex flex-col gap-2 p-4 rounded-xl" style={{ background: T.bg, border: `1px solid ${T.border}` }}>
                 <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Assign To User</label>
-                <select className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)} required>
+                <CustomSelect className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)} required>
                     <option value="">-- Select User --</option>
                     {users.map(u => <option key={u.id} value={String(u.id)}>{u.name} ({u.email})</option>)}
-                </select>
+                </CustomSelect>
                 <span className="text-[10px]" style={{ color: T.textMuted }}>Ownership of the deal and/or contact will be transferred to this user.</span>
             </div>
         )
@@ -321,9 +322,9 @@ export default function AutomatedSequencesSettings() {
             <div className="flex flex-col gap-3 p-4 rounded-xl" style={{ background: T.bg, border: `1px solid ${T.border}` }}>
                 <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Activity Type</label>
-                    <select className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)}>
+                    <CustomSelect className="crm-input w-full" value={actionSubject} onChange={e => setActionSubject(e.target.value)}>
                         {ACTIVITY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                    </select>
+                    </CustomSelect>
                 </div>
                 <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Activity Subject</label>
@@ -639,7 +640,7 @@ export default function AutomatedSequencesSettings() {
                             </div>
 
                             {/* Trigger Row */}
-                            <div className="p-4 rounded-xl flex flex-col gap-3" style={{ background: '#FFF8F5', border: `1px solid ${T.primary}33` }}>
+                            <div className="p-4 rounded-xl flex flex-col gap-3" style={{ background: T.primaryFaint, border: `1px solid ${T.primary}33` }}>
                                 <div className="flex items-center gap-2 mb-1">
                                     <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: T.primary }}>
                                         <span className="material-symbols-outlined text-[14px] text-white">bolt</span>
@@ -649,7 +650,7 @@ export default function AutomatedSequencesSettings() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Trigger Event</label>
-                                        <select className="crm-input w-full" value={triggerEvent} onChange={e => { setTriggerEvent(e.target.value); setTriggerValue('') }}>
+                                        <CustomSelect className="crm-input w-full" value={triggerEvent} onChange={e => { setTriggerEvent(e.target.value); setTriggerValue('') }}>
                                             {['Deals', 'People', 'Activity'].map(group => (
                                                 <optgroup key={group} label={group}>
                                                     {EVENTS.filter(ev => ev.group === group).map(ev => (
@@ -657,25 +658,25 @@ export default function AutomatedSequencesSettings() {
                                                     ))}
                                                 </optgroup>
                                             ))}
-                                        </select>
+                                        </CustomSelect>
                                     </div>
                                     {renderTriggerValueField()}
                                 </div>
                             </div>
 
                             {/* Action Row */}
-                            <div className="p-4 rounded-xl flex flex-col gap-3" style={{ background: '#ECFDF5', border: `1px solid ${T.success}33` }}>
+                            <div className="p-4 rounded-xl flex flex-col gap-3" style={{ background: T.successFaint, border: `1px solid ${T.success}33` }}>
                                 <div className="flex items-center gap-2 mb-1">
                                     <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: T.success }}>
                                         <span className="material-symbols-outlined text-[14px] text-white">play_arrow</span>
                                     </div>
-                                    <span className="text-xs font-black uppercase tracking-wider text-emerald-700">Do this (Action)</span>
+                                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.success }}>Do this (Action)</span>
                                 </div>
                                 <div className="flex flex-col gap-1.5">
                                     <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>Action Type</label>
-                                    <select className="crm-input w-full" value={actionType} onChange={e => setActionType(e.target.value)}>
+                                    <CustomSelect className="crm-input w-full" value={actionType} onChange={e => setActionType(e.target.value)}>
                                         {ACTIONS.map(ac => <option key={ac.value} value={ac.value}>{ac.label}</option>)}
-                                    </select>
+                                    </CustomSelect>
                                 </div>
                                 {renderActionFields()}
                             </div>

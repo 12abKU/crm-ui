@@ -15,6 +15,7 @@ import BottlenecksTab from './tabs/BottlenecksTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
 import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../../utils/cacheUtils'
+import CustomSelect from '../ui/CustomSelect'
 
 // ── Tabs definition (unchanged) ──────────────────
 const TABS = [
@@ -208,17 +209,17 @@ export default function AdminDashboard() {
                                     border: `1px solid ${T.border}80`,
                                 }}>
                                 <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Pipeline:</span>
-                                <select
+                                <CustomSelect
                                     value={selectedPipelineId || ''}
                                     onChange={e => handlePipelineChange(Number(e.target.value))}
-                                    className="bg-transparent text-sm font-bold outline-none cursor-pointer"
-                                    style={{ color: T.textPrimary }}>
+                                    className="bg-transparent text-sm font-bold outline-none"
+                                    style={{ color: T.textPrimary, minWidth: 120 }}>
                                     {pipelines.map(p => (
-                                        <option key={p.id} value={p.id} style={{ color: '#000' }}>
+                                        <option key={p.id} value={p.id}>
                                             {p.name}
                                         </option>
                                     ))}
-                                </select>
+                                </CustomSelect>
                             </div>
                         )}
                         {summary && (
