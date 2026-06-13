@@ -85,6 +85,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
 
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
+    const leadInfo = profile?.leadInfo ?? null
 
     // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {
@@ -95,6 +96,7 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
                     isAgent={isAgent}
                     isAssignedToMe={isAssignedToMe}
                     canEdit={canEdit}
+                    leadInfo={leadInfo}
                 />
             )
             case 'account':      return <DealPanelAccount deal={deal} />

@@ -10,7 +10,8 @@ const NOTIF_STYLES = {
     ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
     MENTION: { icon: 'alternate_email', color: '#9333EA', label: 'Mentioned You' },
     AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' },
-    CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' }
+    CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' },
+    NEW_LEAD_DEAL: { icon: 'campaign', color: '#10B981', label: 'New Lead' }
 }
 
 export default function WebSocketToast() {
@@ -51,6 +52,8 @@ export default function WebSocketToast() {
             navigate(`/activities?highlight=${notice.activityId}`)
         } else if (notice.type === 'CHAT_MESSAGE') {
             navigate('/chat', { state: { selectColleagueId: notice.contactId } })
+        } else if (notice.type === 'NEW_LEAD_DEAL' && notice.dealId) {
+            navigate(`/deals?dealId=${notice.dealId}`)
         } else if (notice.ticketId) {
             navigate('/support', { state: { openTicketId: notice.ticketId } })
         }

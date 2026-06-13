@@ -7,7 +7,7 @@ import api from '../../api'
 import { extractApiErrorMessage } from '../../api'
 import LostDealReasonModal from '../deals/LostDealReasonModal'
 import DocumentList from '../../pages/DocumentList'
-
+import LeadInfoCard from '../deals/LeadInfoCard'
 
 // ── Shared InfoCard ───────────────────────────────────────────
 const InfoCard = ({ label, children }) => (
@@ -17,7 +17,7 @@ const InfoCard = ({ label, children }) => (
     </div>
 )
 
-export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit }) {
+export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit, leadInfo }) {
     const { stages, getStageLabel, getStageStyle } = usePipelineStages()
     const [stage, setStage] = useState(deal.stage)
     const [lostDetails, setLostDetails] = useState({
@@ -115,6 +115,9 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                     </div>
                 )}
             </div>
+
+            {/* ── Lead Info Card ──────────────────────── */}
+            <LeadInfoCard leadInfo={leadInfo} />
 
             {/* ── Stage changer (unchanged logic) ─────── */}
             {canChangeStage && (

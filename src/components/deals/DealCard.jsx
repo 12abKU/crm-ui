@@ -162,8 +162,21 @@ export default function DealCard({
                     </div>
 
                     {/* Metadata lines */}
-                    {(deal.account?.name || (stage === 'LOST' && deal.lostReason)) && (
+                    {(deal.account?.name || deal.source || (stage === 'LOST' && deal.lostReason)) && (
                         <div className="flex flex-col gap-1.5 min-w-0">
+                            {deal.source && (
+                                <div className="flex items-center gap-1.5 w-max px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider"
+                                     style={{ 
+                                         background: deal.source === 'INDIAMART' ? '#f9731615' : deal.source === 'WHATSAPP' ? '#22c55e15' : deal.source === 'SULEKHA' ? '#3b82f615' : 'rgba(120,113,108,0.1)',
+                                         color: deal.source === 'INDIAMART' ? '#ea580c' : deal.source === 'WHATSAPP' ? '#16a34a' : deal.source === 'SULEKHA' ? '#2563eb' : T.textMuted
+                                     }}>
+                                    <span className="material-symbols-outlined text-[12px] opacity-80 shrink-0">
+                                        {deal.source === 'INDIAMART' ? 'storefront' : deal.source === 'WHATSAPP' ? 'chat' : deal.source === 'SULEKHA' ? 'campaign' : 'api'}
+                                    </span>
+                                    <span>{deal.source}</span>
+                                </div>
+                            )}
+
                             {deal.account?.name && (
                                 <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: T.textSecondary }}>
                                     <span className="material-symbols-outlined text-[12px] opacity-75 shrink-0">business</span>

@@ -1,6 +1,6 @@
 // src/components/platform/IntegrationsPanel.jsx
 import { useEffect, useState } from 'react'
-import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff, IconBrandWhatsapp } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconTrash, IconCheck, IconAlertTriangle, IconBrandGoogle, IconPhone, IconEye, IconEyeOff, IconBrandWhatsapp, IconBuildingStore, IconBriefcase } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
 import api from '../../api'
 import ConfirmModal from '../ui/ConfirmModal'
@@ -126,6 +126,20 @@ export default function IntegrationsPanel({ companyId }) {
     const [whatsappError, setWhatsappError] = useState('')
     const [whatsappSuccess, setWhatsappSuccess] = useState('')
 
+    // IndiaMart
+    const [indiamart, setIndiamart] = useState({ crmKey: '' })
+    const [indiamartConfigured, setIndiamartConfigured] = useState(false)
+    const [indiamartSaving, setIndiamartSaving] = useState(false)
+    const [indiamartError, setIndiamartError] = useState('')
+    const [indiamartSuccess, setIndiamartSuccess] = useState('')
+
+    // Sulekha
+    const [sulekha, setSulekha] = useState({ webhookSecret: '' })
+    const [sulekhaConfigured, setSulekhaConfigured] = useState(false)
+    const [sulekhaSaving, setSulekhaSaving] = useState(false)
+    const [sulekhaError, setSulekhaError] = useState('')
+    const [sulekhaSuccess, setSulekhaSuccess] = useState('')
+
     useEffect(() => {
         if (!companyId) return
         setLoading(true)
@@ -134,6 +148,9 @@ export default function IntegrationsPanel({ companyId }) {
                 const tw = r.data.twilio || {}
                 const go = r.data.google || {}
                 const wa = r.data.whatsapp || {}
+                const im = r.data.indiamart || {}
+                const su = r.data.sulekha || {}
+
                 // Backend masks secrets — show placeholder if configured
                 setTwilio({
                     accountSid: tw.accountSid || '',
@@ -157,6 +174,10 @@ export default function IntegrationsPanel({ companyId }) {
                     verifyToken: wa.verifyToken || '',
                 })
                 setWhatsappConfigured(wa.configured || false)
+                setIndiamart({ crmKey: im.crmKey || '' })
+                setIndiamartConfigured(im.configured || false)
+                setSulekha({ webhookSecret: su.webhookSecret || '' })
+                setSulekhaConfigured(su.configured || false)
             })
             .catch(() => { })
             .finally(() => setLoading(false))
@@ -165,6 +186,8 @@ export default function IntegrationsPanel({ companyId }) {
     const setT = (key) => (e) => setTwilio(p => ({ ...p, [key]: e.target.value }))
     const setG = (key) => (e) => setGoogle(p => ({ ...p, [key]: e.target.value }))
     const setW = (key) => (e) => setWhatsapp(p => ({ ...p, [key]: e.target.value }))
+    const setI = (key) => (e) => setIndiamart(p => ({ ...p, [key]: e.target.value }))
+    const setS = (key) => (e) => setSulekha(p => ({ ...p, [key]: e.target.value }))
 
     const saveTwilio = async () => {
         setTwilioSaving(true); setTwilioError(''); setTwilioSuccess('')
@@ -249,6 +272,60 @@ export default function IntegrationsPanel({ companyId }) {
         } finally { setWhatsappSaving(false) }
     }
 
+    const saveIndiamart = async () => {
+        setIndiamartSaving(true); setIndiamartError(''); setIndiamartSuccess('')
+        try {
+            await api.patch(`/api/platform/companies/${companyId}/integrations/indiamart`, indiamart)
+            setIndiamartConfigured(true)
+            setIndiamartSuccess('IndiaMart settings saved.')
+            setTimeout(() => setIndiamartSuccess(''), 3000)
+        } catch (e) {
+            setIndiamartError(e?.response?.data?.message || 'Save failed')
+        } finally { setIndiamartSaving(false) }
+    }
+
+    const clearIndiamart = () => setConfirmClear('indiamart')
+
+    const executeClearIndiamart = async () => {
+        setIndiamartSaving(true); setIndiamartError('')
+        try {
+            await api.delete(`/api/platform/companies/${companyId}/integrations/indiamart`)
+            setIndiamart({ crmKey: '' })
+            setIndiamartConfigured(false)
+            setIndiamartSuccess('IndiaMart config cleared.')
+            setTimeout(() => setIndiamartSuccess(''), 3000)
+        } catch (e) {
+            setIndiamartError('Failed to clear')
+        } finally { setIndiamartSaving(false) }
+    }
+
+    const saveSulekha = async () => {
+        setSulekhaSaving(true); setSulekhaError(''); setSulekhaSuccess('')
+        try {
+            await api.patch(`/api/platform/companies/${companyId}/integrations/sulekha`, sulekha)
+            setSulekhaConfigured(true)
+            setSulekhaSuccess('Sulekha settings saved.')
+            setTimeout(() => setSulekhaSuccess(''), 3000)
+        } catch (e) {
+            setSulekhaError(e?.response?.data?.message || 'Save failed')
+        } finally { setSulekhaSaving(false) }
+    }
+
+    const clearSulekha = () => setConfirmClear('sulekha')
+
+    const executeClearSulekha = async () => {
+        setSulekhaSaving(true); setSulekhaError('')
+        try {
+            await api.delete(`/api/platform/companies/${companyId}/integrations/sulekha`)
+            setSulekha({ webhookSecret: '' })
+            setSulekhaConfigured(false)
+            setSulekhaSuccess('Sulekha config cleared.')
+            setTimeout(() => setSulekhaSuccess(''), 3000)
+        } catch (e) {
+            setSulekhaError('Failed to clear')
+        } finally { setSulekhaSaving(false) }
+    }
+
     if (loading) return (
         <div className="py-12 text-center text-sm" style={{ color: T.textMuted }}>Loading integrations...</div>
     )
@@ -328,16 +405,48 @@ export default function IntegrationsPanel({ companyId }) {
                 </div>
             </Section>
 
+            {/* IndiaMart */}
+            <Section
+                icon={IconBuildingStore} title="IndiaMart (Push API)"
+                color="#0E5B8E" configured={indiamartConfigured}
+                onSave={saveIndiamart} onClear={clearIndiamart}
+                saving={indiamartSaving} error={indiamartError} success={indiamartSuccess}
+            >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="col-span-1 sm:col-span-2">
+                        <Field label="IndiaMart CRM Key" type="password" value={indiamart.crmKey} onChange={setI('crmKey')}
+                            placeholder="mxxxxxx-xxxxx..." monospace />
+                    </div>
+                </div>
+            </Section>
+
+            {/* Sulekha */}
+            <Section
+                icon={IconBriefcase} title="Sulekha Leads"
+                color="#E74C3C" configured={sulekhaConfigured}
+                onSave={saveSulekha} onClear={clearSulekha}
+                saving={sulekhaSaving} error={sulekhaError} success={sulekhaSuccess}
+            >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="col-span-1 sm:col-span-2">
+                        <Field label="Webhook Secret Token" type="password" value={sulekha.webhookSecret} onChange={setS('webhookSecret')}
+                            placeholder="Create a custom secret token..." monospace />
+                    </div>
+                </div>
+            </Section>
+
             {confirmClear && (
                 <ConfirmModal
                     isOpen={!!confirmClear}
-                    title={`Clear ${confirmClear === 'twilio' ? 'Twilio' : confirmClear === 'google' ? 'Google OAuth' : 'WhatsApp Business'} Configuration`}
-                    message={`Are you sure you want to clear this company's custom ${confirmClear === 'google' ? 'Google' : confirmClear === 'twilio' ? 'Twilio' : 'WhatsApp'} configuration? The company will revert to using platform defaults.`}
+                    title={`Clear Configuration`}
+                    message={`Are you sure you want to clear this company's custom configuration? The company will revert to using platform defaults if applicable.`}
                     confirmText="Clear Configuration"
                     onConfirm={() => {
                         if (confirmClear === 'twilio') executeClearTwilio()
                         else if (confirmClear === 'google') executeClearGoogle()
                         else if (confirmClear === 'whatsapp') executeClearWhatsapp()
+                        else if (confirmClear === 'indiamart') executeClearIndiamart()
+                        else if (confirmClear === 'sulekha') executeClearSulekha()
                         setConfirmClear(null)
                     }}
                     onCancel={() => setConfirmClear(null)}
