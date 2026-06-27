@@ -60,9 +60,6 @@ export default function Settings() {
         if (activeTab === 'pipeline') {
             return <PipelineSettings />
         }
-        if (activeTab === 'integrations' && (role === 'ADMIN' || role === 'SUPER_ADMIN')) {
-            return <AppIntegrationsSettings />
-        }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN') return <AdminSettings />
         return <AgentSettings />
@@ -131,8 +128,7 @@ export default function Settings() {
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [
-                            { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
-                            { id: 'integrations', label: 'App Integrations', icon: 'extension' }
+                            { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }
                         ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id

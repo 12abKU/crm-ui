@@ -169,33 +169,7 @@ export default function SubmitTicketTab({
                             </div>
                         </div>
 
-                        {/* Priority pills */}
-                        <div className="flex flex-col gap-2">
-                            <label className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5"
-                                style={{ color: T.textMuted }}>
-                                <span className="material-symbols-outlined text-[13px]">flag</span>
-                                Priority
-                            </label>
-                            <div className="flex flex-wrap items-center gap-2">
-                                {PRIORITY_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => setFv('priority', opt.value)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150"
-                                        style={{
-                                            background: form.priority === opt.value
-                                                ? opt.color + '18'
-                                                : T.surfaceHigh,
-                                            border: `1.5px solid ${form.priority === opt.value ? opt.color + '50' : T.border}`,
-                                            color: form.priority === opt.value ? opt.color : T.textMuted,
-                                        }}>
-                                        <span className="material-symbols-outlined text-[13px]">{opt.icon}</span>
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+
 
                         {/* Description */}
                         <div className="flex flex-col gap-2">
