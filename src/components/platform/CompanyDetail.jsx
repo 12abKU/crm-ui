@@ -9,7 +9,7 @@ import CompanyNotes from './CompanyNotes'
 import CompanyUsersTable from './CompanyUsersTable'
 import IntegrationsPanel from './IntegrationsPanel'
 import PlanConfigPanel from './PlanConfigPanel'
-import { TrialModal, DeleteCompanyModal, DeleteCompanyForeverModal, AddUserModal, ResetPasswordModal, DeleteUserForeverModal } from './CompanyModals'
+import { TrialModal, DeleteCompanyModal, DeleteCompanyForeverModal, AddUserModal, ResetPasswordModal, DeleteUserForeverModal, UserProfileModal } from './CompanyModals'
 import ConfirmModal from '../ui/ConfirmModal'
 import { daysLeft } from './platformConstants'
 import { PRIORITY_STYLES, STATUS_STYLES, CATEGORY_ICONS, timeAgo } from '../support/supportConstants'
@@ -175,6 +175,36 @@ function CompanyTicketsPanel({ companyId, companyName }) {
     )
 }
 
+// ── Company Info Card ──────────────────────────────────────────────────────────
+function CompanyInfoCard({ company }) {
+    if (!company) return null
+    return (
+        <div className="mb-5 rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+            <div className="px-6 py-4" style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: T.surfaceRaised }}>
+                <h3 className="text-sm font-bold" style={{ color: T.textPrimary }}>Company Information</h3>
+            </div>
+            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Industry</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.industry || '—'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Company Size</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.companySize || '—'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Country</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.country || '—'}</p>
+                </div>
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Phone</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.phone || '—'}</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 // ── Main CompanyDetail ────────────────────────────────────────────────────────
 export default function CompanyDetail({
     company, companyStats, companyUsers, usersLoading,
@@ -195,6 +225,7 @@ export default function CompanyDetail({
 }) {
     const [tab, setTab] = useState('overview')
     const [planConfig, setPlanConfig] = useState(null)
+    const [showUserProfile, setShowUserProfile] = useState(null)
     const days = daysLeft(company.trialEndsAt)
     const trialExpired = company.status === 'TRIAL' && company.trialEndsAt && days <= 0
 
@@ -289,18 +320,22 @@ export default function CompanyDetail({
                 </div>
 
                 {tab === 'overview' && (
-                    <CompanyUsersTable
-                        users={companyUsers} loading={usersLoading}
-                        updating={updating} impersonating={impersonating}
-                        onRefresh={onRefreshUsers}
-                        onAddUser={() => { setFormError(''); setShowAddUser(true) }}
-                        onImpersonate={onImpersonate}
-                        onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
-                        onDeleteUser={onDeleteUser}
-                        onDeleteUserForever={onDeleteUserForever}
-                        onActivateUser={onActivateUser}
-                        onChangeRole={onChangeRole}
-                    />
+                    <>
+                        <CompanyInfoCard company={company} />
+                        <CompanyUsersTable
+                            users={companyUsers} loading={usersLoading}
+                            updating={updating} impersonating={impersonating}
+                            onRefresh={onRefreshUsers}
+                            onAddUser={() => { setFormError(''); setShowAddUser(true) }}
+                            onImpersonate={onImpersonate}
+                            onResetPassword={(u) => { setFormError(''); setNewPw(''); setShowResetPw(u) }}
+                            onDeleteUser={onDeleteUser}
+                            onDeleteUserForever={onDeleteUserForever}
+                            onActivateUser={onActivateUser}
+                            onChangeRole={onChangeRole}
+                            onViewUser={(u) => setShowUserProfile(u)}
+                        />
+                    </>
                 )}
                 {tab === 'plan-limits' && (
                     <div className="rounded-2xl p-6"
@@ -373,6 +408,12 @@ export default function CompanyDetail({
                     confirmText="Deactivate"
                     onConfirm={onSubmitDeactivateUser}
                     onCancel={() => setShowDeactivateUser(null)}
+                />
+            )}
+            {showUserProfile && (
+                <UserProfileModal
+                    user={showUserProfile}
+                    onClose={() => setShowUserProfile(null)}
                 />
             )}
         </div>

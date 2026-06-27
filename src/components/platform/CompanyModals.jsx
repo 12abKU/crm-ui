@@ -222,3 +222,44 @@ export function DeleteUserForeverModal({ user, onClose, formSaving, formError, o
         </Modal>
     )
 }
+
+// ── User Profile Modal ──────────────────────────────────────────────────────────
+export function UserProfileModal({ user, onClose }) {
+    if (!user) return null
+    return (
+        <Modal title="User Profile" onClose={onClose}>
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black shrink-0"
+                    style={{ background: T.primaryDim, color: T.primary }}>
+                    {user.name?.charAt(0)?.toUpperCase()}
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold" style={{ color: T.textPrimary }}>{user.name}</h3>
+                    <p className="text-sm font-semibold" style={{ color: T.textMuted }}>{user.email}</p>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-xl" style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Role</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{user.role}</p>
+                </div>
+                <div className="p-4 rounded-xl" style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Status</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                        {user.active !== false ? 'Active' : 'Inactive'}
+                    </p>
+                </div>
+                <div className="p-4 rounded-xl col-span-2" style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Joined Date</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
+                        {user.createdAt ? new Date(user.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                    </p>
+                </div>
+            </div>
+            <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-bold"
+                style={{ background: T.surfaceRaised, color: T.textSecondary }}>
+                Close
+            </button>
+        </Modal>
+    )
+}

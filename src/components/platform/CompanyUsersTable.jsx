@@ -6,7 +6,7 @@ import CustomSelect from '../ui/CustomSelect'
 export default function CompanyUsersTable({
     users, loading, updating, impersonating,
     onRefresh, onAddUser,
-    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onActivateUser, onChangeRole,
+    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onActivateUser, onChangeRole, onViewUser,
 }) {
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -62,12 +62,15 @@ export default function CompanyUsersTable({
                                                 style={{ background: T.primaryDim, color: T.primary }}>
                                                 {u.name.charAt(0).toUpperCase()}
                                             </div>
-                                            <span className="text-sm font-semibold" style={{ color: u.active ? T.textPrimary : T.textMuted }}>
-                                                {u.name}
+                                            <div className="flex flex-col">
+                                                <button onClick={() => onViewUser && onViewUser(u)}
+                                                    className="text-sm font-semibold hover:underline text-left" style={{ color: u.active ? T.textPrimary : T.textMuted }}>
+                                                    {u.name}
+                                                </button>
                                                 {u.active === false && (
-                                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded ml-1.5" style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444' }}>INACTIVE</span>
+                                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 w-fit" style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444' }}>INACTIVE</span>
                                                 )}
-                                            </span>
+                                            </div>
                                         </div>
                                     </td>
                                     {/* Email */}
