@@ -5,6 +5,7 @@ import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api, { extractApiErrorMessage } from '../api'
 import { signOut, updateProfileSession } from '../store/authSlice'
+import AppIntegrationsSettings from '../components/settings/AppIntegrationsSettings'
 
 // ── Dot grid SVG ────────────────────────────────────────────────────────────
 const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E")`
@@ -336,6 +337,37 @@ export default function PlatformProfile() {
                         </div>
                     </div>
 
+                </div>
+
+                <div className="mt-6" style={{
+                    background: T.surface, borderRadius: 22,
+                    border: `1px solid ${T.border}`,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    overflow: 'hidden',
+                    animation: 'fadeUp 0.65s ease both',
+                }}>
+                    <div style={{
+                        padding: '18px 24px 16px',
+                        borderBottom: `1px solid ${T.borderSubtle}`,
+                        background: T.surfaceRaised,
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                            <div style={{
+                                width: 36, height: 36, borderRadius: 11,
+                                background: T.primaryDim, border: `1px solid ${T.border}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.primary,
+                            }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: 17 }}>extension</span>
+                            </div>
+                            <div>
+                                <p style={{ fontSize: 13, fontWeight: 800, color: T.textPrimary, margin: 0 }}>Platform Integrations</p>
+                                <p style={{ fontSize: 11, color: T.textMuted, margin: 0 }}>Configure UltraMsg and SMTP</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ padding: '24px' }}>
+                        <AppIntegrationsSettings />
+                    </div>
                 </div>
             </main>
         </div>

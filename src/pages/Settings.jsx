@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar'
 import AgentSettings from '../components/settings/AgentSettings'
 import AdminSettings from '../components/settings/AdminSettings'
 import SuperAdminSettings from '../components/settings/SuperAdminSettings'
+import AppIntegrationsSettings from '../components/settings/AppIntegrationsSettings'
 import EmailTemplatesSettings from '../components/settings/EmailTemplatesSettings'
 import AutomatedSequencesSettings from '../components/settings/AutomatedSequencesSettings'
 import PipelineSettings from '../components/settings/PipelineSettings'
@@ -58,6 +59,9 @@ export default function Settings() {
         }
         if (activeTab === 'pipeline') {
             return <PipelineSettings />
+        }
+        if (activeTab === 'integrations' && (role === 'ADMIN' || role === 'SUPER_ADMIN')) {
+            return <AppIntegrationsSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN') return <AdminSettings />
@@ -126,7 +130,10 @@ export default function Settings() {
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
-                        ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [{ id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }] : [])
+                        ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [
+                            { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
+                            { id: 'integrations', label: 'App Integrations', icon: 'extension' }
+                        ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id
                         return (
