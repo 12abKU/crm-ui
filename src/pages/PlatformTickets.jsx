@@ -211,6 +211,21 @@ export default function PlatformTickets() {
     const [searchQ, setSearchQ] = useState('')
     const [filterStatus, setFilterStatus] = useState('ALL')
     const [filterPriority, setFilterPriority] = useState('ALL')
+    const [filterCompany, setFilterCompany] = useState('ALL')
+    const [allCompanies, setAllCompanies] = useState([])
+
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            try {
+                const res = await api.get('/api/platform/companies?size=1000')
+                if (res.data && res.data.content) {
+                    const names = Array.from(new Set(res.data.content.map(c => c.name))).filter(Boolean).sort()
+                    setAllCompanies(names)
+                }
+            } catch (err) {}
+        }
+        fetchCompanies()
+    }, [])
 
     const load = async (pageNum = 0) => {
         setLoading(true)
@@ -242,8 +257,9 @@ export default function PlatformTickets() {
         const matchQ = !q || t.subject?.toLowerCase().includes(q) || t.submitterName?.toLowerCase().includes(q) || t.companyName?.toLowerCase().includes(q)
         const matchStatus = filterStatus === 'ALL' || t.status === filterStatus
         const matchPriority = filterPriority === 'ALL' || t.priority === filterPriority
-        return matchQ && matchStatus && matchPriority
-    }), [tickets, searchQ, filterStatus, filterPriority])
+        const matchCompany = filterCompany === 'ALL' || t.companyName === filterCompany
+        return matchQ && matchStatus && matchPriority && matchCompany
+    }), [tickets, searchQ, filterStatus, filterPriority, filterCompany])
 
     // Summary stats
     const stats = useMemo(() => ({
@@ -300,7 +316,7 @@ export default function PlatformTickets() {
                                 </p>
                             </div>
                         </div>
-                        <button onClick={load}
+                        <button onClick={() => load(0)}
                             className="w-full md:w-auto justify-center"
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 7,
@@ -393,6 +409,26 @@ export default function PlatformTickets() {
                         <option value="ALL">All Priority</option>
                         {Object.entries(PRIORITY_STYLES).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
                     </CustomSelect>
+
+                    {/* Company filter (Searchable) */}
+                    <div className="w-full md:w-auto" style={{ position: 'relative' }}>
+                        <input
+                            list="company-list"
+                            value={filterCompany === 'ALL' ? '' : filterCompany}
+                            onChange={e => {
+                                const val = e.target.value;
+                                setFilterCompany(val ? val : 'ALL')
+                            }}
+                            placeholder="All Companies"
+                            style={{
+                                width: '100%', height: 36, borderRadius: 10, background: T.surfaceRaised, border: `1px solid ${T.border}`,
+                                color: T.textPrimary, fontSize: 13, minWidth: 160, outline: 'none', paddingLeft: 12, paddingRight: 12
+                            }}
+                        />
+                        <datalist id="company-list">
+                            {allCompanies.map(c => <option key={c} value={c} />)}
+                        </datalist>
+                    </div>
 
                     <span className="w-full md:w-auto text-right md:text-left" style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, whiteSpace: 'nowrap' }}>
                         {filtered.length} ticket{filtered.length !== 1 ? 's' : ''}
