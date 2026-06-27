@@ -4,13 +4,13 @@
 
 * {
     font-family: 'Manrope', sans-serif;
-    font-weight: 500;
 }
 
 body {
     background-color: var(--crm-bg, #F0EBE3);
     color: var(--crm-text, #1E293B);
     -webkit-font-smoothing: antialiased;
+    font-weight: 500;
 }
 
 button {

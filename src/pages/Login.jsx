@@ -21,6 +21,17 @@ export default function Login() {
             setError(reason)
             sessionStorage.removeItem('logoutReason')
         }
+        
+        const params = new URLSearchParams(window.location.search)
+        const prefillEmail = params.get('email')
+        const prefillPass = params.get('pass')
+        if (prefillEmail || prefillPass) {
+            setForm(f => ({ 
+                ...f, 
+                email: prefillEmail || f.email, 
+                password: prefillPass || f.password 
+            }))
+        }
     }, [])
 
     const submit = async (e) => {
@@ -301,13 +312,6 @@ export default function Login() {
                                 ) : rateLimited ? 'Too many attempts...' : 'Sign in'}
                             </button>
                         </form>
-
-                        <div className="mt-10 pt-6 border-t border-dashed" style={{ borderColor: T.border }}>
-                            <p className="text-xs text-center" style={{ color: T.textSecondary }}>
-                                Don't have an account?{' '}
-                                <Link to="/register" className="font-extrabold hover:underline" style={{ color: T.primary }}>Create workspace</Link>
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

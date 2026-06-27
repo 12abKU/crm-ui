@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setPermissions, updateCompanyStatus } from './store/authSlice'
 import api from './api'
 const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Accounts = lazy(() => import('./pages/Accounts'))
 const Contacts = lazy(() => import('./pages/Contacts'))
@@ -237,7 +236,6 @@ export default function App() {
       <Routes>
 
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/platform" element={<PlatformLayout><PlatformDashboard /></PlatformLayout>} />
         <Route path="/platform/profile" element={<PlatformLayout><PlatformProfile /></PlatformLayout>} />
         <Route path="/platform/tickets" element={<PlatformLayout><PlatformTickets /></PlatformLayout>} />
