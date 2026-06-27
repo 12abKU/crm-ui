@@ -24,8 +24,10 @@ function StatusBanner({ status }) {
 
 export default function AppIntegrationsSettings() {
     const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [status, setStatus] = useState(null)
+    const [savingUltraMsg, setSavingUltraMsg] = useState(false)
+    const [savingEmail, setSavingEmail] = useState(false)
+    const [statusUltraMsg, setStatusUltraMsg] = useState(null)
+    const [statusEmail, setStatusEmail] = useState(null)
     const [showToken, setShowToken] = useState(false)
     const [showSmtpPw, setShowSmtpPw] = useState(false)
     const [config, setConfig] = useState({
@@ -58,18 +60,37 @@ export default function AppIntegrationsSettings() {
         setConfig(prev => ({ ...prev, [key]: e.target.value }))
     }
 
-    const handleSave = async (sectionKeys) => {
-        setSaving(true)
-        setStatus(null)
+    const handleSaveUltraMsg = async () => {
+        setSavingUltraMsg(true)
+        setStatusUltraMsg(null)
         try {
+            const sectionKeys = ['ULTRAMSG_INSTANCE_ID', 'ULTRAMSG_TOKEN']
             for (const key of sectionKeys) {
                 await api.patch(`/api/settings/${key}`, { value: config[key] })
             }
-            setStatus({ type: 'success', msg: 'Configuration saved successfully!' })
+            setStatusUltraMsg({ type: 'success', msg: 'WhatsApp Configuration saved successfully!' })
+            setTimeout(() => setStatusUltraMsg(null), 3000)
         } catch (error) {
-            setStatus({ type: 'error', msg: 'Failed to save configuration' })
+            setStatusUltraMsg({ type: 'error', msg: 'Failed to save WhatsApp configuration' })
         } finally {
-            setSaving(false)
+            setSavingUltraMsg(false)
+        }
+    }
+
+    const handleSaveEmail = async () => {
+        setSavingEmail(true)
+        setStatusEmail(null)
+        try {
+            const sectionKeys = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USERNAME', 'SMTP_PASSWORD']
+            for (const key of sectionKeys) {
+                await api.patch(`/api/settings/${key}`, { value: config[key] })
+            }
+            setStatusEmail({ type: 'success', msg: 'Email Configuration saved successfully!' })
+            setTimeout(() => setStatusEmail(null), 3000)
+        } catch (error) {
+            setStatusEmail({ type: 'error', msg: 'Failed to save Email configuration' })
+        } finally {
+            setSavingEmail(false)
         }
     }
 
@@ -81,10 +102,10 @@ export default function AppIntegrationsSettings() {
 
     return (
         <div className="space-y-6 max-w-4xl">
-            <StatusBanner status={status} />
             
             {/* UltraMsg Integration */}
             <div className="rounded-2xl p-6 border" style={{ background: T.surface, borderColor: T.border }}>
+                <StatusBanner status={statusUltraMsg} />
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-green-500" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
@@ -134,18 +155,19 @@ export default function AppIntegrationsSettings() {
                 </div>
                 <div className="mt-6 flex justify-end">
                     <button 
-                        onClick={() => handleSave(['ULTRAMSG_INSTANCE_ID', 'ULTRAMSG_TOKEN'])}
-                        disabled={saving}
+                        onClick={handleSaveUltraMsg}
+                        disabled={savingUltraMsg}
                         className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50"
                         style={{ background: T.primary }}
                     >
-                        Save WhatsApp Config
+                        {savingUltraMsg ? 'Saving...' : 'Save WhatsApp Config'}
                     </button>
                 </div>
             </div>
 
             {/* SMTP Integration */}
             <div className="rounded-2xl p-6 border" style={{ background: T.surface, borderColor: T.border }}>
+                <StatusBanner status={statusEmail} />
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-blue-500" style={{ background: 'rgba(59, 130, 246, 0.1)' }}>
@@ -217,12 +239,12 @@ export default function AppIntegrationsSettings() {
                 </div>
                 <div className="mt-6 flex justify-end">
                     <button 
-                        onClick={() => handleSave(['SMTP_HOST', 'SMTP_PORT', 'SMTP_USERNAME', 'SMTP_PASSWORD'])}
-                        disabled={saving}
+                        onClick={handleSaveEmail}
+                        disabled={savingEmail}
                         className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50"
                         style={{ background: T.primary }}
                     >
-                        Save Email Config
+                        {savingEmail ? 'Saving...' : 'Save Email Config'}
                     </button>
                 </div>
             </div>
