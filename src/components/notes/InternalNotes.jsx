@@ -95,6 +95,7 @@ function ClearAllModal({ noteCount, onConfirm, onCancel, clearing }) {
                                         <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                                         Clearing...
                                     </>
+
                                 ) : (
                                     <>
                                         <span className="material-symbols-outlined text-[15px]">delete_forever</span>
@@ -110,7 +111,7 @@ function ClearAllModal({ noteCount, onConfirm, onCancel, clearing }) {
     )
 }
 
-export default function InternalNotes({ dealId, contactId }) {
+export default function InternalNotes({ dealId, contactId, leadId }) {
     const [notes, setNotes] = useState([])
     const [team, setTeam] = useState([])
     const [content, setContent] = useState('')
@@ -138,7 +139,9 @@ export default function InternalNotes({ dealId, contactId }) {
         if (append) setLoadingMore(true)
         else setLoading(true)
         try {
-            const url = dealId ? `/api/notes/deal/${dealId}` : `/api/notes/contact/${contactId}`
+            const url = dealId ? `/api/notes/deal/${dealId}` 
+                      : contactId ? `/api/notes/contact/${contactId}` 
+                      : `/api/notes/lead/${leadId}`
             const r = await api.get(`${url}?page=${pageNum}&size=${NOTES_PAGE_SIZE}`)
             const payload = r.data ?? {}
             const content = Array.isArray(payload) ? payload : (payload.content ?? [])
@@ -152,7 +155,7 @@ export default function InternalNotes({ dealId, contactId }) {
             if (append) setLoadingMore(false)
             else setLoading(false)
         }
-    }, [dealId, contactId])
+    }, [dealId, contactId, leadId])
 
     const loadTeam = async () => {
         try {
@@ -166,7 +169,7 @@ export default function InternalNotes({ dealId, contactId }) {
     useEffect(() => {
         loadNotes(0, false)
         loadTeam()
-    }, [dealId, contactId, loadNotes])
+    }, [dealId, contactId, leadId, loadNotes])
 
     const filteredTeam = team.filter(user =>
         user.name.toLowerCase().includes(mentionSearch.toLowerCase()) ||
@@ -246,7 +249,8 @@ export default function InternalNotes({ dealId, contactId }) {
             await api.post('/api/notes', {
                 content,
                 dealId: dealId || null,
-                contactId: contactId || null
+                contactId: contactId || null,
+                leadId: leadId || null
             })
             setContent('')
             loadNotes(0, false)
@@ -261,7 +265,9 @@ export default function InternalNotes({ dealId, contactId }) {
     const handleClearConfirmed = async () => {
         setClearing(true)
         try {
-            const url = dealId ? `/api/notes/deal/${dealId}` : `/api/notes/contact/${contactId}`
+            const url = dealId ? `/api/notes/deal/${dealId}` 
+                      : contactId ? `/api/notes/contact/${contactId}` 
+                      : `/api/notes/lead/${leadId}`
             await api.delete(url)
             setNotes([])
             setPage(0)

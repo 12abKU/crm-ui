@@ -94,12 +94,15 @@ export default function NotificationBell({ isSuperAdmin }) {
     }
 
     const handleNotificationClick = (n) => {
+        console.log("CLICKED NOTIF", n)
         setOpen(false)
         if (n.type === 'MENTION') {
             if (n.dealId) {
                 navigate(`/deals?dealId=${n.dealId}&tab=notes`)
             } else if (n.contactId) {
                 navigate(`/contacts/${n.contactId}?tab=notes`)
+            } else if (n.leadId) {
+                navigate(`/leads?leadId=${n.leadId}&tab=notes`)
             }
             return
         }

@@ -265,6 +265,7 @@ export const NAV_LINKS = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
     { to: '/accounts', icon: 'business', label: 'Accounts' },
     { to: '/contacts', icon: 'groups', label: 'Contacts' },
+    { to: '/leads', icon: 'person_search', label: 'Leads' },
     { to: '/deals', icon: 'handshake', label: 'Deals' },
     { to: '/activities', icon: 'event_note', label: 'Activities' },
     { to: '/calendar', icon: 'calendar_month', label: 'Calendar' },

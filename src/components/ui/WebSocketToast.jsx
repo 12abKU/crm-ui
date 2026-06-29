@@ -47,6 +47,8 @@ export default function WebSocketToast() {
                 navigate(`/deals?dealId=${notice.dealId}&tab=notes`)
             } else if (notice.contactId) {
                 navigate(`/contacts/${notice.contactId}?tab=notes`)
+            } else if (notice.leadId) {
+                navigate(`/leads?leadId=${notice.leadId}&tab=notes`)
             }
         } else if (notice.type === 'ACTIVITY_REMINDER' && notice.activityId) {
             navigate(`/activities?highlight=${notice.activityId}`)

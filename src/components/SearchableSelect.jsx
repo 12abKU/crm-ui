@@ -15,6 +15,7 @@ export default function SearchableSelect({
     searchDelay = 250,
     minSearchLength = 0,
     menuPlacement = 'bottom',
+    creatable = false,
 }) {
     const [open, setOpen] = useState(false)
     const [search, setSearch] = useState('')
@@ -69,10 +70,18 @@ export default function SearchableSelect({
 
     const displayOptions = onSearch ? remoteOptions : options
     const maxItems = 7
-    const filtered = onSearch
+    let filtered = onSearch
         ? displayOptions.slice(0, maxItems)
         : options.filter(o => o.label.toLowerCase().includes(search.toLowerCase())).slice(0, maxItems)
-    const selectedLabel = [...options, ...displayOptions].find(o => String(o.id) === String(value))?.label
+    
+    if (creatable && search.trim() !== '') {
+        const exactMatch = displayOptions.find(o => o.label.toLowerCase() === search.trim().toLowerCase())
+        if (!exactMatch) {
+            filtered = [...filtered, { id: search.trim(), label: `Create "${search.trim()}"`, isNew: true }]
+        }
+    }
+
+    const selectedLabel = [...options, ...displayOptions, { id: value, label: value }].find(o => String(o.id) === String(value))?.label
     const isLoading = loading || remoteLoading
 
     // toolbar mode = no label (used as filter), form mode = has label
@@ -139,18 +148,20 @@ export default function SearchableSelect({
                             <>
                                 {filtered.map(opt => {
                                     const active = String(opt.id) === String(value)
+                                    const isNewItem = opt.isNew
                                     return (
                                         <button key={opt.id} type="button"
                                             onClick={() => { onChange(String(opt.id)); setSearch(''); setOpen(false) }}
-                                            className="w-full text-left px-4 py-2.5 text-sm transition-colors"
-                                            style={{ background: active ? T.primary : 'transparent', color: active ? '#fff' : T.textSecondary }}
+                                            className="w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2"
+                                            style={{ background: active ? T.primary : 'transparent', color: active ? '#fff' : (isNewItem ? T.primary : T.textSecondary) }}
                                             onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceRaised }}
                                             onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
+                                            {isNewItem && <span className="material-symbols-outlined text-[16px]">add_circle</span>}
                                             {opt.label}
                                         </button>
                                     )
                                 })}
-                                {displayOptions.length > maxItems && (
+                                {displayOptions.length > maxItems && !creatable && (
                                     <p className="text-center text-[10px] py-2" style={{ color: T.textMuted, borderTop: `1px solid ${T.borderSubtle}` }}>
                                         {onSearch ? 'Type to search for more' : `${displayOptions.length - maxItems} more — type to search`}
                                     </p>

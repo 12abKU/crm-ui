@@ -36,6 +36,17 @@ const PERMISSION_GROUPS = [
         ]
     },
     {
+        label: 'Leads',
+        icon: 'person_add',
+        perms: [
+            { key: 'LEADS_VIEW', label: 'View leads' },
+            { key: 'LEADS_CREATE', label: 'Create leads' },
+            { key: 'LEADS_EDIT', label: 'Edit & move leads' },
+            { key: 'LEADS_DELETE', label: 'Delete leads' },
+            { key: 'LEADS_ASSIGN', label: 'Assign leads to users' },
+        ]
+    },
+    {
         label: 'Activities',
         icon: 'event_note',
         perms: [

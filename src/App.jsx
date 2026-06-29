@@ -11,6 +11,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Accounts = lazy(() => import('./pages/Accounts'))
 const Contacts = lazy(() => import('./pages/Contacts'))
 const Deals = lazy(() => import('./pages/Deals'))
+const Leads = lazy(() => import('./pages/Leads'))
+const LeadProfile = lazy(() => import('./pages/LeadProfile'))
 const Activities = lazy(() => import('./pages/Activities'))
 const AccountProfile = lazy(() => import('./pages/AccountProfile'))
 const ContactProfile = lazy(() => import('./pages/ContactProfile'))
@@ -88,6 +90,8 @@ function DesktopNotificationManager() {
                 navigate(`/deals?dealId=${notif.dealId}&tab=notes`)
               } else if (notif.contactId) {
                 navigate(`/contacts/${notif.contactId}?tab=notes`)
+              } else if (notif.leadId) {
+                navigate(`/leads?leadId=${notif.leadId}&tab=notes`)
               }
             } else if (notif.type === 'ACTIVITY_REMINDER' && notif.activityId) {
               navigate(`/activities?highlight=${notif.activityId}`)
@@ -246,6 +250,8 @@ export default function App() {
         <Route path="/contacts" element={<CrmLayout><Contacts /></CrmLayout>} />
         <Route path="/contacts/:id" element={<CrmLayout><ContactProfile /></CrmLayout>} />
         <Route path="/deals" element={<CrmLayout><Deals /></CrmLayout>} />
+        <Route path="/leads" element={<CrmLayout><Leads /></CrmLayout>} />
+        <Route path="/leads/:id" element={<CrmLayout><LeadProfile /></CrmLayout>} />
         <Route path="/activities" element={<CrmLayout><Activities /></CrmLayout>} />
         <Route path="/activities/:id" element={<CrmLayout><ActivityProfile /></CrmLayout>} />
         <Route path="/calendar" element={<CrmLayout><Calendar /></CrmLayout>} />
