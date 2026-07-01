@@ -312,6 +312,19 @@ export default function Login() {
                                 ) : rateLimited ? 'Too many attempts...' : 'Sign in'}
                             </button>
                         </form>
+
+                        <div className="mt-8 text-center">
+                            <p className="text-sm" style={{ color: T.textSecondary }}>
+                                Don't have an account?{' '}
+                                <a 
+                                    href="/landing/register"
+                                    className="font-bold hover:underline transition-all"
+                                    style={{ color: T.primary }}
+                                >
+                                    Create a new account
+                                </a>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

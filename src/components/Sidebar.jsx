@@ -225,29 +225,7 @@ export default function Sidebar() {
                 )}
             </nav>
 
-            {/* ── Create New — only for CRM users (unchanged logic) ── */}
-            {!isSuperAdmin && can.ACCOUNTS_CREATE && (
-                <div className="px-4 py-3">
-                    <button onClick={() => navigate('/accounts')}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold py-2.5 transition-all duration-150"
-                        style={{
-                            background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
-                            color: '#fff',
-                            boxShadow: `0 4px 14px ${T.primary}66`,
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.boxShadow = `0 6px 20px ${T.avatarGlow}`
-                            e.currentTarget.style.transform = 'translateY(-1px)'
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.boxShadow = `0 4px 14px ${T.primary}66`
-                            e.currentTarget.style.transform = 'none'
-                        }}>
-                        <span className="material-symbols-outlined text-[17px]">add_circle</span>
-                        Create New
-                    </button>
-                </div>
-            )}
+
 
             {/* ── Support — only for CRM users (unchanged logic) ── */}
             {!isSuperAdmin && (
