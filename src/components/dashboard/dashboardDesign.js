@@ -20,8 +20,8 @@ export const luxeShadow = (accent = T.primary, lifted = false) => (
 
 export const luxeSurface = (accent = T.primary) => ({
     background: isDark()
-        ? `linear-gradient(145deg, ${T.surfaceRaised} 0%, ${T.surface} 58%, rgba(255,255,255,0.02) 100%)`
-        : `linear-gradient(145deg, #FFFFFF 0%, ${T.surface} 58%, ${T.primaryFaint} 100%)`,
+        ? T.surfaceRaised
+        : '#FFFFFF',
     border: `1px solid ${T.border}80`,
     boxShadow: luxeShadow(accent),
 })

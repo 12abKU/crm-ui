@@ -34,13 +34,13 @@ export default function DashboardStatCard({ icon, label, value, sub, loading }) 
             }}
         >
             <div className="absolute left-0 right-0 top-0 h-[3px]"
-                style={{ background: `linear-gradient(90deg, ${accent.color}E6 0%, ${accent.color}55 45%, transparent 100%)` }} />
+                style={{ background: accent.color }} />
 
             <div className="flex items-start justify-between gap-3">
                 <div className="w-12 h-12 flex items-center justify-center shrink-0"
                     style={{
                         borderRadius: 14,
-                        background: `linear-gradient(135deg, ${accent.bg} 0%, ${accent.color}18 100%)`,
+                        background: accent.bg,
                         border: `1px solid ${accent.color}30`,
                         boxShadow: `0 12px 24px ${accent.color}12, inset 0 1px 0 rgba(255,255,255,0.55)`,
                     }}>
@@ -78,7 +78,7 @@ export default function DashboardStatCard({ icon, label, value, sub, loading }) 
             </div>
 
             <div className="absolute left-5 right-5 bottom-0 h-px"
-                style={{ background: `linear-gradient(90deg, transparent, ${accent.color}40, transparent)` }} />
+                style={{ background: `${accent.color}40` }} />
         </div>
     )
 }

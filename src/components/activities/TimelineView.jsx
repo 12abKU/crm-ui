@@ -69,7 +69,7 @@ export default function TimelineView({ activities, loading, onComplete, onOutcom
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-sm font-semibold"
                                                     style={{ color: T.textPrimary, textDecoration: activity.completed ? 'line-through' : 'none' }}>
-                                                    {activity.subject || '—'}
+                                                    {activity.subject || 'No value'}
                                                 </p>
                                                 {activity.description && (
                                                     <p className="text-[12px] mt-0.5" style={{ color: T.textSecondary }}>{activity.description}</p>

@@ -16,6 +16,7 @@ import LostDealReasonModal from '../components/deals/LostDealReasonModal'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import { profileCache, getCachePrefix } from '../utils/cacheUtils'
+import { useDialog } from '../contexts/DialogContext'
 
 // ── Constants ──────────────────────────────────────────────────
 const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
@@ -79,6 +80,7 @@ export default function Deals() {
     const userId = useSelector(state => state.auth.userId)
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE', 'DEALS_EDIT', 'DEALS_DELETE', 'DEALS_ASSIGN'])
+    const { confirm } = useDialog()
     const isAgent = role === 'AGENT'
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
@@ -357,6 +359,24 @@ export default function Deals() {
 
     const submit = async (e) => {
         e.preventDefault()
+
+        const newErrors = {}
+        if (!form.title) newErrors.title = 'Required'
+        if (!form.amount) newErrors.amount = 'Required'
+        if (!form.stage) newErrors.stage = 'Required'
+        if (!form.expectedCloseDate) newErrors.expectedCloseDate = 'Required'
+        if (!form.accountId) newErrors.accountId = 'Required'
+        if (!form.contactId) newErrors.contactId = 'Required'
+        
+        if (form.stage === 'LOST' && !form.lostReason) {
+            newErrors.lostReason = 'Required'
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
         try {
             await api.post('/api/deals', {
                 title: form.title,
@@ -511,8 +531,8 @@ export default function Deals() {
     const totalPipelineDealsCount = Object.values(stageTotalsByStage).reduce((sum, stats) => sum + (stats?.count || 0), 0)
 
     const subtitleText = isAgent
-        ? `${totalPipelineDealsCount} deal${totalPipelineDealsCount !== 1 ? 's' : ''} assigned to you`
-        : `${totalPipelineDealsCount} deal${totalPipelineDealsCount !== 1 ? 's' : ''} · ${activePipeline ? activePipeline.name : 'Kanban board'}`
+        ? `Total Deals - ${totalPipelineDealsCount} (Assigned to you)`
+        : `Total Deals - ${totalPipelineDealsCount} · ${activePipeline ? activePipeline.name : 'Kanban board'}`
 
     // ── Pipeline totals for summary strip (uses server aggregates)
     const pipelineTotals = activeStages.map(stageObj => {
@@ -636,7 +656,7 @@ export default function Deals() {
                                     style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
                             </div>
                             <p className="text-base font-black" style={{ color: T.textPrimary }}>
-                                {value > 0 ? `₹${Number(value).toLocaleString('en-IN')}` : '—'}
+                                {value > 0 ? `₹${Number(value).toLocaleString('en-IN')}` : '0'}
                             </p>
                         </div>
                     ))}
@@ -656,9 +676,9 @@ export default function Deals() {
 
                         return (
                             <div key={stage}
-                                className="flex flex-col shrink-0 w-[280px] md:w-auto md:flex-1"
+                                className="flex flex-col shrink-0 flex-1"
                                 style={{
-                                    minWidth: 0,
+                                    minWidth: 300,
                                     borderRadius: 16, overflow: 'hidden', height: '100%',
                                     background: colBg,
                                     border: `1.5px solid ${colBorder}`,
@@ -723,6 +743,12 @@ export default function Deals() {
                                                     onClick={() => setSelectedDeal(deal)}
                                                     onAssigned={updated => updateDealInStage(deal.id, updated)}
                                                     onRemove={canDelete ? async () => {
+                                                        const isConfirmed = await confirm({
+                                                            title: 'Delete Deal?',
+                                                            message: `Are you sure you want to delete the deal "${deal.title}"? This action cannot be undone.`
+                                                        })
+                                                        if (!isConfirmed) return
+
                                                         profileCache.delete(`${getCachePrefix()}:${deal.id}`)
                                                         await api.delete(`/api/deals/${deal.id}`)
                                                         loadStageDeals(stage, 0, false, search)
@@ -792,7 +818,7 @@ export default function Deals() {
                     <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                 )}
                 <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
-                <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} error={errors.amount} />
+                <Input label="Amount (₹) *" type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
                 
                 {pipelines.length > 0 && (
                     <Select label="Pipeline *" value={form.pipelineId || ''} onChange={e => {
@@ -808,7 +834,7 @@ export default function Deals() {
                     </Select>
                 )}
 
-                <Select label="Stage" value={form.stage} onChange={setEvent('stage')} error={errors.stage}>
+                <Select label="Stage *" value={form.stage} onChange={setEvent('stage')} required error={errors.stage}>
                     {(pipelines.find(p => p.id === Number(form.pipelineId || selectedPipelineId))?.stages || []).map(s => (
                         <option key={s.stageKey} value={s.stageKey}>{s.label}</option>
                     ))}
@@ -826,23 +852,25 @@ export default function Deals() {
                     </>
                 )}
 
-                <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} error={errors.expectedCloseDate} />
+                <Input label="Expected Close Date *" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} required error={errors.expectedCloseDate} />
                 <SearchableSelect
-                    label="Account"
+                    label="Account *"
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))}
                     onSearch={loadAccountOptions}
                     placeholder="Search account..."
+                    required
                     error={errors.accountId || errors.account}
                 />
                 <SearchableSelect
-                    label="Contact"
+                    label="Contact *"
                     value={form.contactId}
                     onChange={v => setField('contactId', v)}
                     options={filteredContacts}
                     placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
                     disabled={!form.accountId || loadingContacts}
+                    required
                     error={errors.contactId || errors.contact}
                 />
             </SlideForm>
@@ -858,6 +886,12 @@ export default function Deals() {
                     }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
                     onDelete={can.DEALS_DELETE && (isAdminOrAbove || selectedDeal._isOwner) ? async (id) => {
+                        const isConfirmed = await confirm({
+                            title: 'Delete Deal?',
+                            message: 'Are you sure you want to delete this deal? This action cannot be undone.'
+                        })
+                        if (!isConfirmed) return
+
                         profileCache.delete(`${getCachePrefix()}:${id}`)
                         await api.delete(`/api/deals/${id}`)
                         const deletedStage = selectedDeal.stage

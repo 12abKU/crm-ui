@@ -5,8 +5,8 @@ import { documentAPI } from '../api/documents';
 import { T } from '../constants/theme';
 import { extractApiErrorMessage } from '../api';
 import DocumentUploadModal from '../components/documents/DocumentUploadModal';
-import ConfirmModal from '../components/ui/ConfirmModal';
 import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
+import { useDialog } from '../contexts/DialogContext';
 import TopBar from '../components/TopBar';
 import StorageLimitBar from '../components/ui/StorageLimitBar';
 
@@ -28,11 +28,8 @@ export default function DocumentList({ entityType, entityId }) {
   // Custom preview and popup states
   const [selectedDocForPreview, setSelectedDocForPreview] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedDocForDelete, setSelectedDocForDelete] = useState(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertTitle, setAlertTitle] = useState('');
-  const [alertMessage, setAlertMessage] = useState('');
+
+  const { alert, confirm } = useDialog();
 
   useEffect(() => {
     loadDocuments();
@@ -66,9 +63,7 @@ export default function DocumentList({ entityType, entityId }) {
   };
 
   const triggerAlert = (title, message) => {
-    setAlertTitle(title);
-    setAlertMessage(message);
-    setAlertOpen(true);
+    alert({ title, message });
   };
 
   const handleDownload = async (doc) => {
@@ -87,22 +82,21 @@ export default function DocumentList({ entityType, entityId }) {
     }
   };
 
-  const confirmDelete = (doc) => {
-    setSelectedDocForDelete(doc);
-    setDeleteConfirmOpen(true);
-  };
+  const handleDeleteClick = async (doc) => {
+    const isConfirmed = await confirm({
+      title: 'Delete Document',
+      message: `Are you sure you want to delete "${doc.name || 'this document'}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      confirmColor: T.error
+    });
+    if (!isConfirmed) return;
 
-  const executeDelete = async () => {
-    setDeleteConfirmOpen(false);
-    if (!selectedDocForDelete) return;
     try {
-      await documentAPI.delete(selectedDocForDelete.id);
+      await documentAPI.delete(doc.id);
       loadDocuments();
+      setStorageRefreshTrigger(prev => prev + 1);
     } catch (err) {
       triggerAlert('Delete Failed', 'Failed to delete document: ' + extractApiErrorMessage(err));
-    } finally {
-      setSelectedDocForDelete(null);
-      setStorageRefreshTrigger(prev => prev + 1);
     }
   };
 
@@ -420,7 +414,7 @@ export default function DocumentList({ entityType, entityId }) {
                               Contact: {doc.contactName}
                             </span>
                           ) : (
-                            <span className="text-[10px]" style={{ color: T.textMuted }}>—</span>
+                            <span className="text-[10px]" style={{ color: T.textMuted }}>0</span>
                           )}
                         </td>
                         <td className="px-5 py-3.5 text-xs font-semibold" style={{ color: T.textSecondary }}>
@@ -451,7 +445,7 @@ export default function DocumentList({ entityType, entityId }) {
                               <span className="material-symbols-outlined text-[18px]">download</span>
                             </button>
                             <button
-                              onClick={() => confirmDelete(doc)}
+                              onClick={() => handleDeleteClick(doc)}
                               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/10 transition-colors"
                               style={{ color: T.error }}
                               title="Delete"
@@ -492,29 +486,6 @@ export default function DocumentList({ entityType, entityId }) {
         doc={selectedDocForPreview}
       />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isOpen={deleteConfirmOpen}
-        title="Delete Document"
-        message={`Are you sure you want to delete "${selectedDocForDelete?.name || 'this document'}"? This action cannot be undone.`}
-        onConfirm={executeDelete}
-        onCancel={() => {
-          setDeleteConfirmOpen(false);
-          setSelectedDocForDelete(null);
-        }}
-        confirmText="Delete"
-        confirmColor={T.error}
-      />
-
-      {/* Alert Modal */}
-      <ConfirmModal
-        isOpen={alertOpen}
-        title={alertTitle}
-        message={alertMessage}
-        onConfirm={() => setAlertOpen(false)}
-        confirmText="OK"
-        confirmColor={T.primary}
-      />
     </div>
     </>
   );

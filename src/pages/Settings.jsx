@@ -8,6 +8,7 @@ import AppIntegrationsSettings from '../components/settings/AppIntegrationsSetti
 import EmailTemplatesSettings from '../components/settings/EmailTemplatesSettings'
 import AutomatedSequencesSettings from '../components/settings/AutomatedSequencesSettings'
 import PipelineSettings from '../components/settings/PipelineSettings'
+import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -59,6 +60,9 @@ export default function Settings() {
         }
         if (activeTab === 'pipeline') {
             return <PipelineSettings />
+        }
+        if (activeTab === 'agents') {
+            return <AgentManagementSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN') return <AdminSettings />
@@ -127,6 +131,7 @@ export default function Settings() {
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
+                        { id: 'agents', label: 'Agent Management', icon: 'manage_accounts' },
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }
                         ] : [])

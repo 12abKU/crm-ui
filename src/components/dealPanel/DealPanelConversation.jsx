@@ -4,7 +4,7 @@ import api from '../../api'
 import Skeleton from 'react-loading-skeleton'
 
 const timeAgo = (dateStr) => {
-    if (!dateStr) return '—'
+    if (!dateStr) return 'No value'
     const d = new Date(dateStr)
     if (isNaN(d)) return dateStr
     const h = Math.floor((Date.now() - d) / 3600000)

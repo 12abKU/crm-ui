@@ -304,7 +304,7 @@ export default function AgentProfile() {
                                         <div className="w-1 h-6 rounded-full shrink-0" style={{ background: s.accent }} />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-semibold truncate" style={{ color: T.textPrimary }}>{d.title}</p>
-                                            <p className="text-[11px]" style={{ color: T.textMuted }}>{d.accountName || '—'}</p>
+                                            <p className="text-[11px]" style={{ color: T.textMuted }}>{d.accountName || '0'}</p>
                                         </div>
                                         <div className="text-right shrink-0">
                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold block mb-1"

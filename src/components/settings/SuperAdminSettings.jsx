@@ -7,39 +7,7 @@ import UserTable from './UserTable'
 import InviteUserModal from './InviteUserModal'
 import SystemSettings from './SystemSettings'
 import api from '../../api'
-
-function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }) {
-    return (
-        <>
-            <div className="fixed inset-0 z-40 backdrop-blur-sm"
-                style={{ background: 'rgba(15,23,42,0.5)' }} onClick={onCancel} />
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-sm rounded-2xl overflow-hidden"
-                    style={{ background: T.surface, border: `1px solid ${T.border}`, boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
-                    <div className="p-6">
-                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4"
-                            style={{ background: confirmColor === T.error ? T.errorDim : T.primaryDim }}>
-                            <span className="material-symbols-outlined text-[22px]"
-                                style={{ color: confirmColor }}>
-                                {confirmColor === T.error ? 'delete' : 'admin_panel_settings'}
-                            </span>
-                        </div>
-                        <h3 className="text-base font-bold mb-1" style={{ color: T.textPrimary }}>{title}</h3>
-                        <p className="text-sm" style={{ color: T.textMuted }}>{message}</p>
-                    </div>
-                    <div className="flex gap-3 px-6 pb-6">
-                        <button onClick={onCancel} className="crm-btn-ghost flex-1">Cancel</button>
-                        <button onClick={onConfirm}
-                            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                            style={{ background: confirmColor }}>
-                            {confirmLabel}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
+import { useDialog } from '../../contexts/DialogContext'
 
 const PAGE_TABS = [
     { id: 'users', label: 'User Management', icon: 'group' },
@@ -54,7 +22,7 @@ export default function SuperAdminSettings() {
     const [loading, setLoading] = useState(true)
     const [showInvite, setShowInvite] = useState(false)
     const [activeTab, setActiveTab] = useState('all')
-    const [confirm, setConfirm] = useState(null)
+    const { confirm } = useDialog()
     const currentUserId = Number(localStorage.getItem('userId'))
 
     const load = () => {
@@ -66,57 +34,53 @@ export default function SuperAdminSettings() {
 
     useEffect(() => { load() }, [])
 
-    const ask = (config) => setConfirm(config)
-    const closeConfirm = () => setConfirm(null)
+
 
     const createUser = async (form) => {
         await api.post('/api/management/users', form)
         load()
     }
 
-    const promote = (id) => {
+    const promote = async (id) => {
         const user = users.find(u => u.id === id)
-        ask({
+        const isConfirmed = await confirm({
             title: 'Promote to Admin?',
             message: `${user.name} will be able to manage agents and access admin features.`,
             confirmLabel: 'Make Admin',
-            confirmColor: T.primary,
-            onConfirm: async () => {
-                await api.put('/api/management/users/promote-admin', { userId: id })
-                closeConfirm()
-                load()
-            }
+            confirmColor: T.primary
         })
+        if (!isConfirmed) return
+        
+        await api.put('/api/management/users/promote-admin', { userId: id })
+        load()
     }
 
-    const demote = (id) => {
+    const demote = async (id) => {
         const user = users.find(u => u.id === id)
-        ask({
+        const isConfirmed = await confirm({
             title: 'Demote to Agent?',
             message: `${user.name} will lose admin access and become a regular agent.`,
             confirmLabel: 'Make Agent',
-            confirmColor: T.warning,
-            onConfirm: async () => {
-                await api.put('/api/management/users/demote-agent', { userId: id })
-                closeConfirm()
-                load()
-            }
+            confirmColor: T.warning
         })
+        if (!isConfirmed) return
+        
+        await api.put('/api/management/users/demote-agent', { userId: id })
+        load()
     }
 
-    const deleteUser = (id) => {
+    const deleteUser = async (id) => {
         const user = users.find(u => u.id === id)
-        ask({
+        const isConfirmed = await confirm({
             title: 'Delete User?',
             message: `This will permanently delete ${user.name}'s account. This cannot be undone.`,
             confirmLabel: 'Delete',
-            confirmColor: T.error,
-            onConfirm: async () => {
-                await api.delete(`/api/management/users/${id}`)
-                closeConfirm()
-                load()
-            }
+            confirmColor: T.error
         })
+        if (!isConfirmed) return
+        
+        await api.delete(`/api/management/users/${id}`)
+        load()
     }
 
     const USER_TABS = [
@@ -222,16 +186,6 @@ export default function SuperAdminSettings() {
             {/* ── SYSTEM SETTINGS TAB ── */}
             {pageTab === 'system' && <SystemSettings />}
 
-            {confirm && (
-                <ConfirmModal
-                    title={confirm.title}
-                    message={confirm.message}
-                    confirmLabel={confirm.confirmLabel}
-                    confirmColor={confirm.confirmColor}
-                    onConfirm={confirm.onConfirm}
-                    onCancel={closeConfirm}
-                />
-            )}
         </div>
     )
 }

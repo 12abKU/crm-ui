@@ -96,7 +96,7 @@ export default function CompanyUsersTable({
                                     <td className="px-5 py-3.5 text-xs" style={{ color: T.textMuted }}>
                                         {u.createdAt
                                             ? new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : '—'}
+                                            : 'No value'}
                                     </td>
                                     {/* Actions */}
                                     <td className="px-5 py-3.5">

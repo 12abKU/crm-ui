@@ -20,6 +20,7 @@ import api, { extractApiErrorMessage } from '../api'
 import { useSelector } from 'react-redux'
 import { usePermissions } from '../hooks/usePermission'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
+import { useDialog } from '../contexts/DialogContext'
 
 // ── Constants (unchanged) ──────────────────────────────────────
 const PAGE_SIZE = 20
@@ -56,6 +57,7 @@ export default function Activities() {
     const role = useSelector(state => state.auth.role)
     const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
     const can = usePermissions(['ACTIVITIES_CREATE', 'ACTIVITIES_EDIT', 'ACTIVITIES_DELETE'])
+    const { confirm } = useDialog()
 
     // The URL bakes in filterAccountId — when it changes the hook detects the
     // new string and re-fetches automatically (no unstable callback needed).
@@ -193,6 +195,12 @@ export default function Activities() {
     }
 
     const remove = async (id) => {
+        const isConfirmed = await confirm({
+            title: 'Delete Activity?',
+            message: 'Are you sure you want to delete this activity? This action cannot be undone.'
+        });
+        if (!isConfirmed) return;
+        
         await api.delete(`/api/activities/${id}`)
         const newTotal = totalElements - 1
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)

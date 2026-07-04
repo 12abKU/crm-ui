@@ -79,6 +79,21 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     const submit = async (e) => {
         e.preventDefault()
         setSubmitting(true)
+
+        const newErrors = {}
+        if (!form.title) newErrors.title = 'Required'
+        if (!form.amount) newErrors.amount = 'Required'
+        if (!form.stage) newErrors.stage = 'Required'
+        if (!form.expectedCloseDate) newErrors.expectedCloseDate = 'Required'
+        if (!form.accountId) newErrors.accountId = 'Required'
+        if (!form.contactId) newErrors.contactId = 'Required'
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            setSubmitting(false)
+            return
+        }
+
         try {
             await api.post('/api/deals', {
                 title: form.title,
@@ -115,11 +130,11 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
             )}
             <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
-            <Input label="Amount (₹)" type="number" value={form.amount} onChange={setEvent('amount')} error={errors.amount} />
-            <Select label="Stage" value={form.stage} onChange={setEvent('stage')} error={errors.stage}>
+            <Input label="Amount (₹) *" type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
+            <Select label="Stage *" value={form.stage} onChange={setEvent('stage')} required error={errors.stage}>
                 {stages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
             </Select>
-            <Input label="Expected Close Date" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} error={errors.expectedCloseDate} />
+            <Input label="Expected Close Date *" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} required error={errors.expectedCloseDate} />
 
             {/* Account — locked if prefilled */}
             {prefillAccount ? (
@@ -135,12 +150,13 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 </div>
             ) : (
                 <SearchableSelect
-                    label="Account"
+                    label="Account *"
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: String(a.id), label: a.name }))}
                     onSearch={loadAccountOptions}
                     placeholder="Select account..."
+                    required
                     error={errors.accountId || errors.account}
                 />
             )}
@@ -159,12 +175,13 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 </div>
             ) : (
                 <SearchableSelect
-                    label="Contact"
+                    label="Contact *"
                     value={form.contactId}
                     onChange={v => setField('contactId', v)}
                     options={contacts}
                     placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
                     disabled={!form.accountId || loadingContacts}
+                    required
                     error={errors.contactId || errors.contact}
                 />
             )}

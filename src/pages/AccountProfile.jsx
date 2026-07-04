@@ -15,7 +15,7 @@ import DocumentList from './DocumentList'
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const h = Math.floor((Date.now() - new Date(str)) / 3600000)
     if (h < 1) return 'Just now'; if (h < 24) return `${h}h ago`
     const d = Math.floor(h / 24); return d === 1 ? 'Yesterday' : `${d} days ago`
@@ -332,7 +332,7 @@ export default function AccountProfile() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold" style={{ color: T.textPrimary }}>{c.firstName} {c.lastName}</p>
-                                                <p className="text-[12px]" style={{ color: T.textMuted }}>{c.designation || '—'}</p>
+                                                <p className="text-[12px]" style={{ color: T.textMuted }}>{c.designation || 'No value'}</p>
                                             </div>
                                             <p className="text-[12px] hidden sm:block truncate" style={{ color: T.textMuted }}>{c.email}</p>
                                             <span className="material-symbols-outlined text-[14px] shrink-0" style={{ color: T.primary }}>chevron_right</span>

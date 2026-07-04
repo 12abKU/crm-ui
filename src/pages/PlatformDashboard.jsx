@@ -34,7 +34,7 @@ function HeroStat({ icon, value, label, accent, delay = 0 }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent,
             }}>{icon}</div>
             <div>
-                <p style={{ fontSize: 28, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1, letterSpacing: '-0.03em' }}>{value ?? '—'}</p>
+                <p style={{ fontSize: 28, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1, letterSpacing: '-0.03em' }}>{value ?? '0'}</p>
                 <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.50)', margin: '5px 0 0', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{label}</p>
             </div>
         </div>

@@ -2,14 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 
 const fmt = (s) => {
-    if (!s) return '—'
+    if (!s) return 'No value'
     const m = Math.floor(s / 60)
     const sec = s % 60
     return m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
 
 const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const h = Math.floor((Date.now() - new Date(str)) / 3600000)
     if (h < 1) return 'Just now'
     if (h < 24) return `${h}h ago`

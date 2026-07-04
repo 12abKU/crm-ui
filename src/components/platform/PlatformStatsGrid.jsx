@@ -57,7 +57,7 @@ export default function PlatformStatsGrid({ stats }) {
                         {icon}
                     </div>
                     <p style={{ fontSize: 26, fontWeight: 900, color: T.textPrimary, margin: 0, lineHeight: 1, letterSpacing: '-0.02em' }}>
-                        {value ?? '—'}
+                        {value ?? '0'}
                     </p>
                     <p style={{ fontSize: 11, fontWeight: 600, color: T.textMuted, margin: '5px 0 0', letterSpacing: '0.02em' }}>
                         {label}

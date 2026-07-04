@@ -54,7 +54,7 @@ export default function CompanyControls({
                         )}
                     </div>
                 ) : (
-                    <p className="text-sm font-semibold" style={{ color: T.textMuted }}>—</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textMuted }}>0</p>
                 )}
             </div>
 

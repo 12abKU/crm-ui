@@ -258,7 +258,7 @@ export const ACTIVITY_STYLES = {
 }
 
 export const TAGS = ['High-Value', 'Low-Value', 'Enterprise', 'Small Business', 'Mid-Market']
-export const EMPLOYEE_RANGES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1001-5000']
+export const EMPLOYEE_RANGES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1001-5000', '10000+']
 export const ACTIVITY_TYPES = ['CALL', 'EMAIL', 'NOTE', 'MEETING']
 
 export const NAV_LINKS = [

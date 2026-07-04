@@ -131,16 +131,16 @@ export default function Calls() {
                 {/* ── Stat cards ───────────────────────────── */}
                 <div className="flex flex-wrap gap-4 mb-7">
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '—'}                      bg={T.primaryDim}  color={T.primary} />
+                        <CallStatCard icon="call"      label="Total Calls"   value={stats?.total ?? '0'}                      bg={T.primaryDim}  color={T.primary} />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '—'}                   bg={T.successDim}  color={T.success} />
+                        <CallStatCard icon="call_received" label="Answered"  value={stats?.answered ?? '0'}                   bg={T.successDim}  color={T.success} />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '—'} bg={T.secondaryDim} color={T.secondary} />
+                        <CallStatCard icon="schedule"  label="Talk Time"     value={stats ? fmtMin(stats.totalMinutes) : '0'} bg={T.secondaryDim} color={T.secondary} />
                     </div>
                     <div className="flex-1 min-w-[140px] sm:min-w-[170px]">
-                        <CallStatCard icon="avg_pace"  label="Avg Duration"  value={stats ? `${stats.avgDurationSeconds}s` : '—'} bg={T.warningDim} color={T.warning} />
+                        <CallStatCard icon="avg_pace"  label="Avg Duration"  value={stats ? `${stats.avgDurationSeconds}s` : '0'} bg={T.warningDim} color={T.warning} />
                     </div>
                 </div>
 

@@ -19,11 +19,13 @@ import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
+import { useDialog } from '../contexts/DialogContext'
 
 const PAGE_SIZE = 20
 
 export default function Contacts() {
     const navigate = useNavigate()
+    const { confirm } = useDialog()
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
     const [duplicates, setDuplicates] = useState([])
@@ -81,6 +83,21 @@ export default function Contacts() {
 
     const submit = async (e) => {
         e.preventDefault()
+
+        const newErrors = {}
+        if (!form.firstName) newErrors.firstName = 'Required'
+        if (!form.lastName) newErrors.lastName = 'Required'
+        if (!form.email) newErrors.email = 'Required'
+        if (!form.phone) newErrors.phone = 'Required'
+        else if (!/^\d{10}$/.test(form.phone)) newErrors.phone = 'Must be exactly 10 digits'
+        if (!form.designation) newErrors.designation = 'Required'
+        if (!form.accountId) newErrors.accountId = 'Required'
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
         setCheckingDuplicates(true)
         try {
             const r = await api.post('/api/contacts/duplicates', form, { suppressErrorToast: true })
@@ -119,6 +136,11 @@ export default function Contacts() {
 
     const remove = async (id, e) => {
         e.stopPropagation()
+        const isConfirmed = await confirm({
+            title: 'Delete Contact?',
+            message: 'Are you sure you want to delete this contact? This action cannot be undone.'
+        });
+        if (!isConfirmed) return;
         await api.delete(`/api/contacts/${id}`)
         const newTotal = totalElements - 1
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
@@ -241,7 +263,7 @@ export default function Contacts() {
                                     Contacts
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {loading ? 'Loading...' : `${totalElements} people in your network`}
+                                    {loading ? 'Loading...' : `Total Contacts - ${totalElements}`}
                                 </p>
                             </div>
                         </div>
@@ -381,12 +403,15 @@ export default function Contacts() {
                         <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                     )}
                     <Input label="First Name *" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Ravi" required error={errors.firstName} />
-                    <Input label="Last Name" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" error={errors.lastName} />
-                    <Input label="Email" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" error={errors.email} />
-                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
-                    <Input label="Designation" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" error={errors.designation} />
-                    <SearchableSelect label="Account" value={form.accountId} onChange={v => set('accountId', v)}
-                        onSearch={loadAccountOptions} placeholder="Select account" error={errors.accountId || errors.account} />
+                    <Input label="Last Name *" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" required error={errors.lastName} />
+                    <Input label="Email *" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" required error={errors.email} />
+                    <Input label="Phone *" value={form.phone} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        set('phone', val);
+                    }} placeholder="9999999999" required error={errors.phone} />
+                    <Input label="Designation *" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" required error={errors.designation} />
+                    <SearchableSelect label="Account *" value={form.accountId} onChange={v => set('accountId', v)}
+                        onSearch={loadAccountOptions} placeholder="Select account" required error={errors.accountId || errors.account} />
                 </SlideForm>
             )}
 

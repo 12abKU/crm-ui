@@ -76,7 +76,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
 
     const contactName = deal.contact
         ? `${deal.contact.firstName} ${deal.contact.lastName}`
-        : '—'
+        : 'No value'
 
     const currentStyle = getStageStyle(stage)
 
@@ -235,12 +235,12 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoCard label="Amount">
                         <span style={{ color: deal.amount > 0 ? T.primary : T.textMuted }}>
-                            {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '—'}
+                            {deal.amount > 0 ? `₹${deal.amount.toLocaleString()}` : '0'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Expected Close">
                         <span style={{ color: deal.expectedCloseDate ? T.textPrimary : T.textMuted }}>
-                            {deal.expectedCloseDate || '—'}
+                            {deal.expectedCloseDate || 'No value'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Account">
@@ -250,7 +250,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                                 style={{ color: T.primary }}>
                                 {deal.account.name}
                             </button>
-                        ) : <span style={{ color: T.textMuted }}>—</span>}
+                        ) : <span style={{ color: T.textMuted }}>0</span>}
                     </InfoCard>
                     <InfoCard label="Contact">
                         {deal.contact ? (
@@ -259,11 +259,11 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                                 style={{ color: T.primary }}>
                                 {contactName}
                             </button>
-                        ) : <span style={{ color: T.textMuted }}>—</span>}
+                        ) : <span style={{ color: T.textMuted }}>0</span>}
                     </InfoCard>
                     <InfoCard label="Created">
                         <span style={{ color: deal.createdAt ? T.textPrimary : T.textMuted }}>
-                            {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : '—'}
+                            {deal.createdAt ? new Date(deal.createdAt).toLocaleDateString() : 'No value'}
                         </span>
                     </InfoCard>
                 </div>

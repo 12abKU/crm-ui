@@ -19,8 +19,8 @@ export default function TeamTab({ data, onAgentClick }) {
 
     return (
         <Card accent={DASHBOARD_ACCENTS.violet}>
-            <CardTitle icon="people" accent={DASHBOARD_ACCENTS.violet} meta={agents.length ? `${agents.length} agents` : undefined}>
-                Agent Performance
+            <CardTitle icon="people" accent={DASHBOARD_ACCENTS.violet} >
+                Team Performance
             </CardTitle>
             {agents.length ? (
                 <TableCard>

@@ -19,7 +19,7 @@ import DocumentList from './DocumentList'
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
 const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const h = Math.floor((Date.now() - new Date(str)) / 3600000)
     if (h < 1) return 'Just now'; if (h < 24) return `${h}h ago`
     const d = Math.floor(h / 24); return d === 1 ? 'Yesterday' : `${d} days ago`

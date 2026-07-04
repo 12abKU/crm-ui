@@ -106,32 +106,32 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoCard label="Sender Name">
                         <span style={{ color: profile.senderName ? T.textPrimary : T.textMuted }}>
-                            {profile.senderName || '—'}
+                            {profile.senderName || 'No value'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Email">
                         <span style={{ color: profile.senderEmail ? T.textPrimary : T.textMuted }}>
-                            {profile.senderEmail || '—'}
+                            {profile.senderEmail || 'No value'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Phone">
                         <span style={{ color: profile.senderPhone ? T.textPrimary : T.textMuted }}>
-                            {profile.senderPhone || '—'}
+                            {profile.senderPhone || 'No value'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Company">
                         <span style={{ color: profile.indiamartCompany || profile.accountName || profile.companyName ? T.textPrimary : T.textMuted }}>
-                            {profile.indiamartCompany || profile.accountName || profile.companyName || '—'}
+                            {profile.indiamartCompany || profile.accountName || profile.companyName || '0'}
                         </span>
                     </InfoCard>
                     <InfoCard label="City/Location">
                         <span style={{ color: profile.city || profile.indiamartState ? T.textPrimary : T.textMuted }}>
-                            {profile.city || profile.indiamartState || '—'}
+                            {profile.city || profile.indiamartState || 'No value'}
                         </span>
                     </InfoCard>
                     <InfoCard label="Created">
                         <span style={{ color: profile.createdAt ? T.textPrimary : T.textMuted }}>
-                            {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}
+                            {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'No value'}
                         </span>
                     </InfoCard>
                 </div>
@@ -145,22 +145,22 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <InfoCard label="Product Query">
-                            <span style={{ color: profile.indiamartProduct ? T.textPrimary : T.textMuted }}>{profile.indiamartProduct || '—'}</span>
+                            <span style={{ color: profile.indiamartProduct ? T.textPrimary : T.textMuted }}>{profile.indiamartProduct || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Subject">
-                            <span style={{ color: profile.indiamartSubject ? T.textPrimary : T.textMuted }}>{profile.indiamartSubject || '—'}</span>
+                            <span style={{ color: profile.indiamartSubject ? T.textPrimary : T.textMuted }}>{profile.indiamartSubject || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Address">
-                            <span style={{ color: profile.indiamartAddress ? T.textPrimary : T.textMuted }}>{profile.indiamartAddress || '—'}</span>
+                            <span style={{ color: profile.indiamartAddress ? T.textPrimary : T.textMuted }}>{profile.indiamartAddress || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Pincode">
-                            <span style={{ color: profile.indiamartPincode ? T.textPrimary : T.textMuted }}>{profile.indiamartPincode || '—'}</span>
+                            <span style={{ color: profile.indiamartPincode ? T.textPrimary : T.textMuted }}>{profile.indiamartPincode || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Alt Email">
-                            <span style={{ color: profile.indiamartAltEmail ? T.textPrimary : T.textMuted }}>{profile.indiamartAltEmail || '—'}</span>
+                            <span style={{ color: profile.indiamartAltEmail ? T.textPrimary : T.textMuted }}>{profile.indiamartAltEmail || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Lead Time">
-                            <span style={{ color: profile.indiamartLeadTime ? T.textPrimary : T.textMuted }}>{profile.indiamartLeadTime || '—'}</span>
+                            <span style={{ color: profile.indiamartLeadTime ? T.textPrimary : T.textMuted }}>{profile.indiamartLeadTime || 'No value'}</span>
                         </InfoCard>
                     </div>
                 </div>
@@ -173,16 +173,16 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <InfoCard label="Requirement">
-                            <span style={{ color: profile.sulekhaRequirement ? T.textPrimary : T.textMuted }}>{profile.sulekhaRequirement || '—'}</span>
+                            <span style={{ color: profile.sulekhaRequirement ? T.textPrimary : T.textMuted }}>{profile.sulekhaRequirement || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Service">
-                            <span style={{ color: profile.sulekhaService ? T.textPrimary : T.textMuted }}>{profile.sulekhaService || '—'}</span>
+                            <span style={{ color: profile.sulekhaService ? T.textPrimary : T.textMuted }}>{profile.sulekhaService || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Category">
-                            <span style={{ color: profile.sulekhaCategory ? T.textPrimary : T.textMuted }}>{profile.sulekhaCategory || '—'}</span>
+                            <span style={{ color: profile.sulekhaCategory ? T.textPrimary : T.textMuted }}>{profile.sulekhaCategory || 'No value'}</span>
                         </InfoCard>
                         <InfoCard label="Date">
-                            <span style={{ color: profile.sulekhaDate ? T.textPrimary : T.textMuted }}>{profile.sulekhaDate || '—'}</span>
+                            <span style={{ color: profile.sulekhaDate ? T.textPrimary : T.textMuted }}>{profile.sulekhaDate || 'No value'}</span>
                         </InfoCard>
                     </div>
                 </div>
@@ -195,7 +195,7 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <InfoCard label="WhatsApp Number">
-                            <span style={{ color: profile.whatsappNumber ? T.textPrimary : T.textMuted }}>{profile.whatsappNumber || '—'}</span>
+                            <span style={{ color: profile.whatsappNumber ? T.textPrimary : T.textMuted }}>{profile.whatsappNumber || 'No value'}</span>
                         </InfoCard>
                     </div>
                     {profile.whatsappFirstMessage && (

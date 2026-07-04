@@ -156,7 +156,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                 {rec1.primaryText}
                             </h4>
                             <p className="text-xs truncate" style={{ color: T.textSecondary }}>
-                                {rec1.secondaryText || '—'}
+                                {rec1.secondaryText || 'No value'}
                             </p>
                             <div className="text-[10px] mt-2 pt-2 border-t flex justify-between" style={{ borderColor: T.borderSubtle, color: T.textMuted }}>
                                 <span>Owner: {rec1.ownerName || 'Unassigned'}</span>
@@ -189,7 +189,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                 {rec2.primaryText}
                             </h4>
                             <p className="text-xs truncate" style={{ color: T.textSecondary }}>
-                                {rec2.secondaryText || '—'}
+                                {rec2.secondaryText || 'No value'}
                             </p>
                             <div className="text-[10px] mt-2 pt-2 border-t flex justify-between" style={{ borderColor: T.borderSubtle, color: T.textMuted }}>
                                 <span>Owner: {rec2.ownerName || 'Unassigned'}</span>
@@ -263,7 +263,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs truncate font-medium" style={{ color: rawVal1 ? T.textPrimary : T.textMuted }}>
-                                                        {displayVal1 || '—'}
+                                                        {displayVal1 || 'No value'}
                                                     </p>
                                                 </div>
                                             </button>
@@ -290,7 +290,7 @@ export default function MergeCompareModal({ isOpen, group, onClose, onSuccess, e
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs truncate font-medium" style={{ color: rawVal2 ? T.textPrimary : T.textMuted }}>
-                                                        {displayVal2 || '—'}
+                                                        {displayVal2 || 'No value'}
                                                     </p>
                                                 </div>
                                             </button>

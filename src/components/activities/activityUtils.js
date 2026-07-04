@@ -24,7 +24,7 @@ export const STATUS_STYLES = {
 }
 
 export const fmtScheduled = (s) => {
-    if (!s) return '—'
+    if (!s) return 'No value'
     const d = new Date(s)
     const now = new Date()
     const diffDays = Math.floor((d - now) / 86400000)

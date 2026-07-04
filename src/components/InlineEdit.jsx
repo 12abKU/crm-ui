@@ -3,7 +3,7 @@ import { T } from '../constants/theme'
 import { extractApiErrorMessage } from '../api'
 import CustomSelect from './ui/CustomSelect'
 
-export default function InlineEdit({ value, onSave, options, placeholder = '—', type = 'text', readonly = false, allowCustom = false, children }) {
+export default function InlineEdit({ value, onSave, options, placeholder = '0', type = 'text', readonly = false, allowCustom = false, children }) {
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(value)
     const [hovering, setHovering] = useState(false)

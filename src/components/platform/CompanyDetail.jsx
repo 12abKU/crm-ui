@@ -186,19 +186,19 @@ function CompanyInfoCard({ company }) {
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Industry</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.industry || '—'}</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.industry || 'No value'}</p>
                 </div>
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Company Size</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.companySize || '—'}</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.companySize || 'No value'}</p>
                 </div>
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Country</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.country || '—'}</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.country || '0'}</p>
                 </div>
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Phone</p>
-                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.phone || '—'}</p>
+                    <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>{company.phone || 'No value'}</p>
                 </div>
             </div>
         </div>

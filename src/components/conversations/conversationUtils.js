@@ -1,5 +1,5 @@
 export const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const date = new Date(str)
     if (isNaN(date)) return str
     const hours = Math.floor((Date.now() - date) / 3600000)

@@ -18,6 +18,7 @@ import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
+import { useDialog } from '../contexts/DialogContext'
 
 const PAGE_SIZE = 20
 
@@ -25,7 +26,6 @@ export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
-    const [customEmployeeRange, setCustomEmployeeRange] = useState(false)
     const [customTag, setCustomTag] = useState(false)
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
@@ -34,7 +34,6 @@ export default function Accounts() {
 
     const handleOpenModal = () => {
         setErrors({})
-        setCustomEmployeeRange(false)
         setCustomTag(false)
         setOpen(true)
     }
@@ -50,6 +49,7 @@ export default function Accounts() {
     }, [])
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
+    const { confirm } = useDialog()
 
     const {
         items: accounts,
@@ -71,6 +71,21 @@ export default function Accounts() {
 
     const submit = async (e) => {
         e.preventDefault()
+
+        const newErrors = {}
+        if (!form.name) newErrors.name = 'Required'
+        if (!form.website) newErrors.website = 'Required'
+        if (!form.phone) newErrors.phone = 'Required'
+        else if (!/^\d{10}$/.test(form.phone)) newErrors.phone = 'Must be exactly 10 digits'
+        if (!form.industry) newErrors.industry = 'Required'
+        if (!form.employeeRange) newErrors.employeeRange = 'Required'
+        if (!form.tag) newErrors.tag = 'Required'
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
         setCheckingDuplicates(true)
         try {
             const r = await api.post('/api/accounts/duplicates', form, { suppressErrorToast: true })
@@ -95,7 +110,6 @@ export default function Accounts() {
             setShowDuplicateModal(false)
             setDuplicates([])
             setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
-            setCustomEmployeeRange(false)
             setCustomTag(false)
             setErrors({})
             invalidateCacheForKey()
@@ -111,6 +125,11 @@ export default function Accounts() {
 
     const remove = async (id, e) => {
         e.stopPropagation()
+        const isConfirmed = await confirm({
+            title: 'Delete Account?',
+            message: 'Are you sure you want to delete this account? This action cannot be undone.'
+        });
+        if (!isConfirmed) return;
         await api.delete(`/api/accounts/${id}`)
         const newTotal = totalElements - 1
         const maxPage = Math.max(0, Math.ceil(newTotal / PAGE_SIZE) - 1)
@@ -170,7 +189,7 @@ export default function Accounts() {
                                     Accounts
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {loading ? 'Loading...' : `${totalElements} companies in your CRM`}
+                                    {loading ? 'Loading...' : `Total Accounts - ${totalElements}`}
                                 </p>
                             </div>
                         </div>
@@ -277,7 +296,7 @@ export default function Accounts() {
 
                                     {/* Employees */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[4] }}>
-                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} allowCustom={true} onSave={v => updateField(a.id, 'employeeRange', v)} />
+                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
                                     </td>
 
                                     {/* Tag */}
@@ -337,44 +356,28 @@ export default function Accounts() {
                         <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                     )}
                     <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required error={errors.name} />
-                    <Input label="Website" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" error={errors.website} />
-                    <Input label="Phone" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="9999999999" error={errors.phone} />
-                    <Input label="Industry" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" error={errors.industry} />
-                    {customEmployeeRange ? (
-                        <div className="flex gap-2 items-end">
-                            <div className="flex-1">
-                                <Input label="Custom Employee Range" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} placeholder="e.g. 500-1000" error={errors.employeeRange} />
-                            </div>
-                            <button type="button" onClick={() => { setCustomEmployeeRange(false); set('employeeRange', '') }} className="text-xs mb-3 font-semibold underline" style={{ color: T.primary }}>
-                                Choose from list
-                            </button>
-                        </div>
-                    ) : (
-                        <Select label="Employee Range" value={form.employeeRange} onChange={e => {
-                            if (e.target.value === '__custom__') {
-                                setCustomEmployeeRange(true)
-                                set('employeeRange', '')
-                            } else {
-                                set('employeeRange', e.target.value)
-                            }
-                        }} error={errors.employeeRange}>
-                            <option value="">Select range</option>
-                            {EMPLOYEE_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
-                            <option value="__custom__">+ Add Custom Range...</option>
-                        </Select>
-                    )}
+                    <Input label="Website *" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" required error={errors.website} />
+                    <Input label="Phone *" value={form.phone} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        set('phone', val);
+                    }} placeholder="9999999999" required error={errors.phone} />
+                    <Input label="Industry *" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" required error={errors.industry} />
+                    <Select label="Employee Range *" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} required error={errors.employeeRange}>
+                        <option value="">Select range</option>
+                        {EMPLOYEE_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </Select>
 
                     {customTag ? (
                         <div className="flex gap-2 items-end">
                             <div className="flex-1">
-                                <Input label="Custom Tag" value={form.tag} onChange={e => set('tag', e.target.value)} placeholder="e.g. Partner" error={errors.tag} />
+                                <Input label="Custom Tag *" value={form.tag} onChange={e => set('tag', e.target.value)} placeholder="e.g. Partner" required error={errors.tag} />
                             </div>
                             <button type="button" onClick={() => { setCustomTag(false); set('tag', '') }} className="text-xs mb-3 font-semibold underline" style={{ color: T.primary }}>
                                 Choose from list
                             </button>
                         </div>
                     ) : (
-                        <Select label="Tag" value={form.tag} onChange={e => {
+                        <Select label="Tag *" value={form.tag} onChange={e => {
                             if (e.target.value === '__custom__') {
                                 setCustomTag(true)
                                 set('tag', '')

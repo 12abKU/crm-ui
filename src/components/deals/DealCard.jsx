@@ -45,7 +45,7 @@ export default function DealCard({
     const assigneeNames = assignees.map(u => u.name)
     const assignedToMe = isAgent && assignees.some(u => String(u.id) === String(userId))
     const assignedByName = deal.owner?.name ?? 'Admin'
-    const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? '—'
+    const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? 'No value'
     const creatorUser = deal.createdBy || deal.owner
 
     const { getStageStyle } = usePipelineStages()

@@ -11,7 +11,7 @@ import api, { extractApiErrorMessage } from '../api'
 import { usePermissions } from '../hooks/usePermission'
 import LeadPanel from '../components/leadPanel/LeadPanel'
 import AssignLeadModal from '../components/leadPanel/AssignLeadModal'
-import ConfirmModal from '../components/ui/ConfirmModal'
+import { useDialog } from '../contexts/DialogContext'
 import ConvertLeadModal from '../components/leadPanel/ConvertLeadModal'
 import { IconUserPlus } from '@tabler/icons-react'
 
@@ -27,26 +27,41 @@ const MAX_KANBAN_CARDS_PER_STAGE = 120
 const LEADS_PER_PAGE = 30
 
 const STAGE_STYLES = {
-    NEW: { accent: T.stone600, badgeBg: T.stone100, badgeColor: T.stone600 },
-    CONTACTED: { accent: T.blue600, badgeBg: T.blue100, badgeColor: T.blue600 },
-    QUALIFIED: { accent: T.teal600, badgeBg: T.teal100, badgeColor: T.teal600 },
-    CONVERTED: { accent: T.green600, badgeBg: T.green100, badgeColor: T.green600 },
-    LOST: { accent: T.red600, badgeBg: T.red100, badgeColor: T.red600 },
+    NEW: { accent: '#78716C', badgeBg: 'rgba(120,113,108,0.12)', badgeColor: '#78716C' },
+    CONTACTED: { accent: '#2563EB', badgeBg: 'rgba(37,99,235,0.10)', badgeColor: '#2563EB' },
+    QUALIFIED: { accent: '#538D8D', badgeBg: 'rgba(83,141,141,0.12)', badgeColor: '#538D8D' },
+    CONVERTED: { accent: '#16A34A', badgeBg: 'rgba(22,163,74,0.10)', badgeColor: '#16A34A' },
+    LOST: { accent: '#DC2626', badgeBg: 'rgba(220,38,38,0.10)', badgeColor: '#DC2626' },
+}
+
+const STAGE_COLUMN_BG = {
+    NEW:       'rgba(120,113,108,0.05)',
+    CONTACTED: 'rgba(37,99,235,0.05)',
+    QUALIFIED: 'rgba(83,141,141,0.05)',
+    CONVERTED: 'rgba(22,163,74,0.05)',
+    LOST:      'rgba(220,38,38,0.04)',
+}
+
+const STAGE_HEADER_BG = {
+    NEW:       'rgba(120,113,108,0.10)',
+    CONTACTED: 'rgba(37,99,235,0.08)',
+    QUALIFIED: 'rgba(83,141,141,0.08)',
+    CONVERTED: 'rgba(22,163,74,0.08)',
+    LOST:      'rgba(220,38,38,0.07)',
+}
+
+const STAGE_COLUMN_BORDER = {
+    NEW:       'rgba(120,113,108,0.22)',
+    CONTACTED: 'rgba(37,99,235,0.22)',
+    QUALIFIED: 'rgba(83,141,141,0.22)',
+    CONVERTED: 'rgba(22,163,74,0.22)',
+    LOST:      'rgba(220,38,38,0.18)',
 }
 
 const getStageStyle = (stageKey) => STAGE_STYLES[stageKey] || STAGE_STYLES.NEW
-const getStageColBg = (stageKey) => {
-    const style = getStageStyle(stageKey)
-    return style.accent && style.accent.startsWith('#') ? `${style.accent}05` : 'rgba(234,88,12,0.02)'
-}
-const getStageHeaderBg = (stageKey) => {
-    const style = getStageStyle(stageKey)
-    return style.accent && style.accent.startsWith('#') ? `${style.accent}0f` : 'rgba(234,88,12,0.05)'
-}
-const getStageColBorder = (stageKey) => {
-    const style = getStageStyle(stageKey)
-    return style.accent && style.accent.startsWith('#') ? `${style.accent}33` : 'rgba(234,88,12,0.15)'
-}
+const getStageColBg = (stageKey) => STAGE_COLUMN_BG[stageKey] || 'rgba(234,88,12,0.02)'
+const getStageHeaderBg = (stageKey) => STAGE_HEADER_BG[stageKey] || 'rgba(234,88,12,0.05)'
+const getStageColBorder = (stageKey) => STAGE_COLUMN_BORDER[stageKey] || 'rgba(234,88,12,0.15)'
 
 const EMPTY_FORM = { title: '', status: 'NEW', source: '', senderName: '', senderEmail: '', senderPhone: '', companyName: '', message: '' }
 
@@ -59,6 +74,7 @@ export default function Leads() {
     const isAgent = role === 'AGENT'
     const can = usePermissions(['LEADS_CREATE', 'LEADS_EDIT', 'LEADS_DELETE', 'LEADS_ASSIGN'])
     const canCreateLead = isAdminOrAbove || can.LEADS_CREATE
+    const { confirm, alert } = useDialog()
 
     const [leadsByStage, setLeadsByStage] = useState({})
     const [pagesByStage, setPagesByStage] = useState({})
@@ -66,7 +82,6 @@ export default function Leads() {
     const [loadingByStage, setLoadingByStage] = useState({})
     const [stageTotalsByStage, setStageTotalsByStage] = useState({})
     const [assignModalLead, setAssignModalLead] = useState(null)
-    const [leadToDelete, setLeadToDelete] = useState(null)
 
     const [selectedLead, setSelectedLead] = useState(null)
     const [open, setOpen] = useState(false)
@@ -189,6 +204,23 @@ export default function Leads() {
 
     const submit = async (e) => {
         e.preventDefault()
+
+        const newErrors = {}
+        if (!form.title) newErrors.title = 'Required'
+        if (!form.source) newErrors.source = 'Required'
+        if (!form.companyName) newErrors.companyName = 'Required'
+        if (!form.senderName) newErrors.senderName = 'Required'
+        if (!form.senderEmail) newErrors.senderEmail = 'Required'
+        if (!form.senderPhone) newErrors.senderPhone = 'Required'
+        else if (!/^\d{10}$/.test(form.senderPhone)) newErrors.senderPhone = 'Must be exactly 10 digits'
+        if (!form.status) newErrors.status = 'Required'
+        if (!form.message) newErrors.message = 'Required'
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors)
+            return
+        }
+
         try {
             await api.post('/api/leads', form)
             setOpen(false)
@@ -267,7 +299,7 @@ export default function Leads() {
         
         const canDrag = isAdminOrAbove || can.LEADS_EDIT || lead._isOwner || lead._assignedToMe
         if (!canDrag) {
-            alert("You do not have permission to move this lead.")
+            alert({ title: 'Permission Denied', message: "You do not have permission to move this lead." })
             return
         }
 
@@ -280,26 +312,32 @@ export default function Leads() {
     }
 
     const removeLead = async (id, stage) => {
-        setLeadToDelete({ id, stage })
-    }
+        const isConfirmed = await confirm({
+            title: 'Delete Lead?',
+            message: 'Are you sure you want to delete this lead? This action cannot be undone.',
+            confirmText: 'Delete'
+        })
+        if (!isConfirmed) return
 
-    const confirmDeleteLead = async () => {
-        if (!leadToDelete) return
         try {
-            await api.delete(`/api/leads/${leadToDelete.id}`)
-            loadStageLeads(leadToDelete.stage, 0, false, search)
-            if (selectedLead && selectedLead.id === leadToDelete.id) {
+            await api.delete(`/api/leads/${id}`)
+            loadStageLeads(stage, 0, false, search)
+            if (selectedLead && selectedLead.id === id) {
                 navigate(location.pathname)
                 setSelectedLead(null)
             }
         } catch (err) {
-            alert("Failed to delete lead: " + extractApiErrorMessage(err))
-        } finally {
-            setLeadToDelete(null)
+            alert({ title: 'Delete Failed', message: "Failed to delete lead: " + extractApiErrorMessage(err) })
         }
     }
 
     const totalPipelineLeadsCount = Object.values(stageTotalsByStage).reduce((sum, stats) => sum + (stats?.count || 0), 0)
+
+    const pipelineTotals = LEAD_STAGES.map(stageObj => {
+        const stage = stageObj.stageKey
+        const count = stageTotalsByStage[stage]?.count || 0
+        return { stage, label: stageObj.label, count, style: getStageStyle(stage) }
+    })
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -345,7 +383,7 @@ export default function Leads() {
                                     Leads
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {totalPipelineLeadsCount} lead{totalPipelineLeadsCount !== 1 ? 's' : ''} in total
+                                    Total Leads - {totalPipelineLeadsCount}
                                 </p>
                             </div>
                         </div>
@@ -369,6 +407,29 @@ export default function Leads() {
                     </div>
                 </div>
 
+                {/* ── Pipeline summary strip ───────────────── */}
+                <div className="flex flex-wrap gap-3 mb-6">
+                    {pipelineTotals.map(({ stage, label, count, style }) => (
+                        <div key={stage}
+                            className="flex-1 min-w-[140px] sm:min-w-[170px] rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
+                            style={{
+                                background: T.surface,
+                                border: `1.5px solid ${style.accent}30`,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                            }}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest truncate"
+                                    style={{ color: style.accent }}>{label}</span>
+                                <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
+                                    style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
+                            </div>
+                            <p className="text-base font-black mt-0.5" style={{ color: T.textPrimary }}>
+                                {count} {count === 1 ? 'Lead' : 'Leads'}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
                 {/* ── Kanban board — scrollable columns ───── */}
                 <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
                     {LEAD_STAGES.map(stageObj => {
@@ -382,9 +443,9 @@ export default function Leads() {
 
                         return (
                             <div key={stage}
-                                className="flex flex-col shrink-0 w-[280px] md:w-auto md:flex-1"
+                                className="flex flex-col shrink-0 flex-1"
                                 style={{
-                                    minWidth: 0,
+                                    minWidth: 300,
                                     borderRadius: 16, overflow: 'hidden', height: '100%',
                                     background: colBg,
                                     border: `1.5px solid ${colBorder}`,
@@ -578,25 +639,29 @@ export default function Leads() {
                 <Input label="Lead Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
 
                 <SearchableSelect 
-                    label="Source" 
+                    label="Source *" 
                     value={form.source} 
                     onChange={v => setField('source', v)} 
                     placeholder="e.g. IndiaMart, Website, etc." 
+                    required
                     error={errors.source} 
                     options={sources.map(s => ({ id: s, label: s }))}
                     creatable
                 />
 
-                <Input label="Company/Organization" value={form.companyName} onChange={setEvent('companyName')} error={errors.companyName} />
-                <Input label="Name" value={form.senderName} onChange={setEvent('senderName')} error={errors.senderName} />
-                <Input label="Email" type="email" value={form.senderEmail} onChange={setEvent('senderEmail')} error={errors.senderEmail} />
-                <Input label="Phone" value={form.senderPhone} onChange={setEvent('senderPhone')} error={errors.senderPhone} />
+                <Input label="Company/Organization *" value={form.companyName} onChange={setEvent('companyName')} required error={errors.companyName} />
+                <Input label="Name *" value={form.senderName} onChange={setEvent('senderName')} required error={errors.senderName} />
+                <Input label="Email *" type="email" value={form.senderEmail} onChange={setEvent('senderEmail')} required error={errors.senderEmail} />
+                <Input label="Phone *" value={form.senderPhone} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setField('senderPhone', val);
+                }} required error={errors.senderPhone} />
 
-                <Select label="Status" value={form.status} onChange={setEvent('status')}>
+                <Select label="Status *" value={form.status} onChange={setEvent('status')} required>
                     {LEAD_STAGES.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
                 </Select>
 
-                <Textarea label="Message/Notes" value={form.message} onChange={setEvent('message')} error={errors.message} />
+                <Textarea label="Message/Notes *" value={form.message} onChange={setEvent('message')} required error={errors.message} />
             </SlideForm>
 
             {selectedLead && (
@@ -608,7 +673,17 @@ export default function Leads() {
                         setSelectedLead(null)
                     }}
                     onDelete={can.LEADS_DELETE && (isAdminOrAbove || selectedLead._isOwner) ? async (id) => {
-                        await removeLead(id, selectedLead.status)
+                        const isConfirmed = await confirm({
+                            title: 'Delete Lead?',
+                            message: 'Are you sure you want to delete this lead? This action cannot be undone.',
+                            confirmText: 'Delete'
+                        })
+                        if (!isConfirmed) return
+
+                        await api.delete(`/api/leads/${id}`)
+                        const deletedStage = selectedLead.status
+                        setSelectedLead(null)
+                        loadStageLeads(deletedStage, 0, false, search)
                     } : undefined}
                 />
             )}
@@ -625,14 +700,7 @@ export default function Leads() {
                 />
             )}
 
-            <ConfirmModal
-                isOpen={!!leadToDelete}
-                title="Delete Lead"
-                message="Are you sure you want to delete this lead? This action cannot be undone."
-                onConfirm={confirmDeleteLead}
-                onCancel={() => setLeadToDelete(null)}
-                confirmText="Delete"
-            />
+
 
             {leadToConvert && (
                 <ConvertLeadModal

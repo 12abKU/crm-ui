@@ -93,12 +93,12 @@ export default function CompaniesTable({
                                     <td className="px-5 py-3.5">
                                         {company.status === 'TRIAL'
                                             ? <TrialBadge trialEndsAt={company.trialEndsAt} status={company.status} />
-                                            : <span className="text-xs" style={{ color: T.textMuted }}>—</span>}
+                                            : <span className="text-xs" style={{ color: T.textMuted }}>0</span>}
                                     </td>
                                     <td className="px-5 py-3.5 text-xs" style={{ color: T.textMuted }}>
                                         {company.createdAt
                                             ? new Date(company.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : '—'}
+                                            : 'No value'}
                                     </td>
                                     <td className="px-5 py-3.5">
                                         <button onClick={() => onManage(company)}

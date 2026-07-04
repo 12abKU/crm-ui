@@ -94,7 +94,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                             )}
                         </div>
                     </div>
-                ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
+                ) : <span className="text-[12px]" style={{ color: T.textMuted }}>0</span>}
             </td>
 
             {showOwner && (
@@ -109,7 +109,7 @@ export default function ActivityRow({ activity, highlighted, rowBg, onRemove, on
                             </div>
                             <p className="text-[12px] font-semibold hover:text-primary transition-colors hover:underline" style={{ color: T.textSecondary }}>{activity.owner.name}</p>
                         </div>
-                    ) : <span className="text-[12px]" style={{ color: T.textMuted }}>—</span>}
+                    ) : <span className="text-[12px]" style={{ color: T.textMuted }}>0</span>}
                 </td>
             )}
 

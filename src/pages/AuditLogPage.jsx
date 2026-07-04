@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import api from '../api'
 import TopBar from '../components/TopBar'
-import ConfirmModal from '../components/ui/ConfirmModal'
 import CustomSelect from '../components/ui/CustomSelect'
+import { useDialog } from '../contexts/DialogContext'
 
 const ACTION_META = {
     CREATED:       { label: 'Created',       color: '#10B981', bg: '#10B98120', icon: 'add_circle' },
@@ -97,7 +97,7 @@ function EntityBadge({ entityType }) {
 }
 
 function renderDetail(detail, users, navigate) {
-    if (!detail) return '—'
+    if (!detail) return 'No value'
     if (!users || users.length === 0) return detail
 
     const sortedUsers = [...users].sort((a, b) => (b.name || '').length - (a.name || '').length)
@@ -149,7 +149,7 @@ export default function AuditLogPage() {
     const [page, setPage] = useState(0)
     const [loading, setLoading] = useState(false)
     const [hasMore, setHasMore] = useState(true)
-    const [showConfirm, setShowConfirm] = useState(false)
+    const { confirm } = useDialog()
 
     const [entityFilter, setEntityFilter] = useState('')
     const [users, setUsers] = useState([])
@@ -201,11 +201,14 @@ export default function AuditLogPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [entityFilter, actorFilter])
 
-    const handleClearAll = () => {
-        setShowConfirm(true)
-    }
+    const handleClearAll = async () => {
+        const isConfirmed = await confirm({
+            title: 'Clear Audit Logs',
+            message: 'Are you sure you want to clear all audit logs? This action cannot be undone.',
+            confirmText: 'Clear All'
+        })
+        if (!isConfirmed) return
 
-    const handleConfirmClear = async () => {
         try {
             setLoading(true)
             await api.delete('/api/audit-logs')
@@ -214,7 +217,6 @@ export default function AuditLogPage() {
             // error is already globally handled
         } finally {
             setLoading(false)
-            setShowConfirm(false)
         }
     }
 
@@ -471,14 +473,6 @@ export default function AuditLogPage() {
                     )}
                 </main>
 
-            <ConfirmModal
-                isOpen={showConfirm}
-                title="Clear Audit Logs"
-                message="Are you sure you want to clear all audit logs? This action cannot be undone."
-                confirmText="Clear All"
-                onConfirm={handleConfirmClear}
-                onCancel={() => setShowConfirm(false)}
-            />
         </div>
     )
 }

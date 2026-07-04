@@ -50,7 +50,7 @@ function Avatar({ name, size = 28 }) {
 }
 
 function renderDetail(detail, users, navigate) {
-    if (!detail) return '—'
+    if (!detail) return 'No value'
     if (!users || users.length === 0) return detail
 
     const sortedUsers = [...users].sort((a, b) => (b.name || '').length - (a.name || '').length)

@@ -26,7 +26,7 @@ export const CATEGORY_ICONS = {
 export const EMPTY_FORM = { subject: '', description: '', category: '', priority: 'MEDIUM' }
 
 export const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const h = Math.floor((Date.now() - new Date(str)) / 3600000)
     if (h < 1) return 'Just now'
     if (h < 24) return `${h}h ago`

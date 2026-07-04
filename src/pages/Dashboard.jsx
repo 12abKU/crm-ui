@@ -78,7 +78,7 @@ function AgentDashboard() {
                                     <span className="material-symbols-outlined filled text-[16px]"
                                         style={{ color: T.successLight }}>handshake</span>
                                     <span className="text-sm font-bold" style={{ color: '#fff' }}>
-                                        {loading ? '—' : fmt(stats?.activeDeals)} Deals
+                                        {loading ? 'No value' : fmt(stats?.activeDeals)} Deals
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
@@ -90,7 +90,7 @@ function AgentDashboard() {
                                     <span className="material-symbols-outlined filled text-[16px]"
                                         style={{ color: T.sidebarText }}>groups</span>
                                     <span className="text-sm font-bold" style={{ color: '#fff' }}>
-                                        {loading ? '—' : fmt(stats?.totalContacts)} Contacts
+                                        {loading ? 'No value' : fmt(stats?.totalContacts)} Contacts
                                     </span>
                                 </div>
                             </div>

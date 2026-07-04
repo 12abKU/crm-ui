@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                                 style={{
                                     borderRadius: 16,
                                     background: active
-                                        ? `linear-gradient(135deg, ${T.primary}, ${DASHBOARD_ACCENTS.gold})`
+                                        ? T.primary
                                         : 'transparent',
                                     color: active ? '#fff' : T.textMuted,
                                     border: active ? `1px solid ${T.primary}55` : '1px solid transparent',

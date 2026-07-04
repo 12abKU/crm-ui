@@ -35,6 +35,7 @@ import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 import ImportProgressToast from './components/ui/ImportProgressToast'
 import TrialUpgradePopup from './components/ui/TrialUpgradePopup'
+import { DialogProvider } from './contexts/DialogContext'
 
 
 function WebSocketManager() {
@@ -226,8 +227,9 @@ export default function App() {
   }, [theme])
 
   return (
-    <BrowserRouter>
-      <ApiErrorToast />
+    <DialogProvider>
+      <BrowserRouter>
+        <ApiErrorToast />
       <WebSocketToast />
       <ImportProgressToast />
       <PermissionLoader />
@@ -271,6 +273,7 @@ export default function App() {
       </Routes>
       </Suspense>
     </BrowserRouter>
+    </DialogProvider>
   )
 }
 

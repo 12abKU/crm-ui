@@ -8,7 +8,7 @@ import api from '../../api'
 const EMPTY_FORM = { type: 'CALL', subject: '', description: '', scheduledAt: '' }
 
 const timeAgo = (str) => {
-    if (!str) return '—'
+    if (!str) return 'No value'
     const h = Math.floor((Date.now() - new Date(str)) / 3600000)
     if (h < 1) return 'Just now'
     if (h < 24) return `${h}h ago`

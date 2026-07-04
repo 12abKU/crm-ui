@@ -252,7 +252,7 @@ export function UserProfileModal({ user, onClose }) {
                 <div className="p-4 rounded-xl col-span-2" style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.textMuted }}>Joined Date</p>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {user.createdAt ? new Date(user.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'No value'}
                     </p>
                 </div>
             </div>

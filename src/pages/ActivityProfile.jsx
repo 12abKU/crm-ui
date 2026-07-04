@@ -221,7 +221,7 @@ export default function ActivityProfile() {
     }
 
     const fmtDate = (str) => {
-        if (!str) return '—'
+        if (!str) return 'No value'
         return new Date(str).toLocaleString('en-IN', {
             day: 'numeric', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
@@ -436,7 +436,7 @@ export default function ActivityProfile() {
                                         placeholder="Set scheduled time"
                                     >
                                         <span className="text-sm font-semibold" style={{ color: activity.scheduledAt ? T.textPrimary : T.textMuted }}>
-                                            {fmtScheduled(activity.scheduledAt) || '—'}
+                                            {fmtScheduled(activity.scheduledAt) || 'No value'}
                                         </span>
                                     </InlineEdit>
                                 </InfoCard>

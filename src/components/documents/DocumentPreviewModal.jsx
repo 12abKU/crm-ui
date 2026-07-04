@@ -3,6 +3,7 @@ import { documentAPI } from '../../api/documents';
 import { chatAPI } from '../../api/chat';
 import { T } from '../../constants/theme';
 import { extractApiErrorMessage } from '../../api';
+import { useDialog } from '../../contexts/DialogContext';
 
 export default function DocumentPreviewModal({ open, onClose, doc, isChatAttachment = false }) {
   const [loading, setLoading] = useState(false);
@@ -10,6 +11,8 @@ export default function DocumentPreviewModal({ open, onClose, doc, isChatAttachm
   const [previewUrl, setPreviewUrl] = useState(null);
   const [textContent, setTextContent] = useState(null);
   const [previewMode, setPreviewMode] = useState(null); // 'image' | 'pdf' | 'text' | 'other'
+  
+  const { alert } = useDialog();
 
   useEffect(() => {
     let activeUrl = null;
@@ -84,7 +87,7 @@ export default function DocumentPreviewModal({ open, onClose, doc, isChatAttachm
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Failed to download file: ' + extractApiErrorMessage(err));
+      alert({ title: 'Download Failed', message: 'Failed to download file: ' + extractApiErrorMessage(err) });
     }
   };
 

@@ -173,7 +173,7 @@ export default function DeDuplicationPage() {
                                         </div>
 
                                         <h3 className="text-sm font-black truncate mb-1" style={{ color: T.textPrimary }} title={group.key}>
-                                            {group.key || '—'}
+                                            {group.key || 'No value'}
                                         </h3>
 
                                         {/* Preview list */}

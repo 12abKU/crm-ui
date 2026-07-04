@@ -26,7 +26,7 @@ const CATEGORY_LABELS = {
 }
 
 function fmt(dateStr) {
-    if (!dateStr) return '—'
+    if (!dateStr) return 'No value'
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 function timeAgo(dateStr) {

@@ -73,7 +73,7 @@ export default function UserTable({ users, loading, currentUserId, canPromote, c
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary }}>{u.email}</td>
                                     <td className="px-6 py-4"><RoleBadge role={u.role} /></td>
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textMuted }}>
-                                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
+                                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'No value'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2 flex-wrap">

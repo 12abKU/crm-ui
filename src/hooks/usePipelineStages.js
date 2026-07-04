@@ -6,7 +6,7 @@ export function usePipelineStages() {
     const stages = useSelector(state => state.pipeline.stages) || []
 
     const getStageLabel = useCallback((stageKey) => {
-        if (!stageKey) return '—'
+        if (!stageKey) return 'No value'
         const keyUpper = stageKey.toUpperCase()
         const found = stages.find(s => s.stageKey.toUpperCase() === keyUpper)
         if (found) return found.label
