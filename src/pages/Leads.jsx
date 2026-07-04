@@ -35,27 +35,27 @@ const STAGE_STYLES = {
 }
 
 const STAGE_COLUMN_BG = {
-    NEW:       'rgba(120,113,108,0.05)',
+    NEW: 'rgba(120,113,108,0.05)',
     CONTACTED: 'rgba(37,99,235,0.05)',
     QUALIFIED: 'rgba(83,141,141,0.05)',
     CONVERTED: 'rgba(22,163,74,0.05)',
-    LOST:      'rgba(220,38,38,0.04)',
+    LOST: 'rgba(220,38,38,0.04)',
 }
 
 const STAGE_HEADER_BG = {
-    NEW:       'rgba(120,113,108,0.10)',
+    NEW: 'rgba(120,113,108,0.10)',
     CONTACTED: 'rgba(37,99,235,0.08)',
     QUALIFIED: 'rgba(83,141,141,0.08)',
     CONVERTED: 'rgba(22,163,74,0.08)',
-    LOST:      'rgba(220,38,38,0.07)',
+    LOST: 'rgba(220,38,38,0.07)',
 }
 
 const STAGE_COLUMN_BORDER = {
-    NEW:       'rgba(120,113,108,0.22)',
+    NEW: 'rgba(120,113,108,0.22)',
     CONTACTED: 'rgba(37,99,235,0.22)',
     QUALIFIED: 'rgba(83,141,141,0.22)',
     CONVERTED: 'rgba(22,163,74,0.22)',
-    LOST:      'rgba(220,38,38,0.18)',
+    LOST: 'rgba(220,38,38,0.18)',
 }
 
 const getStageStyle = (stageKey) => STAGE_STYLES[stageKey] || STAGE_STYLES.NEW
@@ -198,7 +198,7 @@ export default function Leads() {
     const openCreateForm = () => {
         setForm({ ...EMPTY_FORM })
         setErrors({})
-        api.get('/api/leads/sources').then(res => setSources(res.data)).catch(() => {})
+        api.get('/api/leads/sources').then(res => setSources(res.data)).catch(() => { })
         setOpen(true)
     }
 
@@ -296,7 +296,7 @@ export default function Leads() {
         }
         const lead = dragLead.current
         setDraggingId(null); setOverStage(null); dragLead.current = null
-        
+
         const canDrag = isAdminOrAbove || can.LEADS_EDIT || lead._isOwner || lead._assignedToMe
         if (!canDrag) {
             alert({ title: 'Permission Denied', message: "You do not have permission to move this lead." })
@@ -487,95 +487,96 @@ export default function Leads() {
                                     {stageLeads.map(lead => {
                                         const canDrag = isAdminOrAbove || can.LEADS_EDIT || lead._isOwner || lead._assignedToMe
                                         return (
-                                        <div key={lead.id}
-                                            draggable={canDrag}
-                                            onDragStart={(e) => { 
-                                                if(!canDrag) { e.preventDefault(); return; }
-                                                setDraggingId(lead.id); 
-                                                dragLead.current = lead 
-                                            }}
-                                            onDragEnd={() => { setDraggingId(null); setOverStage(null) }}
-                                            className="p-4 rounded-xl cursor-pointer group relative"
-                                            style={{
-                                                background: T.surface,
-                                                border: `1px solid ${T.borderSubtle}`,
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                                opacity: draggingId === lead.id ? 0.5 : 1,
-                                                cursor: canDrag ? 'grab' : 'pointer'
-                                            }}
-                                            onClick={() => {
-                                                navigate(`?leadId=${lead.id}`)
-                                                setSelectedLead(lead)
-                                            }}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-bold text-sm text-primary max-w-[85%] truncate" style={{ color: T.textPrimary }}>
-                                                    {lead.title || lead.senderName || 'Unknown Lead'}
-                                                </h4>
-                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
-                                                    style={{ background: T.primaryFaint, color: T.primaryText }}>
-                                                    {lead.source}
-                                                </span>
-                                            </div>
-                                            {lead.senderEmail && <p className="text-xs text-muted mb-1 truncate" style={{ color: T.textSecondary }}>{lead.senderEmail}</p>}
-                                            {lead.senderPhone && <p className="text-xs text-muted truncate" style={{ color: T.textSecondary }}>{lead.senderPhone}</p>}
-                                            {lead._assignedToMe && (
-                                                <div className="absolute top-3 right-3 w-2 h-2 rounded-full" 
-                                                    style={{ background: T.primary, boxShadow: `0 0 6px ${T.primary}` }}
-                                                    title="Assigned to you" />
-                                            )}
+                                            <div key={lead.id}
+                                                draggable={canDrag}
+                                                onDragStart={(e) => {
+                                                    if (!canDrag) { e.preventDefault(); return; }
+                                                    setDraggingId(lead.id);
+                                                    dragLead.current = lead
+                                                }}
+                                                onDragEnd={() => { setDraggingId(null); setOverStage(null) }}
+                                                className="p-4 rounded-xl cursor-pointer group relative"
+                                                style={{
+                                                    background: T.surface,
+                                                    border: `1px solid ${T.borderSubtle}`,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                                    opacity: draggingId === lead.id ? 0.5 : 1,
+                                                    cursor: canDrag ? 'grab' : 'pointer'
+                                                }}
+                                                onClick={() => {
+                                                    navigate(`?leadId=${lead.id}`)
+                                                    setSelectedLead(lead)
+                                                }}>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h4 className="font-bold text-sm text-primary max-w-[85%] truncate" style={{ color: T.textPrimary }}>
+                                                        {lead.title || lead.senderName || 'Unknown Lead'}
+                                                    </h4>
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+                                                        style={{ background: T.primaryFaint, color: T.primaryText }}>
+                                                        {lead.source}
+                                                    </span>
+                                                </div>
+                                                {lead.senderEmail && <p className="text-xs text-muted mb-1 truncate" style={{ color: T.textSecondary }}>{lead.senderEmail}</p>}
+                                                {lead.senderPhone && <p className="text-xs text-muted truncate" style={{ color: T.textSecondary }}>{lead.senderPhone}</p>}
+                                                {lead._assignedToMe && (
+                                                    <div className="absolute top-3 right-3 w-2 h-2 rounded-full"
+                                                        style={{ background: T.primary, boxShadow: `0 0 6px ${T.primary}` }}
+                                                        title="Assigned to you" />
+                                                )}
 
-                                            <div className="flex items-center justify-between pt-2 mt-2"
-                                                style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
-                                                
-                                                <div className="flex items-center gap-1.5 min-w-0">
-                                                    {(lead.assignees ?? []).length > 0 && (
-                                                        <div className="flex -space-x-1.5 shrink-0">
-                                                            {(lead.assignees ?? []).slice(0, 3).map((u, i) => (
-                                                                <div key={u.id}
-                                                                    title={`Assignee: ${u.name}`}
-                                                                    onClick={e => { e.stopPropagation(); navigate(`/team/${u.id}`) }}
-                                                                    className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                                                                    style={{
-                                                                        background: T.primaryDim,
-                                                                        color: T.primary,
-                                                                        zIndex: 3 - i,
-                                                                    }}>
-                                                                    {u.name.charAt(0).toUpperCase()}
-                                                                </div>
-                                                            ))}
-                                                            {(lead.assignees ?? []).length > 3 && (
-                                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
-                                                                    style={{ background: T.surfaceHigh, color: T.textMuted }}>
-                                                                    +{(lead.assignees ?? []).length - 3}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {isAdminOrAbove && (
+                                                <div className="flex items-center justify-between pt-2 mt-2"
+                                                    style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
+
+                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                        {(lead.assignees ?? []).length > 0 && (
+                                                            <div className="flex -space-x-1.5 shrink-0">
+                                                                {(lead.assignees ?? []).slice(0, 3).map((u, i) => (
+                                                                    <div key={u.id}
+                                                                        title={`Assignee: ${u.name}`}
+                                                                        onClick={e => { e.stopPropagation(); navigate(`/team/${u.id}`) }}
+                                                                        className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                                                                        style={{
+                                                                            background: T.primaryDim,
+                                                                            color: T.primary,
+                                                                            zIndex: 3 - i,
+                                                                        }}>
+                                                                        {u.name.charAt(0).toUpperCase()}
+                                                                    </div>
+                                                                ))}
+                                                                {(lead.assignees ?? []).length > 3 && (
+                                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
+                                                                        style={{ background: T.surfaceHigh, color: T.textMuted }}>
+                                                                        +{(lead.assignees ?? []).length - 3}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {isAdminOrAbove && (
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); setAssignModalLead(lead) }}
+                                                                className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors shrink-0"
+                                                                title="Manage Assignees">
+                                                                <IconUserPlus size={13} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {can.LEADS_DELETE && (isAdminOrAbove || lead._isOwner) && (
                                                         <button
-                                                            onClick={e => { e.stopPropagation(); setAssignModalLead(lead) }}
-                                                            className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors shrink-0"
-                                                            title="Manage Assignees">
-                                                            <IconUserPlus size={13} />
+                                                            className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                removeLead(lead.id, stage);
+                                                            }}
+                                                            title="Delete Lead">
+                                                            <span className="material-symbols-outlined text-[15px]">delete</span>
                                                         </button>
                                                     )}
                                                 </div>
-
-                                                {can.LEADS_DELETE && (isAdminOrAbove || lead._isOwner) && (
-                                                    <button
-                                                        className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            removeLead(lead.id, stage);
-                                                        }}
-                                                        title="Delete Lead">
-                                                        <span className="material-symbols-outlined text-[15px]">delete</span>
-                                                    </button>
-                                                )}
                                             </div>
-                                        </div>
-                                    )})}
+                                        )
+                                    })}
 
                                     {/* Load More Button */}
                                     {pagesByStage[stage] < totalPagesByStage[stage] - 1
@@ -638,19 +639,19 @@ export default function Leads() {
                 )}
                 <Input label="Lead Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
 
-                <SearchableSelect 
-                    label="Source *" 
-                    value={form.source} 
-                    onChange={v => setField('source', v)} 
-                    placeholder="e.g. IndiaMart, Website, etc." 
+                <SearchableSelect
+                    label="Source *"
+                    value={form.source}
+                    onChange={v => setField('source', v)}
+                    placeholder="e.g. IndiaMart, Website, etc."
                     required
-                    error={errors.source} 
+                    error={errors.source}
                     options={sources.map(s => ({ id: s, label: s }))}
                     creatable
                 />
 
-                <Input label="Company/Organization *" value={form.companyName} onChange={setEvent('companyName')} required error={errors.companyName} />
-                <Input label="Name *" value={form.senderName} onChange={setEvent('senderName')} required error={errors.senderName} />
+                <Input label="Company *" value={form.companyName} onChange={setEvent('companyName')} required error={errors.companyName} />
+                <Input label="Contact Person *" value={form.senderName} onChange={setEvent('senderName')} required error={errors.senderName} />
                 <Input label="Email *" type="email" value={form.senderEmail} onChange={setEvent('senderEmail')} required error={errors.senderEmail} />
                 <Input label="Phone *" value={form.senderPhone} onChange={e => {
                     const val = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -689,10 +690,10 @@ export default function Leads() {
             )}
 
             {assignModalLead && (
-                <AssignLeadModal 
+                <AssignLeadModal
                     profile={assignModalLead}
                     onClose={() => setAssignModalLead(null)}
-                    onAssigned={() => { 
+                    onAssigned={() => {
                         setAssignModalLead(null)
                         // Reload the specific stage to reflect new assignees
                         loadStageLeads(assignModalLead.status, 0, false, search)
