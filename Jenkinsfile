@@ -22,9 +22,9 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                     bat '''
                         icacls "%SSH_KEY%" /inheritance:r /grant SYSTEM:F
-                        tar -czf dist.tar.gz -C dist .
-                        scp -i "%SSH_KEY%" -o StrictHostKeyChecking=no dist.tar.gz ubuntu@13.201.233.203:/home/ubuntu/
-                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no ubuntu@13.201.233.203 "rm -rf /home/ubuntu/crm-app/* && tar -xzf /home/ubuntu/dist.tar.gz -C /home/ubuntu/crm-app/ && rm /home/ubuntu/dist.tar.gz"
+                        tar -cf ui-dist.tar -C dist .
+                        scp -i "%SSH_KEY%" -o StrictHostKeyChecking=no ui-dist.tar ubuntu@13.201.233.203:/home/ubuntu/
+                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no ubuntu@13.201.233.203 "rm -rf /home/ubuntu/crm-app/* && tar -xf /home/ubuntu/ui-dist.tar -C /home/ubuntu/crm-app/ && rm /home/ubuntu/ui-dist.tar"
                     '''
                 }
             }
