@@ -21,7 +21,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                     bat '''
-                        icacls "%SSH_KEY%" /inheritance:r /grant "%USERNAME%:F"
+                        icacls "%SSH_KEY%" /inheritance:r /grant SYSTEM:F
                         scp -i "%SSH_KEY%" -o StrictHostKeyChecking=no -r dist\\* ubuntu@13.201.233.203:/home/ubuntu/crm-app/
                     '''
                 }
