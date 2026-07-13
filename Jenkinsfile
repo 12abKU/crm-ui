@@ -19,8 +19,8 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sshagent(['ec2-ssh-key']) {
-                    bat 'scp -o StrictHostKeyChecking=no -r dist\\* ubuntu@13.201.233.203:/home/ubuntu/crm-app/'
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    bat 'scp -i "%SSH_KEY%" -o StrictHostKeyChecking=no -r dist\\* ubuntu@13.201.233.203:/home/ubuntu/crm-app/'
                 }
             }
         }
