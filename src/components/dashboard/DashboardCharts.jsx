@@ -18,12 +18,13 @@ import {
 } from 'recharts';
 
 // ── BarChart ───────────────────────────────────────────────────
-export function BarChart({ data, valueKey = 'count', labelKey = 'label' }) {
+export function BarChart({ data, valueKey = 'count', labelKey = 'label', colorKey }) {
     if (!data?.length) return <Empty />
     
     const chartData = data.map(d => ({
         name: d[labelKey],
-        value: Number(d[valueKey] || 0)
+        value: Number(d[valueKey] || 0),
+        color: colorKey ? d[colorKey] : d.color
     }));
 
     return (
@@ -61,7 +62,7 @@ export function BarChart({ data, valueKey = 'count', labelKey = 'label' }) {
                         barSize={14}
                     >
                         {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={`url(#barGradient)`} />
+                            <Cell key={`cell-${index}`} fill={entry.color || `url(#barGradient)`} />
                         ))}
                     </Bar>
                     <defs>

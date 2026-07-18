@@ -24,10 +24,14 @@ export default function DealsTab({ data, activeStages = [] }) {
     useEffect(() => {
         api.get('/api/dashboard/deals/velocity')
             .then(r => {
-                const formatted = r.data.map(d => ({
-                    ...d,
-                    stageLabel: getStageLabel(d.stage)
-                }))
+                const formatted = r.data.map(d => {
+                    const style = getPipelineStageStyle(d.stage)
+                    return {
+                        ...d,
+                        stageLabel: getStageLabel(d.stage),
+                        color: style.accent
+                    }
+                })
                 setVelocity(formatted)
             })
             .catch(() => setVelocity([]))
