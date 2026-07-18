@@ -88,7 +88,9 @@ export default function AdminDashboard() {
         }
 
         api.get('/api/pipelines').then(r => {
-            const list = r.data ?? []
+            let list = r.data ?? []
+            // Hide Partnership Pipeline as requested
+            list = list.filter(p => p.name !== 'Partnership Pipeline')
             setPipelines(list)
             if (list.length > 0) {
                 setSelectedPipelineId(list[0].id)
@@ -201,7 +203,7 @@ export default function AdminDashboard() {
 
                     {/* Pipeline selector and Download button — right side of tab bar */}
                     <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
-                        {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 0 && (
+                        {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 1 && (
                             <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-200"
                                 style={{
                                     borderRadius: 16,
