@@ -333,20 +333,20 @@ export default function Accounts() {
 
                                     {/* Actions */}
                                     <td className="px-6 py-4" style={{ width: colWidths[5] }}>
-                                        <div className="flex items-center justify-end gap-1">
+                                        <div className="flex items-center justify-end gap-1.5">
                                             <button onClick={() => navigate(`/accounts/${a.id}`)}
-                                                className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                                                className="px-2 py-1 text-xs font-semibold rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors">
                                                 View
                                             </button>
                                             {can.ACCOUNTS_EDIT && (
                                                 <button onClick={(e) => handleEdit(a, e)}
-                                                    className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors">
+                                                    className="px-2 py-1 text-xs font-semibold rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 transition-colors">
                                                     Edit
                                                 </button>
                                             )}
                                             {can.ACCOUNTS_DELETE && (
                                                 <button onClick={(e) => remove(a.id, e)}
-                                                    className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                                    className="px-2 py-1 text-xs font-semibold rounded-md bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors">
                                                     Delete
                                                 </button>
                                             )}
