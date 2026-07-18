@@ -132,7 +132,7 @@ export default function Settings() {
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [
-                            { id: 'agents', label: 'Agent Management', icon: 'manage_accounts' },
+                            { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }
                         ] : [])
                     ].map(tab => {

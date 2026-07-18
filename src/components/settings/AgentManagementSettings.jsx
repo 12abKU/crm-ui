@@ -11,7 +11,7 @@ import usePermission from '../../hooks/usePermission'
 export default function AgentManagementSettings() {
     const role = useSelector(state => state.auth.role)
     const currentUserId = Number(useSelector(state => state.auth.userId))
-    
+
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [showInvite, setShowInvite] = useState(false)
@@ -62,7 +62,7 @@ export default function AgentManagementSettings() {
     if (!canViewUsers) {
         return (
             <div className="p-8 text-center" style={{ color: T.textMuted }}>
-                You do not have permission to view agent management.
+                You do not have permission to view team management.
             </div>
         )
     }
@@ -71,17 +71,17 @@ export default function AgentManagementSettings() {
 
     return (
         <div className="flex flex-col gap-6">
-            <SettingsSection title="Agent Management" description="Create and manage agents on your team" noPad>
+            <SettingsSection title="Team Management" description="Create and manage team members on your team" noPad>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4"
                     style={{ borderBottom: `1px solid ${T.border}` }}>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {agents.length} agent{agents.length !== 1 ? 's' : ''}
+                        {agents.length} team member{agents.length !== 1 ? 's' : ''}
                     </p>
                     {canCreateUsers && (
                         <button onClick={() => setShowInvite(true)}
                             className="crm-btn-primary w-full sm:w-auto justify-center flex items-center gap-2 text-sm">
                             <span className="material-symbols-outlined text-[16px]">person_add</span>
-                            Add Agent
+                            Add Team Member
                         </button>
                     )}
                 </div>
@@ -99,7 +99,7 @@ export default function AgentManagementSettings() {
             {showInvite && (
                 <InviteUserModal onClose={() => setShowInvite(false)} onSubmit={createUser} allowAdminRole={false} />
             )}
-            
+
             <ConfirmModal
                 isOpen={!!deleteConfirmId}
                 title="Delete User"
