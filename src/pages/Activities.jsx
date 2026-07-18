@@ -10,7 +10,7 @@ import { Input, Select } from '../components/FormField'
 import SearchInput from '../components/ui/SearchInput'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import ActivityRow from '../components/activities/ActivityRow'
-import VirtualTableBody from '../components/ui/VirtualTableBody'
+
 import ActivityStatCard from '../components/activities/ActivityStatCard'
 import MyTasksPanel from '../components/activities/MyTasksPanel'
 import TimelineView from '../components/activities/TimelineView'
@@ -403,7 +403,7 @@ export default function Activities() {
                         {viewMode === 'table' ? (
                             <>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-left min-w-[900px]" style={{ tableLayout: 'fixed' }}>
+                                    <table className="w-full text-left break-words min-w-[600px]" style={{ tableLayout: 'auto' }}>
                                         <thead>
                                             <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
                                             {(() => {
@@ -439,11 +439,8 @@ export default function Activities() {
                                             <EmptyTableRow colSpan={isAdmin ? 8 : 7} icon="event_note" title="No activities yet" />
                                         </tbody>
                                     ) : (
-                                        <VirtualTableBody
-                                            items={displayActivities}
-                                            colSpan={isAdmin ? 8 : 7}
-                                            rowHeight={96}
-                                            renderRow={(activity, i) => {
+                                        <tbody>
+                                            {displayActivities.map((activity, i) => {
                                                 const isHighlighted = String(activity.id) === highlightId
                                                 const colWidths = isAdmin
                                                     ? ['4%', '10%', '28%', '20%', '12%', '14%', '8%', '4%']
@@ -462,8 +459,8 @@ export default function Activities() {
                                                         colWidths={colWidths}
                                                     />
                                                 )
-                                            }}
-                                        />
+                                            })}
+                                        </tbody>
                                     )}
                                     </table>
                                 </div>
