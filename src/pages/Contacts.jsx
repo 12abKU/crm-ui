@@ -27,6 +27,7 @@ export default function Contacts() {
     const navigate = useNavigate()
     const { confirm } = useDialog()
     const [open, setOpen] = useState(false)
+    const [editingItem, setEditingItem] = useState(null)
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
@@ -34,6 +35,23 @@ export default function Contacts() {
     const [errors, setErrors] = useState({})
 
     const handleOpenModal = () => {
+        setEditingItem(null)
+        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
+        setErrors({})
+        setOpen(true)
+    }
+
+    const handleEdit = (contact, e) => {
+        e.stopPropagation()
+        setEditingItem(contact)
+        setForm({
+            firstName: contact.firstName || '',
+            lastName: contact.lastName || '',
+            email: contact.email || '',
+            phone: contact.phone || '',
+            designation: contact.designation || '',
+            accountId: contact.account?.id || ''
+        })
         setErrors({})
         setOpen(true)
     }
@@ -117,14 +135,20 @@ export default function Contacts() {
 
     const executeSave = async () => {
         try {
-            await api.post('/api/contacts', { ...form, accountId: form.accountId || null })
+            if (editingItem) {
+                await api.put(`/api/contacts/${editingItem.id}`, { ...form, accountId: form.accountId || null })
+                updateItemInCache(item => item.id === editingItem.id, item => ({ ...item, ...form }))
+            } else {
+                await api.post('/api/contacts', { ...form, accountId: form.accountId || null })
+                invalidateCacheForKey()
+                setPage(0); loadPage(0, search)
+            }
             setOpen(false)
             setShowDuplicateModal(false)
             setDuplicates([])
+            setEditingItem(null)
             setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
             setErrors({})
-            invalidateCacheForKey()
-            setPage(0); loadPage(0, search)
         } catch (err) {
             if (err?.response?.data?.fields) {
                 setErrors(err.response.data.fields)
@@ -223,8 +247,7 @@ export default function Contacts() {
         document.body.removeChild(link)
     }
 
-    const headers = ['Name', 'Phone', 'Account']
-    if (can.CONTACTS_DELETE) headers.push('')
+    const headers = ['Name', 'Phone', 'Account', 'Actions']
 
     return (
         <div>
@@ -304,9 +327,7 @@ export default function Contacts() {
                 {/* -- Table --------------------------------------- */}
                 <TableShell
                     headers={headers}
-                    colWidths={can.CONTACTS_DELETE
-                        ? ['35%', '25%', '35%', '5%']
-                        : ['35%', '30%', '35%']}
+                    colWidths={['35%', '25%', '25%', '15%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -319,7 +340,7 @@ export default function Contacts() {
                                             <Skeleton height={14} width={130} borderRadius={6} />
                                         </div>
                                     </td>
-                                    {[100, 90, 20].map((w, j) => (
+                                    {[100, 90, 80].map((w, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton height={14} width={w} borderRadius={6} />
                                         </td>
@@ -340,9 +361,7 @@ export default function Contacts() {
                             renderRow={(c, i) => {
                                 const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                                 const hover = virtualRowHandlers(rowBg)
-                                const colWidths = can.CONTACTS_DELETE
-                                    ? ['35%', '25%', '35%', '5%']
-                                    : ['35%', '30%', '35%']
+                                const colWidths = ['35%', '25%', '25%', '15%']
                                 return (
                                     <tr key={c.id} className="group transition-all duration-150"
                                         style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
@@ -377,11 +396,26 @@ export default function Contacts() {
                                                 </span>
                                             )}
                                         </td>
-                                        {can.CONTACTS_DELETE && (
-                                            <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                                <DeleteIconButton onClick={e => remove(c.id, e)} />
-                                            </td>
-                                        )}
+                                        {/* Actions */}
+                                        <td className="px-6 py-4" style={{ width: colWidths[3] }}>
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => navigate(`/contacts/${c.id}`)}
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                    title="View">
+                                                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                </button>
+                                                {can.CONTACTS_EDIT && (
+                                                    <button onClick={(e) => handleEdit(c, e)}
+                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                                                        title="Edit">
+                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                    </button>
+                                                )}
+                                                {can.CONTACTS_DELETE && (
+                                                    <DeleteIconButton onClick={e => remove(c.id, e)} />
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 )
                             }}
@@ -392,7 +426,7 @@ export default function Contacts() {
 
             {/* -- Slide Form ----------------------------------- */}
             {can.CONTACTS_CREATE && (
-                <SlideForm title="Add Contact" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
+                <SlideForm title={editingItem ? "Edit Contact" : "Add Contact"} open={open} onClose={() => setOpen(false)} onSubmit={submit}>
                     {errors.general && (
                         <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                     )}

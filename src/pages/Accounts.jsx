@@ -25,6 +25,7 @@ const PAGE_SIZE = 20
 export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
+    const [editingItem, setEditingItem] = useState(null)
     const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
     const [customTag, setCustomTag] = useState(false)
     const [duplicates, setDuplicates] = useState([])
@@ -33,6 +34,24 @@ export default function Accounts() {
     const [errors, setErrors] = useState({})
 
     const handleOpenModal = () => {
+        setEditingItem(null)
+        setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+        setErrors({})
+        setCustomTag(false)
+        setOpen(true)
+    }
+
+    const handleEdit = (account, e) => {
+        e.stopPropagation()
+        setEditingItem(account)
+        setForm({
+            name: account.name || '',
+            website: account.website || '',
+            phone: account.phone || '',
+            industry: account.industry || '',
+            employeeRange: account.employeeRange || '',
+            tag: account.tag || ''
+        })
         setErrors({})
         setCustomTag(false)
         setOpen(true)
@@ -105,15 +124,21 @@ export default function Accounts() {
 
     const executeSave = async () => {
         try {
-            await api.post('/api/accounts', form)
+            if (editingItem) {
+                await api.put(`/api/accounts/${editingItem.id}`, form)
+                updateItemInCache(item => item.id === editingItem.id, item => ({ ...item, ...form }))
+            } else {
+                await api.post('/api/accounts', form)
+                invalidateCacheForKey()
+                setPage(0); loadPage(0, search)
+            }
             setOpen(false)
             setShowDuplicateModal(false)
             setDuplicates([])
+            setEditingItem(null)
             setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
             setCustomTag(false)
             setErrors({})
-            invalidateCacheForKey()
-            setPage(0); loadPage(0, search)
         } catch (err) {
             if (err?.response?.data?.fields) {
                 setErrors(err.response.data.fields)
@@ -148,8 +173,7 @@ export default function Accounts() {
         updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
-    const headers = ['Company', 'Phone', 'Industry', 'Tag', 'Open Deals']
-    if (can.ACCOUNTS_DELETE) headers.push('')
+    const headers = ['Company', 'Phone', 'Industry', 'Tag', 'Open Deals', 'Actions']
 
     return (
         <div>
@@ -216,9 +240,7 @@ export default function Accounts() {
                 {/* -- Table ------------------------------------- */}
                 <TableShell
                     headers={headers}
-                    colWidths={can.ACCOUNTS_DELETE 
-                        ? ['25%', '15%', '20%', '15%', '20%', '5%']
-                        : ['25%', '15%', '20%', '20%', '20%']}
+                    colWidths={['25%', '13%', '18%', '14%', '15%', '15%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -231,7 +253,7 @@ export default function Accounts() {
                                             <Skeleton height={14} width={120} borderRadius={6} />
                                         </div>
                                     </td>
-                                    {[90, 80, 60, 80, 20].map((w, j) => (
+                                    {[90, 80, 60, 80, 100].map((w, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton height={14} width={w} borderRadius={6} />
                                         </td>
@@ -253,9 +275,7 @@ export default function Accounts() {
                             const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                             const hover = virtualRowHandlers(rowBg)
-                            const colWidths = can.ACCOUNTS_DELETE 
-                                ? ['25%', '15%', '20%', '15%', '20%', '5%']
-                                : ['25%', '15%', '20%', '20%', '20%']
+                            const colWidths = ['25%', '13%', '18%', '14%', '15%', '15%']
                             return (
                                 <tr key={a.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
@@ -311,12 +331,26 @@ export default function Accounts() {
                                         </p>
                                     </td>
 
-                                    {/* Delete */}
-                                    {can.ACCOUNTS_DELETE && (
-                                        <td className="px-6 py-4" style={{ width: colWidths[5] }}>
-                                            <DeleteIconButton onClick={e => remove(a.id, e)} />
-                                        </td>
-                                    )}
+                                    {/* Actions */}
+                                    <td className="px-6 py-4" style={{ width: colWidths[5] }}>
+                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => navigate(`/accounts/${a.id}`)}
+                                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                title="View">
+                                                <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                            </button>
+                                            {can.ACCOUNTS_EDIT && (
+                                                <button onClick={(e) => handleEdit(a, e)}
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                                                    title="Edit">
+                                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                </button>
+                                            )}
+                                            {can.ACCOUNTS_DELETE && (
+                                                <DeleteIconButton onClick={e => remove(a.id, e)} />
+                                            )}
+                                        </div>
+                                    </td>
                                 </tr>
                             )
                         }}
@@ -327,7 +361,7 @@ export default function Accounts() {
 
             {/* -- Slide Form --------------------------------- */}
             {can.ACCOUNTS_CREATE && (
-                <SlideForm title="Add Account" open={open} onClose={() => setOpen(false)} onSubmit={submit}>
+                <SlideForm title={editingItem ? "Edit Account" : "Add Account"} open={open} onClose={() => setOpen(false)} onSubmit={submit}>
                     {errors.general && (
                         <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                     )}
