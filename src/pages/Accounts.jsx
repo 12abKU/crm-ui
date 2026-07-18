@@ -269,7 +269,7 @@ export default function Accounts() {
                         <VirtualTableBody
                             items={accounts}
                             colSpan={headers.length}
-                            rowHeight={80}
+                            rowHeight={120}
                             maxHeight={tableHeight}
                             renderRow={(a, i) => {
                             const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
@@ -333,21 +333,23 @@ export default function Accounts() {
 
                                     {/* Actions */}
                                     <td className="px-6 py-4" style={{ width: colWidths[5] }}>
-                                        <div className="flex flex-col items-end gap-1.5">
+                                        <div className="flex flex-col items-end gap-1">
                                             <button onClick={() => navigate(`/accounts/${a.id}`)}
-                                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                                className="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                                                 title="View">
                                                 <span className="material-symbols-outlined text-[18px]">visibility</span>
                                             </button>
                                             {can.ACCOUNTS_EDIT && (
                                                 <button onClick={(e) => handleEdit(a, e)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                                                    className="p-1 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
                                                     title="Edit">
                                                     <span className="material-symbols-outlined text-[18px]">edit</span>
                                                 </button>
                                             )}
                                             {can.ACCOUNTS_DELETE && (
-                                                <DeleteIconButton onClick={e => remove(a.id, e)} />
+                                                <div className="scale-90 origin-right">
+                                                    <DeleteIconButton onClick={e => remove(a.id, e)} />
+                                                </div>
                                             )}
                                         </div>
                                     </td>
