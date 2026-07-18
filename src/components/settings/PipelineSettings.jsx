@@ -188,12 +188,11 @@ export default function PipelineSettings() {
 
                 {/* Stages List */}
                 <div className="overflow-x-auto scrollbar-none">
-                    <div className="flex flex-col gap-2 min-w-[650px]">
+                    <div className="flex flex-col gap-2 min-w-[450px]">
                     <div className="grid grid-cols-12 gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>
-                        <div className="col-span-1 text-center">Order</div>
-                        <div className="col-span-3">Stage Key</div>
-                        <div className="col-span-4">Label</div>
-                        <div className="col-span-2">Win Prob (%)</div>
+                        <div className="col-span-2 sm:col-span-1 text-center">Order</div>
+                        <div className="col-span-4">Stage Key</div>
+                        <div className="col-span-4 sm:col-span-5">Label</div>
                         <div className="col-span-2 text-right">Actions</div>
                     </div>
 
@@ -205,7 +204,7 @@ export default function PipelineSettings() {
                                     style={{ background: T.surface, borderColor: T.border }}>
                                     
                                     {/* Order / Re-order actions */}
-                                    <div className="col-span-1 flex flex-col items-center justify-center gap-0.5">
+                                    <div className="col-span-2 sm:col-span-1 flex flex-col items-center justify-center gap-0.5">
                                         <button
                                             type="button"
                                             onClick={() => moveStage(idx, 'up')}
@@ -228,7 +227,7 @@ export default function PipelineSettings() {
                                     </div>
 
                                     {/* Stage Key */}
-                                    <div className="col-span-3">
+                                    <div className="col-span-4">
                                         <input
                                             type="text"
                                             required
@@ -242,7 +241,7 @@ export default function PipelineSettings() {
                                     </div>
 
                                     {/* Label */}
-                                    <div className="col-span-4">
+                                    <div className="col-span-4 sm:col-span-5">
                                         <input
                                             type="text"
                                             required
@@ -251,28 +250,6 @@ export default function PipelineSettings() {
                                             className="crm-input w-full text-xs font-bold"
                                             placeholder="Stage Label"
                                         />
-                                    </div>
-
-                                    {/* Probability */}
-                                    <div className="col-span-2">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                required
-                                                value={stage.probability === '' ? '' : Math.round((stage.id ? stage.probability * 100 : stage.probability))}
-                                                onChange={(e) => {
-                                                    const rawVal = e.target.value
-                                                    // Convert to scale 0-1 if has ID, else keep raw input scale
-                                                    const val = rawVal === '' ? '' : (stage.id ? parseFloat(rawVal) / 100.0 : parseFloat(rawVal))
-                                                    handleFieldChange(idx, 'probability', val)
-                                                }}
-                                                className="crm-input w-full text-xs font-bold pr-6"
-                                                placeholder="50"
-                                            />
-                                            <span className="absolute right-2.5 text-[10px] font-black" style={{ color: T.textSecondary }}>%</span>
-                                        </div>
                                     </div>
 
                                     {/* Actions */}
