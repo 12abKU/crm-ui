@@ -290,7 +290,7 @@ export default function Contacts() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 shrink-0 w-full lg:w-auto">
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1 justify-start lg:justify-end">
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
                             {can.CONTACTS_CREATE && (
                                 <>
