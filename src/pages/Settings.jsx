@@ -126,7 +126,7 @@ export default function Settings() {
                 </div>
 
                 {/* -- Tabs Navigation -------------------------- */}
-                <div className="flex gap-1 sm:gap-2 mb-6 border-b pb-px overflow-x-auto whitespace-nowrap scrollbar-none" style={{ borderColor: T.border }}>
+                <div className="flex w-full mb-6 border-b pb-px overflow-x-auto whitespace-nowrap scrollbar-none" style={{ borderColor: T.border }}>
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
@@ -141,15 +141,15 @@ export default function Settings() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 -mb-px border-b-2 font-bold text-xs sm:text-sm transition-all shrink-0"
+                                className="flex-1 flex justify-center items-center gap-1.5 md:gap-2 px-2 sm:px-4 py-3 -mb-px border-b-2 font-bold text-[11px] sm:text-xs lg:text-sm transition-all shrink-0"
                                 style={{
                                     borderColor: active ? T.primary : 'transparent',
                                     color: active ? T.primaryText : T.textSecondary,
                                     opacity: active ? 1 : 0.7,
                                 }}
                             >
-                                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
-                                {tab.label}
+                                <span className="hidden sm:block material-symbols-outlined text-[16px] lg:text-[18px]">{tab.icon}</span>
+                                <span>{tab.label}</span>
                             </button>
                         )
                     })}
