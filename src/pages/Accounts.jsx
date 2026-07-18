@@ -240,7 +240,7 @@ export default function Accounts() {
                 {/* -- Table ------------------------------------- */}
                 <TableShell
                     headers={headers}
-                    colWidths={['25%', '13%', '18%', '14%', '15%', '15%']}
+                    colWidths={['25%', '13%', '17%', '13%', '12%', '20%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -266,21 +266,22 @@ export default function Accounts() {
                             <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />
                         </tbody>
                     ) : (
-                        <VirtualTableBody
-                            items={accounts}
-                            colSpan={headers.length}
-                            rowHeight={80}
-                            maxHeight={tableHeight}
-                            renderRow={(a, i) => {
-                            const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
-                            const rowBg = ROW_COLORS[i % ROW_COLORS.length]
-                            const hover = virtualRowHandlers(rowBg)
-                            const colWidths = ['25%', '13%', '18%', '14%', '15%', '15%']
-                            return (
-                                <tr key={a.id} className="group transition-all duration-150"
-                                    style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                    onMouseEnter={hover.onMouseEnter}
-                                    onMouseLeave={hover.onMouseLeave}>
+                        <tbody>
+                            {accounts.map((a, i) => {
+                                const tag = TAG_COLORS[a.tag] || { bg: T.surfaceRaised, color: T.textSecondary }
+                                const rowBg = ROW_COLORS[i % ROW_COLORS.length]
+                                const colWidths = ['25%', '13%', '17%', '13%', '12%', '20%']
+                                return (
+                                    <tr key={a.id} className="group transition-all duration-150"
+                                        style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = T.surfaceHigh
+                                            e.currentTarget.style.transform = 'translateX(2px)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = rowBg
+                                            e.currentTarget.style.transform = 'none'
+                                        }}>
 
                                     {/* Company name + avatar */}
                                     <td className="px-6 py-4" style={{ width: colWidths[0] }}>
@@ -333,7 +334,7 @@ export default function Accounts() {
 
                                     {/* Actions */}
                                     <td className="px-6 py-4" style={{ width: colWidths[5] }}>
-                                        <div className="flex items-center justify-end gap-1.5">
+                                        <div className="flex flex-wrap items-center justify-end gap-1.5">
                                             <button onClick={() => navigate(`/accounts/${a.id}`)}
                                                 className="px-2 py-1 text-xs font-semibold rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors">
                                                 View
@@ -354,8 +355,8 @@ export default function Accounts() {
                                     </td>
                                 </tr>
                             )
-                        }}
-                        />
+                            })}
+                        </tbody>
                     )}
                 </TableShell>
             </main>

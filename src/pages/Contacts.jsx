@@ -327,7 +327,7 @@ export default function Contacts() {
                 {/* -- Table --------------------------------------- */}
                 <TableShell
                     headers={headers}
-                    colWidths={['35%', '25%', '25%', '15%']}
+                    colWidths={['30%', '23%', '22%', '25%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -353,20 +353,21 @@ export default function Contacts() {
                             <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />
                         </tbody>
                     ) : (
-                        <VirtualTableBody
-                            items={contacts}
-                            colSpan={headers.length}
-                            rowHeight={76}
-                            maxHeight={tableHeight}
-                            renderRow={(c, i) => {
+                        <tbody>
+                            {contacts.map((c, i) => {
                                 const rowBg = ROW_COLORS[i % ROW_COLORS.length]
-                                const hover = virtualRowHandlers(rowBg)
-                                const colWidths = ['35%', '25%', '25%', '15%']
+                                const colWidths = ['30%', '23%', '22%', '25%']
                                 return (
                                     <tr key={c.id} className="group transition-all duration-150"
                                         style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
-                                        onMouseEnter={hover.onMouseEnter}
-                                        onMouseLeave={hover.onMouseLeave}>
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = T.surfaceHigh
+                                            e.currentTarget.style.transform = 'translateX(2px)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = rowBg
+                                            e.currentTarget.style.transform = 'none'
+                                        }}>
                                         <td className="px-6 py-4" style={{ width: colWidths[0] }}>
                                             <div className="flex items-center gap-3">
                                                 <EntityAvatar label={c.firstName} index={i} />
@@ -398,7 +399,7 @@ export default function Contacts() {
                                         </td>
                                         {/* Actions */}
                                         <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                            <div className="flex items-center justify-end gap-1.5">
+                                            <div className="flex flex-wrap items-center justify-end gap-1.5">
                                                 <button onClick={() => navigate(`/contacts/${c.id}`)}
                                                     className="px-2 py-1 text-xs font-semibold rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors">
                                                     View
@@ -419,8 +420,8 @@ export default function Contacts() {
                                         </td>
                                     </tr>
                                 )
-                            }}
-                        />
+                            })}
+                        </tbody>
                     )}
                 </TableShell>
             </main>

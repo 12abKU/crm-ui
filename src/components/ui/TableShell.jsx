@@ -4,7 +4,7 @@ export default function TableShell({ headers, children, footer, colWidths = [] }
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
             <div className="overflow-x-auto">
-                <table className="w-full text-left" style={{ tableLayout: 'fixed', minWidth: '1000px' }}>
+                <table className="w-full text-left" style={{ tableLayout: 'fixed', minWidth: '768px' }}>
                     <thead>
                         <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
                             {headers.map((header, idx) => (
