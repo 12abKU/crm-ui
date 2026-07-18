@@ -95,10 +95,7 @@ export default function ActivityProfile() {
     const can = usePermissions(['ACTIVITIES_EDIT'])
     const [editingRelations, setEditingRelations] = useState(false)
     const [relationsForm, setRelationsForm] = useState({ accountId: '', contactId: '', dealId: '' })
-    const [relationContacts, setRelationContacts] = useState([])
-    const [relationDeals, setRelationDeals] = useState([])
     const [savingRelations, setSavingRelations] = useState(false)
-    const [loadingRelated, setLoadingRelated] = useState(false)
 
     const loadAccountOptions = async (query = '') => {
         const params = new URLSearchParams({ page: '0', size: '10' })
@@ -108,21 +105,22 @@ export default function ActivityProfile() {
         return content.map(a => ({ id: String(a.id), label: a.name }))
     }
 
+    const loadContactOptions = async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/contacts?${params}`)
+        return (r.data.content ?? []).map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }))
+    }
+
+    const loadDealOptions = async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/deals/all?${params}`)
+        return (r.data.content ?? []).map(d => ({ id: String(d.id), label: d.title }))
+    }
+
     const onRelationAccountChange = async (accountId) => {
-        setRelationsForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
-        setRelationContacts([])
-        setRelationDeals([])
-        if (!accountId) return
-        setLoadingRelated(true)
-        try {
-            const r = await api.get(`/api/accounts/${accountId}/profile`)
-            setRelationContacts((r.data.contacts ?? []).map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` })))
-            setRelationDeals((r.data.openDeals ?? []).map(d => ({ id: String(d.id), label: d.title })))
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoadingRelated(false)
-        }
+        setRelationsForm(f => ({ ...f, accountId }))
     }
 
     const startEditingRelations = async () => {
@@ -132,21 +130,6 @@ export default function ActivityProfile() {
             dealId: activity.deal?.id ? String(activity.deal.id) : ''
         })
         setEditingRelations(true)
-        setRelationContacts([])
-        setRelationDeals([])
-
-        if (activity.account?.id) {
-            setLoadingRelated(true)
-            try {
-                const r = await api.get(`/api/accounts/${activity.account.id}/profile`)
-                setRelationContacts((r.data.contacts ?? []).map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` })))
-                setRelationDeals((r.data.openDeals ?? []).map(d => ({ id: String(d.id), label: d.title })))
-            } catch (err) {
-                console.error(err)
-            } finally {
-                setLoadingRelated(false)
-            }
-        }
     }
 
     const saveRelations = async () => {
@@ -169,6 +152,20 @@ export default function ActivityProfile() {
     const accountOptions = useMemo(() => {
         if (activity?.account) {
             return [{ id: String(activity.account.id), label: activity.account.name }]
+        }
+        return []
+    }, [activity])
+
+    const contactOptions = useMemo(() => {
+        if (activity?.contact) {
+            return [{ id: String(activity.contact.id), label: `${activity.contact.firstName} ${activity.contact.lastName}` }]
+        }
+        return []
+    }, [activity])
+
+    const dealOptions = useMemo(() => {
+        if (activity?.deal) {
+            return [{ id: String(activity.deal.id), label: activity.deal.title }]
         }
         return []
     }, [activity])
@@ -546,20 +543,18 @@ export default function ActivityProfile() {
                                         label="Contact"
                                         value={relationsForm.contactId}
                                         onChange={val => setRelationsForm(f => ({ ...f, contactId: val }))}
-                                        options={relationContacts}
-                                        placeholder={relationsForm.accountId ? "Select contact..." : "Select account first"}
-                                        disabled={!relationsForm.accountId}
-                                        loading={loadingRelated}
+                                        options={contactOptions}
+                                        onSearch={loadContactOptions}
+                                        placeholder="Search contact to link..."
                                     />
                                     
                                     <SearchableSelect
                                         label="Deal"
                                         value={relationsForm.dealId}
                                         onChange={val => setRelationsForm(f => ({ ...f, dealId: val }))}
-                                        options={relationDeals}
-                                        placeholder={relationsForm.accountId ? "Select deal..." : "Select account first"}
-                                        disabled={!relationsForm.accountId}
-                                        loading={loadingRelated}
+                                        options={dealOptions}
+                                        onSearch={loadDealOptions}
+                                        placeholder="Search deal to link..."
                                     />
                                     
                                     <div className="flex gap-2 justify-end mt-2 pt-4" style={{ borderTop: `1px solid ${T.borderSubtle}` }}>

@@ -112,6 +112,22 @@ export default function Calendar() {
         return nextAccounts.map(a => ({ id: String(a.id), label: a.name }))
     }, [])
 
+    const loadContactOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/contacts?${params}`)
+        const nextContacts = r.data.content ?? []
+        return nextContacts.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }))
+    }, [])
+
+    const loadDealOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/deals/all?${params}`)
+        const nextDeals = r.data.content ?? []
+        return nextDeals.map(d => ({ id: String(d.id), label: d.title }))
+    }, [])
+
     useEffect(() => {
         loadActivities()
     }, [year, month, selectedOwnerId])
@@ -134,18 +150,10 @@ export default function Calendar() {
     }
 
     const setF = (key, value) => setForm(f => ({ ...f, [key]: value }))
-    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]) }
+    const resetForm = () => { setForm(EMPTY_FORM); }
 
     const onFormAccountChange = async (accountId) => {
-        setForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
-        setFilteredContacts([]); setFilteredDeals([])
-        if (!accountId) return
-        setLoadingRelated(true)
-        try {
-            const r = await api.get(`/api/accounts/${accountId}/profile`)
-            setFilteredContacts((r.data.contacts ?? []).map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })))
-            setFilteredDeals((r.data.openDeals ?? []).map(d => ({ id: d.id, label: d.title })))
-        } finally { setLoadingRelated(false) }
+        setForm(f => ({ ...f, accountId }))
     }
 
     const applyReminderPreset = (minutesBefore) => {
@@ -405,13 +413,11 @@ export default function Calendar() {
                     onSearch={loadAccountOptions}
                     placeholder="Select account" />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
-                    options={filteredContacts}
-                    placeholder={form.accountId ? 'Select contact' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} />
+                    onSearch={loadContactOptions}
+                    placeholder="Search contact" />
                 <SearchableSelect label="Deal" value={form.dealId} onChange={value => setF('dealId', value)}
-                    options={filteredDeals}
-                    placeholder={form.accountId ? 'Select deal' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} />
+                    onSearch={loadDealOptions}
+                    placeholder="Search deal" />
             </SlideForm>
         </div>
     )

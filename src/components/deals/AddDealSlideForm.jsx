@@ -35,6 +35,15 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
         return nextAccounts.map(a => ({ id: String(a.id), label: a.name }))
     }, [])
 
+    const loadContactOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/contacts?${params}`)
+        const nextContacts = r.data.content ?? []
+        setContacts(nextContacts)
+        return nextContacts.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }))
+    }, [])
+
     // on open — reset and prefill
     useEffect(() => {
         if (!open) return
@@ -50,15 +59,6 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
             base.contactId = String(prefillContact.id)
         }
         setForm(base)
-
-        // load contacts for prefilled account
-        if (prefillAccount) {
-            setLoadingContacts(true)
-            api.get(`/api/accounts/${prefillAccount.id}/profile`)
-                .then(r => setContacts((r.data.contacts ?? []).map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` }))))
-                .catch(() => setContacts([]))
-                .finally(() => setLoadingContacts(false))
-        }
     }, [open])
 
     const setField = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -66,14 +66,6 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
 
     const onAccountChange = async (accountId) => {
         setField('accountId', accountId)
-        setField('contactId', '')
-        setContacts([])
-        if (!accountId) return
-        setLoadingContacts(true)
-        try {
-            const r = await api.get(`/api/accounts/${accountId}/profile`)
-            setContacts((r.data.contacts ?? []).map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })))
-        } finally { setLoadingContacts(false) }
     }
 
     const submit = async (e) => {
@@ -85,8 +77,6 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
         if (!form.amount) newErrors.amount = 'Required'
         if (!form.stage) newErrors.stage = 'Required'
         if (!form.expectedCloseDate) newErrors.expectedCloseDate = 'Required'
-        if (!form.accountId) newErrors.accountId = 'Required'
-        if (!form.contactId) newErrors.contactId = 'Required'
         
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
@@ -150,13 +140,12 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 </div>
             ) : (
                 <SearchableSelect
-                    label="Account *"
+                    label="Account"
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: String(a.id), label: a.name }))}
                     onSearch={loadAccountOptions}
                     placeholder="Select account..."
-                    required
                     error={errors.accountId || errors.account}
                 />
             )}
@@ -175,13 +164,12 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 </div>
             ) : (
                 <SearchableSelect
-                    label="Contact *"
+                    label="Contact"
                     value={form.contactId}
                     onChange={v => setField('contactId', v)}
-                    options={contacts}
-                    placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
-                    disabled={!form.accountId || loadingContacts}
-                    required
+                    options={contacts.map(c => ({ id: String(c.id), label: `${c.firstName} ${c.lastName}` }))}
+                    onSearch={loadContactOptions}
+                    placeholder={loadingContacts ? 'Loading...' : 'Select contact...'}
                     error={errors.contactId || errors.contact}
                 />
             )}

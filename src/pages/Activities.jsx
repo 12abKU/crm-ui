@@ -109,6 +109,22 @@ export default function Activities() {
         return nextAccounts.map(a => ({ id: a.id, label: a.name }))
     }, [])
 
+    const loadContactOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/contacts?${params}`)
+        const nextContacts = r.data.content ?? []
+        return nextContacts.map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` }))
+    }, [])
+
+    const loadDealOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/deals/all?${params}`)
+        const nextDeals = r.data.content ?? []
+        return nextDeals.map(d => ({ id: d.id, label: d.title }))
+    }, [])
+
     const loadAccountFilterOptions = useCallback(async (query = '') => {
         return [{ id: '', label: 'All Accounts' }, ...(await loadAccountOptions(query))]
     }, [loadAccountOptions])
@@ -140,20 +156,12 @@ export default function Activities() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    const resetForm = () => { setForm(EMPTY_FORM); setFilteredContacts([]); setFilteredDeals([]); setErrors({}) }
+    const resetForm = () => { setForm(EMPTY_FORM); setErrors({}) }
     const handleOpenModal = () => { setErrors({}); setOpen(true) }
     const onFilterChange = (accountId) => { setFilterAccountId(accountId); setSearch(''); setPage(0) }
 
     const onFormAccountChange = async (accountId) => {
-        setForm(f => ({ ...f, accountId, contactId: '', dealId: '' }))
-        setFilteredContacts([]); setFilteredDeals([])
-        if (!accountId) return
-        setLoadingRelated(true)
-        try {
-            const r = await api.get(`/api/accounts/${accountId}/profile`)
-            setFilteredContacts((r.data.contacts ?? []).map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })))
-            setFilteredDeals((r.data.openDeals ?? []).map(d => ({ id: d.id, label: d.title })))
-        } finally { setLoadingRelated(false) }
+        setForm(f => ({ ...f, accountId }))
     }
 
     const setF = (key, value) => setForm(f => ({ ...f, [key]: value }))
@@ -530,13 +538,13 @@ export default function Activities() {
                     placeholder="Search account"
                     error={errors.accountId || errors.account} />
                 <SearchableSelect label="Contact" value={form.contactId} onChange={value => setF('contactId', value)}
-                    options={filteredContacts}
-                    placeholder={form.accountId ? 'Select contact' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} error={errors.contactId || errors.contact} />
+                    onSearch={loadContactOptions}
+                    placeholder="Search contact"
+                    error={errors.contactId || errors.contact} />
                 <SearchableSelect label="Deal" value={form.dealId} onChange={value => setF('dealId', value)}
-                    options={filteredDeals}
-                    placeholder={form.accountId ? 'Select deal' : 'Select account first'}
-                    disabled={!form.accountId} loading={loadingRelated} error={errors.dealId || errors.deal} />
+                    onSearch={loadDealOptions}
+                    placeholder="Search deal"
+                    error={errors.dealId || errors.deal} />
             </SlideForm>
         </div>
     )

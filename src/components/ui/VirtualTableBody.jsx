@@ -25,7 +25,7 @@ export default function VirtualTableBody({
                         itemHeight={rowHeight}
                         onEndReached={onEndReached}
                         renderItem={(item, index) => (
-                            <table className="w-full text-left" style={{ tableLayout: 'fixed', minWidth: '1000px' }}>
+                            <table className="w-full text-left break-words" style={{ tableLayout: 'auto', minWidth: '600px' }}>
                                 <tbody>
                                     {renderRow(item, index)}
                                 </tbody>

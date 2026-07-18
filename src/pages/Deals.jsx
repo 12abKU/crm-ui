@@ -64,7 +64,7 @@ export default function Deals() {
     const [search, setSearch] = useState('')
     const [form, setForm] = useState(EMPTY_FORM)
     const [errors, setErrors] = useState({})
-    const [filteredContacts, setFilteredContacts] = useState([])
+    const [contacts, setContacts] = useState([])
     const [loadingContacts, setLoadingContacts] = useState(false)
     const [draggingId, setDraggingId] = useState(null)
     const [overStage, setOverStage] = useState(null)
@@ -180,6 +180,15 @@ export default function Deals() {
         const nextAccounts = r.data.content ?? []
         setAccounts(nextAccounts)
         return nextAccounts.map(a => ({ id: a.id, label: a.name }))
+    }, [])
+
+    const loadContactOptions = useCallback(async (query = '') => {
+        const params = new URLSearchParams({ page: '0', size: '10' })
+        if (query.trim()) params.set('search', query.trim())
+        const r = await api.get(`/api/contacts?${params}`)
+        const nextContacts = r.data.content ?? []
+        setContacts(nextContacts)
+        return nextContacts.map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` }))
     }, [])
 
     const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
@@ -327,7 +336,7 @@ export default function Deals() {
             lostReason: LOST_DEAL_REASONS[0],
             lostReasonNote: ''
         })
-        setFilteredContacts([]) 
+        setContacts([]) 
         setErrors({})
     }
 
@@ -349,14 +358,6 @@ export default function Deals() {
 
     const onAccountChange = async (accountId) => {
         setField('accountId', accountId)
-        setField('contactId', '')
-        setFilteredContacts([])
-        if (!accountId) return
-        setLoadingContacts(true)
-        try {
-            const r = await api.get(`/api/accounts/${accountId}/profile`)
-            setFilteredContacts((r.data.contacts ?? []).map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` })))
-        } finally { setLoadingContacts(false) }
     }
 
     const submit = async (e) => {
@@ -367,8 +368,6 @@ export default function Deals() {
         if (!form.amount) newErrors.amount = 'Required'
         if (!form.stage) newErrors.stage = 'Required'
         if (!form.expectedCloseDate) newErrors.expectedCloseDate = 'Required'
-        if (!form.accountId) newErrors.accountId = 'Required'
-        if (!form.contactId) newErrors.contactId = 'Required'
         
         if (form.stage === 'LOST' && !form.lostReason) {
             newErrors.lostReason = 'Required'
@@ -856,23 +855,21 @@ export default function Deals() {
 
                 <Input label="Expected Close Date *" type="date" value={form.expectedCloseDate} onChange={setEvent('expectedCloseDate')} required error={errors.expectedCloseDate} />
                 <SearchableSelect
-                    label="Account *"
+                    label="Account"
                     value={form.accountId}
                     onChange={onAccountChange}
                     options={accounts.map(a => ({ id: a.id, label: a.name }))}
                     onSearch={loadAccountOptions}
                     placeholder="Search account..."
-                    required
                     error={errors.accountId || errors.account}
                 />
                 <SearchableSelect
-                    label="Contact *"
+                    label="Contact"
                     value={form.contactId}
                     onChange={v => setField('contactId', v)}
-                    options={filteredContacts}
-                    placeholder={form.accountId ? (loadingContacts ? 'Loading...' : 'Select contact...') : 'Select account first'}
-                    disabled={!form.accountId || loadingContacts}
-                    required
+                    options={contacts.map(c => ({ id: c.id, label: `${c.firstName} ${c.lastName}` }))}
+                    onSearch={loadContactOptions}
+                    placeholder={loadingContacts ? 'Loading...' : 'Select contact...'}
                     error={errors.contactId || errors.contact}
                 />
             </SlideForm>

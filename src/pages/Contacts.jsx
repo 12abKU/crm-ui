@@ -109,7 +109,6 @@ export default function Contacts() {
         if (!form.phone) newErrors.phone = 'Required'
         else if (!/^\d{10}$/.test(form.phone)) newErrors.phone = 'Must be exactly 10 digits'
         if (!form.designation) newErrors.designation = 'Required'
-        if (!form.accountId) newErrors.accountId = 'Required'
         
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
@@ -295,7 +294,7 @@ export default function Contacts() {
                             {can.CONTACTS_CREATE && (
                                 <>
                                     <button onClick={() => setImportOpen(true)}
-                                        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
+                                        className="whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                         style={{
                                             background: 'transparent',
                                             border: '1px solid rgba(255,255,255,0.25)',
@@ -307,7 +306,7 @@ export default function Contacts() {
                                         Import
                                     </button>
                                     <button onClick={handleOpenModal}
-                                        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
+                                        className="whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                         style={{
                                             background: T.heroBadgeBg,
                                             border: '1px solid rgba(255,255,255,0.22)',

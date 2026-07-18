@@ -221,7 +221,7 @@ export default function Accounts() {
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
                             {can.ACCOUNTS_CREATE && (
                                 <button onClick={handleOpenModal}
-                                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
+                                    className="whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
                                     style={{
                                         background: T.heroBadgeBg,
                                         border: '1px solid rgba(255,255,255,0.22)',
