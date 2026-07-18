@@ -398,21 +398,22 @@ export default function Contacts() {
                                         </td>
                                         {/* Actions */}
                                         <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                            <div className="flex items-center justify-end gap-1.5">
+                                            <div className="flex items-center justify-end gap-1">
                                                 <button onClick={() => navigate(`/contacts/${c.id}`)}
-                                                    className="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                                                    title="View">
-                                                    <span className="material-symbols-outlined text-[16px]">visibility</span>
+                                                    className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                                                    View
                                                 </button>
                                                 {can.CONTACTS_EDIT && (
                                                     <button onClick={(e) => handleEdit(c, e)}
-                                                        className="p-1 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
-                                                        title="Edit">
-                                                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                                                        className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors">
+                                                        Edit
                                                     </button>
                                                 )}
                                                 {can.CONTACTS_DELETE && (
-                                                    <DeleteIconButton onClick={e => remove(c.id, e)} />
+                                                    <button onClick={(e) => remove(c.id, e)}
+                                                        className="px-2 py-1 text-xs font-semibold rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                                        Delete
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
