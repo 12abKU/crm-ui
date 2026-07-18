@@ -163,7 +163,9 @@ export default function Deals() {
     // Load initial pipelines
     useEffect(() => {
         api.get('/api/pipelines').then(r => {
-            const data = r.data ?? []
+            let data = r.data ?? []
+            // Hide Partnership Pipeline as requested
+            data = data.filter(p => p.name !== 'Partnership Pipeline')
             setPipelines(data)
             if (data.length > 0) {
                 setSelectedPipelineId(data[0].id)
@@ -597,8 +599,8 @@ export default function Deals() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto shrink-0">
-                            {pipelines.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1 justify-start lg:justify-end">
+                            {pipelines.length > 1 && (
                                 <div className="w-full sm:w-48 text-center shrink-0">
                                     <CustomSelect
                                         value={selectedPipelineId || ''}
