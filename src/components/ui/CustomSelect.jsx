@@ -1,21 +1,36 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
+import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
 
 const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom', wrapperClassName = '', wrapperStyle = {} }, forwardedRef) => {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
+    const { refs, floatingStyles } = useFloating({
+        open,
+        onOpenChange: setOpen,
+        placement: menuPlacement,
+        whileElementsMounted: autoUpdate,
+        middleware: [
+            offset(6),
+            flip({ padding: 8 }),
+            shift({ padding: 8 })
+        ]
+    })
+
     // Close when clicking outside
     useEffect(() => {
         const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) {
+            const wrapper = ref.current;
+            const floating = refs.floating.current;
+            if (wrapper && !wrapper.contains(e.target) && (!floating || !floating.contains(e.target))) {
                 if (open && onBlur) onBlur();
                 setOpen(false)
             }
         }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
-    }, [])
+    }, [open, refs.floating, onBlur])
 
     // Parse options and optgroups from standard <option> and <optgroup> children
     const parsedItems = []
@@ -64,7 +79,11 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
     return (
         <div className={`relative min-w-0 ${widthClasses} ${defaultWidth} ${wrapperClassName}`.trim()} ref={ref} style={wrapperStyle}>
             <button
-                ref={forwardedRef}
+                ref={(node) => {
+                    refs.setReference(node);
+                    if (typeof forwardedRef === 'function') forwardedRef(node);
+                    else if (forwardedRef) forwardedRef.current = node;
+                }}
                 type="button"
                 disabled={disabled}
                 onClick={() => !disabled && setOpen(o => !o)}
@@ -91,16 +110,17 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
             </button>
 
             {open && (
-                <div className={`absolute ${menuPlacement === 'top' ? 'mb-1.5' : 'mt-1.5'} rounded-xl overflow-hidden z-[100]`}
+                <div className={`absolute rounded-xl overflow-hidden z-[100]`}
+                    ref={refs.setFloating}
                     style={{
                         background: T.surface,
                         border: `1px solid ${T.border}`,
                         boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)',
                         left: 0,
                         right: 0,
-                        ...(menuPlacement === 'top' ? { bottom: '100%' } : { top: '100%' }),
                         maxHeight: '260px',
-                        overflowY: 'auto'
+                        overflowY: 'auto',
+                        ...floatingStyles
                     }}>
                     <div className="py-1 flex flex-col">
                         {parsedItems.map((item, idx) => {

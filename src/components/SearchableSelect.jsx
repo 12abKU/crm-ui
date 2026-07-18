@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Field } from './FormField'
 import { T } from '../constants/theme'
+import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
 
 export default function SearchableSelect({
     label,
@@ -25,11 +26,27 @@ export default function SearchableSelect({
     const inputRef = useRef(null)
     const requestIdRef = useRef(0)
 
+    const { refs, floatingStyles } = useFloating({
+        open,
+        onOpenChange: setOpen,
+        placement: menuPlacement,
+        whileElementsMounted: autoUpdate,
+        middleware: [
+            offset(4),
+            flip({ padding: 8 }),
+            shift({ padding: 8 })
+        ]
+    })
+
     useEffect(() => {
-        const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+        const h = (e) => {
+            const wrapper = ref.current;
+            const floating = refs.floating.current;
+            if (wrapper && !wrapper.contains(e.target) && (!floating || !floating.contains(e.target))) setOpen(false)
+        }
         document.addEventListener('mousedown', h)
         return () => document.removeEventListener('mousedown', h)
-    }, [])
+    }, [open, refs.floating])
     useEffect(() => { if (open && inputRef.current) inputRef.current.focus() }, [open])
 
     useEffect(() => {
@@ -89,7 +106,7 @@ export default function SearchableSelect({
 
     const content = (
         <div className="relative" ref={ref}>
-            <button type="button" disabled={disabled}
+            <button type="button" disabled={disabled} ref={refs.setReference}
                 onClick={() => !disabled && setOpen(o => !o)}
                 className="crm-select w-full flex items-center justify-between gap-2 text-left transition-all duration-150"
                 style={{ 
@@ -115,17 +132,17 @@ export default function SearchableSelect({
             </button>
 
             {open && (
-                <div className={`absolute ${menuPlacement === 'top' ? 'mb-1' : 'mt-1'} rounded-xl overflow-hidden z-50`}
+                <div className="absolute rounded-xl overflow-hidden z-50"
+                    ref={refs.setFloating}
                     style={{
                         background: T.surface,
                         border: `1px solid ${T.border}`,
                         boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                        ...(menuPlacement === 'top' ? { bottom: '100%' } : { top: '100%' }),
-                        // toolbar: pin to right edge, fixed width; form: stretch full width
                         ...(isToolbar
                             ? { right: 0, left: 'auto', minWidth: 240 }
                             : { left: 0, right: 0 }
-                        )
+                        ),
+                        ...floatingStyles
                     }}>
                     <div className="p-2" style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: T.bg }}>
