@@ -356,7 +356,7 @@ export default function Contacts() {
                         <VirtualTableBody
                             items={contacts}
                             colSpan={headers.length}
-                            rowHeight={120}
+                            rowHeight={76}
                             maxHeight={tableHeight}
                             renderRow={(c, i) => {
                                 const rowBg = ROW_COLORS[i % ROW_COLORS.length]
@@ -398,23 +398,21 @@ export default function Contacts() {
                                         </td>
                                         {/* Actions */}
                                         <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                            <div className="flex flex-col items-end gap-1">
+                                            <div className="flex items-center justify-end gap-1.5">
                                                 <button onClick={() => navigate(`/contacts/${c.id}`)}
                                                     className="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
                                                     title="View">
-                                                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                    <span className="material-symbols-outlined text-[16px]">visibility</span>
                                                 </button>
                                                 {can.CONTACTS_EDIT && (
                                                     <button onClick={(e) => handleEdit(c, e)}
                                                         className="p-1 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
                                                         title="Edit">
-                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                        <span className="material-symbols-outlined text-[16px]">edit</span>
                                                     </button>
                                                 )}
                                                 {can.CONTACTS_DELETE && (
-                                                    <div className="scale-90 origin-right">
-                                                        <DeleteIconButton onClick={e => remove(c.id, e)} />
-                                                    </div>
+                                                    <DeleteIconButton onClick={e => remove(c.id, e)} />
                                                 )}
                                             </div>
                                         </td>
