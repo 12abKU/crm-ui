@@ -133,7 +133,7 @@ export default function AdminDashboard() {
                     <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
                         style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
 
-                    <div className="relative px-9 py-7 flex items-center gap-4">
+                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex items-center gap-4">
                         <div className="w-12 h-12 flex items-center justify-center shrink-0"
                             style={{
                                 borderRadius: 14,
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ── Tab Bar ───────────────────────────────────── */}
-                <div className="flex items-center gap-2.5 mb-7 flex-wrap p-2"
+                <div className="flex items-center gap-2.5 mb-7 flex-wrap p-1 sm:p-2"
                     style={{
                         borderRadius: 22,
                         background: T.surface,
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
                         const active = activeTab === tab.key
                         return (
                             <button key={tab.key} onClick={() => handleTab(tab.key)}
-                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-black transition-all duration-200"
+                                className="flex items-center gap-2 px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-black transition-all duration-200"
                                 style={{
                                     borderRadius: 16,
                                     background: active

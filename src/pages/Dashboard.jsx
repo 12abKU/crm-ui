@@ -51,12 +51,12 @@ function AgentDashboard() {
                     <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
                         style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
 
-                    <div className="relative px-6 py-6 lg:px-10 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="relative px-4 py-5 sm:px-6 lg:px-10 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div>
                             <p className="text-sm font-bold mb-1" style={{ color: T.heroSubText }}>
                                 Good day 👋
                             </p>
-                            <h2 className="text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                            <h2 className="text-2xl sm:text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 Welcome back, {name}
                             </h2>
                             <p className="text-sm mt-1.5" style={{ color: T.heroSubText }}>

@@ -19,7 +19,7 @@ export function TabSkeleton() {
 
 export function Card({ children, className = '', style = {}, accent = T.primary, compact = false }) {
     return (
-        <div className={`relative overflow-hidden transition-all duration-300 ${compact ? 'p-4' : 'p-5 md:p-6'} ${className}`}
+        <div className={`relative overflow-hidden transition-all duration-300 ${compact ? 'p-4' : 'p-4 sm:p-5 md:p-6'} ${className}`}
             style={{
                 borderRadius: 22,
                 ...luxeSurface(accent),
@@ -44,23 +44,23 @@ export function Card({ children, className = '', style = {}, accent = T.primary,
 
 export function CardTitle({ children, icon, accent = T.primary, meta }) {
     return (
-        <div className="flex items-center justify-between gap-4 mb-6 pb-4"
+        <div className="flex items-center justify-between gap-4 mb-4 pb-3 sm:mb-6 sm:pb-4"
             style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
             <div className="flex items-center gap-3 min-w-0">
                 {icon && (
-                    <div className="w-9 h-9 flex items-center justify-center shrink-0"
+                    <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center shrink-0"
                         style={{
                             borderRadius: 12,
                             background: `linear-gradient(135deg, ${accent}1A 0%, ${accent}08 100%)`,
                             border: `1px solid ${accent}30`,
                             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.42)',
                         }}>
-                        <span className="material-symbols-outlined filled text-[17px]"
+                        <span className="material-symbols-outlined filled text-[14px] sm:text-[17px]"
                             style={{ color: accent }}>{icon}</span>
                     </div>
                 )}
                 <div className="min-w-0">
-                    <h3 className="text-sm font-black uppercase truncate"
+                    <h3 className="text-xs sm:text-sm font-black uppercase truncate"
                         style={{ color: T.textPrimary, letterSpacing: '0.08em' }}>
                         {children}
                     </h3>
@@ -83,7 +83,7 @@ export function StatBox({ label, value, icon, color }) {
     const iconBg = color ? `${color}0D` : T.primaryDim
 
     return (
-        <div className="p-5 flex items-center gap-4 transition-all duration-300 relative overflow-hidden"
+        <div className="p-3 sm:p-4 md:p-5 flex items-center gap-3 sm:gap-4 transition-all duration-300 relative overflow-hidden"
             style={{
                 borderRadius: 20,
                 ...luxeSurface(iconColor),
@@ -100,20 +100,20 @@ export function StatBox({ label, value, icon, color }) {
             }}>
             <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full"
                 style={{ background: `linear-gradient(180deg, ${iconColor}, ${iconColor}35)` }} />
-            <div className="w-12 h-12 flex items-center justify-center shrink-0"
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0"
                 style={{
                     borderRadius: 14,
                     background: `linear-gradient(135deg, ${iconBg} 0%, ${iconColor}18 100%)`,
                     border: `1px solid ${iconColor}30`,
                     boxShadow: `0 10px 20px ${iconColor}12`,
                 }}>
-                <span className="material-symbols-outlined filled text-[20px]"
+                <span className="material-symbols-outlined filled text-[16px] sm:text-[20px]"
                     style={{ color: iconColor }}>{icon}</span>
             </div>
             <div className="z-10 min-w-0">
                 <p className="text-[10px] font-black uppercase truncate"
                     style={{ color: T.textMuted, letterSpacing: '0.1em' }}>{label}</p>
-                <p className="text-2xl font-black mt-1 truncate"
+                <p className="text-xl sm:text-2xl font-black mt-1 truncate"
                     style={{ color: T.textPrimary }}>{value ?? '-'}</p>
             </div>
         </div>
