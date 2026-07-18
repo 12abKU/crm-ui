@@ -182,16 +182,6 @@ export default function AgentSettings() {
                 </div>
             </div>
 
-            {userToDelete && (
-                <ConfirmModal
-                    isOpen={!!userToDelete}
-                    title="Delete Agent"
-                    message="Are you sure you want to delete this agent? This action cannot be undone."
-                    confirmText="Delete"
-                    onConfirm={executeDeleteUser}
-                    onCancel={() => setUserToDelete(null)}
-                />
-            )}
         </div>
     )
 }
