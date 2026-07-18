@@ -3,6 +3,7 @@ import { T } from '../../constants/theme'
 import api, { extractApiErrorMessage } from '../../api'
 import { useDispatch } from 'react-redux'
 import { setStages as setReduxStages } from '../../store/pipelineSlice'
+import ConfirmModal from '../ui/ConfirmModal'
 
 export default function PipelineSettings() {
     const dispatch = useDispatch()
@@ -12,6 +13,7 @@ export default function PipelineSettings() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
     const [successMsg, setSuccessMsg] = useState(null)
+    const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null)
 
     const loadPipeline = async () => {
         setLoading(true)
@@ -66,7 +68,13 @@ export default function PipelineSettings() {
     }
 
     const handleDeleteStage = (index) => {
-        setStages(prev => prev.filter((_, idx) => idx !== index))
+        setDeleteConfirmIndex(index)
+    }
+
+    const confirmDelete = () => {
+        if (deleteConfirmIndex === null) return
+        setStages(prev => prev.filter((_, idx) => idx !== deleteConfirmIndex))
+        setDeleteConfirmIndex(null)
     }
 
     const moveStage = (index, direction) => {
@@ -294,6 +302,15 @@ export default function PipelineSettings() {
                     </button>
                 </div>
             </form>
+
+            <ConfirmModal
+                isOpen={deleteConfirmIndex !== null}
+                title="Delete Pipeline Stage"
+                message={`Are you sure you want to delete the stage "${deleteConfirmIndex !== null ? stages[deleteConfirmIndex]?.label || stages[deleteConfirmIndex]?.stageKey || 'Unknown' : ''}"? Deals currently in this stage will be moved to the first stage.`}
+                confirmText="Delete Stage"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirmIndex(null)}
+            />
         </div>
     )
 }
