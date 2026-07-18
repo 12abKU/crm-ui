@@ -148,7 +148,7 @@ export default function Accounts() {
         updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
-    const headers = ['Company', 'Website', 'Phone', 'Industry', 'Employees', 'Tag', 'Contacts', 'Open Deals']
+    const headers = ['Company', 'Phone', 'Industry', 'Tag', 'Open Deals']
     if (can.ACCOUNTS_DELETE) headers.push('')
 
     return (
@@ -217,8 +217,8 @@ export default function Accounts() {
                 <TableShell
                     headers={headers}
                     colWidths={can.ACCOUNTS_DELETE 
-                        ? ['20%', '15%', '12%', '11%', '10%', '10%', '8%', '10%', '4%']
-                        : ['20%', '16%', '13%', '12%', '10%', '10%', '8%', '11%']}
+                        ? ['25%', '15%', '20%', '15%', '20%', '5%']
+                        : ['25%', '15%', '20%', '20%', '20%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -231,7 +231,7 @@ export default function Accounts() {
                                             <Skeleton height={14} width={120} borderRadius={6} />
                                         </div>
                                     </td>
-                                    {[100, 90, 80, 70, 60, 40, 80, 20].map((w, j) => (
+                                    {[90, 80, 60, 80, 20].map((w, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton height={14} width={w} borderRadius={6} />
                                         </td>
@@ -254,8 +254,8 @@ export default function Accounts() {
                             const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                             const hover = virtualRowHandlers(rowBg)
                             const colWidths = can.ACCOUNTS_DELETE 
-                                ? ['20%', '15%', '12%', '11%', '10%', '10%', '8%', '10%', '4%']
-                                : ['20%', '16%', '13%', '12%', '10%', '10%', '8%', '11%']
+                                ? ['25%', '15%', '20%', '15%', '20%', '5%']
+                                : ['25%', '15%', '20%', '20%', '20%']
                             return (
                                 <tr key={a.id} className="group transition-all duration-150"
                                     style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
@@ -279,28 +279,18 @@ export default function Accounts() {
                                         </div>
                                     </td>
 
-                                    {/* Website */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                        <InlineEdit value={a.website} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'website', v)} />
-                                    </td>
-
                                     {/* Phone */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
                                         <InlineEdit value={a.phone} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'phone', v)} />
                                     </td>
 
                                     {/* Industry */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[3] }}>
+                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
                                         <InlineEdit value={a.industry} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'industry', v)} />
                                     </td>
 
-                                    {/* Employees */}
-                                    <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[4] }}>
-                                        <InlineEdit value={a.employeeRange} placeholder="Select" options={EMPLOYEE_RANGES} readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'employeeRange', v)} />
-                                    </td>
-
                                     {/* Tag */}
-                                    <td className="px-6 py-4" style={{ width: colWidths[5] }}>
+                                    <td className="px-6 py-4" style={{ width: colWidths[3] }}>
                                         <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} allowCustom={true} onSave={v => updateField(a.id, 'tag', v)}>
                                             {a.tag && (
                                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
@@ -311,22 +301,8 @@ export default function Accounts() {
                                         </InlineEdit>
                                     </td>
 
-                                    {/* Contacts */}
-                                    <td className="px-6 py-4" style={{ width: colWidths[6] }}>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full flex items-center justify-center"
-                                                style={{ background: T.secondaryDim }}>
-                                                <span className="material-symbols-outlined text-[13px]"
-                                                    style={{ color: T.secondaryText }}>groups</span>
-                                            </div>
-                                            <span className="text-sm font-bold" style={{ color: T.textPrimary }}>
-                                                {a.contactCount ?? 0}
-                                            </span>
-                                        </div>
-                                    </td>
-
                                     {/* Open Deals */}
-                                    <td className="px-6 py-4" style={{ width: colWidths[7] }}>
+                                    <td className="px-6 py-4" style={{ width: colWidths[4] }}>
                                         <span className="text-sm font-bold block" style={{ color: T.primaryText }}>
                                             ₹{(a.openDealAmount ?? 0).toLocaleString()}
                                         </span>
@@ -337,7 +313,7 @@ export default function Accounts() {
 
                                     {/* Delete */}
                                     {can.ACCOUNTS_DELETE && (
-                                        <td className="px-6 py-4" style={{ width: colWidths[8] }}>
+                                        <td className="px-6 py-4" style={{ width: colWidths[5] }}>
                                             <DeleteIconButton onClick={e => remove(a.id, e)} />
                                         </td>
                                     )}

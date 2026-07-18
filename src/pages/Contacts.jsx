@@ -223,7 +223,7 @@ export default function Contacts() {
         document.body.removeChild(link)
     }
 
-    const headers = ['Name', 'Email', 'Phone', 'Designation', 'Account']
+    const headers = ['Name', 'Phone', 'Account']
     if (can.CONTACTS_DELETE) headers.push('')
 
     return (
@@ -305,8 +305,8 @@ export default function Contacts() {
                 <TableShell
                     headers={headers}
                     colWidths={can.CONTACTS_DELETE
-                        ? ['22%', '25%', '15%', '16%', '18%', '4%']
-                        : ['22%', '26%', '16%', '17%', '19%']}
+                        ? ['35%', '25%', '35%', '5%']
+                        : ['35%', '30%', '35%']}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
@@ -319,7 +319,7 @@ export default function Contacts() {
                                             <Skeleton height={14} width={130} borderRadius={6} />
                                         </div>
                                     </td>
-                                    {[140, 100, 110, 90, 20].map((w, j) => (
+                                    {[100, 90, 20].map((w, j) => (
                                         <td key={j} className="px-6 py-4">
                                             <Skeleton height={14} width={w} borderRadius={6} />
                                         </td>
@@ -341,8 +341,8 @@ export default function Contacts() {
                                 const rowBg = ROW_COLORS[i % ROW_COLORS.length]
                                 const hover = virtualRowHandlers(rowBg)
                                 const colWidths = can.CONTACTS_DELETE
-                                    ? ['22%', '25%', '15%', '16%', '18%', '4%']
-                                    : ['22%', '26%', '16%', '17%', '19%']
+                                    ? ['35%', '25%', '35%', '5%']
+                                    : ['35%', '30%', '35%']
                                 return (
                                     <tr key={c.id} className="group transition-all duration-150"
                                         style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: rowBg }}
@@ -366,15 +366,9 @@ export default function Contacts() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                            <InlineEdit value={c.email} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'email', v)} />
-                                        </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
                                             <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
                                         </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[3] }}>
-                                            <InlineEdit value={c.designation} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'designation', v)} />
-                                        </td>
-                                        <td className="px-6 py-4" style={{ width: colWidths[4] }}>
+                                        <td className="px-6 py-4" style={{ width: colWidths[2] }}>
                                             {c.account && (
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold"
                                                     style={{ background: T.primaryFaint, color: T.primaryText, border: `1px solid ${T.primary}20` }}>
@@ -384,7 +378,7 @@ export default function Contacts() {
                                             )}
                                         </td>
                                         {can.CONTACTS_DELETE && (
-                                            <td className="px-6 py-4" style={{ width: colWidths[5] }}>
+                                            <td className="px-6 py-4" style={{ width: colWidths[3] }}>
                                                 <DeleteIconButton onClick={e => remove(c.id, e)} />
                                             </td>
                                         )}
