@@ -162,7 +162,7 @@ export default function PlatformTickets() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>
+                    <h2 className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>
                         Support Tickets
                     </h2>
                     <p className="text-sm mt-1" style={{ color: T.textMuted }}>

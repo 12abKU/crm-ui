@@ -241,7 +241,7 @@ export default function Calendar() {
             <main className="p-4 sm:p-8 flex-1 flex flex-col">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>Calendar</h1>
+                        <h1 className="text-2xl sm:text-3xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>Calendar</h1>
                         <p className="mt-1 font-medium" style={{ color: T.textMuted }}>Manage your schedule and upcoming activities.</p>
                     </div>
 

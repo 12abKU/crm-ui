@@ -106,7 +106,7 @@ export default function Profile() {
                         <div className="relative px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-5">
                                 {/* Avatar */}
-                                <div className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
+                                <div className="relative w-16 h-16 rounded-full flex items-center justify-center font-black text-xl sm:text-2xl shrink-0"
                                     style={{
                                         background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                         color: '#fff',
@@ -118,7 +118,7 @@ export default function Profile() {
                                         style={{ background: T.onlineDot, borderColor: '' }} />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                         {profile?.name}
                                     </h2>
                                     <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>

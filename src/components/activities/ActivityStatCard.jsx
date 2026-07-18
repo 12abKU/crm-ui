@@ -34,7 +34,7 @@ export default function ActivityStatCard({ icon, label, value, sub, loading, acc
                     style={{ color: T.textMuted }}>{label}</p>
                 {loading
                     ? <Skeleton height={30} width={80} borderRadius={8} />
-                    : <p className="text-2xl font-black" style={{ color }}>{value ?? '0'}</p>
+                    : <p className="text-xl sm:text-2xl font-black" style={{ color }}>{value ?? '0'}</p>
                 }
                 {sub && <p className="text-[11px] mt-1" style={{ color: T.textMuted }}>{sub}</p>}
             </div>

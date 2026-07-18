@@ -185,7 +185,7 @@ export default function Accounts() {
                                     style={{ color: T.sidebarActiveText }}>business</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Accounts
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>

@@ -123,14 +123,14 @@ export default function Login() {
                             <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5">
                                 <p className="text-[10px] text-gray-400 uppercase font-semibold">Active Value</p>
                                 <div className="flex items-baseline gap-2 mt-1">
-                                    <h4 className="text-2xl font-black text-white">$142,850</h4>
+                                    <h4 className="text-xl sm:text-2xl font-black text-white">$142,850</h4>
                                     <span className="text-xs text-emerald-400 font-bold flex items-center">↑12%</span>
                                 </div>
                             </div>
                             <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5">
                                 <p className="text-[10px] text-gray-400 uppercase font-semibold">Win Rate</p>
                                 <div className="flex items-baseline gap-2 mt-1">
-                                    <h4 className="text-2xl font-black text-white">24.8%</h4>
+                                    <h4 className="text-xl sm:text-2xl font-black text-white">24.8%</h4>
                                     <span className="text-xs text-orange-400 font-bold flex items-center">↑3.2%</span>
                                 </div>
                             </div>
@@ -204,7 +204,7 @@ export default function Login() {
                          }}>
                         
                         <div className="mb-10 text-center lg:text-left">
-                            <h2 className="text-3xl font-black tracking-tight mb-2" style={{ color: T.textPrimary }}>Welcome back</h2>
+                            <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-2" style={{ color: T.textPrimary }}>Welcome back</h2>
                             <p className="text-sm" style={{ color: T.textSecondary }}>Enter your credentials to access your sales workspace</p>
                         </div>
 

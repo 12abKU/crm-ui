@@ -269,7 +269,7 @@ export default function Activities() {
                                     style={{ color: T.sidebarActiveText }}>event_note</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Activities
                                 </h2>
                                 <div className="flex items-center gap-2 mt-0.5">

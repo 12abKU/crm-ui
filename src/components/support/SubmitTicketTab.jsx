@@ -46,7 +46,7 @@ export default function SubmitTicketTab({
                             <IconCircleCheckFilled size={44} style={{ color: '#16A34A' }} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black" style={{ color: T.textPrimary }}>
+                            <h3 className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary }}>
                                 Ticket Submitted! 🎉
                             </h3>
                             <p className="text-sm mt-2 max-w-sm mx-auto leading-relaxed" style={{ color: T.textMuted }}>

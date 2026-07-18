@@ -237,7 +237,7 @@ export default function AuditLogPage() {
                                     <span className="material-symbols-outlined filled text-[19px]"
                                         style={{ color: T.primary }}>history</span>
                                 </div>
-                                <h1 className="text-2xl font-black truncate" style={{ color: T.textPrimary }}>Audit Log</h1>
+                                <h1 className="text-xl sm:text-2xl font-black truncate" style={{ color: T.textPrimary }}>Audit Log</h1>
                             </div>
                             <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
                                 Complete history of every action performed in your CRM

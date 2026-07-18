@@ -239,7 +239,7 @@ export default function ContactProfile() {
                     <div className="relative px-6 py-6 lg:px-8 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         {/* Avatar + name */}
                         <div className="flex items-center gap-5">
-                            <div className="rounded-full flex items-center justify-center text-3xl font-black shrink-0"
+                            <div className="rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black shrink-0"
                                 style={{
                                     width: 72, height: 72,
                                     background: 'rgba(255,255,255,0.18)',
@@ -252,12 +252,12 @@ export default function ContactProfile() {
                             <div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <InlineEdit value={profile.firstName} onSave={v => updateField('firstName', v)} placeholder="First name">
-                                        <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
+                                        <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
                                             {profile.firstName}
                                         </h1>
                                     </InlineEdit>
                                     <InlineEdit value={profile.lastName} onSave={v => updateField('lastName', v)} placeholder="Last name">
-                                        <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
+                                        <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
                                             {profile.lastName}
                                         </h1>
                                     </InlineEdit>
@@ -350,7 +350,7 @@ export default function ContactProfile() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
-                                <p className="text-2xl font-black mt-0.5" style={{ color: T.textPrimary }}>{value}</p>
+                                <p className="text-xl sm:text-2xl font-black mt-0.5" style={{ color: T.textPrimary }}>{value}</p>
                             </div>
                         </div>
                     ))}

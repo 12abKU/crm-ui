@@ -33,7 +33,7 @@ function KpiCard({ icon, label, value, color }) {
             </div>
             <div>
                 <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
-                <p className="text-2xl font-black mt-0.5" style={{ color: c }}>{value}</p>
+                <p className="text-xl sm:text-2xl font-black mt-0.5" style={{ color: c }}>{value}</p>
             </div>
         </div>
     )
@@ -99,7 +99,7 @@ export default function AgentProfile() {
 
                         <div className="relative px-6 py-6 md:px-8 md:py-6 flex flex-col sm:flex-row items-center text-center sm:text-left gap-5">
                             {/* Avatar */}
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-xl sm:text-2xl shrink-0"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     color: '#fff',
@@ -108,7 +108,7 @@ export default function AgentProfile() {
                                 {agent.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     {agent.name}
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>{agent.email}</p>
@@ -199,7 +199,7 @@ export default function AgentProfile() {
 
                     <div className="relative px-6 py-6 md:px-8 md:py-6 flex flex-col sm:flex-row items-center text-center sm:text-left gap-5">
                         {/* Avatar */}
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-2xl shrink-0"
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center font-black text-xl sm:text-2xl shrink-0"
                             style={{
                                 background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                 color: '#fff',
@@ -208,7 +208,7 @@ export default function AgentProfile() {
                             {agent.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                            <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                 {agent.name}
                             </h2>
                             <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>{agent.email}</p>

@@ -229,7 +229,7 @@ export function UserProfileModal({ user, onClose }) {
     return (
         <Modal title="User Profile" onClose={onClose}>
             <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black shrink-0"
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-black shrink-0"
                     style={{ background: T.primaryDim, color: T.primary }}>
                     {user.name?.charAt(0)?.toUpperCase()}
                 </div>

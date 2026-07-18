@@ -131,7 +131,7 @@ export default function SuperAdminSettings() {
                                     <span className="material-symbols-outlined text-[22px]" style={{ color }}>{icon}</span>
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-black" style={{ color: T.textPrimary }}>{value}</p>
+                                    <p className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary }}>{value}</p>
                                     <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
                                 </div>
                             </div>

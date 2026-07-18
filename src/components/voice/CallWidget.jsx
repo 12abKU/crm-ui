@@ -202,7 +202,7 @@ export default function CallWidget({ contact, onClose, onCallComplete }) {
                 {/* Header */}
                 <div className="px-6 pt-7 pb-5 flex flex-col items-center gap-2"
                     style={{ background: T.sidebar }}>
-                    <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black mb-1"
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-black mb-1"
                         style={{ background: T.primaryDim, color: T.primary }}>
                         {displayName.charAt(0).toUpperCase()}
                     </div>
@@ -218,7 +218,7 @@ export default function CallWidget({ contact, onClose, onCallComplete }) {
                     </div>
 
                     {status === 'in-progress' && (
-                        <p className="text-2xl font-black text-white mt-1 tabular-nums">{fmt(seconds)}</p>
+                        <p className="text-xl sm:text-2xl font-black text-white mt-1 tabular-nums">{fmt(seconds)}</p>
                     )}
                 </div>
 

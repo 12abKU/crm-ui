@@ -43,7 +43,7 @@ export default function SupportHeader({ isAdmin, companyName, badge }) {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                        <h1 className="text-2xl sm:text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                             Support Center
                         </h1>
                         <p className="text-sm mt-1" style={{ color: T.heroSubText }}>

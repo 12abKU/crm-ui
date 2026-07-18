@@ -23,7 +23,7 @@ export default function CallStatCard({ icon, label, value, bg, color }) {
             <div>
                 <p className="text-[10px] font-black uppercase tracking-widest mb-0.5"
                     style={{ color: T.textMuted }}>{label}</p>
-                <p className="text-2xl font-black" style={{ color }}>{value}</p>
+                <p className="text-xl sm:text-2xl font-black" style={{ color }}>{value}</p>
             </div>
         </div>
     )

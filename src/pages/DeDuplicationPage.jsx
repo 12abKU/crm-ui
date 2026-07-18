@@ -76,7 +76,7 @@ export default function DeDuplicationPage() {
                                     <span className="material-symbols-outlined filled text-[19px]"
                                         style={{ color: T.primary }}>merge</span>
                                 </div>
-                                <h1 className="text-2xl font-black" style={{ color: T.textPrimary }}>De-Duplication Dashboard</h1>
+                                <h1 className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary }}>De-Duplication Dashboard</h1>
                             </div>
                             <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
                                 Scan and resolve duplicate records in your CRM to keep data clean.

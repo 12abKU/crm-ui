@@ -48,7 +48,7 @@ export default function DealPanelJourney({ deal }) {
     if (!history.length) {
         return (
             <div className="flex flex-col items-center justify-center py-12">
-                <span className="material-symbols-outlined text-4xl mb-3" style={{ color: T.border }}>route</span>
+                <span className="material-symbols-outlined text-3xl sm:text-4xl mb-3" style={{ color: T.border }}>route</span>
                 <p className="text-sm font-bold" style={{ color: T.textMuted }}>No stage history found.</p>
             </div>
         )

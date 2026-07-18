@@ -589,7 +589,7 @@ export default function Deals() {
                                     style={{ color: T.sidebarActiveText }}>handshake</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                     Deals
                                 </h2>
                                 <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>

@@ -10,7 +10,7 @@ export default function PageHeader({ title, subtitle, actions, icon }) {
                     </div>
                 )}
                 <div>
-                    <h2 className="text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{title}</h2>
+                    <h2 className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.01em' }}>{title}</h2>
                     {subtitle && <p className="text-sm mt-0.5" style={{ color: T.textMuted }}>{subtitle}</p>}
                 </div>
             </div>

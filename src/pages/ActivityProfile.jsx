@@ -332,7 +332,7 @@ export default function ActivityProfile() {
                             <div>
                                 <div className="flex items-center gap-3 flex-wrap mb-1">
                                     <InlineEdit value={activity.subject} readonly={!(can.ACTIVITIES_EDIT || isAdmin)} onSave={v => updateField('subject', v)} placeholder="Untitled Activity">
-                                        <h1 className="text-2xl font-black"
+                                        <h1 className="text-xl sm:text-2xl font-black"
                                             style={{
                                                 color: '#fff',
                                                 letterSpacing: '-0.02em',

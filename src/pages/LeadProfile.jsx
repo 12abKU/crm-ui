@@ -143,7 +143,7 @@ export default function LeadProfile() {
 
                     <div className="relative px-6 py-6 lg:px-8 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="flex items-center gap-5">
-                            <div className="rounded-full flex items-center justify-center text-3xl font-black shrink-0 shadow-lg"
+                            <div className="rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black shrink-0 shadow-lg"
                                 style={{
                                     width: 72, height: 72,
                                     background: 'rgba(255,255,255,0.18)',
@@ -154,7 +154,7 @@ export default function LeadProfile() {
                                 {leadName.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
+                                <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
                                     {leadName}
                                 </h1>
                                 <p className="text-sm font-semibold mt-1" style={{ color: 'rgba(255,255,255,0.85)' }}>

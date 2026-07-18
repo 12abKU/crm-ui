@@ -195,7 +195,7 @@ export default function AccountProfile() {
                     <div className="relative px-6 py-6 lg:px-8 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         {/* Left: avatar + name */}
                         <div className="flex items-center gap-5">
-                            <div className="w-18 h-18 rounded-2xl flex items-center justify-center text-3xl font-black shrink-0"
+                            <div className="w-18 h-18 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shrink-0"
                                 style={{
                                     width: 72, height: 72,
                                     background: 'rgba(255,255,255,0.15)',
@@ -208,7 +208,7 @@ export default function AccountProfile() {
                             <div>
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <InlineEdit value={profile.name} onSave={v => updateField('name', v)} placeholder="Account name">
-                                        <h1 className="text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                        <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                             {profile.name}
                                         </h1>
                                     </InlineEdit>
@@ -285,7 +285,7 @@ export default function AccountProfile() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>{label}</p>
-                                <p className="text-2xl font-black mt-0.5" style={{ color: T.textPrimary }}>{value}</p>
+                                <p className="text-xl sm:text-2xl font-black mt-0.5" style={{ color: T.textPrimary }}>{value}</p>
                             </div>
                         </div>
                     ))}
