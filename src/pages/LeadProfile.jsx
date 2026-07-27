@@ -6,6 +6,7 @@ import api from '../api'
 import Skeleton from 'react-loading-skeleton'
 import { useSelector } from 'react-redux'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
+import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
 
 const HERO_ACCENTS = T.heroAccents
 
@@ -48,6 +49,7 @@ export default function LeadProfile() {
     const navigate = useNavigate()
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [editOpen, setEditOpen] = useState(false)
 
     const role = useSelector(state => state.auth.role)
 
@@ -195,7 +197,8 @@ export default function LeadProfile() {
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
                                 <span className="material-symbols-outlined text-[16px]">mail</span>Email
                             </button>
-                            <button className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
+                            <button onClick={() => setEditOpen(true)}
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
                                 style={{
                                     background: T.primary,
                                     border: '1px solid rgba(255,255,255,0.20)',
@@ -344,6 +347,15 @@ export default function LeadProfile() {
                     </div>
                 </div>
             </main>
+
+            {editOpen && profile && (
+                <EditLeadSlideForm
+                    open={editOpen}
+                    lead={profile}
+                    onClose={() => setEditOpen(false)}
+                    onSuccess={(updated) => setProfile(updated)}
+                />
+            )}
         </div>
     )
 }

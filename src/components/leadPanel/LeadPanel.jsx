@@ -24,7 +24,7 @@ const STAGE_STYLES = {
 
 const getStageStyle = (stageKey) => STAGE_STYLES[stageKey] || STAGE_STYLES.NEW
 
-export default function LeadPanel({ lead, onClose, onDelete, canEdit }) {
+export default function LeadPanel({ lead, onClose, onDelete, onEdit, canEdit }) {
     const location = useLocation()
     const [activeTab, setActiveTab] = useState(() => new URLSearchParams(location.search).get('tab') || 'overview')
     const [profile, setProfile] = useState(null)
@@ -166,6 +166,15 @@ export default function LeadPanel({ lead, onClose, onDelete, canEdit }) {
                                 </div>
 
                                 <div className="flex items-center gap-1 shrink-0">
+                                    {computedCanEdit && onEdit && (
+                                        <button onClick={() => onEdit(lead)}
+                                            className="p-1.5 rounded-lg transition-all" title="Edit lead"
+                                            style={{ color: T.heroSubText }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.18)'; e.currentTarget.style.color = '#60A5FA' }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
+                                            <span className="material-symbols-outlined text-[17px]">edit</span>
+                                        </button>
+                                    )}
                                     {canDelete && onDelete && (
                                         <button onClick={() => onDelete(lead.id)}
                                             className="p-1.5 rounded-lg transition-all" title="Delete lead"

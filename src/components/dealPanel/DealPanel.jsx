@@ -29,7 +29,7 @@ const TABS = [
     { id: 'audit',         icon: 'history',        label: 'Audit', adminOnly: true },
 ]
 
-export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab }) {
+export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, initialTab }) {
     const { getStageLabel, getStageStyle } = usePipelineStages()
     const [activeTab, setActiveTab] = useState(initialTab || 'overview')
     const [profile, setProfile] = useState(null)
@@ -215,6 +215,15 @@ export default function DealPanel({ deal, onClose, onDelete, canEdit, initialTab
 
                                 {/* Header actions */}
                                 <div className="flex items-center gap-1 shrink-0">
+                                    {onEdit && (
+                                        <button onClick={() => onEdit(deal)}
+                                            className="p-1.5 rounded-lg transition-all" title="Edit deal"
+                                            style={{ color: T.heroSubText }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.18)'; e.currentTarget.style.color = '#60A5FA' }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText }}>
+                                            <span className="material-symbols-outlined text-[17px]">edit</span>
+                                        </button>
+                                    )}
                                     {canDelete && onDelete && (
                                         <button onClick={() => onDelete(deal.id)}
                                             className="p-1.5 rounded-lg transition-all" title="Delete deal"

@@ -13,6 +13,7 @@ import CustomSelect from '../components/ui/CustomSelect'
 import DealPanel from '../components/dealPanel/DealPanel'
 import DealCard from '../components/deals/DealCard'
 import LostDealReasonModal from '../components/deals/LostDealReasonModal'
+import EditDealSlideForm from '../components/deals/EditDealSlideForm'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import { profileCache, getCachePrefix } from '../utils/cacheUtils'
@@ -70,6 +71,7 @@ export default function Deals() {
     const [overStage, setOverStage] = useState(null)
     const [lostMove, setLostMove] = useState(null)
     const [savingLostMove, setSavingLostMove] = useState(false)
+    const [editModalDeal, setEditModalDeal] = useState(null)
     const dragDeal = useRef(null)
     const highlightRef = useRef(null)
 
@@ -743,6 +745,7 @@ export default function Deals() {
                                                     canAssign={can.DEALS_ASSIGN}
                                                     onClick={() => setSelectedDeal(deal)}
                                                     onAssigned={updated => updateDealInStage(deal.id, updated)}
+                                                    onEdit={(can.DEALS_EDIT && (isAdminOrAbove || deal._isOwner || deal._assignedToMe)) ? () => setEditModalDeal(deal) : undefined}
                                                     onRemove={canDelete ? async () => {
                                                         const isConfirmed = await confirm({
                                                             title: 'Delete Deal?',
@@ -884,6 +887,7 @@ export default function Deals() {
                         navigate(location.pathname, { replace: true })
                     }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
+                    onEdit={() => setEditModalDeal(selectedDeal)}
                     onDelete={can.DEALS_DELETE && (isAdminOrAbove || selectedDeal._isOwner) ? async (id) => {
                         const isConfirmed = await confirm({
                             title: 'Delete Deal?',
@@ -914,6 +918,20 @@ export default function Deals() {
                     setLostMove(null)
                 }}
             />
+            {editModalDeal && (
+                <EditDealSlideForm
+                    open={!!editModalDeal}
+                    deal={editModalDeal}
+                    onClose={() => setEditModalDeal(null)}
+                    onSuccess={(updated) => {
+                        profileCache.delete(`${getCachePrefix()}:${updated.id}`)
+                        loadStageDeals(updated.stage || 'NEW', 0, false, search)
+                        if (selectedDeal && selectedDeal.id === updated.id) {
+                            setSelectedDeal(updated)
+                        }
+                    }}
+                />
+            )}
         </div>
     )
 }

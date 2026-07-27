@@ -26,7 +26,7 @@ function OwnerAvatar({ user, onClick }) {
 
 export default function DealCard({
     deal, stage, isDragging, onDragStart, onDragEnd,
-    onRemove, highlighted, onClick, onAssigned,
+    onRemove, onEdit, highlighted, onClick, onAssigned,
     draggable, canAssign
 }) {
     const [blink, setBlink] = useState(false)
@@ -198,7 +198,7 @@ export default function DealCard({
                     )}
 
                     {/* Footer divider + action bar */}
-                    {((isAdminOrAbove && canAssign) || onRemove || assignees.length > 0) && (
+                    {((isAdminOrAbove && canAssign) || onRemove || onEdit || assignees.length > 0) && (
                         <div className="flex items-center justify-between pt-2 mt-0.5"
                             style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
                             
@@ -238,15 +238,25 @@ export default function DealCard({
                                 )}
                             </div>
 
-                            {/* Right: Remove Button (group-hover visibility) */}
-                            {onRemove && (
-                                <button
-                                    onClick={e => { e.stopPropagation(); onRemove() }}
-                                    className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                                    title="Delete Deal">
-                                    <span className="material-symbols-outlined text-[15px]">delete</span>
-                                </button>
-                            )}
+                            {/* Right: Action Buttons (group-hover visibility) */}
+                            <div className="flex items-center gap-1">
+                                {onEdit && (
+                                    <button
+                                        onClick={e => { e.stopPropagation(); onEdit() }}
+                                        className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                        title="Edit Deal">
+                                        <span className="material-symbols-outlined text-[15px]">edit</span>
+                                    </button>
+                                )}
+                                {onRemove && (
+                                    <button
+                                        onClick={e => { e.stopPropagation(); onRemove() }}
+                                        className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                        title="Delete Deal">
+                                        <span className="material-symbols-outlined text-[15px]">delete</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

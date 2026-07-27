@@ -13,6 +13,7 @@ import LeadPanel from '../components/leadPanel/LeadPanel'
 import AssignLeadModal from '../components/leadPanel/AssignLeadModal'
 import { useDialog } from '../contexts/DialogContext'
 import ConvertLeadModal from '../components/leadPanel/ConvertLeadModal'
+import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
 import { IconUserPlus } from '@tabler/icons-react'
 
 // ── Constants ──────────────────────────────────────────────────
@@ -93,6 +94,7 @@ export default function Leads() {
     const [draggingId, setDraggingId] = useState(null)
     const [overStage, setOverStage] = useState(null)
     const [leadToConvert, setLeadToConvert] = useState(null)
+    const [editModalLead, setEditModalLead] = useState(null)
     const dragLead = useRef(null)
 
     const abortControllersRef = useRef({})
@@ -562,17 +564,31 @@ export default function Leads() {
                                                         )}
                                                     </div>
 
-                                                    {can.LEADS_DELETE && (isAdminOrAbove || lead._isOwner) && (
-                                                        <button
-                                                            className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                removeLead(lead.id, stage);
-                                                            }}
-                                                            title="Delete Lead">
-                                                            <span className="material-symbols-outlined text-[15px]">delete</span>
-                                                        </button>
-                                                    )}
+                                                    <div className="flex items-center gap-1">
+                                                        {(isAdminOrAbove || can.LEADS_EDIT) && (
+                                                            <button
+                                                                className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setEditModalLead(lead);
+                                                                }}
+                                                                title="Edit Lead">
+                                                                <span className="material-symbols-outlined text-[15px]">edit</span>
+                                                            </button>
+                                                        )}
+
+                                                        {can.LEADS_DELETE && (isAdminOrAbove || lead._isOwner) && (
+                                                            <button
+                                                                className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    removeLead(lead.id, stage);
+                                                                }}
+                                                                title="Delete Lead">
+                                                                <span className="material-symbols-outlined text-[15px]">delete</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )
@@ -669,6 +685,7 @@ export default function Leads() {
                 <LeadPanel
                     lead={selectedLead}
                     canEdit={can.LEADS_EDIT || (isAgent && (selectedLead._isOwner || selectedLead._assignedToMe))}
+                    onEdit={() => setEditModalLead(selectedLead)}
                     onClose={() => {
                         navigate(location.pathname)
                         setSelectedLead(null)
@@ -686,6 +703,20 @@ export default function Leads() {
                         setSelectedLead(null)
                         loadStageLeads(deletedStage, 0, false, search)
                     } : undefined}
+                />
+            )}
+
+            {editModalLead && (
+                <EditLeadSlideForm
+                    open={!!editModalLead}
+                    lead={editModalLead}
+                    onClose={() => setEditModalLead(null)}
+                    onSuccess={(updated) => {
+                        loadStageLeads(updated.status || 'NEW', 0, false, search)
+                        if (selectedLead && selectedLead.id === updated.id) {
+                            setSelectedLead(updated)
+                        }
+                    }}
                 />
             )}
 
