@@ -105,6 +105,12 @@ export default function ContactProfile() {
     }
 
     const updateField = async (field, value) => {
+        if (field === 'email' && value && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)) {
+            throw new Error('Invalid email format')
+        }
+        if (field === 'phone' && value && !/^\d{1,12}$/.test(value)) {
+            throw new Error('Phone number must be digits only and up to 12 digits')
+        }
         await api.put(`/api/contacts/${id}`, {
             firstName: profile.firstName, lastName: profile.lastName, email: profile.email,
             phone: profile.phone, designation: profile.designation, accountId: profile.account?.id || null,

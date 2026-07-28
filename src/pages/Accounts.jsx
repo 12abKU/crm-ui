@@ -95,7 +95,7 @@ export default function Accounts() {
         if (!form.name) newErrors.name = 'Required'
         if (!form.website) newErrors.website = 'Required'
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{10}$/.test(form.phone)) newErrors.phone = 'Must be exactly 10 digits'
+        else if (!/^\d{1,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only and up to 12 digits'
         if (!form.industry) newErrors.industry = 'Required'
         if (!form.employeeRange) newErrors.employeeRange = 'Required'
         if (!form.tag) newErrors.tag = 'Required'
@@ -370,9 +370,9 @@ export default function Accounts() {
                     <Input label="Company Name *" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Tata Motors" required error={errors.name} />
                     <Input label="Website *" value={form.website} onChange={e => set('website', e.target.value)} placeholder="tatamotors.com" required error={errors.website} />
                     <Input label="Phone *" value={form.phone} onChange={e => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
                         set('phone', val);
-                    }} placeholder="9999999999" required error={errors.phone} />
+                    }} placeholder="999999999999" required error={errors.phone} />
                     <Input label="Industry *" value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="Technology" required error={errors.industry} />
                     <Select label="Employee Range *" value={form.employeeRange} onChange={e => set('employeeRange', e.target.value)} required error={errors.employeeRange}>
                         <option value="">Select range</option>

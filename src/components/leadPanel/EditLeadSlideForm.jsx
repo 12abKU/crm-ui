@@ -57,8 +57,11 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
         const newErrors = {}
         if (!form.title) newErrors.title = 'Required'
         if (!form.senderName) newErrors.senderName = 'Required'
-        if (form.senderPhone && !/^\d{10}$/.test(form.senderPhone)) {
-            newErrors.senderPhone = 'Must be exactly 10 digits'
+        if (form.senderEmail && form.senderEmail.trim() && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.senderEmail)) {
+            newErrors.senderEmail = 'Invalid email format'
+        }
+        if (form.senderPhone && !/^\d{1,12}$/.test(form.senderPhone)) {
+            newErrors.senderPhone = 'Must be digits only up to 12 digits'
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -101,7 +104,7 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
             <Input label="Lead Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
             <Input label="Sender Name *" value={form.senderName} onChange={setEvent('senderName')} required error={errors.senderName} />
             <Input label="Sender Email" type="email" value={form.senderEmail} onChange={setEvent('senderEmail')} error={errors.senderEmail} />
-            <Input label="Sender Phone" value={form.senderPhone} onChange={setEvent('senderPhone')} error={errors.senderPhone} />
+            <Input label="Sender Phone" value={form.senderPhone} onChange={e => setField('senderPhone', e.target.value.replace(/\D/g, '').slice(0, 12))} error={errors.senderPhone} />
             <Input label="Company Name" value={form.companyName} onChange={setEvent('companyName')} error={errors.companyName} />
             
             <Select label="Source *" value={form.source} onChange={setEvent('source')} required error={errors.source}>

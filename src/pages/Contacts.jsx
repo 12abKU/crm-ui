@@ -106,8 +106,9 @@ export default function Contacts() {
         if (!form.firstName) newErrors.firstName = 'Required'
         if (!form.lastName) newErrors.lastName = 'Required'
         if (!form.email) newErrors.email = 'Required'
+        else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) newErrors.email = 'Invalid email format'
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{10}$/.test(form.phone)) newErrors.phone = 'Must be exactly 10 digits'
+        else if (!/^\d{1,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only and up to 12 digits'
         if (!form.designation) newErrors.designation = 'Required'
         
         if (Object.keys(newErrors).length > 0) {
@@ -435,9 +436,9 @@ export default function Contacts() {
                     <Input label="Last Name *" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" required error={errors.lastName} />
                     <Input label="Email *" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ravi@company.com" required error={errors.email} />
                     <Input label="Phone *" value={form.phone} onChange={e => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
                         set('phone', val);
-                    }} placeholder="9999999999" required error={errors.phone} />
+                    }} placeholder="999999999999" required error={errors.phone} />
                     <Input label="Designation *" value={form.designation} onChange={e => set('designation', e.target.value)} placeholder="Manager" required error={errors.designation} />
                     <SearchableSelect label="Account *" value={form.accountId} onChange={v => set('accountId', v)}
                         onSearch={loadAccountOptions} placeholder="Select account" required error={errors.accountId || errors.account} />
