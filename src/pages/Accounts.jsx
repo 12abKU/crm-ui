@@ -95,7 +95,7 @@ export default function Accounts() {
         if (!form.name) newErrors.name = 'Required'
         if (!form.website) newErrors.website = 'Required'
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{1,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only and up to 12 digits'
+        else if (!/^\d{10,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.industry) newErrors.industry = 'Required'
         if (!form.employeeRange) newErrors.employeeRange = 'Required'
         if (!form.tag) newErrors.tag = 'Required'

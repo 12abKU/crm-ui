@@ -83,8 +83,8 @@ export default function AccountProfile() {
     }, [id])
 
     const updateField = async (field, value) => {
-        if (field === 'phone' && value && !/^\d{1,12}$/.test(value)) {
-            throw new Error('Phone number must be digits only and up to 12 digits')
+        if (field === 'phone' && value && !/^\d{10,12}$/.test(value)) {
+            throw new Error('Phone number must be digits only, between 10 and 12 digits')
         }
         await api.put(`/api/accounts/${id}`, {
             name: profile.name, website: profile.website, phone: profile.phone,

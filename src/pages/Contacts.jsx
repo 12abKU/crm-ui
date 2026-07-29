@@ -108,7 +108,7 @@ export default function Contacts() {
         if (!form.email) newErrors.email = 'Required'
         else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) newErrors.email = 'Invalid email format'
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{1,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only and up to 12 digits'
+        else if (!/^\d{10,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.designation) newErrors.designation = 'Required'
         
         if (Object.keys(newErrors).length > 0) {

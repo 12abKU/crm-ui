@@ -60,8 +60,8 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
         if (form.senderEmail && form.senderEmail.trim() && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.senderEmail)) {
             newErrors.senderEmail = 'Invalid email format'
         }
-        if (form.senderPhone && !/^\d{1,12}$/.test(form.senderPhone)) {
-            newErrors.senderPhone = 'Must be digits only up to 12 digits'
+        if (form.senderPhone && !/^\d{10,12}$/.test(form.senderPhone)) {
+            newErrors.senderPhone = 'Must be digits only, between 10 and 12 digits'
         }
 
         if (Object.keys(newErrors).length > 0) {
