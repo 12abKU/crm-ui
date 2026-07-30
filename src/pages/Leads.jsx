@@ -213,8 +213,9 @@ export default function Leads() {
         if (!form.companyName) newErrors.companyName = 'Required'
         if (!form.senderName) newErrors.senderName = 'Required'
         if (!form.senderEmail) newErrors.senderEmail = 'Required'
+        const phoneDigits = form.senderPhone ? form.senderPhone.replace(/\D/g, '') : ''
         if (!form.senderPhone) newErrors.senderPhone = 'Required'
-        else if (!/^\d{10}$/.test(form.senderPhone)) newErrors.senderPhone = 'Must be exactly 10 digits'
+        else if (phoneDigits.length < 10 || phoneDigits.length > 12) newErrors.senderPhone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.status) newErrors.status = 'Required'
         if (!form.message) newErrors.message = 'Required'
 

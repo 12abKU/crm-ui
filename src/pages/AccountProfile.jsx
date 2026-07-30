@@ -83,7 +83,8 @@ export default function AccountProfile() {
     }, [id])
 
     const updateField = async (field, value) => {
-        if (field === 'phone' && value && !/^\d{10,12}$/.test(value)) {
+        const phoneDigits = value ? value.replace(/\D/g, '') : ''
+        if (field === 'phone' && value && (phoneDigits.length < 10 || phoneDigits.length > 12)) {
             throw new Error('Phone number must be digits only, between 10 and 12 digits')
         }
         await api.put(`/api/accounts/${id}`, {

@@ -107,8 +107,9 @@ export default function Contacts() {
         if (!form.lastName) newErrors.lastName = 'Required'
         if (!form.email) newErrors.email = 'Required'
         else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) newErrors.email = 'Invalid email format'
+        const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : ''
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{10,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
+        else if (phoneDigits.length < 10 || phoneDigits.length > 12) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.designation) newErrors.designation = 'Required'
         
         if (Object.keys(newErrors).length > 0) {

@@ -108,7 +108,8 @@ export default function ContactProfile() {
         if (field === 'email' && value && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)) {
             throw new Error('Invalid email format')
         }
-        if (field === 'phone' && value && !/^\d{10,12}$/.test(value)) {
+        const phoneDigits = value ? value.replace(/\D/g, '') : ''
+        if (field === 'phone' && value && (phoneDigits.length < 10 || phoneDigits.length > 12)) {
             throw new Error('Phone number must be digits only, between 10 and 12 digits')
         }
         await api.put(`/api/contacts/${id}`, {

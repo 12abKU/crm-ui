@@ -94,8 +94,9 @@ export default function Accounts() {
         const newErrors = {}
         if (!form.name) newErrors.name = 'Required'
         if (!form.website) newErrors.website = 'Required'
+        const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : ''
         if (!form.phone) newErrors.phone = 'Required'
-        else if (!/^\d{10,12}$/.test(form.phone)) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
+        else if (phoneDigits.length < 10 || phoneDigits.length > 12) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.industry) newErrors.industry = 'Required'
         if (!form.employeeRange) newErrors.employeeRange = 'Required'
         if (!form.tag) newErrors.tag = 'Required'
