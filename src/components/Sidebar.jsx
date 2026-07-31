@@ -255,7 +255,6 @@ export default function Sidebar() {
                                     </>
                                 )}
                             </NavLink>
-                            </NavLink>
                             <NavLink to="/privacy"
                                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
                                 style={navStyle}>
