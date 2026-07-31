@@ -255,13 +255,14 @@ export default function Sidebar() {
                                     </>
                                 )}
                             </NavLink>
-                            <NavLink to="/de-duplication"
+                            </NavLink>
+                            <NavLink to="/privacy"
                                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
                                 style={navStyle}>
                                 {({ isActive }) => (
                                     <>
-                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>merge</span>
-                                        <span>De-Duplication</span>
+                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>privacy_tip</span>
+                                        <span>Privacy & Compliance</span>
                                     </>
                                 )}
                             </NavLink>

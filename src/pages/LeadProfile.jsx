@@ -7,6 +7,7 @@ import Skeleton from 'react-loading-skeleton'
 import { useSelector } from 'react-redux'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
+import PrivacyTab from '../components/privacy/PrivacyTab'
 
 const HERO_ACCENTS = T.heroAccents
 
@@ -343,6 +344,10 @@ export default function LeadProfile() {
                             </div>
                         </SectionCard>
                         
+                        <SectionCard title="Privacy & Consent" icon="privacy_tip">
+                            <PrivacyTab principalType="LEAD" principalId={Number(id)} />
+                        </SectionCard>
+
                         <EntityAuditHistory entityType="LEAD" entityId={Number(id)} />
                     </div>
                 </div>

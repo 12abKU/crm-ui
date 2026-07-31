@@ -15,6 +15,7 @@ import { usePermissions } from '../hooks/usePermission'
 import RequirePermission from '../components/RequirePermission'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 import DocumentList from './DocumentList'
+import PrivacyTab from '../components/privacy/PrivacyTab'
 
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
@@ -477,6 +478,10 @@ export default function ContactProfile() {
                                 </SectionCard>
                             </div>
                         </RequirePermission>
+
+                        <SectionCard title="Privacy & Consent" icon="privacy_tip">
+                            <PrivacyTab principalType="CONTACT" principalId={Number(id)} />
+                        </SectionCard>
 
                         <SectionCard title="Recent Activity" icon="event_note">
                             {profile.recentActivities?.length > 0 ? (
