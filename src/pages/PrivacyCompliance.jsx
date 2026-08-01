@@ -10,6 +10,7 @@ export default function PrivacyCompliance() {
     const { confirm, prompt } = useDialog();
     const [requests, setRequests] = useState([]);
     const [breaches, setBreaches] = useState([]);
+    const [recycledItems, setRecycledItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('requests');
 
@@ -21,7 +22,12 @@ export default function PrivacyCompliance() {
                 const bRes = await api.get('/api/privacy/breaches');
                 setBreaches(bRes.data);
             } catch (e) {
-                // If endpoint doesn't exist yet, ignore
+                console.warn(e);
+            }
+            try {
+                const rRes = await api.get('/api/privacy/recycle-bin');
+                setRecycledItems(rRes.data);
+            } catch (e) {
                 console.warn(e);
             }
         } catch (error) {
@@ -73,6 +79,23 @@ export default function PrivacyCompliance() {
         }
     };
 
+    const restoreItem = async (type, id) => {
+        const isConfirmed = await confirm({
+            title: 'Restore Item',
+            message: `Are you sure you want to restore this ${type.toLowerCase()}?`,
+            confirmText: 'Restore',
+            confirmColor: T.primary
+        });
+        if (!isConfirmed) return;
+        try {
+            await api.put(`/api/privacy/recycle-bin/restore`, { type, id });
+            toast.success("Item restored successfully!");
+            fetchRequests();
+        } catch (error) {
+            toast.error("Failed to restore item");
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
     return (
@@ -92,6 +115,11 @@ export default function PrivacyCompliance() {
                     onClick={() => setActiveTab('breaches')}
                     className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'breaches' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                     Data Breaches
+                </button>
+                <button 
+                    onClick={() => setActiveTab('recycle')}
+                    className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'recycle' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                    Recycle Bin
                 </button>
             </div>
 
@@ -162,7 +190,7 @@ export default function PrivacyCompliance() {
                             </tbody>
                         </table>
                     </div>
-                ) : (
+                ) : activeTab === 'breaches' ? (
                     <div className="flex flex-col h-full">
                         <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: T.border, backgroundColor: T.sidebarHover }}>
                             <h3 className="text-sm font-semibold" style={{ color: T.textPrimary }}>Security Incidents</h3>
@@ -203,7 +231,57 @@ export default function PrivacyCompliance() {
                             </table>
                         </div>
                     </div>
-                )}
+                ) : activeTab === 'recycle' ? (
+                    <div className="flex flex-col h-full">
+                        <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: T.border, backgroundColor: T.sidebarHover }}>
+                            <div>
+                                <h3 className="text-sm font-semibold" style={{ color: T.textPrimary }}>Recycle Bin</h3>
+                                <p className="text-xs mt-1" style={{ color: T.textMuted }}>Soft-deleted items will remain here until they are permanently purged (default 2 years).</p>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="border-b" style={{ borderColor: T.border, backgroundColor: T.surfaceRaised }}>
+                                    <tr>
+                                        <th className="px-6 py-3 font-semibold" style={{ color: T.textMuted }}>Type</th>
+                                        <th className="px-6 py-3 font-semibold" style={{ color: T.textMuted }}>Name / Title</th>
+                                        <th className="px-6 py-3 font-semibold" style={{ color: T.textMuted }}>Deleted At</th>
+                                        <th className="px-6 py-3 font-semibold text-right" style={{ color: T.textMuted }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recycledItems.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-8 text-center" style={{ color: T.textMuted }}>Recycle bin is empty.</td>
+                                        </tr>
+                                    ) : (
+                                        recycledItems.map(item => (
+                                            <tr key={`${item.type}-${item.id}`} className="border-b last:border-b-0 hover:bg-gray-50/50" style={{ borderColor: T.border }}>
+                                                <td className="px-6 py-4 font-medium" style={{ color: T.textPrimary }}>
+                                                    {item.type}
+                                                </td>
+                                                <td className="px-6 py-4 font-medium text-blue-600">
+                                                    {item.name} <span className="text-xs text-gray-400">#{item.id}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-gray-500">
+                                                    {item.deletedAt ? format(new Date(item.deletedAt), 'MMM d, yyyy HH:mm') : '-'}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <button 
+                                                        onClick={() => restoreItem(item.type, item.id)}
+                                                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-white"
+                                                        style={{ backgroundColor: T.primary }}>
+                                                        Restore
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : null}
             </div>
         </div>
     );
