@@ -42,10 +42,10 @@ const CHANNELS = [
 ]
 
 const SLA = [
-    { priority: 'Low', time: '3 business days', style: PRIORITY_STYLES.LOW },
-    { priority: 'Medium', time: '24 hours', style: PRIORITY_STYLES.MEDIUM },
-    { priority: 'High', time: '8 hours', style: PRIORITY_STYLES.HIGH },
-    { priority: 'Urgent', time: '2 hours', style: PRIORITY_STYLES.URGENT },
+    { priority: 'Low', time: 'Best Effort', style: PRIORITY_STYLES.LOW },
+    { priority: 'Medium', time: 'Standard', style: PRIORITY_STYLES.MEDIUM },
+    { priority: 'High', time: 'Priority', style: PRIORITY_STYLES.HIGH },
+    { priority: 'Urgent', time: 'Immediate', style: PRIORITY_STYLES.URGENT },
 ]
 
 export default function ContactTab() {
