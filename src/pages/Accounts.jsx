@@ -303,24 +303,22 @@ export default function Accounts() {
 
                                     {/* Phone */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                        <InlineEdit value={a.phone} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'phone', v)} />
+                                        {a.phone || '-'}
                                     </td>
 
                                     {/* Industry */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
-                                        <InlineEdit value={a.industry} placeholder="Add" readonly={!can.ACCOUNTS_EDIT} onSave={v => updateField(a.id, 'industry', v)} />
+                                        {a.industry || '-'}
                                     </td>
 
                                     {/* Tag */}
                                     <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                        <InlineEdit value={a.tag} placeholder="Add" options={TAGS} readonly={!can.ACCOUNTS_EDIT} allowCustom={true} onSave={v => updateField(a.id, 'tag', v)}>
-                                            {a.tag && (
-                                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
-                                                    style={{ background: tag.bg, color: tag.color }}>
-                                                    {a.tag}
-                                                </span>
-                                            )}
-                                        </InlineEdit>
+                                        {a.tag ? (
+                                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                                style={{ background: tag.bg, color: tag.color }}>
+                                                {a.tag}
+                                            </span>
+                                        ) : '-'}
                                     </td>
 
                                     {/* Open Deals */}

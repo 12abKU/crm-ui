@@ -395,7 +395,7 @@ export default function Contacts() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                            <InlineEdit value={c.phone} placeholder="Add" readonly={!can.CONTACTS_EDIT} onSave={v => updateField(c.id, 'phone', v)} />
+                                            {c.phone || '-'}
                                         </td>
                                         <td className="px-6 py-4" style={{ width: colWidths[2] }}>
                                             {c.account && (
