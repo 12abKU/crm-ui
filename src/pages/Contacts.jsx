@@ -408,7 +408,7 @@ export default function Contacts() {
                                         </td>
                                         {/* Actions */}
                                         <td className="px-6 py-4" style={{ width: colWidths[3] }}>
-                                            <div className="flex flex-wrap items-center justify-end gap-1.5">
+                                            <div className="flex flex-wrap items-center justify-start gap-1.5">
                                                 <button onClick={() => navigate(`/contacts/${c.id}`)}
                                                     className="px-2 py-1 text-xs font-semibold rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-colors">
                                                     View
