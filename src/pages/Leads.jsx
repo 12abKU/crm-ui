@@ -64,7 +64,7 @@ const getStageColBg = (stageKey) => STAGE_COLUMN_BG[stageKey] || 'rgba(234,88,12
 const getStageHeaderBg = (stageKey) => STAGE_HEADER_BG[stageKey] || 'rgba(234,88,12,0.05)'
 const getStageColBorder = (stageKey) => STAGE_COLUMN_BORDER[stageKey] || 'rgba(234,88,12,0.15)'
 
-const EMPTY_FORM = { title: '', status: 'NEW', source: '', senderName: '', senderEmail: '', senderPhone: '', companyName: '', message: '' }
+const EMPTY_FORM = { title: '', status: 'NEW', source: '', senderName: '', senderEmail: '', senderPhone: '', companyName: '', message: '', hasConsent: false }
 
 export default function Leads() {
     const navigate = useNavigate()
@@ -219,6 +219,7 @@ export default function Leads() {
         if (!form.status) newErrors.status = 'Required'
         if (!form.message) newErrors.message = 'Required'
 
+        if (!form.hasConsent) newErrors.hasConsent = 'Required'
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
             return
@@ -680,6 +681,17 @@ export default function Leads() {
                 </Select>
 
                 <Textarea label="Message/Notes *" value={form.message} onChange={setEvent('message')} required error={errors.message} />
+
+                <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" checked={form.hasConsent} onChange={e => setField('hasConsent', e.target.checked)} className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
+                        <div className="text-sm">
+                            <span className="font-bold text-slate-800">DPDP Consent Obtained</span>
+                            <p className="text-slate-500 text-xs mt-0.5">I confirm that I have obtained explicit consent from this lead to store their personal data and contact them.</p>
+                        </div>
+                    </label>
+                    {errors.hasConsent && <div className="text-xs mt-1" style={{ color: T.error }}>{errors.hasConsent}</div>}
+                </div>
             </SlideForm>
 
             {selectedLead && (

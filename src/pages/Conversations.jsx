@@ -9,9 +9,11 @@ import WhatsAppBubble from '../components/conversations/WhatsAppBubble'
 import GmailNotConnected from '../components/conversations/GmailNotConnected'
 import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
+import { useDialog } from '../contexts/DialogContext'
 
 // ── Compose Panel ──────────────────────────────────────────────────────────────
 function ComposePanel({ contact, replyTo, onSent, onClose }) {
+    const { prompt } = useDialog()
     const auth = useSelector(state => state.auth)
     const [subject, setSubject] = useState(
         replyTo ? (replyTo.subject?.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`) : ''
@@ -192,9 +194,12 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
 
                 <div style={{ width: 1, height: 18, background: T.borderSubtle, margin: '0 4px' }} />
 
-                <button type="button" onClick={() => {
-                    const url = window.prompt("Enter link URL (e.g. https://google.com):")
-                    if (url) execCmd('createLink', url)
+                <button type="button" onClick={async () => {
+                    const url = await prompt({
+                        title: 'Insert Link',
+                        message: 'Enter link URL (e.g. https://google.com):'
+                    });
+                    if (url) execCmd('createLink', url);
                 }} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Insert Link">
                     <span className="material-symbols-outlined text-[18px]">link</span>
                 </button>
