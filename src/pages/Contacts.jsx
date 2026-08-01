@@ -209,6 +209,10 @@ export default function Contacts() {
     const handleImportSubmit = async (e) => {
         e.preventDefault()
         if (!importFile) return
+        if (!importConsent) {
+            setImportError('You must confirm DPDP consent before importing.')
+            return
+        }
         setImporting(true)
         setImportError('')
         
@@ -666,15 +670,15 @@ export default function Contacts() {
                                         <button
                                             type="button"
                                             onClick={handleImportSubmit}
-                                            disabled={!importFile || importing}
+                                            disabled={!importFile || importing || !importConsent}
                                             className="flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
                                             style={{
-                                                background: !importFile ? T.surfaceHigh : T.primary,
-                                                color: !importFile ? T.textMuted : '#fff',
-                                                cursor: !importFile || importing ? 'not-allowed' : 'pointer'
+                                                background: (!importFile || !importConsent) ? T.surfaceHigh : T.primary,
+                                                color: (!importFile || !importConsent) ? T.textMuted : '#fff',
+                                                cursor: (!importFile || importing || !importConsent) ? 'not-allowed' : 'pointer'
                                             }}
-                                            onMouseEnter={e => { if (importFile && !importing) e.currentTarget.style.background = T.primaryHover }}
-                                            onMouseLeave={e => { if (importFile && !importing) e.currentTarget.style.background = T.primary }}>
+                                            onMouseEnter={e => { if (importFile && !importing && importConsent) e.currentTarget.style.background = T.primaryHover }}
+                                            onMouseLeave={e => { if (importFile && !importing && importConsent) e.currentTarget.style.background = T.primary }}>
                                             {importing ? (
                                                 <>
                                                     <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
