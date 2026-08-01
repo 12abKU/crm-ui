@@ -395,7 +395,7 @@ export default function Contacts() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                            {c.phone || <span style={{ opacity: 0.3 }}>—</span>}
+                                            {c.phone || <span style={{ color: T.textMuted, opacity: 0.6, fontSize: '11px', fontStyle: 'italic' }}>No data</span>}
                                         </td>
                                         <td className="px-6 py-4" style={{ width: colWidths[2] }}>
                                             {c.account && (

@@ -303,12 +303,12 @@ export default function Accounts() {
 
                                     {/* Phone */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[1] }}>
-                                        {a.phone || <span style={{ opacity: 0.3 }}>—</span>}
+                                        {a.phone || <span style={{ color: T.textMuted, opacity: 0.6, fontSize: '11px', fontStyle: 'italic' }}>No data</span>}
                                     </td>
 
                                     {/* Industry */}
                                     <td className="px-6 py-4 text-sm" style={{ color: T.textSecondary, width: colWidths[2] }}>
-                                        {a.industry || <span style={{ opacity: 0.3 }}>—</span>}
+                                        {a.industry || <span style={{ color: T.textMuted, opacity: 0.6, fontSize: '11px', fontStyle: 'italic' }}>No data</span>}
                                     </td>
 
                                     {/* Tag */}
@@ -318,7 +318,7 @@ export default function Accounts() {
                                                 style={{ background: tag.bg, color: tag.color }}>
                                                 {a.tag}
                                             </span>
-                                        ) : <span style={{ opacity: 0.3 }}>—</span>}
+                                        ) : <span style={{ color: T.textMuted, opacity: 0.6, fontSize: '11px', fontStyle: 'italic' }}>No data</span>}
                                     </td>
 
                                     {/* Open Deals */}
