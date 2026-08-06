@@ -103,68 +103,6 @@ export default function AppIntegrationsSettings() {
     return (
         <div className="space-y-6 max-w-4xl">
             
-            {/* UltraMsg Integration */}
-            <div className="rounded-2xl p-6 border" style={{ background: T.surface, borderColor: T.border }}>
-                <StatusBanner status={statusUltraMsg} />
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-green-500" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
-                            <span className="material-symbols-outlined">chat</span>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold">WhatsApp Integration (UltraMsg)</h3>
-                            <p className="text-xs" style={{ color: T.textSecondary }}>Configure UltraMsg to send automatic welcome messages to new companies.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-bold mb-1.5" style={{ color: T.textSecondary }}>Instance ID</label>
-                        <input
-                            type="text"
-                            value={config.ULTRAMSG_INSTANCE_ID}
-                            onChange={handleChange('ULTRAMSG_INSTANCE_ID')}
-                            className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm"
-                            style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
-                            placeholder="e.g. instance12345"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold mb-1.5" style={{ color: T.textSecondary }}>Token</label>
-                        <div style={{ position: 'relative' }}>
-                            <input
-                                type={showToken ? 'text' : 'password'}
-                                value={config.ULTRAMSG_TOKEN}
-                                onChange={handleChange('ULTRAMSG_TOKEN')}
-                                className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm"
-                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary, paddingRight: 44 }}
-                                placeholder="Enter UltraMsg Token"
-                            />
-                            <button type="button" onClick={() => setShowToken(!showToken)}
-                                className="material-symbols-outlined"
-                                style={{
-                                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                                    fontSize: 17, background: 'none', border: 'none', cursor: 'pointer',
-                                    color: showToken ? T.primary : T.textMuted, transition: 'color 0.15s',
-                                }}>
-                                {showToken ? 'visibility' : 'visibility_off'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div className="mt-6 flex justify-end">
-                    <button 
-                        onClick={handleSaveUltraMsg}
-                        disabled={savingUltraMsg}
-                        className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50"
-                        style={{ background: T.primary }}
-                    >
-                        {savingUltraMsg ? 'Saving...' : 'Save WhatsApp Config'}
-                    </button>
-                </div>
-            </div>
-
             {/* SMTP Integration */}
             <div className="rounded-2xl p-6 border" style={{ background: T.surface, borderColor: T.border }}>
                 <StatusBanner status={statusEmail} />
@@ -245,6 +183,68 @@ export default function AppIntegrationsSettings() {
                         style={{ background: T.primary }}
                     >
                         {savingEmail ? 'Saving...' : 'Save Email Config'}
+                    </button>
+                </div>
+            </div>
+
+            {/* UltraMsg Integration */}
+            <div className="rounded-2xl p-6 border" style={{ background: T.surface, borderColor: T.border }}>
+                <StatusBanner status={statusUltraMsg} />
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-green-500" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
+                            <span className="material-symbols-outlined">chat</span>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold">WhatsApp Integration (UltraMsg)</h3>
+                            <p className="text-xs" style={{ color: T.textSecondary }}>Configure UltraMsg to send OTPs during registration and welcome messages.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-xs font-bold mb-1.5" style={{ color: T.textSecondary }}>Instance ID</label>
+                        <input
+                            type="text"
+                            value={config.ULTRAMSG_INSTANCE_ID}
+                            onChange={handleChange('ULTRAMSG_INSTANCE_ID')}
+                            className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm"
+                            style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
+                            placeholder="e.g. instance12345"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold mb-1.5" style={{ color: T.textSecondary }}>Token</label>
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                type={showToken ? 'text' : 'password'}
+                                value={config.ULTRAMSG_TOKEN}
+                                onChange={handleChange('ULTRAMSG_TOKEN')}
+                                className="w-full px-4 py-2.5 rounded-xl border outline-none text-sm"
+                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary, paddingRight: 44 }}
+                                placeholder="Enter UltraMsg Token"
+                            />
+                            <button type="button" onClick={() => setShowToken(!showToken)}
+                                className="material-symbols-outlined"
+                                style={{
+                                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                                    fontSize: 17, background: 'none', border: 'none', cursor: 'pointer',
+                                    color: showToken ? T.primary : T.textMuted, transition: 'color 0.15s',
+                                }}>
+                                {showToken ? 'visibility' : 'visibility_off'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                    <button 
+                        onClick={handleSaveUltraMsg}
+                        disabled={savingUltraMsg}
+                        className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                        style={{ background: T.primary }}
+                    >
+                        {savingUltraMsg ? 'Saving...' : 'Save WhatsApp Config'}
                     </button>
                 </div>
             </div>
