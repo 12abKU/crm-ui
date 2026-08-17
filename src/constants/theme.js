@@ -273,5 +273,6 @@ export const NAV_LINKS = [
     { to: '/conversations', icon: 'forum', label: 'Conversations' },
     { to: '/chat', icon: 'chat', label: 'Internal Chat' },
     { to: '/documents', icon: 'description', label: 'Documents' },
+    { to: '/de-duplication', icon: 'cleaning_services', label: 'De-Duplication' },
     { to: '/settings', icon: 'settings', label: 'Settings' },
 ]

@@ -109,7 +109,10 @@ export default function Accounts() {
         setCheckingDuplicates(true)
         try {
             const r = await api.post('/api/accounts/duplicates', form, { suppressErrorToast: true })
-            const matches = r.data ?? []
+            let matches = r.data ?? []
+            if (editingItem) {
+                matches = matches.filter(m => String(m.id) !== String(editingItem.id))
+            }
             if (matches.length > 0) {
                 setDuplicates(matches)
                 setShowDuplicateModal(true)

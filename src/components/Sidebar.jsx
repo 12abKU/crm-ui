@@ -193,7 +193,7 @@ export default function Sidebar() {
                         <p className="px-4 pt-2 pb-2 text-[9px] font-black uppercase tracking-widest"
                             style={{ color: T.heroSubText }}>Main Menu</p>
 
-                        {NAV_LINKS.filter(({ to }) => !(role === 'AGENT' && to === '/documents')).map(({ to, icon, label }) => (
+                        {NAV_LINKS.filter(({ to }) => !(role === 'AGENT' && (to === '/documents' || to === '/de-duplication'))).map(({ to, icon, label }) => (
                             <NavLink key={to} to={to} end={to === '/'}
                                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
                                 style={navStyle}>

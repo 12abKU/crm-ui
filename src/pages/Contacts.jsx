@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { T, ROW_COLORS, SHADOW } from '../constants/theme'
 import TopBar from '../components/TopBar'
@@ -94,10 +94,10 @@ export default function Contacts() {
         updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/contacts', pageSize: PAGE_SIZE, cacheKey: 'contacts' })
 
-    const loadAccountOptions = async (searchQuery) => {
+    const loadAccountOptions = useCallback(async (searchQuery) => {
         const r = await api.get(`/api/accounts?search=${encodeURIComponent(searchQuery)}&size=10`)
-        return (r.data.content || []).map(a => ({ id: a.id, label: a.name }))
-    }
+        return r.data.content.map(a => ({ id: a.id, value: a.id, label: a.name }))
+    }, [])
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -123,7 +123,10 @@ export default function Contacts() {
         setCheckingDuplicates(true)
         try {
             const r = await api.post('/api/contacts/duplicates', form, { suppressErrorToast: true })
-            const matches = r.data ?? []
+            let matches = r.data ?? []
+            if (editingItem) {
+                matches = matches.filter(m => String(m.id) !== String(editingItem.id))
+            }
             if (matches.length > 0) {
                 setDuplicates(matches)
                 setShowDuplicateModal(true)
