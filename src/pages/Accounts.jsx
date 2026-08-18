@@ -19,6 +19,7 @@ import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
 import { useDialog } from '../contexts/DialogContext'
+import DynamicFields from '../components/DynamicFields'
 
 const PAGE_SIZE = 20
 
@@ -26,7 +27,7 @@ export default function Accounts() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+    const [form, setForm] = useState({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '', customValues: {} })
     const [customTag, setCustomTag] = useState(false)
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
@@ -35,7 +36,7 @@ export default function Accounts() {
 
     const handleOpenModal = () => {
         setEditingItem(null)
-        setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '' })
+        setForm({ name: '', website: '', phone: '', industry: '', employeeRange: '', tag: '', customValues: {} })
         setErrors({})
         setCustomTag(false)
         setOpen(true)
@@ -50,7 +51,8 @@ export default function Accounts() {
             phone: account.phone || '',
             industry: account.industry || '',
             employeeRange: account.employeeRange || '',
-            tag: account.tag || ''
+            tag: account.tag || '',
+            customValues: account.customValues || {}
         })
         setErrors({})
         setCustomTag(false)
@@ -404,6 +406,14 @@ export default function Accounts() {
                             <option value="__custom__">+ Add Custom Tag...</option>
                         </Select>
                     )}
+
+                    <div className="mt-6">
+                        <DynamicFields 
+                            entityType="ACCOUNT" 
+                            values={form.customValues || {}} 
+                            onChange={(key, val) => set('customValues', { ...(form.customValues || {}), [key]: val })} 
+                        />
+                    </div>
                 </SlideForm>
             )}
             {/* -- Duplicate Modal ----------------------------------- */}

@@ -20,6 +20,7 @@ import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import Skeleton from 'react-loading-skeleton'
 import { useDialog } from '../contexts/DialogContext'
+import DynamicFields from '../components/DynamicFields'
 
 const PAGE_SIZE = 20
 
@@ -28,7 +29,7 @@ export default function Contacts() {
     const { confirm } = useDialog()
     const [open, setOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false })
+    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false, customValues: {} })
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
@@ -36,7 +37,7 @@ export default function Contacts() {
 
     const handleOpenModal = () => {
         setEditingItem(null)
-        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false })
+        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false, customValues: {} })
         setErrors({})
         setOpen(true)
     }
@@ -51,7 +52,8 @@ export default function Contacts() {
             phone: contact.phone || '',
             designation: contact.designation || '',
             accountId: contact.account?.id || '',
-            hasConsent: false
+            hasConsent: false,
+            customValues: contact.customValues || {}
         })
         setErrors({})
         setOpen(true)
@@ -464,6 +466,14 @@ export default function Contacts() {
                             </div>
                         </label>
                         {errors.hasConsent && <div className="text-xs mt-1" style={{ color: T.error }}>{errors.hasConsent}</div>}
+                    </div>
+
+                    <div className="mt-6">
+                        <DynamicFields 
+                            entityType="CONTACT" 
+                            values={form.customValues || {}} 
+                            onChange={(key, val) => set('customValues', { ...(form.customValues || {}), [key]: val })} 
+                        />
                     </div>
                 </SlideForm>
             )}

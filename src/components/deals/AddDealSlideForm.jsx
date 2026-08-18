@@ -7,8 +7,9 @@ import SlideForm from '../SlideForm'
 import { Input, Select } from '../FormField'
 import SearchableSelect from '../SearchableSelect'
 import api, { extractApiErrorMessage } from '../../api'
+import DynamicFields from '../DynamicFields'
 
-const EMPTY = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '' }
+const EMPTY = { title: '', amount: '', stage: 'NEW', expectedCloseDate: '', accountId: '', contactId: '', customValues: {} }
 
 export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAccount, prefillContact }) {
     const { stages } = usePipelineStages()
@@ -92,6 +93,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 expectedCloseDate: form.expectedCloseDate || null,
                 accountId: form.accountId ? Number(form.accountId) : null,
                 contactId: form.contactId ? Number(form.contactId) : null,
+                customValues: form.customValues,
             })
             setErrors({})
             onSuccess?.()
@@ -173,6 +175,14 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                     error={errors.contactId || errors.contact}
                 />
             )}
+
+            <div className="mt-6">
+                <DynamicFields 
+                    entityType="DEAL" 
+                    values={form.customValues || {}} 
+                    onChange={(key, val) => setForm(f => ({ ...f, customValues: { ...(f.customValues || {}), [key]: val } }))} 
+                />
+            </div>
         </SlideForm>
     )
 }

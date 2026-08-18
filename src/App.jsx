@@ -153,20 +153,29 @@ function CompanyStatusLoader() {
   return null
 }
 
-import { setStages } from './store/pipelineSlice'
+import { setDealStages, setLeadStages } from './store/pipelineSlice'
 
 function PipelineStagesLoader() {
   const token = useSelector(state => state.auth.token)
   const dispatch = useDispatch()
   useEffect(() => {
     if (!token) return
-    api.get('/api/pipelines')
+    
+    api.get('/api/pipelines?entityType=DEAL')
       .then(r => {
         if (r.data && r.data.length > 0) {
-          dispatch(setStages(r.data[0].stages))
+          dispatch(setDealStages(r.data[0].stages))
         }
       })
-      .catch(() => { })
+      .catch(() => {})
+
+    api.get('/api/pipelines?entityType=LEAD')
+      .then(r => {
+        if (r.data && r.data.length > 0) {
+          dispatch(setLeadStages(r.data[0].stages))
+        }
+      })
+      .catch(() => {})
   }, [token, dispatch])
   return null
 }

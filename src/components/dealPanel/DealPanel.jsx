@@ -92,7 +92,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
         switch (activeTab) {
             case 'overview': return (
                 <DealPanelOverview
-                    deal={deal}
+                    deal={profile?.deal || deal}
                     isAgent={isAgent}
                     isAssignedToMe={isAssignedToMe}
                     canEdit={canEdit}

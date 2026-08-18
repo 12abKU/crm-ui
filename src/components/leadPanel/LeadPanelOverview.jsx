@@ -137,6 +137,24 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
                 </div>
             </div>
 
+            {/* ── Custom Fields ─────────────────────── */}
+            {profile.customValues && Object.keys(profile.customValues).length > 0 && (
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
+                        Custom Fields
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {Object.entries(profile.customValues).map(([key, val]) => (
+                            <InfoCard key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}>
+                                <span style={{ color: val ? T.textPrimary : T.textMuted }}>
+                                    {String(val) || 'No value'}
+                                </span>
+                            </InfoCard>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* ── Integration Specific Details ── */}
             {profile.source === 'INDIAMART' && (
                 <div>

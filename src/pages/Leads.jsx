@@ -15,15 +15,10 @@ import { useDialog } from '../contexts/DialogContext'
 import ConvertLeadModal from '../components/leadPanel/ConvertLeadModal'
 import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
 import { IconUserPlus } from '@tabler/icons-react'
+import DynamicFields from '../components/DynamicFields'
+import { usePipelineStages } from '../hooks/usePipelineStages'
 
 // ── Constants ──────────────────────────────────────────────────
-const LEAD_STAGES = [
-    { stageKey: 'NEW', label: 'New' },
-    { stageKey: 'CONTACTED', label: 'Contacted' },
-    { stageKey: 'QUALIFIED', label: 'Qualified' },
-    { stageKey: 'CONVERTED', label: 'Converted' },
-    { stageKey: 'LOST', label: 'Lost' }
-]
 const MAX_KANBAN_CARDS_PER_STAGE = 120
 const LEADS_PER_PAGE = 30
 
@@ -67,6 +62,9 @@ const getStageColBorder = (stageKey) => STAGE_COLUMN_BORDER[stageKey] || 'rgba(2
 const EMPTY_FORM = { title: '', status: 'NEW', source: '', senderName: '', senderEmail: '', senderPhone: '', companyName: '', message: '', hasConsent: false }
 
 export default function Leads() {
+    const { confirm, alert } = useDialog()
+    const { stages: leadStages, getStageStyle } = usePipelineStages('LEAD')
+    const [viewMode, setViewMode] = useState('kanban') // 'kanban' or 'list' 
     const navigate = useNavigate()
     const location = useLocation()
     const role = useSelector(state => state.auth.role)
@@ -75,7 +73,6 @@ export default function Leads() {
     const isAgent = role === 'AGENT'
     const can = usePermissions(['LEADS_CREATE', 'LEADS_EDIT', 'LEADS_DELETE', 'LEADS_ASSIGN'])
     const canCreateLead = isAdminOrAbove || can.LEADS_CREATE
-    const { confirm, alert } = useDialog()
 
     const [leadsByStage, setLeadsByStage] = useState({})
     const [pagesByStage, setPagesByStage] = useState({})
@@ -153,7 +150,7 @@ export default function Leads() {
     }, [])
 
     const loadAllStages = async (currentSearch = '', page = 0) => {
-        LEAD_STAGES.forEach(stageObj => {
+        leadStages.forEach(stageObj => {
             loadStageLeads(stageObj.stageKey, page, false, currentSearch)
         })
     }
@@ -337,7 +334,7 @@ export default function Leads() {
 
     const totalPipelineLeadsCount = Object.values(stageTotalsByStage).reduce((sum, stats) => sum + (stats?.count || 0), 0)
 
-    const pipelineTotals = LEAD_STAGES.map(stageObj => {
+    const pipelineTotals = leadStages.map(stageObj => {
         const stage = stageObj.stageKey
         const count = stageTotalsByStage[stage]?.count || 0
         return { stage, label: stageObj.label, count, style: getStageStyle(stage) }
@@ -436,7 +433,7 @@ export default function Leads() {
 
                 {/* ── Kanban board — scrollable columns ───── */}
                 <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
-                    {LEAD_STAGES.map(stageObj => {
+                    {leadStages.map(stageObj => {
                         const stage = stageObj.stageKey
                         const stageLeads = leadsByStage[stage] || []
                         const style = getStageStyle(stage)
@@ -677,7 +674,7 @@ export default function Leads() {
                 }} required error={errors.senderPhone} />
 
                 <Select label="Status *" value={form.status} onChange={setEvent('status')} required>
-                    {LEAD_STAGES.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
+                    {leadStages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
                 </Select>
 
                 <Textarea label="Message/Notes *" value={form.message} onChange={setEvent('message')} required error={errors.message} />
@@ -691,6 +688,14 @@ export default function Leads() {
                         </div>
                     </label>
                     {errors.hasConsent && <div className="text-xs mt-1" style={{ color: T.error }}>{errors.hasConsent}</div>}
+                </div>
+
+                <div className="mt-6">
+                    <DynamicFields 
+                        entityType="LEAD" 
+                        values={form.customValues || {}} 
+                        onChange={(key, val) => setForm(f => ({ ...f, customValues: { ...(f.customValues || {}), [key]: val } }))} 
+                    />
                 </div>
             </SlideForm>
 

@@ -6,6 +6,7 @@ import { Input, Select } from '../FormField'
 import SearchableSelect from '../SearchableSelect'
 import api from '../../api'
 import { useDialog } from '../../contexts/DialogContext'
+import DynamicFields from '../DynamicFields'
 
 export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
     const { confirm } = useDialog()
@@ -18,7 +19,8 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
         accountId: '',
         contactId: '',
         lostReason: '',
-        lostReasonNote: ''
+        lostReasonNote: '',
+        customValues: {}
     })
     const [accounts, setAccounts] = useState([])
     const [contacts, setContacts] = useState([])
@@ -64,7 +66,8 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
             accountId: accId,
             contactId: conId,
             lostReason: deal.lostReason || '',
-            lostReasonNote: deal.lostReasonNote || ''
+            lostReasonNote: deal.lostReasonNote || '',
+            customValues: deal.customValues || {}
         })
     }, [open, deal])
 
@@ -105,6 +108,7 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
                 contactId: form.contactId ? Number(form.contactId) : null,
                 lostReason: form.stage === 'LOST' ? form.lostReason : null,
                 lostReasonNote: form.stage === 'LOST' ? form.lostReasonNote : null,
+                customValues: form.customValues,
             }
             const res = await api.put(`/api/deals/${deal.id}`, payload)
             onSuccess?.(res.data)
@@ -162,6 +166,14 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
                     <Input label="Lost Reason Note" value={form.lostReasonNote} onChange={setEvent('lostReasonNote')} error={errors.lostReasonNote} />
                 </>
             )}
+
+            <div className="mt-6">
+                <DynamicFields 
+                    entityType="DEAL" 
+                    values={form.customValues || {}} 
+                    onChange={(key, val) => setForm(f => ({ ...f, customValues: { ...(f.customValues || {}), [key]: val } }))} 
+                />
+            </div>
         </SlideForm>
     )
 }

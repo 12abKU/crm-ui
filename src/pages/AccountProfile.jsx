@@ -313,6 +313,17 @@ export default function AccountProfile() {
                             </div>
                         </SectionCard>
 
+                        {/* Custom Fields */}
+                        {profile.customValues && Object.keys(profile.customValues).length > 0 && (
+                            <SectionCard title="Custom Fields" icon="tune">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {Object.entries(profile.customValues).map(([key, val]) => (
+                                        <InfoRow key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} value={String(val)} />
+                                    ))}
+                                </div>
+                            </SectionCard>
+                        )}
+
                         {/* Related Contacts */}
                         <SectionCard title="Related Contacts" icon="groups" badge={profile.contacts?.length || 0}>
                             {profile.contacts?.length > 0 ? (

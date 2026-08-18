@@ -2,24 +2,25 @@ import { useEffect, useState } from 'react'
 import { T } from '../../constants/theme'
 import api, { extractApiErrorMessage } from '../../api'
 import { useDispatch } from 'react-redux'
-import { setStages as setReduxStages } from '../../store/pipelineSlice'
-import ConfirmModal from '../ui/ConfirmModal'
+import { setDealStages, setLeadStages } from '../../store/pipelineSlice'
+import { useDialog } from '../../contexts/DialogContext'
 
 export default function PipelineSettings() {
     const dispatch = useDispatch()
+    const { confirm } = useDialog()
+    const [activeTab, setActiveTab] = useState('DEAL') // 'DEAL' or 'LEAD'
     const [pipeline, setPipeline] = useState(null)
     const [stages, setStages] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState(null)
     const [successMsg, setSuccessMsg] = useState(null)
-    const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null)
 
-    const loadPipeline = async () => {
+    const loadPipeline = async (type) => {
         setLoading(true)
         setError(null)
         try {
-            const r = await api.get('/api/pipelines')
+            const r = await api.get(`/api/pipelines?entityType=${type}`)
             if (r.data && r.data.length > 0) {
                 const activePipe = r.data[0]
                 setPipeline(activePipe)
@@ -37,8 +38,8 @@ export default function PipelineSettings() {
     }
 
     useEffect(() => {
-        loadPipeline()
-    }, [])
+        loadPipeline(activeTab)
+    }, [activeTab])
 
     const handleFieldChange = (index, field, val) => {
         setStages(prev => prev.map((s, idx) => {
@@ -67,14 +68,19 @@ export default function PipelineSettings() {
         ])
     }
 
-    const handleDeleteStage = (index) => {
-        setDeleteConfirmIndex(index)
-    }
-
-    const confirmDelete = () => {
-        if (deleteConfirmIndex === null) return
-        setStages(prev => prev.filter((_, idx) => idx !== deleteConfirmIndex))
-        setDeleteConfirmIndex(null)
+    const handleDeleteStage = async (index) => {
+        const stage = stages[index]
+        const labelName = stage?.label || stage?.stageKey || 'Unknown'
+        const isConfirmed = await confirm({
+            title: "Delete Pipeline Stage",
+            message: `Are you sure you want to delete the stage "${labelName}"? Deals currently in this stage will be moved to the first stage.`,
+            confirmText: "Delete Stage",
+            confirmColor: T.error
+        })
+        
+        if (isConfirmed) {
+            setStages(prev => prev.filter((_, idx) => idx !== index))
+        }
     }
 
     const moveStage = (index, direction) => {
@@ -137,7 +143,11 @@ export default function PipelineSettings() {
             setPipeline(res.data)
             
             // Sync to Redux
-            dispatch(setReduxStages(updatedStages))
+            if (activeTab === 'DEAL') {
+                dispatch(setDealStages(updatedStages))
+            } else {
+                dispatch(setLeadStages(updatedStages))
+            }
             setSuccessMsg('Pipeline stages saved successfully! Dynamic relations updated.')
             setTimeout(() => setSuccessMsg(null), 5000)
         } catch (err) {
@@ -159,10 +169,28 @@ export default function PipelineSettings() {
     return (
         <div className="flex flex-col gap-6 max-w-4xl mx-auto py-2">
             <div>
-                <h2 className="text-lg font-black" style={{ color: T.textPrimary }}>Deals Pipeline Configuration</h2>
+                <h2 className="text-lg font-black" style={{ color: T.textPrimary }}>Pipelines Configuration</h2>
                 <p className="text-xs leading-relaxed mt-1" style={{ color: T.textMuted }}>
-                    Customize your sales pipeline columns and probabilities. If you modify a stage key, all existing deals will automatically migrate. If you delete a stage, deals in it will move to your first stage.
+                    Customize your pipeline columns and probabilities. If you modify a stage key, all existing records will automatically migrate. If you delete a stage, records in it will move to your first stage.
                 </p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-4 border-b" style={{ borderColor: T.border }}>
+                <button
+                    onClick={() => setActiveTab('DEAL')}
+                    className={`pb-2 text-sm font-bold transition-all ${activeTab === 'DEAL' ? 'border-b-2' : 'opacity-60 hover:opacity-100'}`}
+                    style={{ color: activeTab === 'DEAL' ? T.primary : T.textPrimary, borderBottomColor: activeTab === 'DEAL' ? T.primary : 'transparent' }}
+                >
+                    Deals Pipeline
+                </button>
+                <button
+                    onClick={() => setActiveTab('LEAD')}
+                    className={`pb-2 text-sm font-bold transition-all ${activeTab === 'LEAD' ? 'border-b-2' : 'opacity-60 hover:opacity-100'}`}
+                    style={{ color: activeTab === 'LEAD' ? T.primary : T.textPrimary, borderBottomColor: activeTab === 'LEAD' ? T.primary : 'transparent' }}
+                >
+                    Leads Pipeline
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -206,7 +234,10 @@ export default function PipelineSettings() {
 
                     <div className="flex flex-col gap-2.5">
                         {stages.map((stage, idx) => {
-                            const isTerminal = stage.stageKey === 'WON' || stage.stageKey === 'LOST'
+                            let isTerminal = stage.stageKey === 'WON' || stage.stageKey === 'LOST'
+                            if (activeTab === 'LEAD' && (stage.stageKey === 'CONVERTED' || stage.stageKey === 'LOST')) {
+                                isTerminal = true
+                            }
                             return (
                                 <div key={idx} className="grid grid-cols-12 gap-3 items-center p-3 rounded-2xl border shadow-sm transition-all hover:shadow-md"
                                     style={{ background: T.surface, borderColor: T.border }}>
@@ -302,15 +333,6 @@ export default function PipelineSettings() {
                     </button>
                 </div>
             </form>
-
-            <ConfirmModal
-                isOpen={deleteConfirmIndex !== null}
-                title="Delete Pipeline Stage"
-                message={`Are you sure you want to delete the stage "${deleteConfirmIndex !== null ? stages[deleteConfirmIndex]?.label || stages[deleteConfirmIndex]?.stageKey || 'Unknown' : ''}"? Deals currently in this stage will be moved to the first stage.`}
-                confirmText="Delete Stage"
-                onConfirm={confirmDelete}
-                onCancel={() => setDeleteConfirmIndex(null)}
-            />
         </div>
     )
 }

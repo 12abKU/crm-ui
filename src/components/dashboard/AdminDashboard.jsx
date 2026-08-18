@@ -87,7 +87,7 @@ export default function AdminDashboard() {
                 .finally(() => setLoading(false))
         }
 
-        api.get('/api/pipelines').then(r => {
+        api.get('/api/pipelines?entityType=DEAL').then(r => {
             let list = r.data ?? []
             // Hide Partnership Pipeline as requested
             list = list.filter(p => p.name !== 'Partnership Pipeline')

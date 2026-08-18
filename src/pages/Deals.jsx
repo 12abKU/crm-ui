@@ -18,6 +18,7 @@ import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
 import { profileCache, getCachePrefix } from '../utils/cacheUtils'
 import { useDialog } from '../contexts/DialogContext'
+import DynamicFields from '../components/DynamicFields'
 
 // ── Constants ──────────────────────────────────────────────────
 const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
@@ -164,7 +165,7 @@ export default function Deals() {
 
     // Load initial pipelines
     useEffect(() => {
-        api.get('/api/pipelines').then(r => {
+        api.get('/api/pipelines?entityType=DEAL').then(r => {
             let data = r.data ?? []
             // Hide Partnership Pipeline as requested
             data = data.filter(p => p.name !== 'Partnership Pipeline')
@@ -875,6 +876,14 @@ export default function Deals() {
                     placeholder={loadingContacts ? 'Loading...' : 'Select contact...'}
                     error={errors.contactId || errors.contact}
                 />
+
+                <div className="mt-6">
+                    <DynamicFields 
+                        entityType="DEAL" 
+                        values={form.customValues || {}} 
+                        onChange={(key, val) => setForm(f => ({ ...f, customValues: { ...(f.customValues || {}), [key]: val } }))} 
+                    />
+                </div>
             </SlideForm>
 
             {/* Deal panel */}

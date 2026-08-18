@@ -411,6 +411,17 @@ export default function ContactProfile() {
                             </div>
                         </SectionCard>
 
+                        {/* Custom Fields */}
+                        {profile.customValues && Object.keys(profile.customValues).length > 0 && (
+                            <SectionCard title="Custom Fields" icon="tune">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {Object.entries(profile.customValues).map(([key, val]) => (
+                                        <InfoRow key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} value={String(val)} />
+                                    ))}
+                                </div>
+                            </SectionCard>
+                        )}
+
                         {/* Open Deals */}
                         <SectionCard title="Open Deals" icon="handshake" badge={profile.openDeals?.length || 0}
                             action={canCreateDeal && (

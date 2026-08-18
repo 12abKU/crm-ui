@@ -5,17 +5,12 @@ import { Input, Select } from '../FormField'
 import api, { extractApiErrorMessage } from '../../api'
 
 import { useDialog } from '../../contexts/DialogContext'
-
-const LEAD_STAGES = [
-    { key: 'NEW', label: 'New' },
-    { key: 'CONTACTED', label: 'Contacted' },
-    { key: 'QUALIFIED', label: 'Qualified' },
-    { key: 'UNQUALIFIED', label: 'Unqualified' },
-    { key: 'CONVERTED', label: 'Converted' },
-]
+import DynamicFields from '../DynamicFields'
+import { usePipelineStages } from '../../hooks/usePipelineStages'
 
 export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
     const { confirm } = useDialog()
+    const { stages: leadStages } = usePipelineStages('LEAD')
     const [form, setForm] = useState({
         title: '',
         senderName: '',
@@ -26,6 +21,7 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
         status: 'NEW',
         city: '',
         message: '',
+        customValues: {},
     })
     const [sources, setSources] = useState([])
     const [errors, setErrors] = useState({})
@@ -43,6 +39,7 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
             status: lead.status || 'NEW',
             city: lead.city || '',
             message: lead.message || '',
+            customValues: lead.customValues || {},
         })
         api.get('/api/leads/sources').then(res => setSources(res.data)).catch(() => {})
     }, [open, lead])
@@ -121,7 +118,7 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
             </Select>
 
             <Select label="Status *" value={form.status} onChange={setEvent('status')} required error={errors.status}>
-                {LEAD_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                {leadStages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
             </Select>
 
             <Input label="City" value={form.city} onChange={setEvent('city')} error={errors.city} />
@@ -140,6 +137,14 @@ export default function EditLeadSlideForm({ open, onClose, lead, onSuccess }) {
                         border: `1px solid ${errors.message ? T.error : T.border}`,
                         color: T.textPrimary
                     }}
+                />
+            </div>
+
+            <div className="mt-6">
+                <DynamicFields 
+                    entityType="LEAD" 
+                    values={form.customValues || {}} 
+                    onChange={(key, val) => setForm(f => ({ ...f, customValues: { ...(f.customValues || {}), [key]: val } }))} 
                 />
             </div>
         </SlideForm>

@@ -2,8 +2,10 @@ import { useSelector } from 'react-redux'
 import { useCallback } from 'react'
 import { STAGE_LABELS, STAGE_STYLES, T } from '../constants/theme'
 
-export function usePipelineStages() {
-    const stages = useSelector(state => state.pipeline.stages) || []
+export function usePipelineStages(entityType = 'DEAL') {
+    const stages = useSelector(state => 
+        entityType === 'LEAD' ? state.pipeline.leadStages : state.pipeline.dealStages
+    ) || []
 
     const getStageLabel = useCallback((stageKey) => {
         if (!stageKey) return 'No value'
