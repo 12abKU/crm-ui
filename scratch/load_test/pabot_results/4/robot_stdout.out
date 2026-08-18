@@ -1,0 +1,42 @@
+==============================================================================
+Load Test
+==============================================================================
+Load Test.Deals 4
+==============================================================================
+Create Deal                                                           | PASS |
+------------------------------------------------------------------------------
+Edit Deal                                                             | FAIL |
+Element 'xpath=//label[contains(., 'Title')]' did not appear in 10 seconds.
+------------------------------------------------------------------------------
+Delete Deal                                                           | FAIL |
+JavascriptException: Message: javascript error: Cannot read properties of null (reading 'click')
+  (Session info: chrome=151.0.7922.108)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff680be8935+14ce5]
+	chromedriver!GetHandleVerifier [0x7ff680be8990+14d40]
+	chromedriver!(No symbol) [0x7ff680715afd]
+	chromedriver!(No symbol) [0x7ff68071da61]
+	chromedriver!(No symbol) [0x7ff680720daf]
+	chromedriver!(No symbol) [0x7ff6807bf732]
+	chromedriver!(No symbol) [0x7ff6807995ba]
+	chromedriver!(No symbol) [0x7ff6807be4ab]
+	chromedriver!(No symbol) [0x7ff68076308c]
+	chromedriver!(No symbol) [0x7ff680763fb3]
+	chromedriver!GetHandleVerifier [0x7ff68121e5fb+64a9ab]
+	chromedriver!GetHandleVerifier [0x7ff681218b02+644eb2]
+	chromedriver!GetHandleVerifier [0x7ff68123e39e+66a74e]
+	chromedriver!GetHandleVerifier [0x7ff680c05d6e+3211e]
+	chromedriver!GetHandleVerifier [0x7ff680c0e51c+3a8cc]
+	chromedriver!GetHandleVerifier [0x7ff680bf2844+1ebf4]
+	chromedriver!GetHandleVerifier [0x7ff680bf29d4+1ed84]
+	chromedriver!GetHandleVerifier [0x7ff680bd5d07+20b7]
+	KERNEL32!BaseThreadInitThunk [0x7ffa9412ccb7+17]
+	ntdll!RtlUserThreadStart [0x7ffa9440ad6c+2c]
+------------------------------------------------------------------------------
+Load Test.Deals 4                                                     | FAIL |
+3 tests, 1 passed, 2 failed
+==============================================================================
+Load Test                                                             | FAIL |
+3 tests, 1 passed, 2 failed
+==============================================================================
+Output:  D:\Desktop\crm-ui\scratch\load_test\pabot_results\4\output.xml

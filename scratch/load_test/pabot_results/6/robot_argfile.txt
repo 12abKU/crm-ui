@@ -1,0 +1,16 @@
+--suite Load Test.Deals 6
+--variable CALLER_ID:4003326b767d4c829f5b00f0587284e2
+--variable PABOTLIBURI:127.0.0.1:8270
+--variable PABOTEXECUTIONPOOLID:6
+--variable PABOTISLASTEXECUTIONINPOOL:0
+--variable PABOTNUMBEROFPROCESSES:10
+--variable PABOTQUEUEINDEX:6
+--variable PABOTLASTLEVEL:Load Test.Deals 6
+--outputdir scratch/load_test\pabot_results\6
+--output output.xml
+--log NONE
+--report NONE
+--xunit NONE
+--consolecolors off
+--consolemarkers off
+tests/load_test/

@@ -1,0 +1,14 @@
+datasources:c92d269ed1eb9433ce3c28bf51b8fc6a4f2247aa
+commandlineoptions:97d170e1550eee4afc0af065b78cda302a97674c
+suitesfrom:no-suites-from-option
+file:ca82b8feea4bc3a6348f6c0be03a0bd3127529e4
+--suite Load Test.Deals 1
+--suite Load Test.Deals 10
+--suite Load Test.Deals 2
+--suite Load Test.Deals 3
+--suite Load Test.Deals 4
+--suite Load Test.Deals 5
+--suite Load Test.Deals 6
+--suite Load Test.Deals 7
+--suite Load Test.Deals 8
+--suite Load Test.Deals 9

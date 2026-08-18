@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { T } from '../constants/theme'
 import api, { extractApiErrorMessage } from '../api'
 import { setCredentials } from '../store/authSlice'
+import { CRM_LANDING_URL } from '../constants/config'
 
 export default function Login() {
     const navigate = useNavigate()
@@ -317,7 +318,7 @@ export default function Login() {
                             <p className="text-sm" style={{ color: T.textSecondary }}>
                                 Don't have an account?{' '}
                                 <a 
-                                    href="/landing/register"
+                                    href={`${CRM_LANDING_URL}/pricing`}
                                     className="font-bold hover:underline transition-all"
                                     style={{ color: T.primary }}
                                 >

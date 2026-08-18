@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.4.2 (Python 3.11.0 on win32)" generated="2026-08-11T16:32:45.217788" rpa="false" schemaversion="5">
+<suite id="s1" name="Load Test" source="D:\Desktop\crm-ui\tests\load_test">
+<suite id="s1-s1" name="Deals 3" source="D:\Desktop\crm-ui\tests\load_test\deals_3.robot">
+<kw name="Login To CRM" owner="common" type="SETUP">
+<kw name="Generate Random String" owner="String">
+<msg time="2026-08-11T16:32:45.570195" level="INFO">${RND} = 9159</msg>
+<var>${RND}</var>
+<arg>4</arg>
+<arg>[NUMBERS]</arg>
+<doc>Generates a string with a desired ``length`` from the given ``chars``.</doc>
+<status status="PASS" start="2026-08-11T16:32:45.570195" elapsed="0.000000"/>
+</kw>
+<kw name="Set Global Variable" owner="BuiltIn">
+<msg time="2026-08-11T16:32:45.571195" level="INFO">${RND} = 9159</msg>
+<arg>${RND}</arg>
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<status status="PASS" start="2026-08-11T16:32:45.571195" elapsed="0.000000"/>
+</kw>
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:45.571195" level="INFO">Opening browser 'chrome' to base url 'http://localhost:5173/login'.</msg>
+<arg>${BASE_URL}/login</arg>
+<arg>chrome</arg>
+<arg>options=add_argument("--window-size=1920,1080");add_argument("--disable-search-engine-choice-screen")</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-08-11T16:32:45.571195" elapsed="2.439034"/>
+</kw>
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//input[@type='email']</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.010229" elapsed="0.213155"/>
+</kw>
+<kw name="Input Text" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:48.224385" level="INFO">Typing text 'kabhay@gmail.com' into text field 'xpath=//input[@type='email']'.</msg>
+<arg>xpath=//input[@type='email']</arg>
+<arg>${TEST_USER}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.223384" elapsed="0.105569"/>
+</kw>
+<kw name="Input Password" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:48.328953" level="INFO">Typing password into text field 'xpath=//input[@type='password']'.</msg>
+<msg time="2026-08-11T16:32:48.352568" level="INFO">Temporally setting log level to: NONE</msg>
+<arg>xpath=//input[@type='password']</arg>
+<arg>${TEST_PASS}</arg>
+<doc>Types the given password into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.328953" elapsed="0.078996"/>
+</kw>
+<kw name="Click Button" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:48.408455" level="INFO">Clicking button 'xpath=//button[@type='submit']'.</msg>
+<arg>xpath=//button[@type='submit']</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.408455" elapsed="0.081134"/>
+</kw>
+<kw name="Wait Until Location Is" owner="SeleniumLibrary">
+<arg>${BASE_URL}/</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the current URL is ``expected``.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.489589" elapsed="0.240376"/>
+</kw>
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//nav</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.730964" elapsed="0.023102"/>
+</kw>
+<status status="PASS" start="2026-08-11T16:32:45.569197" elapsed="3.184869"/>
+</kw>
+<test id="s1-s1-t1" name="Create Deal" line="7">
+<kw name="Navigate To Sidebar Item" owner="common">
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//a[contains(., '${item_name}')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.755084" elapsed="0.009070"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:48.764154" level="INFO">Executing JavaScript:
+var xpath = "//a[contains(., 'Deals')]";var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (el) {el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));}
+Without any arguments.</msg>
+<arg>var xpath = "//a[contains(., '${item_name}')]";</arg>
+<arg>var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (el) {</arg>
+<arg>el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));</arg>
+<arg>el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));</arg>
+<arg>el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));</arg>
+<arg>}</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.764154" elapsed="0.063834"/>
+</kw>
+<arg>Deals</arg>
+<status status="PASS" start="2026-08-11T16:32:48.755084" elapsed="0.072904"/>
+</kw>
+<kw name="Wait Until Location Is" owner="SeleniumLibrary">
+<arg>${BASE_URL}/deals</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the current URL is ``expected``.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.828988" elapsed="0.003001"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:50.832199" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:48.831989" elapsed="2.000210"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:50.832728" level="INFO">Executing JavaScript:
+document.evaluate("//button[contains(., 'New Deal')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//button[contains(., 'New Deal')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:50.832728" elapsed="0.048137"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:51.881932" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:50.881868" elapsed="1.000064"/>
+</kw>
+<kw name="Input Text By Label" owner="common">
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//label[contains(., '${label_text}')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:51.881932" elapsed="0.010031"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:51.892971" level="INFO">Executing JavaScript:
+var xpath = "//label[contains(., 'Title')]/following-sibling::*[self::input or self::textarea]";var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (!el) {xpath = "//label[contains(., 'Title')]/..//input";el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;}if (el) {var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;setter.call(el, 'Robot Test Deal');el.dispatchEvent(new Event('input', { bubbles: true }));el.dispatchEvent(new Event('change', { bubbles: true }));} else {throw new Error("Could not find input for label: Title");}
+Without any arguments.</msg>
+<arg>var xpath = "//label[contains(., '${label_text}')]/following-sibling::*[self::input or self::textarea]";</arg>
+<arg>var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (!el) {</arg>
+<arg>xpath = "//label[contains(., '${label_text}')]/..//input";</arg>
+<arg>el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>}</arg>
+<arg>if (el) {</arg>
+<arg>var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;</arg>
+<arg>var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;</arg>
+<arg>setter.call(el, '${value}');</arg>
+<arg>el.dispatchEvent(new Event('input', { bubbles: true }));</arg>
+<arg>el.dispatchEvent(new Event('change', { bubbles: true }));</arg>
+<arg>} else {</arg>
+<arg>throw new Error("Could not find input for label: ${label_text}");</arg>
+<arg>}</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:51.891963" elapsed="0.058248"/>
+</kw>
+<arg>Title</arg>
+<arg>Robot Test Deal</arg>
+<status status="PASS" start="2026-08-11T16:32:51.881932" elapsed="0.068279"/>
+</kw>
+<kw name="Input Text By Label" owner="common">
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//label[contains(., '${label_text}')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:51.950211" elapsed="0.009711"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:51.959922" level="INFO">Executing JavaScript:
+var xpath = "//label[contains(., 'Amount')]/following-sibling::*[self::input or self::textarea]";var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (!el) {xpath = "//label[contains(., 'Amount')]/..//input";el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;}if (el) {var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;setter.call(el, '5000');el.dispatchEvent(new Event('input', { bubbles: true }));el.dispatchEvent(new Event('change', { bubbles: true }));} else {throw new Error("Could not find input for label: Amount");}
+Without any arguments.</msg>
+<arg>var xpath = "//label[contains(., '${label_text}')]/following-sibling::*[self::input or self::textarea]";</arg>
+<arg>var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (!el) {</arg>
+<arg>xpath = "//label[contains(., '${label_text}')]/..//input";</arg>
+<arg>el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>}</arg>
+<arg>if (el) {</arg>
+<arg>var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;</arg>
+<arg>var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;</arg>
+<arg>setter.call(el, '${value}');</arg>
+<arg>el.dispatchEvent(new Event('input', { bubbles: true }));</arg>
+<arg>el.dispatchEvent(new Event('change', { bubbles: true }));</arg>
+<arg>} else {</arg>
+<arg>throw new Error("Could not find input for label: ${label_text}");</arg>
+<arg>}</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:51.959922" elapsed="0.056413"/>
+</kw>
+<arg>Amount</arg>
+<arg>5000</arg>
+<status status="PASS" start="2026-08-11T16:32:51.950211" elapsed="0.066124"/>
+</kw>
+<kw name="Input Text By Label" owner="common">
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//label[contains(., '${label_text}')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:52.017347" elapsed="0.008686"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:52.026033" level="INFO">Executing JavaScript:
+var xpath = "//label[contains(., 'Expected Close Date')]/following-sibling::*[self::input or self::textarea]";var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (!el) {xpath = "//label[contains(., 'Expected Close Date')]/..//input";el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;}if (el) {var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;setter.call(el, '2027-01-01');el.dispatchEvent(new Event('input', { bubbles: true }));el.dispatchEvent(new Event('change', { bubbles: true }));} else {throw new Error("Could not find input for label: Expected Close Date");}
+Without any arguments.</msg>
+<arg>var xpath = "//label[contains(., '${label_text}')]/following-sibling::*[self::input or self::textarea]";</arg>
+<arg>var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (!el) {</arg>
+<arg>xpath = "//label[contains(., '${label_text}')]/..//input";</arg>
+<arg>el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>}</arg>
+<arg>if (el) {</arg>
+<arg>var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;</arg>
+<arg>var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;</arg>
+<arg>setter.call(el, '${value}');</arg>
+<arg>el.dispatchEvent(new Event('input', { bubbles: true }));</arg>
+<arg>el.dispatchEvent(new Event('change', { bubbles: true }));</arg>
+<arg>} else {</arg>
+<arg>throw new Error("Could not find input for label: ${label_text}");</arg>
+<arg>}</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:52.026033" elapsed="0.048179"/>
+</kw>
+<arg>Expected Close Date</arg>
+<arg>2027-01-01</arg>
+<status status="PASS" start="2026-08-11T16:32:52.016335" elapsed="0.057877"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:52.075215" level="INFO">Executing JavaScript:
+document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:52.075215" elapsed="0.010311"/>
+</kw>
+<kw name="Wait Until Page Contains" owner="SeleniumLibrary">
+<arg>Robot Test Deal</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:52.085526" elapsed="0.015043"/>
+</kw>
+<status status="PASS" start="2026-08-11T16:32:48.755084" elapsed="3.345485"/>
+</test>
+<test id="s1-s1-t2" name="Edit Deal" line="21">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:54.102496" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:52.102076" elapsed="2.000420"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:54.103507" level="INFO">Executing JavaScript:
+document.evaluate("//*[contains(text(), 'Robot Test Deal')]/ancestor::div[contains(@class, 'p-4')]//span[text()='edit']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//*[contains(text(), 'Robot Test Deal')]/ancestor::div[contains(@class, 'p-4')]//span[text()='edit']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:54.103507" elapsed="0.106588"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:55.211235" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:54.210603" elapsed="1.000632"/>
+</kw>
+<kw name="Input Text By Label" owner="common">
+<kw name="Wait Until Page Contains Element" owner="SeleniumLibrary">
+<arg>xpath=//label[contains(., '${label_text}')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:55.212777" elapsed="0.013566"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:55.227344" level="INFO">Executing JavaScript:
+var xpath = "//label[contains(., 'Title')]/following-sibling::*[self::input or self::textarea]";var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (!el) {xpath = "//label[contains(., 'Title')]/..//input";el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;}if (el) {var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;setter.call(el, 'Robot Test Deal - Edited');el.dispatchEvent(new Event('input', { bubbles: true }));el.dispatchEvent(new Event('change', { bubbles: true }));} else {throw new Error("Could not find input for label: Title");}
+Without any arguments.</msg>
+<arg>var xpath = "//label[contains(., '${label_text}')]/following-sibling::*[self::input or self::textarea]";</arg>
+<arg>var el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (!el) {</arg>
+<arg>xpath = "//label[contains(., '${label_text}')]/..//input";</arg>
+<arg>el = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>}</arg>
+<arg>if (el) {</arg>
+<arg>var proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;</arg>
+<arg>var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;</arg>
+<arg>setter.call(el, '${value}');</arg>
+<arg>el.dispatchEvent(new Event('input', { bubbles: true }));</arg>
+<arg>el.dispatchEvent(new Event('change', { bubbles: true }));</arg>
+<arg>} else {</arg>
+<arg>throw new Error("Could not find input for label: ${label_text}");</arg>
+<arg>}</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:55.226343" elapsed="0.029794"/>
+</kw>
+<arg>Title</arg>
+<arg>Robot Test Deal - Edited</arg>
+<status status="PASS" start="2026-08-11T16:32:55.211766" elapsed="0.044371"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:55.257654" level="INFO">Executing JavaScript:
+document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:55.256137" elapsed="0.101673"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:56.359722" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:55.359318" elapsed="1.000910"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="SeleniumLibrary">
+<arg>xpath=//button[contains(., 'Save Changes')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2026-08-11T16:32:56.360228" elapsed="0.127960"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:56.488188" level="INFO">Executing JavaScript:
+document.evaluate("//button[contains(., 'Save Changes')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//button[contains(., 'Save Changes')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:56.488188" elapsed="0.122931"/>
+</kw>
+<kw name="Wait Until Page Contains" owner="SeleniumLibrary">
+<arg>Robot Test Deal - Edited</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until ``text`` appears on the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:56.612130" elapsed="0.047884"/>
+</kw>
+<status status="PASS" start="2026-08-11T16:32:52.100569" elapsed="4.559445"/>
+</test>
+<test id="s1-s1-t3" name="Delete Deal" line="32">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2026-08-11T16:32:58.662119" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2026-08-11T16:32:56.661022" elapsed="2.001604"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:58.663638" level="INFO">Executing JavaScript:
+document.evaluate("//*[contains(text(), 'Robot Test Deal - Edited')]/ancestor::div[contains(@class, 'p-4')]//span[text()='delete']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
+Without any arguments.</msg>
+<arg>document.evaluate("//*[contains(text(), 'Robot Test Deal - Edited')]/ancestor::div[contains(@class, 'p-4')]//span[text()='delete']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:58.662626" elapsed="0.067519"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="SeleniumLibrary">
+<arg>xpath=//button[contains(., 'Delete') or contains(., 'Yes') or contains(., 'Confirm')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2026-08-11T16:32:58.730145" elapsed="0.019982"/>
+</kw>
+<kw name="Execute Javascript" owner="SeleniumLibrary">
+<msg time="2026-08-11T16:32:58.751127" level="INFO">Executing JavaScript:
+var xpath = "//h3[contains(., 'Delete')]/../..//button[contains(., 'Delete') or contains(., 'Yes') or contains(., 'Confirm')]";var btn = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;if (btn) btn.click();
+Without any arguments.</msg>
+<arg>var xpath = "//h3[contains(., 'Delete')]/../..//button[contains(., 'Delete') or contains(., 'Yes') or contains(., 'Confirm')]";</arg>
+<arg>var btn = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;</arg>
+<arg>if (btn) btn.click();</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2026-08-11T16:32:58.751127" elapsed="0.055915"/>
+</kw>
+<kw name="Wait Until Page Does Not Contain Element" owner="SeleniumLibrary">
+<arg>xpath=//*[contains(text(), 'Robot Test Deal ${RND} - Edited')]</arg>
+<arg>timeout=10s</arg>
+<doc>Waits until the element ``locator`` disappears from the current page.</doc>
+<status status="PASS" start="2026-08-11T16:32:58.807042" elapsed="0.017596"/>
+</kw>
+<status status="PASS" start="2026-08-11T16:32:56.661022" elapsed="2.163616"/>
+</test>
+<kw name="Close Browser" owner="SeleniumLibrary" type="TEARDOWN">
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2026-08-11T16:32:58.825638" elapsed="4.220500"/>
+</kw>
+<status status="PASS" start="2026-08-11T16:32:45.252580" elapsed="17.793558"/>
+</suite>
+<status status="PASS" start="2026-08-11T16:32:45.219788" elapsed="17.827348"/>
+</suite>
+<statistics>
+<total>
+<stat pass="3" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Load Test" id="s1" pass="3" fail="0" skip="0">Load Test</stat>
+<stat name="Deals 3" id="s1-s1" pass="3" fail="0" skip="0">Load Test.Deals 3</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
