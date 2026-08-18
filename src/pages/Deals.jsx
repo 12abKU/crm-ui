@@ -392,6 +392,7 @@ export default function Deals() {
                 pipelineId: form.pipelineId || selectedPipelineId,
                 lostReason: form.stage === 'LOST' ? form.lostReason : null,
                 lostReasonNote: form.stage === 'LOST' ? form.lostReasonNote || null : null,
+                customValues: form.customValues || {},
             })
             setOpen(false)
             resetForm()
