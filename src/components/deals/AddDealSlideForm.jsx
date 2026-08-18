@@ -86,7 +86,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
         }
 
         try {
-            await api.post('/api/deals', {
+            const payload = {
                 title: form.title,
                 amount: form.amount ? parseFloat(form.amount) : null,
                 stage: form.stage,
@@ -94,7 +94,12 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
                 accountId: form.accountId ? Number(form.accountId) : null,
                 contactId: form.contactId ? Number(form.contactId) : null,
                 customValues: form.customValues,
-            })
+            };
+            console.log("=== AddDealSlideForm Submit ===");
+            console.log("form state:", form);
+            console.log("payload customValues:", payload.customValues);
+            
+            await api.post('/api/deals', payload)
             setErrors({})
             onSuccess?.()
         } catch (err) {
