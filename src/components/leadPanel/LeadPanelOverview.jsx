@@ -6,6 +6,7 @@ import { extractApiErrorMessage } from '../../api'
 import { useSelector } from 'react-redux'
 import AssignLeadModal from './AssignLeadModal'
 import ConvertLeadModal from './ConvertLeadModal'
+import CustomFieldsDisplay from '../CustomFieldsDisplay'
 
 const InfoCard = ({ label, children }) => (
     <div className="flex flex-col gap-1.5 p-3.5 rounded-xl" style={{ background: T.borderSubtle }}>
@@ -138,22 +139,17 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
             </div>
 
             {/* ── Custom Fields ─────────────────────── */}
-            {profile.customValues && Object.keys(profile.customValues).length > 0 && (
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
-                        Custom Fields
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {Object.entries(profile.customValues).map(([key, val]) => (
-                            <InfoCard key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}>
-                                <span style={{ color: val ? T.textPrimary : T.textMuted }}>
-                                    {String(val) || 'No value'}
-                                </span>
-                            </InfoCard>
-                        ))}
-                    </div>
-                </div>
-            )}
+            <CustomFieldsDisplay 
+                entityType="LEAD" 
+                values={profile.customValues || {}} 
+                FieldComponent={({ label, value }) => (
+                    <InfoCard label={label}>
+                        <span style={{ color: value !== 'No value' ? T.textPrimary : T.textMuted }}>
+                            {value}
+                        </span>
+                    </InfoCard>
+                )} 
+            />
 
             {/* ── Integration Specific Details ── */}
             {profile.source === 'INDIAMART' && (

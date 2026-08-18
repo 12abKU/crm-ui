@@ -16,6 +16,7 @@ import RequirePermission from '../components/RequirePermission'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 import DocumentList from './DocumentList'
 import PrivacyTab from '../components/privacy/PrivacyTab'
+import CustomFieldsDisplay from '../components/CustomFieldsDisplay'
 
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
@@ -412,15 +413,18 @@ export default function ContactProfile() {
                         </SectionCard>
 
                         {/* Custom Fields */}
-                        {profile.customValues && Object.keys(profile.customValues).length > 0 && (
-                            <SectionCard title="Custom Fields" icon="tune">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {Object.entries(profile.customValues).map(([key, val]) => (
-                                        <InfoRow key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} value={String(val)} />
-                                    ))}
-                                </div>
-                            </SectionCard>
-                        )}
+                        <CustomFieldsDisplay
+                            entityType="CONTACT"
+                            values={profile.customValues || {}}
+                            renderWrapper={(children) => (
+                                <SectionCard title="Custom Fields" icon="tune">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {children}
+                                    </div>
+                                </SectionCard>
+                            )}
+                            FieldComponent={({ label, value }) => <InfoRow label={label} value={value} />}
+                        />
 
                         {/* Open Deals */}
                         <SectionCard title="Open Deals" icon="handshake" badge={profile.openDeals?.length || 0}

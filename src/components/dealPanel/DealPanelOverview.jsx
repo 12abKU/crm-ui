@@ -8,6 +8,7 @@ import { extractApiErrorMessage } from '../../api'
 import LostDealReasonModal from '../deals/LostDealReasonModal'
 import DocumentList from '../../pages/DocumentList'
 import LeadInfoCard from '../deals/LeadInfoCard'
+import CustomFieldsDisplay from '../CustomFieldsDisplay'
 
 // ── Shared InfoCard ───────────────────────────────────────────
 const InfoCard = ({ label, children }) => (
@@ -270,22 +271,17 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
             </div>
 
             {/* ── Custom Fields ─────────────────────── */}
-            {deal.customValues && Object.keys(deal.customValues).length > 0 && (
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: T.textMuted }}>
-                        Custom Fields
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {Object.entries(deal.customValues).map(([key, val]) => (
-                            <InfoCard key={key} label={key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}>
-                                <span style={{ color: val ? T.textPrimary : T.textMuted }}>
-                                    {String(val) || 'No value'}
-                                </span>
-                            </InfoCard>
-                        ))}
-                    </div>
-                </div>
-            )}
+            <CustomFieldsDisplay 
+                entityType="DEAL" 
+                values={deal.customValues || {}} 
+                FieldComponent={({ label, value }) => (
+                    <InfoCard label={label}>
+                        <span style={{ color: value !== 'No value' ? T.textPrimary : T.textMuted }}>
+                            {value}
+                        </span>
+                    </InfoCard>
+                )} 
+            />
 
             {/* ── Documents Section ────────────────────── */}
             {!isAgent && (
