@@ -23,10 +23,7 @@ export default function CustomFieldsDisplay({ entityType, values = {}, renderWra
 
     if (loading || fields.length === 0) return null;
 
-    const activeFields = fields.filter(f => f.isActive);
-    if (activeFields.length === 0) return null;
-
-    const children = activeFields.map(field => {
+    const children = fields.map(field => {
         const val = values[field.fieldKey];
         return (
             <FieldComponent key={field.id} label={field.fieldLabel} value={String(val || 'No value')} />
