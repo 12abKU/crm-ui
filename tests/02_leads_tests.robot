@@ -19,7 +19,7 @@ Create Lead
     Input Text By Label    Phone    999${RND}999
     Input Text By Label    Message/Notes    Test notes
     
-    Click Checkbox    DPDP Consent
+
     Execute Javascript    document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
     Wait Until Page Contains    Robot Test Lead ${RND}    timeout=10s
 

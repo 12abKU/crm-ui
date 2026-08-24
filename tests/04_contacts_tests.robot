@@ -36,7 +36,7 @@ Create Contact
     Input Text By Label    Designation    Tester
     Select From Custom Dropdown By Label    Account    Robot Corp ${RND}
     
-    Click Checkbox    DPDP Consent
+
     Execute Javascript    document.evaluate("//button[contains(., 'Save')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click()
     Wait Until Page Contains    Robot Contact ${RND}    timeout=10s
 

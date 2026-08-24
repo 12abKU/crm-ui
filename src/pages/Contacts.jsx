@@ -29,7 +29,7 @@ export default function Contacts() {
     const { confirm } = useDialog()
     const [open, setOpen] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false, customValues: {} })
+    const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', customValues: {} })
     const [duplicates, setDuplicates] = useState([])
     const [checkingDuplicates, setCheckingDuplicates] = useState(false)
     const [showDuplicateModal, setShowDuplicateModal] = useState(false)
@@ -37,7 +37,7 @@ export default function Contacts() {
 
     const handleOpenModal = () => {
         setEditingItem(null)
-        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false, customValues: {} })
+        setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', customValues: {} })
         setErrors({})
         setOpen(true)
     }
@@ -52,7 +52,7 @@ export default function Contacts() {
             phone: contact.phone || '',
             designation: contact.designation || '',
             accountId: contact.account?.id || '',
-            hasConsent: false,
+
             customValues: contact.customValues || {}
         })
         setErrors({})
@@ -63,7 +63,7 @@ export default function Contacts() {
     const [importOpen, setImportOpen] = useState(false)
     const [importFile, setImportFile] = useState(null)
     const [importing, setImporting] = useState(false)
-    const [importConsent, setImportConsent] = useState(false)
+
     const [importError, setImportError] = useState('')
     const [importResult, setImportResult] = useState(null)
     const [dragActive, setDragActive] = useState(false)
@@ -115,7 +115,7 @@ export default function Contacts() {
         if (!form.phone) newErrors.phone = 'Required'
         else if (phoneDigits.length < 10 || phoneDigits.length > 12) newErrors.phone = 'Phone number must be digits only, between 10 and 12 digits'
         if (!form.designation) newErrors.designation = 'Required'
-        if (!editingItem && !form.hasConsent) newErrors.hasConsent = 'Required'
+
         
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
@@ -156,7 +156,7 @@ export default function Contacts() {
             setShowDuplicateModal(false)
             setDuplicates([])
             setEditingItem(null)
-            setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '', hasConsent: false })
+            setForm({ firstName: '', lastName: '', email: '', phone: '', designation: '', accountId: '' })
             setErrors({})
         } catch (err) {
             if (err?.response?.data?.fields) {
@@ -214,10 +214,7 @@ export default function Contacts() {
     const handleImportSubmit = async (e) => {
         e.preventDefault()
         if (!importFile) return
-        if (!importConsent) {
-            setImportError('You must confirm DPDP consent before importing.')
-            return
-        }
+
         setImporting(true)
         setImportError('')
         
@@ -228,7 +225,7 @@ export default function Contacts() {
         try {
             const formData = new FormData()
             formData.append('file', importFile)
-            formData.append('hasConsent', importConsent)
+
             const r = await api.post('/api/contacts/import', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             })
@@ -457,16 +454,7 @@ export default function Contacts() {
                     <SearchableSelect label="Account *" value={form.accountId} onChange={v => set('accountId', v)}
                         onSearch={loadAccountOptions} placeholder="Select account" required error={errors.accountId || errors.account} />
                     
-                    <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" checked={form.hasConsent} onChange={e => set('hasConsent', e.target.checked)} className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
-                            <div className="text-sm">
-                                <span className="font-bold text-slate-800">DPDP Consent Obtained</span>
-                                <p className="text-slate-500 text-xs mt-0.5">I confirm that I have obtained explicit consent from this person to store their personal data and contact them.</p>
-                            </div>
-                        </label>
-                        {errors.hasConsent && <div className="text-xs mt-1" style={{ color: T.error }}>{errors.hasConsent}</div>}
-                    </div>
+
 
                     <div className="mt-6">
                         <DynamicFields 
@@ -655,15 +643,7 @@ export default function Contacts() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="mt-2 p-3 rounded-xl border border-blue-200 bg-blue-50/50">
-                                        <label className="flex items-start gap-3 cursor-pointer">
-                                            <input type="checkbox" checked={importConsent} onChange={e => setImportConsent(e.target.checked)} className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
-                                            <div className="text-sm">
-                                                <span className="font-bold text-slate-800">DPDP Consent Obtained</span>
-                                                <p className="text-slate-500 text-[11px] mt-0.5">I confirm that I have obtained explicit consent to store the data of these contacts.</p>
-                                            </div>
-                                        </label>
-                                    </div>
+
 
                                     <div className="flex gap-3 mt-auto pt-4" style={{ borderTop: `1px solid ${T.border}` }}>
                                         <button
@@ -683,15 +663,15 @@ export default function Contacts() {
                                         <button
                                             type="button"
                                             onClick={handleImportSubmit}
-                                            disabled={!importFile || importing || !importConsent}
+                                            disabled={!importFile || importing}
                                             className="flex-1 px-5 py-3 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
                                             style={{
-                                                background: (!importFile || !importConsent) ? T.surfaceHigh : T.primary,
-                                                color: (!importFile || !importConsent) ? T.textMuted : '#fff',
-                                                cursor: (!importFile || importing || !importConsent) ? 'not-allowed' : 'pointer'
+                                                background: (!importFile) ? T.surfaceHigh : T.primary,
+                                                color: (!importFile) ? T.textMuted : '#fff',
+                                                cursor: (!importFile || importing) ? 'not-allowed' : 'pointer'
                                             }}
-                                            onMouseEnter={e => { if (importFile && !importing && importConsent) e.currentTarget.style.background = T.primaryHover }}
-                                            onMouseLeave={e => { if (importFile && !importing && importConsent) e.currentTarget.style.background = T.primary }}>
+                                            onMouseEnter={e => { if (importFile && !importing) e.currentTarget.style.background = T.primaryHover }}
+                                            onMouseLeave={e => { if (importFile && !importing) e.currentTarget.style.background = T.primary }}>
                                             {importing ? (
                                                 <>
                                                     <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
