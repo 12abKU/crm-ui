@@ -72,7 +72,7 @@ export default function PlatformDashboard() {
     const [showDeactivateUser, setShowDeactivateUser] = useState(null)
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT' })
     const [newPw, setNewPw] = useState('')
-    const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
+    const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '', phone: '', industry: '', companySize: '', country: '' })
     const [trialDays, setTrialDays] = useState('14')
     const [trialMode, setTrialMode] = useState('days')
     const [trialDate, setTrialDate] = useState('')
@@ -261,14 +261,14 @@ export default function PlatformDashboard() {
     }
 
     const submitAddCompany = async () => {
-        const { companyName, adminName, adminEmail, adminPassword } = newCompany
-        if (!companyName || !adminName || !adminEmail || !adminPassword) { setFormError('All fields required'); return }
+        const { companyName, adminName, adminEmail, adminPassword, phone, industry, companySize, country } = newCompany
+        if (!companyName || !adminName || !adminEmail || !adminPassword || !phone || !industry || !companySize || !country) { setFormError('All fields required'); return }
         setFormSaving(true); setFormError('')
         try {
             await api.post('/api/auth/company/register', newCompany)
             await loadData()
             setShowAddCompany(false)
-            setNewCompany({ companyName: '', adminName: '', adminEmail: '', adminPassword: '' })
+            setNewCompany({ companyName: '', adminName: '', adminEmail: '', adminPassword: '', phone: '', industry: '', companySize: '', country: '' })
         } catch (e) { setFormError(e?.response?.data?.message || 'Failed') }
         finally { setFormSaving(false) }
     }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import ConfirmModal from '../components/ui/ConfirmModal';
 
 const DialogContext = createContext();
@@ -43,6 +43,22 @@ export function DialogProvider({ children }) {
             });
         });
     }, []);
+
+    useEffect(() => {
+        const handlePermissionDenied = (e) => {
+            showAlert({
+                title: e.detail?.title || 'Permission Denied',
+                message: e.detail?.message || "You don't have permission to perform this action.",
+                confirmText: 'OK',
+                confirmColor: '#ef4444'
+            });
+        };
+
+        window.addEventListener('crm-permission-denied', handlePermissionDenied);
+        return () => {
+            window.removeEventListener('crm-permission-denied', handlePermissionDenied);
+        };
+    }, [showAlert]);
 
     const showPrompt = useCallback(({ title, message, defaultValue = '', confirmText = 'Submit', confirmColor = '#3b82f6' }) => {
         return new Promise((resolve) => {
@@ -99,6 +115,7 @@ export function DialogProvider({ children }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDialog() {
     return useContext(DialogContext);
 }

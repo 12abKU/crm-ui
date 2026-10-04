@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux'
 export default function usePermission(permission) {
     const permissions = useSelector(state => state.auth.permissions ?? [])
     const role = useSelector(state => state.auth.role)
-    if (role === 'SUPER_ADMIN') return true
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') return true
     return permissions.includes(permission)
 }
 
@@ -13,6 +13,6 @@ export default function usePermission(permission) {
 export function usePermissions(permissionList) {
     const permissions = useSelector(state => state.auth.permissions ?? [])
     const role = useSelector(state => state.auth.role)
-    if (role === 'SUPER_ADMIN') return Object.fromEntries(permissionList.map(p => [p, true]))
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') return Object.fromEntries(permissionList.map(p => [p, true]))
     return Object.fromEntries(permissionList.map(p => [p, permissions.includes(p)]))
 }

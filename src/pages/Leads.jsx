@@ -298,7 +298,7 @@ export default function Leads() {
         const lead = dragLead.current
         setDraggingId(null); setOverStage(null); dragLead.current = null
 
-        const canDrag = isAdminOrAbove || can.LEADS_EDIT || lead._isOwner || lead._assignedToMe
+        const canDrag = isAdminOrAbove || (can.LEADS_EDIT && (lead._isOwner || lead._assignedToMe))
         if (!canDrag) {
             alert({ title: 'Permission Denied', message: "You do not have permission to move this lead." })
             return
@@ -486,7 +486,7 @@ export default function Leads() {
                                 {/* Cards area — scrolls vertically */}
                                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0 }}>
                                     {stageLeads.map(lead => {
-                                        const canDrag = isAdminOrAbove || can.LEADS_EDIT || lead._isOwner || lead._assignedToMe
+                                        const canDrag = isAdminOrAbove || (can.LEADS_EDIT && (lead._isOwner || lead._assignedToMe))
                                         return (
                                             <div key={lead.id}
                                                 draggable={canDrag}

@@ -71,7 +71,7 @@ api.interceptors.response.use(
         }
 
         // 403 — company suspended/trial expired → sign out with reason shown on login page
-        // If it's a regular RBAC permission error (e.g. "You don't have permission..."), we let it fall through to the toast!
+        // Regular RBAC permission error → dispatch standard modal event and suppress transient toast
         if (status === 403 && !isAuthEndpoint) {
             const isAccountLocked = message?.toLowerCase().includes('suspended') || message?.toLowerCase().includes('expired')
             if (isAccountLocked) {
@@ -80,6 +80,13 @@ api.interceptors.response.use(
                 window.location.href = '/login'
                 return Promise.reject(err) // ← return early, no toast
             }
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('crm-permission-denied', {
+                    detail: { title: 'Permission Denied', message }
+                }))
+            }
+            return Promise.reject(err) // ← return early, suppress transient toast
         }
 
         // All other errors — show global toast (but not for auth endpoints)

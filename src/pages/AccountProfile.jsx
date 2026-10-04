@@ -70,8 +70,9 @@ export default function AccountProfile() {
     const [dealFormOpen, setDealFormOpen] = useState(false)
 
     const role = useSelector(state => state.auth.role)
-    const can = usePermissions(['DEALS_CREATE'])
+    const can = usePermissions(['DEALS_CREATE', 'ACCOUNTS_EDIT'])
     const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
+    const canEditAccount = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.ACCOUNTS_EDIT
 
     useEffect(() => {
         const controller = new AbortController()
@@ -212,7 +213,7 @@ export default function AccountProfile() {
                             </div>
                             <div>
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <InlineEdit value={profile.name} onSave={v => updateField('name', v)} placeholder="Account name">
+                                    <InlineEdit value={profile.name} onSave={v => updateField('name', v)} placeholder="Account name" readonly={!canEditAccount}>
                                         <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
                                             {profile.name}
                                         </h1>

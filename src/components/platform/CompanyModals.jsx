@@ -161,6 +161,10 @@ export function AddCompanyModal({ newCompany, setNewCompany, onClose, formSaving
             <InputField label="Admin Name" value={newCompany.adminName} onChange={set('adminName')} placeholder="John Doe" />
             <InputField label="Admin Email" type="email" value={newCompany.adminEmail} onChange={set('adminEmail')} placeholder="admin@acme.com" />
             <InputField label="Admin Password" type="password" value={newCompany.adminPassword} onChange={set('adminPassword')} placeholder="Min 6 characters" />
+            <InputField label="Phone" value={newCompany.phone} onChange={set('phone')} placeholder="+91 9876543210" />
+            <InputField label="Industry" value={newCompany.industry} onChange={set('industry')} placeholder="Technology" />
+            <InputField label="Company Size" value={newCompany.companySize} onChange={set('companySize')} placeholder="1-10" />
+            <InputField label="Country" value={newCompany.country} onChange={set('country')} placeholder="India" />
             <p className="text-[11px] mb-4 px-3 py-2 rounded-lg" style={{ background: 'rgba(217,119,6,0.08)', color: '#D97706' }}>
                 New company starts on a 14-day free trial automatically.
             </p>

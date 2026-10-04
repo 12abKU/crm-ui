@@ -4,7 +4,7 @@ import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import Skeleton from 'react-loading-skeleton'
-import { useSelector } from 'react-redux'
+import usePermission from '../hooks/usePermission'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
 import PrivacyTab from '../components/privacy/PrivacyTab'
@@ -52,13 +52,13 @@ export default function LeadProfile() {
     const [loading, setLoading] = useState(true)
     const [editOpen, setEditOpen] = useState(false)
 
-    const role = useSelector(state => state.auth.role)
+    const canEdit = usePermission('LEADS_EDIT')
 
     useEffect(() => {
         const controller = new AbortController()
         api.get(`/api/leads/${id}`, { signal: controller.signal, suppressErrorToast: true })
             .then(r => setProfile(r.data))
-            .catch(err => { if (!controller.signal.aborted) setProfile(null) })
+            .catch(() => { if (!controller.signal.aborted) setProfile(null) })
             .finally(() => { if (!controller.signal.aborted) setLoading(false) })
         return () => controller.abort()
     }, [id])
@@ -198,18 +198,20 @@ export default function LeadProfile() {
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}>
                                 <span className="material-symbols-outlined text-[16px]">mail</span>Email
                             </button>
-                            <button onClick={() => setEditOpen(true)}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
-                                style={{
-                                    background: T.primary,
-                                    border: '1px solid rgba(255,255,255,0.20)',
-                                    color: '#fff',
-                                    boxShadow: `0 4px 14px ${T.avatarGlow}`,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                                onMouseLeave={e => e.currentTarget.style.background = T.primary}>
-                                <span className="material-symbols-outlined text-[16px]">edit</span>Edit
-                            </button>
+                            {canEdit && (
+                                <button onClick={() => setEditOpen(true)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full sm:w-auto"
+                                    style={{
+                                        background: T.primary,
+                                        border: '1px solid rgba(255,255,255,0.20)',
+                                        color: '#fff',
+                                        boxShadow: `0 4px 14px ${T.avatarGlow}`,
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                                    onMouseLeave={e => e.currentTarget.style.background = T.primary}>
+                                    <span className="material-symbols-outlined text-[16px]">edit</span>Edit
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -353,7 +355,7 @@ export default function LeadProfile() {
                 </div>
             </main>
 
-            {editOpen && profile && (
+            {editOpen && profile && canEdit && (
                 <EditLeadSlideForm
                     open={editOpen}
                     lead={profile}

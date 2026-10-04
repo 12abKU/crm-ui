@@ -514,7 +514,10 @@ export default function Deals() {
         }
         const deal = dragDeal.current
 
-        if (isAgent && !can.DEALS_EDIT) {
+        if (!isAdminOrAbove && !can.DEALS_EDIT) {
+            setDraggingId(null); setOverStage(null); dragDeal.current = null; return
+        }
+        if (isAgent) {
             const isOwner = String(deal.owner?.id) === String(userId)
             const isAssignee = (deal.assignees ?? []).some(u => String(u.id) === String(userId))
             if (!isOwner && !isAssignee) {
@@ -730,7 +733,7 @@ export default function Deals() {
                                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0 }}>
                                     {stageDeals.map(deal => {
                                         const isHighlighted = String(deal.id) === String(highlightId)
-                                        const canDrag = isAdminOrAbove || can.DEALS_EDIT || deal._isOwner || deal._assignedToMe
+                                        const canDrag = isAdminOrAbove || (can.DEALS_EDIT && (deal._isOwner || deal._assignedToMe))
                                         const canDelete = can.DEALS_DELETE && (isAdminOrAbove || deal._isOwner)
 
                                         return (

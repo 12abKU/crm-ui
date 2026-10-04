@@ -86,8 +86,9 @@ export default function ContactProfile() {
     const [dealFormOpen, setDealFormOpen] = useState(false)
 
     const role = useSelector(state => state.auth.role)
-    const can = usePermissions(['DEALS_CREATE'])
+    const can = usePermissions(['DEALS_CREATE', 'CONTACTS_EDIT'])
     const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
+    const canEditContact = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.CONTACTS_EDIT
 
     // ── Load call logs with pagination (unchanged) ────────────
     const loadCalls = async (p = 0) => {
@@ -260,12 +261,12 @@ export default function ContactProfile() {
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                    <InlineEdit value={profile.firstName} onSave={v => updateField('firstName', v)} placeholder="First name">
+                                    <InlineEdit value={profile.firstName} onSave={v => updateField('firstName', v)} placeholder="First name" readonly={!canEditContact}>
                                         <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
                                             {profile.firstName}
                                         </h1>
                                     </InlineEdit>
-                                    <InlineEdit value={profile.lastName} onSave={v => updateField('lastName', v)} placeholder="Last name">
+                                    <InlineEdit value={profile.lastName} onSave={v => updateField('lastName', v)} placeholder="Last name" readonly={!canEditContact}>
                                         <h1 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.01em' }}>
                                             {profile.lastName}
                                         </h1>

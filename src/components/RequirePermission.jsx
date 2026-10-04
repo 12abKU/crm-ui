@@ -1,4 +1,3 @@
-import React from 'react'
 import { useSelector } from 'react-redux'
 
 /**
@@ -14,8 +13,8 @@ export default function RequirePermission({ requires, children, fallback = null 
     const userRole = useSelector(state => state.auth.role)
     const userPermissions = useSelector(state => state.auth.permissions) || []
 
-    // Super Admin has all permissions implicitly
-    if (userRole === 'SUPER_ADMIN') {
+    // Super Admin and Admin have all permissions implicitly
+    if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') {
         return <>{children}</>
     }
 
