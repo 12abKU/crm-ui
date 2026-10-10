@@ -141,13 +141,8 @@ export default function DealPanelConversation({ deal }) {
         try {
             const r = await api.get('/api/gmail/status')
             setStatus(r.data)
-            if (r.data.connected) {
-                fetchEmails()
-            } else {
-                setLoading(false)
-            }
         } catch {
-            setLoading(false)
+            setStatus({ connected: false, email: null })
         }
     }
 
@@ -165,7 +160,36 @@ export default function DealPanelConversation({ deal }) {
 
     useEffect(() => {
         checkStatus()
+        fetchEmails()
     }, [deal.id])
+
+    useEffect(() => {
+        const handleEmailRealtime = (e) => {
+            const emailMsg = e.detail
+            if (!emailMsg) return
+            const matchesDeal = deal?.id && emailMsg.dealId && Number(emailMsg.dealId) === Number(deal.id)
+            const matchesContact = deal?.contact?.id && emailMsg.contactId && Number(emailMsg.contactId) === Number(deal.contact.id)
+            const matchesEmail = deal?.contact?.email && (
+                (emailMsg.from && emailMsg.from.includes(deal.contact.email)) ||
+                (emailMsg.to && emailMsg.to.includes(deal.contact.email))
+            )
+            if (matchesDeal || matchesContact || matchesEmail) {
+                const normalized = {
+                    ...emailMsg,
+                    received: emailMsg.received !== undefined ? emailMsg.received : (emailMsg.isReceived !== undefined ? emailMsg.isReceived : emailMsg.direction === 'INBOUND'),
+                    date: emailMsg.date || emailMsg.createdAt || new Date().toISOString()
+                }
+                setEmails(prev => {
+                    if (prev.some(m => (m.id && String(m.id) === String(emailMsg.id)) || (m.messageId && emailMsg.messageId && m.messageId === emailMsg.messageId))) {
+                        return prev
+                    }
+                    return [...prev, normalized]
+                })
+            }
+        }
+        window.addEventListener('crm-email', handleEmailRealtime)
+        return () => window.removeEventListener('crm-email', handleEmailRealtime)
+    }, [deal?.id, deal?.contact?.id, deal?.contact?.email])
 
     const connectGmail = async () => {
         setConnecting(true)
@@ -180,52 +204,8 @@ export default function DealPanelConversation({ deal }) {
     const disconnect = async () => {
         await api.delete('/api/gmail/disconnect')
         setStatus({ connected: false, email: null })
-        setEmails([])
+        fetchEmails()
     }
-
-    // ── Not connected ─────────────────────────────────────────
-    if (!loading && status && !status.connected) return (
-        <div className="px-7 py-12 flex flex-col items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                style={{ background: T.primaryDim }}>
-                <span className="material-symbols-outlined text-[30px]"
-                    style={{ color: T.primary }}>mail</span>
-            </div>
-            <div className="text-center">
-                <p className="text-sm font-black" style={{ color: T.textPrimary }}>
-                    Connect Gmail
-                </p>
-                <p className="text-[12px] mt-1.5 leading-relaxed" style={{ color: T.textMuted }}>
-                    See email conversations with{' '}
-                    <strong style={{ color: T.textPrimary }}>
-                        {deal.contact?.email || 'this contact'}
-                    </strong>{' '}
-                    directly here
-                </p>
-            </div>
-            {!deal.contact?.email && (
-                <div className="px-4 py-3 rounded-xl w-full text-center"
-                    style={{ background: T.errorDim }}>
-                    <p className="text-[12px] font-semibold" style={{ color: T.error }}>
-                        No contact email on this deal
-                    </p>
-                    <p className="text-[11px] mt-0.5" style={{ color: T.error }}>
-                        Link a contact with an email address first
-                    </p>
-                </div>
-            )}
-            <button onClick={connectGmail} disabled={connecting}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
-                style={{
-                    background: T.primary, color: '#fff',
-                    opacity: connecting ? 0.7 : 1,
-                    boxShadow: '0 4px 14px 4D'
-                }}>
-                <span className="material-symbols-outlined text-[16px]">mail</span>
-                {connecting ? 'Redirecting to Google...' : 'Connect Gmail'}
-            </button>
-        </div>
-    )
 
     // ── Loading ───────────────────────────────────────────────
     if (loading) return (
@@ -242,19 +222,27 @@ export default function DealPanelConversation({ deal }) {
         </div>
     )
 
-    // ── Connected ─────────────────────────────────────────────
     return (
         <div className="flex flex-col h-full overflow-hidden">
 
             {/* Top bar */}
             <div className="px-5 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0"
                 style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceRaised }}>
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: T.onlineDot }} />
-                    <p className="text-[12px] font-semibold truncate" style={{ color: T.textSecondary }}>
-                        {status?.email}
-                    </p>
-                </div>
+                {status?.connected ? (
+                    <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ background: T.onlineDot }} />
+                        <p className="text-[12px] font-semibold truncate" style={{ color: T.textSecondary }}>
+                            {status?.email}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="material-symbols-outlined text-[14px] shrink-0" style={{ color: T.textMuted }}>info</span>
+                        <p className="text-[12px] font-semibold truncate" style={{ color: T.textMuted }}>
+                            Team conversation history (Gmail not connected)
+                        </p>
+                    </div>
+                )}
                 <div className="flex items-center gap-1">
                     <button onClick={fetchEmails} title="Refresh"
                         className="p-1.5 rounded-lg transition-colors"
@@ -263,13 +251,23 @@ export default function DealPanelConversation({ deal }) {
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <span className="material-symbols-outlined text-[15px]">refresh</span>
                     </button>
-                    <button onClick={disconnect}
-                        className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-colors"
-                        style={{ color: T.error }}
-                        onMouseEnter={e => e.currentTarget.style.background = T.errorDim}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        Disconnect
-                    </button>
+                    {status?.connected ? (
+                        <button onClick={disconnect}
+                            className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-colors"
+                            style={{ color: T.error }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.errorDim}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            Disconnect
+                        </button>
+                    ) : (
+                        <button onClick={connectGmail} disabled={connecting}
+                            className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-colors"
+                            style={{ color: T.primary }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            {connecting ? 'Redirecting...' : 'Connect Gmail'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -303,7 +301,7 @@ export default function DealPanelConversation({ deal }) {
                             No emails found
                         </p>
                         <p className="text-xs text-center" style={{ color: T.textMuted }}>
-                            No emails with <strong>{deal.contact?.email}</strong> in your Gmail
+                            No emails with <strong>{deal.contact?.email}</strong> found in deal history
                         </p>
                     </div>
                 ) : (

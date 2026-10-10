@@ -6,7 +6,6 @@ import TopBar from '../components/TopBar'
 import ContactRow from '../components/conversations/ContactRow'
 import EmailBubble from '../components/conversations/EmailBubble'
 import WhatsAppBubble from '../components/conversations/WhatsAppBubble'
-import GmailNotConnected from '../components/conversations/GmailNotConnected'
 import CustomSelect from '../components/ui/CustomSelect'
 import api from '../api'
 import { useDialog } from '../contexts/DialogContext'
@@ -413,12 +412,12 @@ export default function Conversations() {
     useEffect(() => {
         if (selectedContact) {
             if (channel === 'email') {
-                if (gmailStatus?.connected) fetchEmails(selectedContact)
+                fetchEmails(selectedContact)
             } else if (channel === 'whatsapp') {
                 fetchWhatsappMessages(selectedContact)
             }
         }
-    }, [channel, selectedContact, gmailStatus, fetchEmails, fetchWhatsappMessages])
+    }, [channel, selectedContact, fetchEmails, fetchWhatsappMessages])
 
     useEffect(() => {
         const handleWhatsappRealtime = (e) => {
@@ -432,6 +431,38 @@ export default function Conversations() {
         }
         window.addEventListener('crm-whatsapp', handleWhatsappRealtime)
         return () => window.removeEventListener('crm-whatsapp', handleWhatsappRealtime)
+    }, [selectedContact])
+
+    useEffect(() => {
+        const handleEmailRealtime = (e) => {
+            const emailMsg = e.detail
+            if (!emailMsg) return
+            const matchesContact = selectedContact && (
+                (emailMsg.contactId && Number(emailMsg.contactId) === Number(selectedContact.id)) ||
+                (emailMsg.contact?.id && Number(emailMsg.contact.id) === Number(selectedContact.id)) ||
+                (emailMsg.from && selectedContact.email && emailMsg.from.includes(selectedContact.email)) ||
+                (emailMsg.to && selectedContact.email && emailMsg.to.includes(selectedContact.email))
+            )
+            if (matchesContact) {
+                const normalized = {
+                    ...emailMsg,
+                    received: emailMsg.received !== undefined ? emailMsg.received : (emailMsg.isReceived !== undefined ? emailMsg.isReceived : emailMsg.direction === 'INBOUND'),
+                    date: emailMsg.date || emailMsg.createdAt || new Date().toISOString()
+                }
+                setEmails(prev => {
+                    if (prev.some(m => (m.id && String(m.id) === String(emailMsg.id)) || (m.messageId && emailMsg.messageId && m.messageId === emailMsg.messageId))) {
+                        return prev
+                    }
+                    return [...prev, normalized]
+                })
+                setEmailCounts(prev => ({
+                    ...prev,
+                    [selectedContact.id]: (prev[selectedContact.id] || 0) + 1
+                }))
+            }
+        }
+        window.addEventListener('crm-email', handleEmailRealtime)
+        return () => window.removeEventListener('crm-email', handleEmailRealtime)
     }, [selectedContact])
 
     const selectContact = (contact) => {
@@ -457,7 +488,7 @@ export default function Conversations() {
     const disconnect = async () => {
         await api.delete('/api/gmail/disconnect')
         setGmailStatus({ connected: false })
-        setEmails([])
+        if (selectedContact) fetchEmails(selectedContact)
     }
 
     const handleSent = () => {
@@ -778,76 +809,94 @@ export default function Conversations() {
 
                             {/* ── Dynamic Channel Contents ── */}
                             {channel === 'email' ? (
-                                !gmailStatus?.connected && !statusLoading ? (
-                                    <GmailNotConnected connecting={connecting} onConnect={connectGmail} />
-                                ) : (
-                                    <div className="flex-1 overflow-y-auto px-6 py-6">
-                                        {emailsLoading ? (
-                                            [false, true, false, true].map((right, i) => (
-                                                <div key={i} className={`flex gap-2.5 mb-5 ${right ? 'flex-row-reverse' : 'flex-row'}`}>
-                                                    <Skeleton circle width={32} height={32} />
-                                                    <div className={`flex flex-col gap-1.5 ${right ? 'items-end' : 'items-start'}`}>
-                                                        <Skeleton height={10} width={80} borderRadius={4} />
-                                                        <Skeleton height={80} width={260} borderRadius={12} />
-                                                    </div>
-                                                </div>
-                                            ))
-                                        ) : !selectedContact.email ? (
-                                            <div className="flex flex-col items-center py-16 gap-3">
-                                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                                    style={{ background: T.errorDim }}>
-                                                    <span className="material-symbols-outlined filled text-[22px]"
-                                                        style={{ color: T.error }}>person_off</span>
-                                                </div>
-                                                <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No email address</p>
-                                                <p className="text-[12px]" style={{ color: T.textMuted }}>Add an email to this contact first</p>
+                                <div className="flex-1 overflow-y-auto px-6 py-6">
+                                    {!gmailStatus?.connected && !statusLoading && (
+                                        <div className="mb-4 px-4 py-2.5 rounded-xl flex items-center justify-between gap-3 text-xs"
+                                            style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}>
+                                            <div className="flex items-center gap-2 min-w-0" style={{ color: T.textMuted }}>
+                                                <span className="material-symbols-outlined text-[16px] shrink-0" style={{ color: T.primary }}>info</span>
+                                                <span className="truncate">Viewing team email conversation history. Connect your Gmail to compose or reply directly.</span>
                                             </div>
-                                        ) : emails.length === 0 ? (
-                                            <div className="flex flex-col items-center py-16 gap-3">
-                                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                                    style={{ background: T.primaryDim }}>
-                                                    <span className="material-symbols-outlined filled text-[22px]"
-                                                        style={{ color: T.primary }}>mail</span>
+                                            <button onClick={connectGmail} disabled={connecting}
+                                                className="font-bold shrink-0 hover:underline" style={{ color: T.primary }}>
+                                                {connecting ? 'Redirecting...' : 'Connect Gmail'}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {emailsLoading ? (
+                                        [false, true, false, true].map((right, i) => (
+                                            <div key={i} className={`flex gap-2.5 mb-5 ${right ? 'flex-row-reverse' : 'flex-row'}`}>
+                                                <Skeleton circle width={32} height={32} />
+                                                <div className={`flex flex-col gap-1.5 ${right ? 'items-end' : 'items-start'}`}>
+                                                    <Skeleton height={10} width={80} borderRadius={4} />
+                                                    <Skeleton height={80} width={260} borderRadius={12} />
                                                 </div>
-                                                <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No emails found</p>
-                                                <p className="text-[12px] text-center" style={{ color: T.textMuted }}>
-                                                    No emails with <strong>{selectedContact.email}</strong> in your Gmail
-                                                </p>
-                                                {gmailStatus?.connected && selectedContact.email && (
-                                                    <button
-                                                        onClick={() => setCompose('new')}
-                                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold mt-2"
-                                                        style={{ background: T.primaryDim, color: T.primary }}>
-                                                        <span className="material-symbols-outlined text-[14px]">edit</span>
-                                                        Send first email
-                                                    </button>
-                                                )}
                                             </div>
-                                        ) : (
-                                            <>
-                                                {gmailHasMore && (
-                                                    <button
-                                                        type="button"
-                                                        disabled={emailsLoadingMore}
-                                                        onClick={() => fetchEmails(selectedContact, true, gmailNextToken)}
-                                                        className="w-full mb-4 py-2 rounded-xl text-xs font-bold"
-                                                        style={{ background: T.surfaceHigh, color: T.textSecondary, border: `1px solid ${T.border}` }}
-                                                    >
-                                                        {emailsLoadingMore ? 'Loading…' : 'Load more emails'}
-                                                    </button>
-                                                )}
-                                                {emails.map(email => (
-                                                    <EmailBubble
-                                                        key={email.id}
-                                                        email={email}
-                                                        onReply={() => setCompose({ replyTo: email })}
-                                                    />
-                                                ))}
-                                                <div ref={threadEndRef} />
-                                            </>
-                                        )}
-                                    </div>
-                                )
+                                        ))
+                                    ) : !selectedContact.email ? (
+                                        <div className="flex flex-col items-center py-16 gap-3">
+                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                                style={{ background: T.errorDim }}>
+                                                <span className="material-symbols-outlined filled text-[22px]"
+                                                    style={{ color: T.error }}>person_off</span>
+                                            </div>
+                                            <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No email address</p>
+                                            <p className="text-[12px]" style={{ color: T.textMuted }}>Add an email to this contact first</p>
+                                        </div>
+                                    ) : emails.length === 0 ? (
+                                        <div className="flex flex-col items-center py-16 gap-3">
+                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                                style={{ background: T.primaryDim }}>
+                                                <span className="material-symbols-outlined filled text-[22px]"
+                                                    style={{ color: T.primary }}>mail</span>
+                                            </div>
+                                            <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No emails found</p>
+                                            <p className="text-[12px] text-center" style={{ color: T.textMuted }}>
+                                                No emails with <strong>{selectedContact.email}</strong> in contact history
+                                            </p>
+                                            {gmailStatus?.connected && selectedContact.email ? (
+                                                <button
+                                                    onClick={() => setCompose('new')}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold mt-2"
+                                                    style={{ background: T.primaryDim, color: T.primary }}>
+                                                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                                                    Send first email
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={connectGmail}
+                                                    disabled={connecting}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold mt-2"
+                                                    style={{ background: T.primaryDim, color: T.primary }}>
+                                                    <span className="material-symbols-outlined text-[14px]">mail</span>
+                                                    {connecting ? 'Redirecting...' : 'Connect Gmail to send email'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {gmailHasMore && (
+                                                <button
+                                                    type="button"
+                                                    disabled={emailsLoadingMore}
+                                                    onClick={() => fetchEmails(selectedContact, true, gmailNextToken)}
+                                                    className="w-full mb-4 py-2 rounded-xl text-xs font-bold"
+                                                    style={{ background: T.surfaceHigh, color: T.textSecondary, border: `1px solid ${T.border}` }}
+                                                >
+                                                    {emailsLoadingMore ? 'Loading…' : 'Load more emails'}
+                                                </button>
+                                            )}
+                                            {emails.map(email => (
+                                                <EmailBubble
+                                                    key={email.id}
+                                                    email={email}
+                                                    onReply={gmailStatus?.connected ? () => setCompose({ replyTo: email }) : null}
+                                                />
+                                            ))}
+                                            <div ref={threadEndRef} />
+                                        </>
+                                    )}
+                                </div>
                             ) : (
                                 <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                                     {/* WhatsApp messages list */}

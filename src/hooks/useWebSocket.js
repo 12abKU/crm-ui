@@ -64,6 +64,18 @@ export function useWebSocket(token, onNotification) {
                     }
                 })
 
+                // Subscribe to Email updates
+                client.subscribe('/topic/emails', (message) => {
+                    if (message.body) {
+                        try {
+                            const emailMsg = JSON.parse(message.body)
+                            window.dispatchEvent(new CustomEvent('crm-email', { detail: emailMsg }))
+                        } catch (e) {
+                            console.error('Failed to parse email WebSocket message', e)
+                        }
+                    }
+                })
+
                 // Subscribe to user status changes
                 client.subscribe('/topic/user-status', (message) => {
                     if (message.body) {
