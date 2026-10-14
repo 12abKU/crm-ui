@@ -318,7 +318,7 @@ export default function TopBar() {
                         }}>
                         <span className="material-symbols-outlined filled text-[14px]" style={{ color: T.primary }}>info</span>
                         <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in trial</span>
-                        {role === 'ADMIN' && (
+                        {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
                             <button onClick={() => {
                                 const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`;
                                 window.location.href = `${CRM_LANDING_URL}/pricing${params}`;

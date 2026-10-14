@@ -118,6 +118,7 @@ export function AddUserModal({ company, newUser, setNewUser, onClose, formSaving
                     style={{ background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary }}>
                     <option value="AGENT">Agent</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="COMPANY_SUPER_ADMIN">Company Super Admin</option>
                 </CustomSelect>
             </div>
             {formError && <p className="text-xs mb-3 font-semibold" style={{ color: T.error }}>{formError}</p>}

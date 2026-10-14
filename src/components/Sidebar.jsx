@@ -19,6 +19,7 @@ export default function Sidebar() {
 
     const { userId, name, role, companyName } = useSelector(state => state.auth)
     const isSuperAdmin = role === 'SUPER_ADMIN'
+    const displayRole = isSuperAdmin ? 'Super Admin' : role === 'COMPANY_SUPER_ADMIN' ? 'Company Super Admin' : role === 'ADMIN' ? 'Admin' : 'Agent'
     const [openTickets, setOpenTickets] = useState(0)
     const [unreadChatCount, setUnreadChatCount] = useState(0)
     const can = usePermissions(['ACCOUNTS_CREATE'])
@@ -242,8 +243,8 @@ export default function Sidebar() {
                         )}
                     </NavLink>
 
-                    {/* Audit Log — ADMIN only */}
-                    {role === 'ADMIN' && (
+                    {/* Audit Log — ADMIN and COMPANY_SUPER_ADMIN */}
+                    {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
                         <>
                             <NavLink to="/audit-log"
                                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
@@ -302,7 +303,7 @@ export default function Sidebar() {
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#FFFFFF' }}>{name}</p>
                     <p className="text-[11px] truncate" style={{ color: T.heroSubText }}>
-                        {isSuperAdmin ? 'Super Admin' : (companyName ? `${companyName} · ${role}` : role)}
+                        {isSuperAdmin ? 'Super Admin' : (companyName ? `${companyName} · ${displayRole}` : displayRole)}
                     </p>
                 </div>
 

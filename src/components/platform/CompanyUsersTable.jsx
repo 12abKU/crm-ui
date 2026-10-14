@@ -83,13 +83,19 @@ export default function CompanyUsersTable({
                                                 <IconCrown size={10} /> SUPER_ADMIN
                                             </span>
                                         ) : (
-                                            <CustomSelect value={u.role} disabled={updating === 'role' + u.id}
-                                                onChange={e => onChangeRole(u.id, e.target.value)}
-                                                className="text-[11px] font-bold px-2 py-1 rounded-full outline-none"
-                                                style={{ background: rs.bg, color: rs.color, minWidth: 90, border: 'none' }}>
-                                                <option value="AGENT">AGENT</option>
-                                                <option value="ADMIN">ADMIN</option>
-                                            </CustomSelect>
+                                            <div className="flex items-center gap-1.5">
+                                                {(u.role === 'COMPANY_SUPER_ADMIN' || rs.hasCrown) && (
+                                                    <IconCrown size={12} style={{ color: rs.color || '#F59E0B' }} className="shrink-0" />
+                                                )}
+                                                <CustomSelect value={u.role} disabled={updating === 'role' + u.id}
+                                                    onChange={e => onChangeRole(u.id, e.target.value)}
+                                                    className="text-[11px] font-bold px-2 py-1 rounded-full outline-none"
+                                                    style={{ background: rs.bg, color: rs.color, minWidth: 90, border: rs.border || 'none' }}>
+                                                    <option value="AGENT">AGENT</option>
+                                                    <option value="ADMIN">ADMIN</option>
+                                                    <option value="COMPANY_SUPER_ADMIN">COMPANY_SUPER_ADMIN</option>
+                                                </CustomSelect>
+                                            </div>
                                         )}
                                     </td>
                                     {/* Joined */}

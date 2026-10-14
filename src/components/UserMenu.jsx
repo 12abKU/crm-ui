@@ -8,6 +8,14 @@ import SignOutModal from './SignOutModal'
 // ── Role badge styles ──────────────────────────────────────────
 const ROLE_STYLES = {
     SUPER_ADMIN: { bg: T.superAdminDim, color: T.superAdminColor, label: 'Super Admin', dot: T.superAdminColor },
+    COMPANY_SUPER_ADMIN: {
+        bg: 'rgba(245, 158, 11, 0.12)',
+        color: '#F59E0B',
+        border: '1px solid rgba(245, 158, 11, 0.35)',
+        label: 'Company Super Admin',
+        dot: '#F59E0B',
+        hasCrown: true,
+    },
     ADMIN:       { bg: T.primaryDim,    color: T.primary,         label: 'Admin',       dot: T.primary },
     AGENT:       { bg: T.successDim,    color: T.success,         label: 'Agent',       dot: T.success },
 }
@@ -83,7 +91,10 @@ export default function UserMenu() {
                     {/* Name + role */}
                     <div className="text-left hidden lg:block">
                         <p className="text-sm font-bold leading-tight" style={{ color: T.textPrimary }}>{name}</p>
-                        <p className="text-[10px] font-semibold" style={{ color: rs.color }}>{rs.label}</p>
+                        <p className="text-[10px] font-semibold flex items-center gap-1" style={{ color: rs.color }}>
+                            {rs.hasCrown && <span>👑</span>}
+                            <span>{rs.label}</span>
+                        </p>
                     </div>
 
                     {/* Chevron */}
@@ -136,10 +147,18 @@ export default function UserMenu() {
                                     <p className="text-sm font-black truncate" style={{ color: '#fff' }}>{name}</p>
                                     <span
                                         className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                        style={{ background: rs.bg, color: rs.color }}
+                                        style={{
+                                            background: rs.bg,
+                                            color: rs.color,
+                                            border: rs.border || '1px solid transparent',
+                                        }}
                                     >
-                                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: rs.dot }} />
-                                        {rs.label}
+                                        {rs.hasCrown ? (
+                                            <span>👑</span>
+                                        ) : (
+                                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: rs.dot }} />
+                                        )}
+                                        <span>{rs.label}</span>
                                     </span>
                                 </div>
                             </div>

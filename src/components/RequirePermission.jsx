@@ -13,8 +13,8 @@ export default function RequirePermission({ requires, children, fallback = null 
     const userRole = useSelector(state => state.auth.role)
     const userPermissions = useSelector(state => state.auth.permissions) || []
 
-    // Super Admin and Admin have all permissions implicitly
-    if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') {
+    // Super Admin, Company Super Admin, and Admin have all permissions implicitly
+    if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN' || userRole === 'COMPANY_SUPER_ADMIN') {
         return <>{children}</>
     }
 

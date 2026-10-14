@@ -18,9 +18,10 @@ export default function AgentManagementSettings() {
     const [deleteConfirmId, setDeleteConfirmId] = useState(null)
 
     // Agent specific permissions
-    const canViewUsers = usePermission('USERS_VIEW') || role === 'ADMIN' || role === 'SUPER_ADMIN'
-    const canCreateUsers = usePermission('USERS_CREATE') || role === 'ADMIN' || role === 'SUPER_ADMIN'
-    const canDeleteUsers = usePermission('USERS_DELETE') || role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isCompanySuperAdmin = role === 'COMPANY_SUPER_ADMIN' || role === 'SUPER_ADMIN'
+    const canViewUsers = usePermission('USERS_VIEW') || role === 'ADMIN' || isCompanySuperAdmin
+    const canCreateUsers = usePermission('USERS_CREATE') || role === 'ADMIN' || isCompanySuperAdmin
+    const canDeleteUsers = usePermission('USERS_DELETE') || role === 'ADMIN' || isCompanySuperAdmin
 
     const loadUsers = async () => {
         setLoading(true)
@@ -43,8 +44,27 @@ export default function AgentManagementSettings() {
     }, [canViewUsers])
 
     const createUser = async (form) => {
-        await api.post('/api/management/users', { ...form, role: 'AGENT' })
+        const userRole = isCompanySuperAdmin ? (form.role || 'AGENT') : 'AGENT'
+        await api.post('/api/management/users', { ...form, role: userRole })
         loadUsers()
+    }
+
+    const handlePromote = async (userId) => {
+        try {
+            await api.put(`/api/management/users/${userId}/promote-admin`)
+            loadUsers()
+        } catch (err) {
+            console.error('Failed to promote user to Admin', err)
+        }
+    }
+
+    const handleDemote = async (userId) => {
+        try {
+            await api.put(`/api/management/users/${userId}/demote-agent`)
+            loadUsers()
+        } catch (err) {
+            console.error('Failed to demote Admin to Agent', err)
+        }
     }
 
     const confirmDelete = async () => {
@@ -67,7 +87,9 @@ export default function AgentManagementSettings() {
         )
     }
 
-    const agents = users.filter(u => u.role === 'AGENT')
+    const displayedUsers = isCompanySuperAdmin
+        ? users.filter(u => u.role !== 'SUPER_ADMIN')
+        : users.filter(u => u.role === 'AGENT')
 
     return (
         <div className="flex flex-col gap-6">
@@ -75,7 +97,7 @@ export default function AgentManagementSettings() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4"
                     style={{ borderBottom: `1px solid ${T.border}` }}>
                     <p className="text-sm font-semibold" style={{ color: T.textPrimary }}>
-                        {agents.length} team member{agents.length !== 1 ? 's' : ''}
+                        {displayedUsers.length} team member{displayedUsers.length !== 1 ? 's' : ''}
                     </p>
                     {canCreateUsers && (
                         <button onClick={() => setShowInvite(true)}
@@ -86,18 +108,27 @@ export default function AgentManagementSettings() {
                     )}
                 </div>
                 <UserTable
-                    users={agents}
+                    users={displayedUsers}
+                    allUsers={users}
                     loading={loading}
                     currentUserId={currentUserId}
-                    canPromote={false}
-                    canDemote={false}
+                    canPromote={isCompanySuperAdmin}
+                    canDemote={isCompanySuperAdmin}
                     canDelete={canDeleteUsers}
+                    onPromote={handlePromote}
+                    onDemote={handleDemote}
                     onDelete={(id) => setDeleteConfirmId(id)}
+                    onUserUpdated={loadUsers}
                 />
             </SettingsSection>
 
             {showInvite && (
-                <InviteUserModal onClose={() => setShowInvite(false)} onSubmit={createUser} allowAdminRole={false} />
+                <InviteUserModal
+                    onClose={() => setShowInvite(false)}
+                    onSubmit={createUser}
+                    allowAdminRole={isCompanySuperAdmin}
+                    users={users}
+                />
             )}
 
             <ConfirmModal

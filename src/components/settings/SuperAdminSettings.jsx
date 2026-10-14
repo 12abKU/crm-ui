@@ -162,6 +162,7 @@ export default function SuperAdminSettings() {
                         </div>
                         <UserTable
                             users={filtered}
+                            allUsers={users}
                             loading={loading}
                             currentUserId={currentUserId}
                             canPromote={true}
@@ -170,6 +171,7 @@ export default function SuperAdminSettings() {
                             onPromote={promote}
                             onDemote={demote}
                             onDelete={deleteUser}
+                            onUserUpdated={load}
                         />
                     </SettingsSection>
 
@@ -178,6 +180,7 @@ export default function SuperAdminSettings() {
                             onClose={() => setShowInvite(false)}
                             onSubmit={createUser}
                             allowAdminRole={true}
+                            users={users}
                         />
                     )}
                 </>

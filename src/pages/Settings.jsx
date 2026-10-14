@@ -22,6 +22,14 @@ const ROLE_META = {
         accentBg: T.superAdminDim,
         gradient: 'linear-gradient(135deg, #1e1033 0%, #2d1b69 55%, #1a0f40 100%)',
     },
+    COMPANY_SUPER_ADMIN: {
+        icon: 'shield_person',
+        label: 'Company Super Admin Settings',
+        description: 'Supreme control over company hierarchy, agents, and configuration',
+        accent: '#F59E0B',
+        accentBg: 'rgba(245, 158, 11, 0.15)',
+        gradient: 'linear-gradient(135deg, #2b1d06 0%, #452b03 55%, #1f1402 100%)',
+    },
     ADMIN: {
         icon: 'admin_panel_settings',
         label: 'Admin Settings',
@@ -42,6 +50,7 @@ const ROLE_META = {
 
 const ROLE_BADGE = {
     SUPER_ADMIN: { bg: T.superAdminDim, color: T.superAdminLight, label: 'Super Admin' },
+    COMPANY_SUPER_ADMIN: { bg: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B', label: '👑 Company Super Admin' },
     ADMIN:       { bg: T.primaryDim,             color: T.primary,  label: 'Admin' },
     AGENT:       { bg: T.successDim,             color: T.success,  label: 'Agent' },
 }
@@ -69,7 +78,7 @@ export default function Settings() {
             return <AgentManagementSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
-        if (role === 'ADMIN') return <AdminSettings />
+        if (role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') return <AdminSettings />
         return <AgentSettings />
     }
 
@@ -135,7 +144,7 @@ export default function Settings() {
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
-                        ...((role === 'ADMIN' || role === 'SUPER_ADMIN') ? [
+                        ...((role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN') ? [
                             { id: 'custom_fields', label: 'Custom Fields', icon: 'extension' },
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }
