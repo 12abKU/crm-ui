@@ -1,4 +1,5 @@
 import { T } from '../../../constants/theme'
+import { getArchetypeConfig } from '../../../constants/archetypes'
 
 /**
  * Currency formatter supporting Crores (Cr), Lakhs (L), and Thousands (K).
@@ -85,6 +86,8 @@ export default function OrgNodeCard({
         label: node.role || 'MEMBER',
     }
 
+    const archetypeConfig = getArchetypeConfig(node.archetype, node.role, hasReports)
+
     const isOnline = node.active !== false
 
     // Avatar gradient based on role
@@ -141,7 +144,7 @@ export default function OrgNodeCard({
             data-node-id={node.id}
             data-parent-id={node.managerId || ''}
             onClick={handleCardClick}
-            className="w-[280px] min-h-[156px] relative rounded-2xl p-4 flex flex-col justify-between cursor-pointer select-none transition-all duration-200"
+            className="w-[280px] min-h-[168px] relative rounded-2xl p-4 flex flex-col justify-between cursor-pointer select-none transition-all duration-200"
             style={{
                 background: T.surface,
                 border: cardBorder,
@@ -209,6 +212,24 @@ export default function OrgNodeCard({
                             title={node.designation || 'Team Member'}
                         >
                             {node.designation || 'Team Member'}
+                        </span>
+                    </div>
+
+                    {/* Archetype & Scope Indicator Pill */}
+                    <div className="flex items-center gap-1 mt-1">
+                        <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold truncate max-w-[184px]"
+                            style={{
+                                background: archetypeConfig.bg,
+                                color: archetypeConfig.color,
+                                border: `1px solid ${archetypeConfig.border}`,
+                            }}
+                            title={`${archetypeConfig.label} · ${archetypeConfig.scopeLabel} - ${archetypeConfig.description}`}
+                        >
+                            <span>{archetypeConfig.emoji}</span>
+                            <span className="truncate">{archetypeConfig.label}</span>
+                            <span className="opacity-60 text-[9px]">·</span>
+                            <span className="font-semibold opacity-90 truncate">{archetypeConfig.scopeLabel}</span>
                         </span>
                     </div>
                 </div>

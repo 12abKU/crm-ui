@@ -70,7 +70,7 @@ export default function PlatformDashboard() {
     const [showDeleteCompanyForever, setShowDeleteCompanyForever] = useState(false)
     const [showDeleteUserForever, setShowDeleteUserForever] = useState(null)
     const [showDeactivateUser, setShowDeactivateUser] = useState(null)
-    const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT' })
+    const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'AGENT', archetype: 'STANDARD_REP' })
     const [newPw, setNewPw] = useState('')
     const [newCompany, setNewCompany] = useState({ companyName: '', adminName: '', adminEmail: '', adminPassword: '', phone: '', industry: '', companySize: '', country: '' })
     const [trialDays, setTrialDays] = useState('14')
@@ -197,6 +197,16 @@ export default function PlatformDashboard() {
         } finally { setUpdating(null) }
     }
 
+    const changeUserArchetype = async (userId, archetype) => {
+        setUpdating('archetype' + userId)
+        try {
+            await api.patch(`/api/platform/users/${userId}/archetype`, { archetype })
+            setCompanyUsers(prev => prev.map(u => u.id === userId ? { ...u, archetype } : u))
+        } catch (e) {
+            console.error('Failed to change user archetype', e)
+        } finally { setUpdating(null) }
+    }
+
     const deleteUser = (userId) => {
         const u = companyUsers.find(user => user.id === userId)
         setShowDeactivateUser(u)
@@ -240,12 +250,16 @@ export default function PlatformDashboard() {
         if (!newUser.name || !newUser.email || !newUser.password) { setFormError('All fields required'); return }
         setFormSaving(true); setFormError('')
         try {
-            const r = await api.post(`/api/platform/companies/${selectedCompany.id}/users`, newUser)
+            const payload = {
+                ...newUser,
+                archetype: newUser.archetype || (newUser.role === 'AGENT' ? 'STANDARD_REP' : 'EXECUTIVE')
+            }
+            const r = await api.post(`/api/platform/companies/${selectedCompany.id}/users`, payload)
             setCompanyUsers(prev => [...prev, r.data])
             setStats(prev => prev ? { ...prev, totalUsers: prev.totalUsers + 1 } : prev)
             if (companyStats) setCompanyStats(prev => ({ ...prev, users: prev.users + 1 }))
             setShowAddUser(false)
-            setNewUser({ name: '', email: '', password: '', role: 'AGENT' })
+            setNewUser({ name: '', email: '', password: '', role: 'AGENT', archetype: 'STANDARD_REP' })
         } catch (e) { setFormError(e?.response?.data?.message || 'Failed to create user') }
         finally { setFormSaving(false) }
     }
@@ -360,6 +374,7 @@ export default function PlatformDashboard() {
                 onActivateCompany={activateCompany}
                 onActivateUser={activateUser}
                 onChangeRole={changeUserRole}
+                onChangeArchetype={changeUserArchetype}
                 onRefreshUsers={() => loadCompanyDetail(selectedCompany)}
             />
         )

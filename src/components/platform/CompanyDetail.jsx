@@ -218,7 +218,7 @@ export default function CompanyDetail({
     onBack,
     onUpdatePlan, onUpdateStatus,
     onSubmitTrial, onSubmitDeleteCompany, onSubmitDeleteCompanyForever, onSubmitAddUser, onSubmitResetPw, onSubmitDeleteUserForever, onSubmitDeactivateUser,
-    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onChangeRole,
+    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onChangeRole, onChangeArchetype,
     onRefreshUsers,
     onActivateCompany,
     onActivateUser,
@@ -333,6 +333,7 @@ export default function CompanyDetail({
                             onDeleteUserForever={onDeleteUserForever}
                             onActivateUser={onActivateUser}
                             onChangeRole={onChangeRole}
+                            onChangeArchetype={onChangeArchetype}
                             onViewUser={(u) => setShowUserProfile(u)}
                         />
                     </>

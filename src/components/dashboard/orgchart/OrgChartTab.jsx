@@ -131,7 +131,9 @@ export default function OrgChartTab({ onAgentClick }) {
         for (const [id, node] of nodeMap.entries()) {
             const matchesQuery = !hasSearch || (
                 (node.name && node.name.toLowerCase().includes(query)) ||
-                (node.email && node.email.toLowerCase().includes(query))
+                (node.email && node.email.toLowerCase().includes(query)) ||
+                (node.archetype && node.archetype.toLowerCase().includes(query)) ||
+                (node.dataScope && node.dataScope.toLowerCase().includes(query))
             )
             const matchesDesig = !hasDesignation || node.designation === selectedDesignation
             const matchesRole = !hasRole || node.role === selectedRole

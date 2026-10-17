@@ -4,6 +4,12 @@ import { toast } from 'react-hot-toast'
 import { T } from '../../constants/theme'
 import CustomSelect from '../ui/CustomSelect'
 import api from '../../api'
+import {
+    ARCHETYPE_OPTIONS,
+    getArchetypeConfig,
+    getArchetypePermissionCount,
+    TOTAL_SYSTEM_PERMISSIONS,
+} from '../../constants/archetypes'
 
 const DEFAULT_DESIGNATIONS = [
     'CEO / Founder',
@@ -66,6 +72,9 @@ export default function EditUserModal({
     const [designation, setDesignation] = useState(user?.designation || '')
     const [managerId, setManagerId] = useState(
         user?.managerId != null ? String(user.managerId) : ''
+    )
+    const [archetype, setArchetype] = useState(
+        user?.archetype || (user?.role === 'AGENT' ? 'STANDARD_REP' : 'EXECUTIVE')
     )
     const [designations, setDesignations] = useState(DEFAULT_DESIGNATIONS)
     const [loading, setLoading] = useState(false)
@@ -175,9 +184,22 @@ export default function EditUserModal({
                 }
             }
 
+            // 3. Update Archetype if changed (COMPANY_SUPER_ADMIN is locked to EXECUTIVE)
+            const prevArchetype = user.archetype || (user.role === 'AGENT' ? 'STANDARD_REP' : 'EXECUTIVE')
+            if (archetype && archetype !== prevArchetype && !isTargetCompanySuperAdmin) {
+                const res = await api.put(
+                    `/api/management/users/${user.id}/archetype`,
+                    { archetype },
+                    { suppressErrorToast: true }
+                )
+                if (res.data) {
+                    updatedUser = { ...updatedUser, ...res.data }
+                }
+            }
+
             notifySuccess(
                 'User Updated',
-                `${user.name}'s designation and reporting line have been updated.`
+                `${user.name}'s profile, archetype, and reporting line have been updated.`
             )
 
             if (typeof onSuccess === 'function') onSuccess(updatedUser)
@@ -202,6 +224,9 @@ export default function EditUserModal({
             setLoading(false)
         }
     }
+
+    const arch = getArchetypeConfig(archetype, user.role)
+    const permissionCount = getArchetypePermissionCount(archetype)
 
     return (
         <>
@@ -261,6 +286,89 @@ export default function EditUserModal({
                                 <span>{error}</span>
                             </div>
                         )}
+
+                        {/* Role Archetype & Scope */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>
+                                Role Archetype & Scope
+                            </label>
+                            {isTargetCompanySuperAdmin ? (
+                                <div
+                                    className="px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between"
+                                    style={{
+                                        background: 'rgba(245, 158, 11, 0.10)',
+                                        color: '#F59E0B',
+                                        border: '1px solid rgba(245, 158, 11, 0.25)',
+                                    }}
+                                >
+                                    <span className="flex items-center gap-1.5">
+                                        <span>👑</span>
+                                        <span>Executive (All Data)</span>
+                                    </span>
+                                    <span className="text-[11px] opacity-80">Apex Super Admin (Locked)</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <CustomSelect
+                                        className="crm-select"
+                                        value={archetype}
+                                        onChange={e => setArchetype(e.target.value)}
+                                    >
+                                        {ARCHETYPE_OPTIONS.map(opt => (
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                                disabled={user?.role === 'AGENT' && opt.value === 'EXECUTIVE'}
+                                            >
+                                                {opt.emoji} {opt.label} ({opt.scopeLabel})
+                                                {user?.role === 'AGENT' && opt.value === 'EXECUTIVE' ? ' — Admins Only' : ''}
+                                            </option>
+                                        ))}
+                                    </CustomSelect>
+                                    {user?.role === 'AGENT' && (
+                                        <span className="text-[11px]" style={{ color: T.textMuted }}>
+                                            Agents cannot hold Executive archetype (requires Admin role)
+                                        </span>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Live Preview Chip */}
+                            <div
+                                className="p-3 rounded-xl flex flex-col gap-1.5 mt-0.5"
+                                style={{
+                                    background: arch.bg,
+                                    border: `1px solid ${arch.border}`,
+                                }}
+                            >
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <span
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.75)',
+                                            color: arch.color,
+                                            border: `1px solid ${arch.border}`,
+                                        }}
+                                    >
+                                        <span>{arch.emoji}</span>
+                                        <span>{arch.label}</span>
+                                    </span>
+                                    <span
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md"
+                                        style={{
+                                            background: 'rgba(0, 0, 0, 0.05)',
+                                            color: T.textPrimary,
+                                        }}
+                                    >
+                                        <span>🛡️</span>
+                                        <span>{permissionCount}/{TOTAL_SYSTEM_PERMISSIONS} Permissions</span>
+                                    </span>
+                                </div>
+                                <p className="text-xs" style={{ color: T.textSecondary }}>
+                                    <span className="font-semibold" style={{ color: arch.color }}>{arch.scopeLabel}</span> — {arch.description}
+                                </p>
+                            </div>
+                        </div>
 
                         {/* Designation Input with Datalist */}
                         <div className="flex flex-col gap-1.5">

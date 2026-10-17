@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
 
-test('Adversarial Challenge Suite: Milestone 5 Frontend Tenant CRM Permissions & Hierarchy', async (t) => {
+test('Adversarial Challenge Suite: Milestone 5 Frontend Tenant CRM Permissions, Archetypes & Hierarchy', async (t) => {
 
     await t.test('ATTACK VECTOR 1: Can an ADMIN demote or delete a COMPANY_SUPER_ADMIN?', () => {
         const userTableSrc = fs.readFileSync(path.join(rootDir, 'src/components/settings/UserTable.jsx'), 'utf-8')
@@ -177,5 +177,141 @@ test('Adversarial Challenge Suite: Milestone 5 Frontend Tenant CRM Permissions &
         // 4. Save and Reset buttons removed when !isEditable
         assert.match(permEditorSrc, /\{isEditable\s*\?\s*\(/)
         assert.match(permEditorSrc, /<button\s+onClick=\{onClose\}[^>]*>\s*Close\s*<\/button>/)
+    })
+
+    await t.test('M5 FEATURE 1: PermissionEditor exports PERMISSION_GROUPS', async () => {
+        const filePath = path.join(rootDir, 'src/components/settings/PermissionEditor.jsx')
+        const content = fs.readFileSync(filePath, 'utf-8')
+        assert.match(content, /export\s+const\s+PERMISSION_GROUPS\s*=\s*\[/, 'Must export PERMISSION_GROUPS')
+    })
+
+    await t.test('M5 FEATURE 2: archetypes.js metadata, counts and helper functions', async () => {
+        const filePath = path.join(rootDir, 'src/constants/archetypes.js')
+        const mod = await import(`file://${filePath}`)
+
+        // Check exports
+        assert.ok(mod.ARCHETYPE_PERMISSION_COUNTS, 'Must export ARCHETYPE_PERMISSION_COUNTS')
+        assert.ok(mod.getArchetypePermissionCount, 'Must export getArchetypePermissionCount')
+        assert.equal(mod.TOTAL_SYSTEM_PERMISSIONS, 38, 'Total system permissions must be 38')
+
+        // Verify template counts matching backend PermissionServiceImpl
+        assert.equal(mod.getArchetypePermissionCount('EXECUTIVE'), 38, 'Executive must have 38')
+        assert.equal(mod.getArchetypePermissionCount('DEPARTMENT_HEAD'), 37, 'Department Head must have 37')
+        assert.equal(mod.getArchetypePermissionCount('TEAM_SUPERVISOR'), 31, 'Team Supervisor must have 31')
+        assert.equal(mod.getArchetypePermissionCount('STANDARD_REP'), 25, 'Standard Rep must have 25')
+        assert.equal(mod.getArchetypePermissionCount('VIEWER'), 10, 'Viewer must have 10')
+        assert.equal(mod.getArchetypePermissionCount(null), 25, 'Fallback count must be 25')
+
+        // Verify options and scopes
+        assert.equal(mod.ARCHETYPE_OPTIONS.length, 5, 'Must have 5 archetype options')
+        const execConfig = mod.getArchetypeConfig('EXECUTIVE')
+        assert.equal(execConfig.emoji, '👑')
+        assert.equal(execConfig.scopeLabel, 'All Data')
+
+        const supConfig = mod.getArchetypeConfig('TEAM_SUPERVISOR')
+        assert.equal(supConfig.emoji, '👥')
+        assert.equal(supConfig.scopeLabel, 'Subtree')
+
+        const repConfig = mod.getArchetypeConfig('STANDARD_REP')
+        assert.equal(repConfig.emoji, '👤')
+        assert.equal(repConfig.scopeLabel, 'Own Only')
+
+        // Fallback resolution
+        assert.equal(mod.getArchetypeConfig(null, 'ADMIN').key, 'EXECUTIVE')
+        assert.equal(mod.getArchetypeConfig(null, 'AGENT', false).key, 'STANDARD_REP')
+        assert.equal(mod.getArchetypeConfig(null, 'AGENT', true).key, 'TEAM_SUPERVISOR')
+    })
+
+    await t.test('M5 FEATURE 3: InviteUserModal Archetype Selector, Preview, Accordion and Payload', () => {
+        const inviteModalSrc = fs.readFileSync(path.join(rootDir, 'src/components/settings/InviteUserModal.jsx'), 'utf-8')
+
+        // 1. Imports
+        assert.match(inviteModalSrc, /import\s*\{[^}]*ARCHETYPE_OPTIONS[^}]*\}\s*from\s*['"]\.\.\/\.\.\/constants\/archetypes['"]/)
+        assert.match(inviteModalSrc, /import\s*\{[^}]*PERMISSION_GROUPS[^}]*\}\s*from\s*['"]\.\/PermissionEditor['"]/)
+
+        // 2. Initial state contains archetype
+        assert.match(inviteModalSrc, /archetype:\s*['"]STANDARD_REP['"]/)
+
+        // 3. Role change smart-defaulting
+        assert.match(inviteModalSrc, /newRole\s*===\s*['"]ADMIN['"]\s*&&\s*f\.archetype\s*===\s*['"]STANDARD_REP['"]/)
+        assert.match(inviteModalSrc, /newRole\s*===\s*['"]AGENT['"]\s*&&\s*f\.archetype\s*===\s*['"]EXECUTIVE['"]/)
+
+        // 4. Role Archetype & Scope select dropdown disabling EXECUTIVE for AGENT
+        assert.match(inviteModalSrc, /disabled=\{form\.role\s*===\s*['"]AGENT['"]\s*&&\s*opt\.value\s*===\s*['"]EXECUTIVE['"]\}/)
+
+        // 5. Live preview card with badge and permission chip
+        assert.match(inviteModalSrc, /arch\.bg/)
+        assert.match(inviteModalSrc, /permissionCount\}/)
+        assert.match(inviteModalSrc, /TOTAL_SYSTEM_PERMISSIONS\}\s*Permissions\s*Auto-Assigned/)
+
+        // 6. Collapsed accordion for custom permissions
+        assert.match(inviteModalSrc, /Customize Permissions \(Optional\)/)
+        assert.match(inviteModalSrc, /showPermissionsAccordion\s*&&/)
+        assert.match(inviteModalSrc, /PERMISSION_GROUPS\.map/)
+
+        // 7. Payload includes archetype
+        assert.match(inviteModalSrc, /archetype:\s*form\.archetype/)
+    })
+
+    await t.test('M5 FEATURE 4: EditUserModal Archetype Update, Guarding and API sync', () => {
+        const editModalSrc = fs.readFileSync(path.join(rootDir, 'src/components/settings/EditUserModal.jsx'), 'utf-8')
+
+        // 1. Imports
+        assert.match(editModalSrc, /import\s*\{[^}]*ARCHETYPE_OPTIONS[^}]*\}\s*from\s*['"]\.\.\/\.\.\/constants\/archetypes['"]/)
+
+        // 2. Archetype state initialized from user?.archetype with fallback
+        assert.match(editModalSrc, /user\?\.archetype\s*\|\|\s*\(user\?\.role\s*===\s*['"]AGENT['"]\s*\?\s*['"]STANDARD_REP['"]\s*:\s*['"]EXECUTIVE['"]\)/)
+
+        // 3. COMPANY_SUPER_ADMIN locked to EXECUTIVE
+        assert.match(editModalSrc, /isTargetCompanySuperAdmin\s*\?\s*\(/)
+        assert.match(editModalSrc, /Executive\s*\(All Data\)/)
+        assert.match(editModalSrc, /Apex Super Admin \(Locked\)/)
+
+        // 4. Agent disabled from selecting EXECUTIVE
+        assert.match(editModalSrc, /disabled=\{user\?\.role\s*===\s*['"]AGENT['"]\s*&&\s*opt\.value\s*===\s*['"]EXECUTIVE['"]\}/)
+
+        // 5. Live preview chip
+        assert.match(editModalSrc, /arch\.bg/)
+        assert.match(editModalSrc, /arch\.emoji/)
+        assert.match(editModalSrc, /arch\.label/)
+
+        // 6. Submits archetype update via PUT /api/management/users/${user.id}/archetype
+        assert.match(editModalSrc, /api\.put\(\s*`\/api\/management\/users\/\$\{user\.id\}\/archetype`,\s*\{\s*archetype\s*\}/)
+        assert.match(editModalSrc, /onSuccess\(updatedUser\)/)
+    })
+
+    await t.test('M5 FEATURE 5: UserTable Layout, Badge Rendering, Container and Search', () => {
+        const userTableSrc = fs.readFileSync(path.join(rootDir, 'src/components/settings/UserTable.jsx'), 'utf-8')
+
+        // 1. HEADERS includes Archetype & Scope right after Role
+        assert.match(userTableSrc, /const\s+HEADERS\s*=\s*\[\s*'User',\s*'Email',\s*'Role',\s*'Archetype & Scope',\s*'Designation'/)
+
+        // 2. Table min-width is min-w-[980px]
+        assert.match(userTableSrc, /min-w-\[980px\]/)
+
+        // 3. Archetype badge rendering with click-to-edit
+        assert.match(userTableSrc, /getArchetypeConfig\(u\.archetype,\s*u\.role,\s*hasReports\)/)
+        assert.match(userTableSrc, /arch\.label\}\s*·\s*\{arch\.scopeLabel\}/)
+        assert.match(userTableSrc, /onClick=\{\(\)\s*=>\s*canInlineEdit\s*&&\s*setEditingHierarchyUser\(u\)\}/)
+
+        // 4. Filter includes archetype, label, and scopeLabel
+        assert.match(userTableSrc, /u\.archetype\s*&&\s*u\.archetype\.toLowerCase\(\)\.includes\(q\)/)
+        assert.match(userTableSrc, /arch\.label\s*&&\s*arch\.label\.toLowerCase\(\)\.includes\(q\)/)
+        assert.match(userTableSrc, /arch\.scopeLabel\s*&&\s*arch\.scopeLabel\.toLowerCase\(\)\.includes\(q\)/)
+    })
+
+    await t.test('M5 FEATURE 6: AgentDetailsDrawer Header Archetype Badge & Scope Pill', () => {
+        const drawerSrc = fs.readFileSync(path.join(rootDir, 'src/components/dashboard/orgchart/AgentDetailsDrawer.jsx'), 'utf-8')
+
+        // 1. Imports getArchetypeConfig
+        assert.match(drawerSrc, /import\s*\{[^}]*getArchetypeConfig[^}]*\}\s*from\s*['"]\.\.\/\.\.\/\.\.\/constants\/archetypes['"]/)
+
+        // 2. Computes arch using agent.archetype, agent.role, directReports.length > 0
+        assert.match(drawerSrc, /getArchetypeConfig\(agent\.archetype,\s*agent\.role,\s*directReports\.length\s*>\s*0\)/)
+
+        // 3. Renders Archetype badge and Scope indicator
+        assert.match(drawerSrc, /arch\.emoji/)
+        assert.match(drawerSrc, /arch\.label/)
+        assert.match(drawerSrc, /arch\.scopeLabel/)
     })
 })

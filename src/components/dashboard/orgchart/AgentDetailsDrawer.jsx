@@ -6,6 +6,7 @@ import { T, STAGE_STYLES } from '../../../constants/theme'
 import { fmtPipeline, getInitials } from './OrgNodeCard'
 import AssignDealModal from '../../deals/AssignDealModal'
 import AssignLeadModal from '../../leadPanel/AssignLeadModal'
+import { getArchetypeConfig } from '../../../constants/archetypes'
 
 const ROLE_TAGS = {
     COMPANY_SUPER_ADMIN: {
@@ -561,6 +562,39 @@ export default function AgentDetailsDrawer({
                                     <span>{agent.email}</span>
                                 </a>
                             </div>
+
+                            {/* Archetype & Scope Indicator Pill */}
+                            {(() => {
+                                const arch = getArchetypeConfig(agent.archetype, agent.role, directReports.length > 0)
+                                return (
+                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                        <span
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                                            style={{
+                                                background: arch.bg,
+                                                color: arch.color,
+                                                border: `1px solid ${arch.border}`,
+                                            }}
+                                            title={arch.description}
+                                        >
+                                            <span>{arch.emoji}</span>
+                                            <span>{arch.label}</span>
+                                        </span>
+                                        <span
+                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                                            style={{
+                                                background: T.surfaceRaised,
+                                                color: T.textSecondary,
+                                                border: `1px solid ${T.borderSubtle}`,
+                                            }}
+                                            title={`Data Scope: ${arch.scopeLabel}`}
+                                        >
+                                            <span className="material-symbols-outlined text-[13px]" style={{ color: arch.color }}>visibility</span>
+                                            <span>{arch.scopeLabel}</span>
+                                        </span>
+                                    </div>
+                                )
+                            })()}
                         </div>
                     </div>
 
@@ -1256,6 +1290,26 @@ export default function AgentDetailsDrawer({
                                                             >
                                                                 {subRoleStyle.label}
                                                             </span>
+                                                            {(() => {
+                                                                const subArch = getArchetypeConfig(
+                                                                    sub.archetype,
+                                                                    sub.role,
+                                                                    Array.isArray(sub.directReports) && sub.directReports.length > 0
+                                                                )
+                                                                return (
+                                                                    <span
+                                                                        className="text-[9px] font-bold px-1.5 py-0.5 rounded-md"
+                                                                        style={{
+                                                                            background: subArch.bg,
+                                                                            color: subArch.color,
+                                                                            border: `1px solid ${subArch.border}`,
+                                                                        }}
+                                                                        title={`${subArch.label} · ${subArch.scopeLabel}`}
+                                                                    >
+                                                                        {subArch.emoji} {subArch.label}
+                                                                    </span>
+                                                                )
+                                                            })()}
                                                         </div>
                                                         <p className="text-xs truncate mt-0.5" style={{ color: T.textMuted }}>
                                                             {sub.email}

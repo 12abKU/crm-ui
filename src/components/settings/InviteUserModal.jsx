@@ -3,6 +3,15 @@ import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import CustomSelect from '../ui/CustomSelect'
 import api, { extractApiErrorMessage } from '../../api'
+import {
+    ARCHETYPE_OPTIONS,
+    getArchetypeConfig,
+    getArchetypePermissionCount,
+    ARCHETYPE_PERMISSION_COUNTS,
+    TOTAL_SYSTEM_PERMISSIONS,
+    ARCHETYPE_DEFAULT_PERMISSIONS,
+} from '../../constants/archetypes'
+import { PERMISSION_GROUPS } from './PermissionEditor'
 
 const DEFAULT_DESIGNATIONS = [
     'CEO / Founder',
@@ -32,6 +41,7 @@ export default function InviteUserModal({
         email: '',
         password: '',
         role: 'AGENT',
+        archetype: 'STANDARD_REP',
         designation: '',
         managerId: '',
     })
@@ -39,8 +49,56 @@ export default function InviteUserModal({
     const [error, setError] = useState('')
     const [designations, setDesignations] = useState(DEFAULT_DESIGNATIONS)
     const [managers, setManagers] = useState(propUsers || [])
+    const [showPermissionsAccordion, setShowPermissionsAccordion] = useState(false)
+    const [customPermissions, setCustomPermissions] = useState(
+        new Set(ARCHETYPE_DEFAULT_PERMISSIONS.STANDARD_REP || [])
+    )
+    const [isCustomOverrides, setIsCustomOverrides] = useState(false)
 
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+    const handleRoleChange = (newRole) => {
+        setForm(f => {
+            let nextArchetype = f.archetype
+            if (newRole === 'ADMIN' && f.archetype === 'STANDARD_REP') {
+                nextArchetype = 'EXECUTIVE'
+            } else if (newRole === 'AGENT' && f.archetype === 'EXECUTIVE') {
+                nextArchetype = 'STANDARD_REP'
+            }
+            if (!isCustomOverrides) {
+                setCustomPermissions(new Set(ARCHETYPE_DEFAULT_PERMISSIONS[nextArchetype] || []))
+            }
+            return { ...f, role: newRole, archetype: nextArchetype }
+        })
+    }
+
+    const handleArchetypeChange = (newArchetype) => {
+        setForm(f => ({ ...f, archetype: newArchetype }))
+        if (!isCustomOverrides) {
+            setCustomPermissions(new Set(ARCHETYPE_DEFAULT_PERMISSIONS[newArchetype] || []))
+        }
+    }
+
+    const togglePermission = (key) => {
+        setIsCustomOverrides(true)
+        setCustomPermissions(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+        })
+    }
+
+    const toggleGroup = (perms) => {
+        setIsCustomOverrides(true)
+        setCustomPermissions(prev => {
+            const next = new Set(prev)
+            const allOn = perms.every(p => next.has(p.key))
+            if (allOn) perms.forEach(p => next.delete(p.key))
+            else perms.forEach(p => next.add(p.key))
+            return next
+        })
+    }
 
     useEffect(() => {
         let mounted = true
@@ -96,10 +154,20 @@ export default function InviteUserModal({
                 email: form.email.trim(),
                 password: form.password,
                 role: canInviteAdmin ? form.role : 'AGENT',
+                archetype: form.archetype,
                 designation: form.designation?.trim() || null,
                 managerId: form.managerId ? Number(form.managerId) : null,
             }
-            await onSubmit(payload)
+            const res = await onSubmit(payload)
+            if (isCustomOverrides && res?.id) {
+                try {
+                    await api.put(`/api/permissions/user/${res.id}`, {
+                        permissions: [...customPermissions],
+                    })
+                } catch (permErr) {
+                    console.warn('Could not apply custom permission overrides:', permErr)
+                }
+            }
             onClose()
         } catch (err) {
             setError(extractApiErrorMessage(err, 'Failed to create user'))
@@ -107,6 +175,9 @@ export default function InviteUserModal({
             setLoading(false)
         }
     }
+
+    const arch = getArchetypeConfig(form.archetype, form.role)
+    const permissionCount = getArchetypePermissionCount(form.archetype)
 
     return (
         <>
@@ -201,6 +272,174 @@ export default function InviteUserModal({
                             />
                         </div>
 
+                        {/* Role selection if allowed */}
+                        {canInviteAdmin && (
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>
+                                    System Role *
+                                </label>
+                                <CustomSelect
+                                    className="crm-select"
+                                    value={form.role}
+                                    onChange={e => handleRoleChange(e.target.value)}
+                                >
+                                    <option value="AGENT">Agent</option>
+                                    <option value="ADMIN">Admin</option>
+                                </CustomSelect>
+                            </div>
+                        )}
+
+                        {/* Role Archetype & Scope */}
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>
+                                Role Archetype & Scope *
+                            </label>
+                            <CustomSelect
+                                className="crm-select"
+                                value={form.archetype}
+                                onChange={e => handleArchetypeChange(e.target.value)}
+                            >
+                                {ARCHETYPE_OPTIONS.map(opt => (
+                                    <option
+                                        key={opt.value}
+                                        value={opt.value}
+                                        disabled={form.role === 'AGENT' && opt.value === 'EXECUTIVE'}
+                                    >
+                                        {opt.emoji} {opt.label} ({opt.scopeLabel})
+                                        {form.role === 'AGENT' && opt.value === 'EXECUTIVE' ? ' — Admins Only' : ''}
+                                    </option>
+                                ))}
+                            </CustomSelect>
+                            {form.role === 'AGENT' && (
+                                <span className="text-[11px]" style={{ color: T.textMuted }}>
+                                    Agents cannot hold Executive archetype (Executive requires Admin role)
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Archetype Live Preview Card */}
+                        <div
+                            className="p-3.5 rounded-xl flex flex-col gap-2 transition-all duration-200"
+                            style={{
+                                background: arch.bg,
+                                border: `1px solid ${arch.border}`,
+                            }}
+                        >
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.75)',
+                                        color: arch.color,
+                                        border: `1px solid ${arch.border}`,
+                                    }}
+                                >
+                                    <span>{arch.emoji}</span>
+                                    <span>{arch.label}</span>
+                                </span>
+
+                                {/* Permission count chip */}
+                                <span
+                                    className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md"
+                                    style={{
+                                        background: 'rgba(0, 0, 0, 0.05)',
+                                        color: T.textPrimary,
+                                    }}
+                                >
+                                    <span>🛡️</span>
+                                    <span>{permissionCount}/{TOTAL_SYSTEM_PERMISSIONS} Permissions Auto-Assigned</span>
+                                </span>
+                            </div>
+
+                            <div className="text-xs" style={{ color: T.textSecondary }}>
+                                <span className="font-semibold" style={{ color: arch.color }}>
+                                    {arch.scopeLabel}
+                                </span>
+                                <span> — {arch.description}</span>
+                            </div>
+                        </div>
+
+                        {/* Collapsed Accordion for Custom Permissions */}
+                        <div
+                            className="rounded-xl overflow-hidden border transition-all"
+                            style={{ borderColor: T.borderSubtle, background: T.surfaceRaised }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setShowPermissionsAccordion(prev => !prev)}
+                                className="w-full px-4 py-2.5 text-xs font-bold flex items-center justify-between text-left transition-colors cursor-pointer"
+                                style={{ color: T.textPrimary }}
+                            >
+                                <span className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[16px]" style={{ color: T.primary }}>tune</span>
+                                    <span>Customize Permissions (Optional)</span>
+                                    {isCustomOverrides && (
+                                        <span
+                                            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                                            style={{ background: T.warningDim, color: T.warning }}
+                                        >
+                                            Customized
+                                        </span>
+                                    )}
+                                </span>
+                                <span className="material-symbols-outlined text-[18px]" style={{ color: T.textMuted }}>
+                                    {showPermissionsAccordion ? 'expand_less' : 'expand_more'}
+                                </span>
+                            </button>
+
+                            {showPermissionsAccordion && (
+                                <div
+                                    className="p-3.5 flex flex-col gap-3 max-h-56 overflow-y-auto"
+                                    style={{ borderTop: `1px solid ${T.borderSubtle}`, background: T.surface }}
+                                >
+                                    <p className="text-[11px]" style={{ color: T.textMuted }}>
+                                        Permissions are pre-selected based on the <strong>{arch.label}</strong> template. Check or uncheck permissions to customize access for this user.
+                                    </p>
+                                    {PERMISSION_GROUPS.map(group => {
+                                        const groupAllActive = group.perms.every(p => customPermissions.has(p.key))
+                                        return (
+                                            <div key={group.label} className="flex flex-col gap-1.5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: T.textMuted }}>
+                                                        <span className="material-symbols-outlined text-[14px]">{group.icon}</span>
+                                                        {group.label}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleGroup(group.perms)}
+                                                        className="text-[10px] font-semibold hover:underline"
+                                                        style={{ color: T.primary }}
+                                                    >
+                                                        {groupAllActive ? 'Deselect all' : 'Select all'}
+                                                    </button>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                                    {group.perms.map(p => {
+                                                        const checked = customPermissions.has(p.key)
+                                                        return (
+                                                            <label
+                                                                key={p.key}
+                                                                className="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer text-xs transition-colors hover:bg-black/5"
+                                                                style={{ color: checked ? T.textPrimary : T.textMuted }}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    onChange={() => togglePermission(p.key)}
+                                                                    className="rounded text-primary focus:ring-0"
+                                                                />
+                                                                <span className="truncate">{p.label}</span>
+                                                            </label>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Designation Combobox / Suggestions */}
                         <div className="flex flex-col gap-1.5">
                             <div className="flex items-center justify-between">
@@ -269,23 +508,6 @@ export default function InviteUserModal({
                                     : 'Defines the supervisor and branch location on the Org Chart'}
                             </span>
                         </div>
-
-                        {/* Role selection if allowed */}
-                        {canInviteAdmin && (
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold uppercase tracking-wide" style={{ color: T.textMuted }}>
-                                    System Role
-                                </label>
-                                <CustomSelect
-                                    className="crm-select"
-                                    value={form.role}
-                                    onChange={e => set('role', e.target.value)}
-                                >
-                                    <option value="AGENT">Agent</option>
-                                    <option value="ADMIN">Admin</option>
-                                </CustomSelect>
-                            </div>
-                        )}
 
                         {/* Actions */}
                         <div className="flex gap-3 pt-3 mt-1" style={{ borderTop: `1px solid ${T.borderSubtle}` }}>

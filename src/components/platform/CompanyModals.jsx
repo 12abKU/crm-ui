@@ -3,6 +3,7 @@ import { T } from '../../constants/theme'
 import { Modal, InputField } from './PlatformModal'
 import { daysLeft } from './platformConstants'
 import CustomSelect from '../ui/CustomSelect'
+import { ARCHETYPE_OPTIONS, getArchetypeConfig } from '../../constants/archetypes'
 
 // ── Trial Modal ──────────────────────────────────────────────────────────────
 export function TrialModal({
@@ -105,7 +106,22 @@ export function DeleteCompanyModal({ company, onClose, formSaving, formError, on
 
 // ── Add User Modal ───────────────────────────────────────────────────────────
 export function AddUserModal({ company, newUser, setNewUser, onClose, formSaving, formError, onSubmit }) {
-    const set = (key) => (e) => setNewUser(p => ({ ...p, [key]: e.target.value }))
+    const set = (key) => (e) => {
+        const val = e.target.value
+        setNewUser(p => {
+            const next = { ...p, [key]: val }
+            if (key === 'role') {
+                next.archetype = (val === 'COMPANY_SUPER_ADMIN' || val === 'ADMIN')
+                    ? 'EXECUTIVE'
+                    : 'STANDARD_REP'
+            }
+            return next
+        })
+    }
+
+    const currentArchetype = newUser.archetype || (newUser.role === 'AGENT' ? 'STANDARD_REP' : 'EXECUTIVE')
+    const archMeta = getArchetypeConfig(currentArchetype, newUser.role)
+
     return (
         <Modal title={`Add User to ${company.name}`} onClose={onClose}>
             <InputField label="Full Name" value={newUser.name} onChange={set('name')} placeholder="John Doe" />
@@ -120,6 +136,29 @@ export function AddUserModal({ company, newUser, setNewUser, onClose, formSaving
                     <option value="ADMIN">Admin</option>
                     <option value="COMPANY_SUPER_ADMIN">Company Super Admin</option>
                 </CustomSelect>
+            </div>
+            <div className="mb-4">
+                <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-bold uppercase tracking-widest" style={{ color: T.textMuted }}>
+                        Role Archetype & Scope
+                    </label>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: archMeta.bg, color: archMeta.color, border: `1px solid ${archMeta.border}` }}>
+                        {archMeta.pillText}
+                    </span>
+                </div>
+                <CustomSelect value={newUser.archetype || (newUser.role === 'AGENT' ? 'STANDARD_REP' : 'EXECUTIVE')} onChange={set('archetype')}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                    style={{ background: T.surfaceRaised, border: `1px solid ${T.border}`, color: T.textPrimary }}>
+                    {ARCHETYPE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value} disabled={newUser.role === 'AGENT' && opt.value === 'EXECUTIVE'}>
+                            {opt.emoji} {opt.label} ({opt.scopeLabel})
+                        </option>
+                    ))}
+                </CustomSelect>
+                <p className="text-[11px] mt-1.5" style={{ color: T.textMuted }}>
+                    {archMeta.description}
+                </p>
             </div>
             {formError && <p className="text-xs mb-3 font-semibold" style={{ color: T.error }}>{formError}</p>}
             <div className="flex gap-2">

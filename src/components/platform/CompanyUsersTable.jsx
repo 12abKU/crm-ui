@@ -2,11 +2,12 @@ import { IconRefresh, IconPlus, IconCrown, IconLogin, IconKey, IconTrash } from 
 import { T } from '../../constants/theme'
 import { ROLE_STYLES } from './platformConstants'
 import CustomSelect from '../ui/CustomSelect'
+import { getArchetypeConfig, ARCHETYPE_OPTIONS } from '../../constants/archetypes'
 
 export default function CompanyUsersTable({
     users, loading, updating, impersonating,
     onRefresh, onAddUser,
-    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onActivateUser, onChangeRole, onViewUser,
+    onImpersonate, onResetPassword, onDeleteUser, onDeleteUserForever, onActivateUser, onChangeRole, onChangeArchetype, onViewUser,
 }) {
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
@@ -40,10 +41,10 @@ export default function CompanyUsersTable({
                 <div className="py-12 text-center text-sm" style={{ color: T.textMuted }}>No users yet</div>
             ) : (
             <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[650px]">
+                <table className="w-full text-left min-w-[800px]">
                     <thead>
                         <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
-                            {['User', 'Email', 'Role', 'Joined', 'Actions'].map(h => (
+                            {['User', 'Email', 'Role', 'Archetype & Scope', 'Joined', 'Actions'].map(h => (
                                 <th key={h} className="px-5 py-3 text-[10px] font-bold uppercase tracking-widest"
                                     style={{ color: T.textMuted }}>{h}</th>
                             ))}
@@ -97,6 +98,36 @@ export default function CompanyUsersTable({
                                                 </CustomSelect>
                                             </div>
                                         )}
+                                    </td>
+                                    {/* Archetype & Scope */}
+                                    <td className="px-5 py-3.5">
+                                        {(() => {
+                                            const arch = getArchetypeConfig(u.archetype, u.role, u.hasReports)
+                                            if (u.role === 'SUPER_ADMIN' || !onChangeArchetype) {
+                                                return (
+                                                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap"
+                                                        style={{ background: arch.bg, color: arch.color, border: `1px solid ${arch.border}` }}>
+                                                        {arch.emoji} {arch.label} · {arch.scopeLabel}
+                                                    </span>
+                                                )
+                                            }
+                                            return (
+                                                <div className="flex items-center gap-1.5">
+                                                    <CustomSelect
+                                                        value={u.archetype || arch.key}
+                                                        disabled={updating === 'archetype' + u.id}
+                                                        onChange={e => onChangeArchetype(u.id, e.target.value)}
+                                                        className="text-[11px] font-bold px-2.5 py-1 rounded-full outline-none"
+                                                        style={{ background: arch.bg, color: arch.color, minWidth: 140, border: `1px solid ${arch.border}` }}>
+                                                        {ARCHETYPE_OPTIONS.map(opt => (
+                                                            <option key={opt.value} value={opt.value} disabled={u.role === 'AGENT' && opt.value === 'EXECUTIVE'}>
+                                                                {opt.emoji} {opt.label} · {opt.scopeLabel}
+                                                            </option>
+                                                        ))}
+                                                    </CustomSelect>
+                                                </div>
+                                            )
+                                        })()}
                                     </td>
                                     {/* Joined */}
                                     <td className="px-5 py-3.5 text-xs" style={{ color: T.textMuted }}>

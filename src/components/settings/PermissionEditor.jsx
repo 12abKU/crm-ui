@@ -3,7 +3,7 @@ import { T } from '../../constants/theme'
 import { useSelector } from 'react-redux'
 import api from '../../api'
 
-const PERMISSION_GROUPS = [
+export const PERMISSION_GROUPS = [
     {
         label: 'Accounts',
         icon: 'business',

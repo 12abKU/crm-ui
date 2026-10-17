@@ -5,8 +5,9 @@ import { T } from '../../constants/theme'
 import RoleBadge from './RoleBadge'
 import PermissionEditor from './PermissionEditor'
 import EditUserModal from './EditUserModal'
+import { getArchetypeConfig } from '../../constants/archetypes'
 
-const HEADERS = ['User', 'Email', 'Role', 'Designation', 'Reports To', 'Joined', 'Actions']
+const HEADERS = ['User', 'Email', 'Role', 'Archetype & Scope', 'Designation', 'Reports To', 'Joined', 'Actions']
 
 export default function UserTable({
     users = [],
@@ -30,18 +31,29 @@ export default function UserTable({
     const isCompanySuperAdmin = currentUserRole === 'COMPANY_SUPER_ADMIN' || currentUserRole === 'SUPER_ADMIN'
     const navigate = useNavigate()
 
+    const managerIdSet = useMemo(
+        () => new Set((allUsers || users || []).map(u => u.managerId).filter(Boolean)),
+        [allUsers, users]
+    )
+
     const filteredUsers = useMemo(() => {
         const q = searchQuery.trim().toLowerCase()
         if (!q) return users
         return users.filter(u => {
+            const hasReports = managerIdSet.has(u.id)
+            const arch = getArchetypeConfig(u.archetype, u.role, hasReports)
             return (
                 (u.name && u.name.toLowerCase().includes(q)) ||
                 (u.email && u.email.toLowerCase().includes(q)) ||
+                (u.role && u.role.toLowerCase().includes(q)) ||
                 (u.designation && u.designation.toLowerCase().includes(q)) ||
-                (u.managerName && u.managerName.toLowerCase().includes(q))
+                (u.managerName && u.managerName.toLowerCase().includes(q)) ||
+                (u.archetype && u.archetype.toLowerCase().includes(q)) ||
+                (arch.label && arch.label.toLowerCase().includes(q)) ||
+                (arch.scopeLabel && arch.scopeLabel.toLowerCase().includes(q))
             )
         })
-    }, [users, searchQuery])
+    }, [users, searchQuery, managerIdSet])
 
     if (loading) {
         return (
@@ -115,7 +127,7 @@ export default function UserTable({
             </div>
 
             <div className="overflow-x-auto w-full">
-                <table className="w-full text-left min-w-[850px]">
+                <table className="w-full text-left min-w-[980px]">
                     <thead>
                         <tr style={{ background: T.surfaceRaised, borderBottom: `1px solid ${T.border}` }}>
                             {HEADERS.map(h => (
@@ -196,6 +208,31 @@ export default function UserTable({
                                         {/* Role */}
                                         <td className="px-6 py-4">
                                             <RoleBadge role={u.role} />
+                                        </td>
+
+                                        {/* Archetype & Scope */}
+                                        <td className="px-6 py-4">
+                                            {(() => {
+                                                const hasReports = managerIdSet.has(u.id)
+                                                const arch = getArchetypeConfig(u.archetype, u.role, hasReports)
+                                                return (
+                                                    <span
+                                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-opacity ${
+                                                            canInlineEdit ? 'cursor-pointer hover:opacity-80' : ''
+                                                        }`}
+                                                        style={{
+                                                            background: arch.bg,
+                                                            color: arch.color,
+                                                            border: `1px solid ${arch.border}`,
+                                                        }}
+                                                        title={canInlineEdit ? `${arch.label} (${arch.scopeLabel}) — Click to edit` : `${arch.label} (${arch.scopeLabel})`}
+                                                        onClick={() => canInlineEdit && setEditingHierarchyUser(u)}
+                                                    >
+                                                        <span>{arch.emoji}</span>
+                                                        <span>{arch.label} · {arch.scopeLabel}</span>
+                                                    </span>
+                                                )
+                                            })()}
                                         </td>
 
                                         {/* Designation */}
