@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
-import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
+import { useFloating, autoUpdate, offset, flip, shift, size, FloatingPortal } from '@floating-ui/react'
 
 const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom', wrapperClassName = '', wrapperStyle = {} }, forwardedRef) => {
     const [open, setOpen] = useState(false)
@@ -10,10 +10,20 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
         open,
         onOpenChange: setOpen,
         placement: menuPlacement,
+        strategy: 'fixed',
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(6),
             flip({ padding: 8 }),
+            size({
+                apply({ rects, elements, availableHeight }) {
+                    Object.assign(elements.floating.style, {
+                        minWidth: `${rects.reference.width}px`,
+                        maxHeight: `${Math.min(availableHeight, 260)}px`,
+                    });
+                },
+                padding: 8
+            }),
             shift({ padding: 8 })
         ]
     })
@@ -38,14 +48,14 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
     React.Children.forEach(children, child => {
         if (!child) return
         if (child.type === 'option' || child.props?.value !== undefined) {
-            const opt = { type: 'option', value: child.props.value, label: child.props.children }
+            const opt = { type: 'option', value: child.props.value, label: child.props.children, disabled: Boolean(child.props?.disabled) }
             parsedItems.push(opt)
             flatOptions.push(opt)
         } else if (child.type === 'optgroup') {
             const groupOptions = []
             React.Children.forEach(child.props.children, o => {
                 if (o && (o.type === 'option' || o.props?.value !== undefined)) {
-                    const opt = { type: 'option', value: o.props.value, label: o.props.children }
+                    const opt = { type: 'option', value: o.props.value, label: o.props.children, disabled: Boolean(o.props?.disabled) }
                     groupOptions.push(opt)
                     flatOptions.push(opt)
                 }
@@ -110,83 +120,92 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
             </button>
 
             {open && (
-                <div className={`absolute rounded-xl overflow-hidden z-[100]`}
-                    ref={refs.setFloating}
-                    style={{
-                        background: T.surface,
-                        border: `1px solid ${T.border}`,
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)',
-                        left: 0,
-                        right: 0,
-                        maxHeight: '260px',
-                        overflowY: 'auto',
-                        ...floatingStyles
-                    }}>
-                    <div className="py-1 flex flex-col">
-                        {parsedItems.map((item, idx) => {
-                            if (item.type === 'optgroup') {
-                                return (
-                                    <div key={`group-${idx}`} className="flex flex-col">
-                                        <div className="px-4 py-1.5 mt-1 text-[10px] font-black uppercase tracking-wider" style={{ color: T.textMuted }}>
-                                            {item.label}
+                <FloatingPortal>
+                    <div className="rounded-xl overflow-hidden"
+                        ref={refs.setFloating}
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${T.border}`,
+                            boxShadow: '0 12px 36px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15)',
+                            zIndex: 99999,
+                            maxWidth: 'calc(100vw - 16px)',
+                            overflowY: 'auto',
+                            ...floatingStyles
+                        }}>
+                        <div className="py-1 flex flex-col">
+                            {parsedItems.map((item, idx) => {
+                                if (item.type === 'optgroup') {
+                                    return (
+                                        <div key={`group-${idx}`} className="flex flex-col">
+                                            <div className="px-4 py-1.5 mt-1 text-[10px] font-black uppercase tracking-wider" style={{ color: T.textMuted }}>
+                                                {item.label}
+                                            </div>
+                                            {item.options.map((opt, oIdx) => {
+                                                const active = String(opt.value) === String(value)
+                                                const isDisabled = Boolean(opt.disabled)
+                                                return (
+                                                    <button
+                                                        key={`${opt.value}-${idx}-${oIdx}`}
+                                                        type="button"
+                                                        disabled={isDisabled}
+                                                        onClick={() => !isDisabled && handleSelect(opt.value)}
+                                                        className="w-full text-left px-4 py-2.5 pl-6 text-sm transition-all flex items-center justify-between font-bold"
+                                                        style={{
+                                                            background: active ? T.primary : 'transparent',
+                                                            color: active ? '#FFFFFF' : (isDisabled ? T.textMuted : T.textSecondary),
+                                                            opacity: isDisabled ? 0.45 : 1,
+                                                            cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                        onMouseEnter={e => {
+                                                            if (!active && !isDisabled) e.currentTarget.style.background = T.surfaceHigh
+                                                        }}
+                                                        onMouseLeave={e => {
+                                                            if (!active && !isDisabled) e.currentTarget.style.background = 'transparent'
+                                                        }}
+                                                    >
+                                                        <span className="truncate whitespace-nowrap">{opt.label}</span>
+                                                        {active && (
+                                                            <span className="material-symbols-outlined text-[16px] text-white">check</span>
+                                                        )}
+                                                    </button>
+                                                )
+                                            })}
                                         </div>
-                                        {item.options.map((opt, oIdx) => {
-                                            const active = String(opt.value) === String(value)
-                                            return (
-                                                <button
-                                                    key={`${opt.value}-${idx}-${oIdx}`}
-                                                    type="button"
-                                                    onClick={() => handleSelect(opt.value)}
-                                                    className="w-full text-left px-4 py-2.5 pl-6 text-sm transition-all flex items-center justify-between font-bold"
-                                                    style={{
-                                                        background: active ? T.primary : 'transparent',
-                                                        color: active ? '#FFFFFF' : T.textSecondary
-                                                    }}
-                                                    onMouseEnter={e => {
-                                                        if (!active) e.currentTarget.style.background = T.surfaceHigh
-                                                    }}
-                                                    onMouseLeave={e => {
-                                                        if (!active) e.currentTarget.style.background = 'transparent'
-                                                    }}
-                                                >
-                                                    <span className="truncate">{opt.label}</span>
-                                                    {active && (
-                                                        <span className="material-symbols-outlined text-[16px] text-white">check</span>
-                                                    )}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
+                                    )
+                                }
+                                
+                                const active = String(item.value) === String(value)
+                                const isDisabled = Boolean(item.disabled)
+                                return (
+                                    <button
+                                        key={`${item.value}-${idx}`}
+                                        type="button"
+                                        disabled={isDisabled}
+                                        onClick={() => !isDisabled && handleSelect(item.value)}
+                                        className="w-full text-left px-4 py-2.5 text-sm transition-all flex items-center justify-between font-bold"
+                                        style={{
+                                            background: active ? T.primary : 'transparent',
+                                            color: active ? '#FFFFFF' : (isDisabled ? T.textMuted : T.textSecondary),
+                                            opacity: isDisabled ? 0.45 : 1,
+                                            cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!active && !isDisabled) e.currentTarget.style.background = T.surfaceHigh
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!active && !isDisabled) e.currentTarget.style.background = 'transparent'
+                                        }}
+                                    >
+                                        <span className="truncate whitespace-nowrap">{item.label}</span>
+                                        {active && (
+                                            <span className="material-symbols-outlined text-[16px] text-white">check</span>
+                                        )}
+                                    </button>
                                 )
-                            }
-                            
-                            const active = String(item.value) === String(value)
-                            return (
-                                <button
-                                    key={`${item.value}-${idx}`}
-                                    type="button"
-                                    onClick={() => handleSelect(item.value)}
-                                    className="w-full text-left px-4 py-2.5 text-sm transition-all flex items-center justify-between font-bold"
-                                    style={{
-                                        background: active ? T.primary : 'transparent',
-                                        color: active ? '#FFFFFF' : T.textSecondary
-                                    }}
-                                    onMouseEnter={e => {
-                                        if (!active) e.currentTarget.style.background = T.surfaceHigh
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (!active) e.currentTarget.style.background = 'transparent'
-                                    }}
-                                >
-                                    <span className="truncate">{item.label}</span>
-                                    {active && (
-                                        <span className="material-symbols-outlined text-[16px] text-white">check</span>
-                                    )}
-                                </button>
-                            )
-                        })}
+                            })}
+                        </div>
                     </div>
-                </div>
+                </FloatingPortal>
             )}
         </div>
     )
