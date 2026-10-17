@@ -9,32 +9,67 @@ function downloadCSV(stats, name) {
     const date = new Date().toLocaleDateString('en-IN')
 
     const rows = [
-        ['CRM Dashboard Report'],
-        [`Generated for: ${name}`],
-        [`Date: ${date}`],
+        ['CRM EXECUTIVE DASHBOARD REPORT'],
+        ['Generated For:', name || 'User', 'Generated Date:', date, 'Report Type:', 'Consolidated CRM Overview'],
         [],
-        ['Metric', 'Value'],
-        ['Active Deals', stats?.activeDeals ?? 0],
-        ['Total Revenue (₹)', stats?.totalRevenue ?? 0],
-        ['Total Accounts', stats?.totalAccounts ?? 0],
-        ['Total Contacts', stats?.totalContacts ?? 0],
-        ['New Contacts This Month', stats?.newContactsThisMonth ?? 0],
-        ['New Deals This Month', stats?.newDealsThisMonth ?? 0],
+        ['EXECUTIVE METRICS (KPIs)'],
+        [
+            'Active Deals',
+            'Total Revenue (INR)',
+            'Total Accounts',
+            'Total Contacts',
+            'New Contacts (This Month)',
+            'New Deals (This Month)',
+            'Won Deals',
+            'Lost Deals',
+            'Win Rate (%)'
+        ],
+        [
+            stats?.activeDeals ?? 0,
+            stats?.totalRevenue ?? 0,
+            stats?.totalAccounts ?? 0,
+            stats?.totalContacts ?? 0,
+            stats?.newContactsThisMonth ?? 0,
+            stats?.newDealsThisMonth ?? 0,
+            stats?.wonCount ?? 0,
+            stats?.lostCount ?? 0,
+            `${stats?.winRate ?? 0}%`
+        ],
         [],
-        ['Recent Activities'],
-        ['Subject', 'Type', 'Account', 'Contact', 'Deal', 'Time'],
-        ...(stats?.recentActivities ?? []).map(a => [
-            a.subject ?? '',
-            a.type ?? '',
-            a.accountName ?? '',
-            a.contactName ?? '',
-            a.dealTitle ?? '',
-            a.createdAt ? new Date(a.createdAt).toLocaleString('en-IN') : '',
-        ]),
+        ...(stats?.openDealsByStage && stats.openDealsByStage.length > 0 ? [
+            ['DEAL PIPELINE BREAKDOWN BY STAGE'],
+            ['Stage Name', 'Active Deals Count', 'Pipeline Value (INR)'],
+            ...stats.openDealsByStage.map(s => [
+                s.stage ?? '',
+                s.count ?? 0,
+                s.amount ?? 0
+            ]),
+            []
+        ] : []),
+        ['RECENT ACTIVITIES LOG'],
+        [
+            'Subject',
+            'Activity Type',
+            'Account Name',
+            'Contact Person',
+            'Associated Deal',
+            'Activity Date & Time'
+        ],
+        ...((stats?.recentActivities && stats.recentActivities.length > 0)
+            ? stats.recentActivities.map(a => [
+                a.subject ?? '',
+                a.type ?? '',
+                a.accountName ?? '',
+                a.contactName ?? '',
+                a.dealTitle ?? '',
+                a.createdAt ? new Date(a.createdAt).toLocaleString('en-IN') : ''
+            ])
+            : [['No recent activities found', '', '', '', '', '']]
+        )
     ]
 
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const csv = rows.map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
