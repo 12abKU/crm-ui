@@ -16,6 +16,7 @@ import api from '../../api'
 import DownloadReport from '../Downloadreport'
 import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../../utils/cacheUtils'
 import CustomSelect from '../ui/CustomSelect'
+import usePermission from '../../hooks/usePermission'
 
 // ── Tabs definition (unchanged) ──────────────────
 const TABS = [
@@ -30,6 +31,7 @@ const TABS = [
 
 export default function AdminDashboard() {
     const name = useSelector(s => s.auth.name)
+    const canExport = usePermission('REPORTS_EXPORT')
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     const activeTab = searchParams.get('tab') || 'summary'
@@ -135,25 +137,33 @@ export default function AdminDashboard() {
                     <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
                         style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
 
-                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex items-center gap-4">
-                        <div className="w-12 h-12 flex items-center justify-center shrink-0"
-                            style={{
-                                borderRadius: 14,
-                                background: 'rgba(255,255,255,0.10)',
-                                border: '1px solid rgba(255,255,255,0.18)',
-                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
-                             }}>
-                            <span className="material-symbols-outlined filled text-[24px]"
-                                style={{ color: T.sidebarActiveText }}>analytics</span>
+                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 flex items-center justify-center shrink-0"
+                                style={{
+                                    borderRadius: 14,
+                                    background: 'rgba(255,255,255,0.10)',
+                                    border: '1px solid rgba(255,255,255,0.18)',
+                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                                 }}>
+                                <span className="material-symbols-outlined filled text-[24px]"
+                                    style={{ color: T.sidebarActiveText }}>analytics</span>
+                            </div>
+                            <div>
+                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
+                                    Analytics Dashboard
+                                </h2>
+                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
+                                    Welcome back, {name} · Company-wide overview
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                Analytics Dashboard
-                            </h2>
-                            <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                Welcome back, {name} · Company-wide overview
-                            </p>
-                        </div>
+
+                        {canExport && (
+                            <div className="shrink-0">
+                                <DownloadReport stats={summary} />
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -201,9 +211,9 @@ export default function AdminDashboard() {
                         )
                     })}
 
-                    {/* Pipeline selector and Download button — right side of tab bar */}
-                    <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
-                        {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 1 && (
+                    {/* Pipeline selector — right side of tab bar */}
+                    {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 1 && (
+                        <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-200"
                                 style={{
                                     borderRadius: 16,
@@ -223,11 +233,8 @@ export default function AdminDashboard() {
                                     ))}
                                 </CustomSelect>
                             </div>
-                        )}
-                        {summary && (
-                            <DownloadReport stats={summary} />
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Tab Content ───────────────────────────────── */}
