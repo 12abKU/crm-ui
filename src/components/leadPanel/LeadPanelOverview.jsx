@@ -23,7 +23,7 @@ export default function LeadPanelOverview({ profile, onUpdate, canEdit }) {
     const [showConvertModal, setShowConvertModal] = useState(false)
 
     const role = useSelector(state => state.auth.role)
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     
     const assignees = profile.assignees ?? []
 

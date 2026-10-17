@@ -32,7 +32,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
     const navigate = useNavigate()
 
     const role = useSelector(state => state.auth.role)
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
     const canChangeStage = canEdit || (isAgent && isAssignedToMe)
     const assignees = deal.assignees ?? []

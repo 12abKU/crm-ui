@@ -55,7 +55,7 @@ export default function Activities() {
     const highlightId = new URLSearchParams(location.search).get('highlight')
 
     const role = useSelector(state => state.auth.role)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const can = usePermissions(['ACTIVITIES_CREATE', 'ACTIVITIES_EDIT', 'ACTIVITIES_DELETE'])
     const { confirm } = useDialog()
 

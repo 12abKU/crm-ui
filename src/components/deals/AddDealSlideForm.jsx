@@ -24,7 +24,7 @@ export default function AddDealSlideForm({ open, onClose, onSuccess, prefillAcco
     const can = usePermissions(['DEALS_CREATE'])
 
     const isAgent = role === 'AGENT'
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const canCreate = isAdminOrAbove || can.DEALS_CREATE
 
     const loadAccountOptions = useCallback(async (query = '') => {

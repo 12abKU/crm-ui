@@ -16,7 +16,7 @@ export default function CalendarView({ onLogActivity }) {
     const [syncResult, setSyncResult] = useState(null)
 
     const role = useSelector(state => state.auth.role)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
     // Load team members for filter
     const loadTeam = async () => {

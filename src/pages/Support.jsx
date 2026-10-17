@@ -17,7 +17,7 @@ export default function Support() {
     const name = useSelector(s => s.auth.name)
     const email = useSelector(s => s.auth.email)
     const companyName = useSelector(s => s.auth.companyName)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const openTicketId = location.state?.openTicketId ?? null
 
 

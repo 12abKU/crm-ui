@@ -87,8 +87,8 @@ export default function ContactProfile() {
 
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE', 'CONTACTS_EDIT'])
-    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
-    const canEditContact = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.CONTACTS_EDIT
+    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN' || can.DEALS_CREATE
+    const canEditContact = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN' || can.CONTACTS_EDIT
 
     // ── Load call logs with pagination (unchanged) ────────────
     const loadCalls = async (p = 0) => {

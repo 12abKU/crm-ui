@@ -85,7 +85,7 @@ export default function Deals() {
     const can = usePermissions(['DEALS_CREATE', 'DEALS_EDIT', 'DEALS_DELETE', 'DEALS_ASSIGN'])
     const { confirm } = useDialog()
     const isAgent = role === 'AGENT'
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
     const location = useLocation()
     const highlightId = new URLSearchParams(location.search).get('highlight')

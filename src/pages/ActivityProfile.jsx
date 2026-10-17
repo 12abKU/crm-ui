@@ -84,7 +84,7 @@ export default function ActivityProfile() {
     const { id } = useParams()
     const navigate = useNavigate()
     const role = useSelector(state => state.auth.role)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
     // ── State (unchanged) ──────────────────────────────────────
     const [activity, setActivity] = useState(null)

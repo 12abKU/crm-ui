@@ -69,7 +69,7 @@ export default function Leads() {
     const location = useLocation()
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.user?.id)
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'
     const can = usePermissions(['LEADS_CREATE', 'LEADS_EDIT', 'LEADS_DELETE', 'LEADS_ASSIGN'])
     const canCreateLead = isAdminOrAbove || can.LEADS_CREATE

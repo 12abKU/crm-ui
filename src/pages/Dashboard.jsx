@@ -14,7 +14,7 @@ import { DASHBOARD_ACCENTS } from '../components/dashboard/dashboardDesign'
 
 export default function Dashboard() {
     const role = useSelector(state => state.auth.role)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     return isAdmin ? <AdminDashboard /> : <AgentDashboard />
 }
 

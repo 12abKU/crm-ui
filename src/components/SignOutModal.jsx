@@ -28,9 +28,10 @@ export default function SignOutModal({ open, onConfirm, onCancel, userName = '',
     if (!open) return null
 
     const isSuperAdmin = role === 'SUPER_ADMIN'
-    const roleLabel = isSuperAdmin ? 'Super Admin' : role === 'ADMIN' ? 'Admin' : 'Agent'
-    const roleDot   = isSuperAdmin ? T.superAdminColor : role === 'ADMIN' ? T.primary : T.success
-    const roleBg    = isSuperAdmin ? T.superAdminDim   : role === 'ADMIN' ? T.primaryDim : T.successDim
+    const isCompanySuperAdmin = role === 'COMPANY_SUPER_ADMIN'
+    const roleLabel = isSuperAdmin ? 'Super Admin' : isCompanySuperAdmin ? 'Company Super Admin' : role === 'ADMIN' ? 'Admin' : 'Agent'
+    const roleDot   = isSuperAdmin ? T.superAdminColor : isCompanySuperAdmin ? '#F59E0B' : role === 'ADMIN' ? T.primary : T.success
+    const roleBg    = isSuperAdmin ? T.superAdminDim   : isCompanySuperAdmin ? 'rgba(245, 158, 11, 0.12)' : role === 'ADMIN' ? T.primaryDim : T.successDim
 
     const modal = (
         <>

@@ -38,7 +38,7 @@ export default function DealCard({
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
 
-    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'
 
     const assignees = deal.assignees ?? []

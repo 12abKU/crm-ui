@@ -71,8 +71,8 @@ export default function AccountProfile() {
 
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE', 'ACCOUNTS_EDIT'])
-    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.DEALS_CREATE
-    const canEditAccount = role === 'ADMIN' || role === 'SUPER_ADMIN' || can.ACCOUNTS_EDIT
+    const canCreateDeal = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN' || can.DEALS_CREATE
+    const canEditAccount = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN' || can.ACCOUNTS_EDIT
 
     useEffect(() => {
         const controller = new AbortController()

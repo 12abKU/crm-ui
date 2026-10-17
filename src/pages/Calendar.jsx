@@ -28,7 +28,7 @@ export default function Calendar() {
     const [loading, setLoading] = useState(true)
 
     const role = useSelector(state => state.auth.role)
-    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
     const [open, setOpen] = useState(false)
     const [accounts, setAccounts] = useState([])
