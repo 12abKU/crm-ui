@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { downloadPdfAsync, openPdfAsync, savePdfBlob } from '../utils/downloadPdfAsync'
+import { T } from '../constants/theme'
+import { useFloating, autoUpdate, offset, flip, shift, FloatingPortal } from '@floating-ui/react'
 
 // ─── CSV ─────────────────────────────────────────────────────────────────────
 function downloadCSV(stats, name) {
@@ -49,11 +51,30 @@ export default function DownloadReport({ stats }) {
     const ref = useRef(null)
     const name = useSelector(state => state.auth.name)
 
+    const { refs, floatingStyles } = useFloating({
+        open,
+        onOpenChange: setOpen,
+        placement: 'bottom-start',
+        strategy: 'fixed',
+        whileElementsMounted: autoUpdate,
+        middleware: [
+            offset(6),
+            flip({ padding: 8 }),
+            shift({ padding: 8 })
+        ]
+    })
+
     useEffect(() => {
-        const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+        const handler = (e) => {
+            const wrapper = ref.current;
+            const floating = refs.floating.current;
+            if (wrapper && !wrapper.contains(e.target) && (!floating || !floating.contains(e.target))) {
+                setOpen(false)
+            }
+        }
         document.addEventListener('mousedown', handler)
         return () => document.removeEventListener('mousedown', handler)
-    }, [])
+    }, [refs.floating])
 
     const pdfJobUrls = {
         startUrl: '/api/dashboard/report/pdf/async',
@@ -94,6 +115,7 @@ export default function DownloadReport({ stats }) {
     return (
         <div className="relative" ref={ref}>
             <button
+                ref={refs.setReference}
                 onClick={() => setOpen(o => !o)}
                 className="crm-btn-ghost flex items-center gap-2"
                 disabled={pdfDownloading}
@@ -111,56 +133,66 @@ export default function DownloadReport({ stats }) {
             </button>
 
             {open && (
-                <div
-                    className="absolute left-0 mt-2 rounded-xl overflow-hidden z-50"
-                    style={{
-                        background: '#fff',
-                        border: '1px solid rgba(195,198,215,0.5)',
-                        boxShadow: '0 8px 24px rgba(11,28,48,0.12)',
-                        minWidth: '190px',
-                        top: '100%',
-                    }}
-                >
-                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#737686' }}>
-                        Export as
-                    </p>
-
-                    <button
-                        onClick={handlePdfView}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
-                        style={{ color: '#0b1c30', cursor: 'pointer' }}
+                <FloatingPortal>
+                    <div
+                        ref={refs.setFloating}
+                        className="rounded-xl overflow-hidden"
+                        style={{
+                            background: T.surface || '#fff',
+                            border: `1px solid ${T.border || 'rgba(195,198,215,0.5)'}`,
+                            boxShadow: '0 12px 36px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15)',
+                            minWidth: '200px',
+                            zIndex: 99999,
+                            ...floatingStyles
+                        }}
                     >
-                        <span className="material-symbols-outlined text-[18px]" style={{ color: '#0369a1' }}>visibility</span>
-                        View PDF
-                        <span className="ml-auto text-[10px] font-normal" style={{ color: '#737686' }}>Open in tab</span>
-                    </button>
+                        <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: T.textMuted || '#737686' }}>
+                            Export as
+                        </p>
 
-                    <div style={{ height: '1px', background: '#eff4ff', margin: '0 12px' }} />
+                        <button
+                            onClick={handlePdfView}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors"
+                            style={{ color: T.textPrimary || '#0b1c30', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh || '#f8f9ff'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <span className="material-symbols-outlined text-[18px]" style={{ color: '#0369a1' }}>visibility</span>
+                            View PDF
+                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>Open in tab</span>
+                        </button>
 
-                    <button
-                        onClick={handlePdfDownload}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
-                        style={{ color: '#0b1c30', cursor: 'pointer' }}
-                    >
-                        <span className="material-symbols-outlined text-[18px]" style={{ color: '#ba1a1a' }}>picture_as_pdf</span>
-                        PDF
-                        <span className="ml-auto text-[10px] font-normal" style={{ color: '#737686' }}>Multi-page</span>
-                    </button>
+                        <div style={{ height: '1px', background: T.borderSubtle || '#eff4ff', margin: '0 12px' }} />
 
-                    <div style={{ height: '1px', background: '#eff4ff', margin: '0 12px' }} />
+                        <button
+                            onClick={handlePdfDownload}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors"
+                            style={{ color: T.textPrimary || '#0b1c30', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh || '#f8f9ff'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <span className="material-symbols-outlined text-[18px]" style={{ color: '#ba1a1a' }}>picture_as_pdf</span>
+                            PDF
+                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>Multi-page</span>
+                        </button>
 
-                    <button
-                        onClick={() => { downloadCSV(stats, name); setOpen(false) }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors hover:bg-[#f8f9ff]"
-                        style={{ color: '#0b1c30', cursor: 'pointer' }}
-                    >
-                        <span className="material-symbols-outlined text-[18px]" style={{ color: '#15803d' }}>table_chart</span>
-                        Excel / CSV
-                        <span className="ml-auto text-[10px] font-normal" style={{ color: '#737686' }}>.csv file</span>
-                    </button>
+                        <div style={{ height: '1px', background: T.borderSubtle || '#eff4ff', margin: '0 12px' }} />
 
-                    <div className="pb-1" />
-                </div>
+                        <button
+                            onClick={() => { downloadCSV(stats, name); setOpen(false) }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors"
+                            style={{ color: T.textPrimary || '#0b1c30', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh || '#f8f9ff'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <span className="material-symbols-outlined text-[18px]" style={{ color: '#15803d' }}>table_chart</span>
+                            Excel / CSV
+                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>.csv file</span>
+                        </button>
+
+                        <div className="pb-1" />
+                    </div>
+                </FloatingPortal>
             )}
         </div>
     )
