@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { downloadPdfAsync, openPdfAsync, savePdfBlob } from '../utils/downloadPdfAsync'
+import { downloadExcelReport } from '../utils/downloadExcelAsync'
 import { T } from '../constants/theme'
 import { useFloating, autoUpdate, offset, flip, shift, FloatingPortal } from '@floating-ui/react'
 
@@ -83,6 +84,7 @@ function downloadCSV(stats, name) {
 export default function DownloadReport({ stats }) {
     const [open, setOpen] = useState(false)
     const [pdfDownloading, setPdfDownloading] = useState(false)
+    const [excelDownloading, setExcelDownloading] = useState(false)
     const ref = useRef(null)
     const name = useSelector(state => state.auth.name)
 
@@ -147,18 +149,35 @@ export default function DownloadReport({ stats }) {
         }
     }
 
+    const handleExcelDownload = async () => {
+        setOpen(false)
+        setExcelDownloading(true)
+        try {
+            await downloadExcelReport(stats, name)
+        } catch (err) {
+            console.error('Failed to generate Excel report:', err)
+            window.dispatchEvent(new CustomEvent('crm-api-error', {
+                detail: { message: err?.message || 'Failed to generate Excel (.xlsx) report', status: 500 }
+            }))
+        } finally {
+            setExcelDownloading(false)
+        }
+    }
+
+    const isBusy = pdfDownloading || excelDownloading
+
     return (
         <div className="relative" ref={ref}>
             <button
                 ref={refs.setReference}
                 onClick={() => setOpen(o => !o)}
                 className="crm-btn-ghost flex items-center gap-2"
-                disabled={pdfDownloading}
+                disabled={isBusy}
             >
                 <span className="material-symbols-outlined text-[16px]">
-                    {pdfDownloading ? 'hourglass_empty' : 'download'}
+                    {isBusy ? 'hourglass_empty' : 'download'}
                 </span>
-                {pdfDownloading ? 'Generating PDF...' : 'Download Report'}
+                {pdfDownloading ? 'Generating PDF...' : excelDownloading ? 'Generating Excel...' : 'Download Report'}
                 <span
                     className="material-symbols-outlined text-[14px]"
                     style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -176,7 +195,7 @@ export default function DownloadReport({ stats }) {
                             background: T.surface || '#fff',
                             border: `1px solid ${T.border || 'rgba(195,198,215,0.5)'}`,
                             boxShadow: '0 12px 36px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.15)',
-                            minWidth: '200px',
+                            minWidth: '220px',
                             zIndex: 99999,
                             ...floatingStyles
                         }}
@@ -214,15 +233,29 @@ export default function DownloadReport({ stats }) {
                         <div style={{ height: '1px', background: T.borderSubtle || '#eff4ff', margin: '0 12px' }} />
 
                         <button
-                            onClick={() => { downloadCSV(stats, name); setOpen(false) }}
+                            onClick={handleExcelDownload}
                             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors"
                             style={{ color: T.textPrimary || '#0b1c30', cursor: 'pointer' }}
                             onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh || '#f8f9ff'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                             <span className="material-symbols-outlined text-[18px]" style={{ color: '#15803d' }}>table_chart</span>
-                            Excel / CSV
-                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>.csv file</span>
+                            Excel (.xlsx)
+                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>Styled Workbook</span>
+                        </button>
+
+                        <div style={{ height: '1px', background: T.borderSubtle || '#eff4ff', margin: '0 12px' }} />
+
+                        <button
+                            onClick={() => { downloadCSV(stats, name); setOpen(false) }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-left transition-colors"
+                            style={{ color: T.textPrimary || '#0b1c30', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.surfaceHigh || '#f8f9ff'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <span className="material-symbols-outlined text-[18px]" style={{ color: '#64748B' }}>text_snippet</span>
+                            CSV (.csv)
+                            <span className="ml-auto text-[10px] font-normal" style={{ color: T.textMuted || '#737686' }}>Raw data</span>
                         </button>
 
                         <div className="pb-1" />
