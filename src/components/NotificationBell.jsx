@@ -25,7 +25,8 @@ const TYPE_META = {
     MENTION: { icon: 'alternate_email', color: '#EA580C', label: 'Mentioned You' },
     AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' },
     CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' },
-    NEW_LEAD_DEAL: { icon: 'campaign', color: '#10B981', label: 'New Lead' }
+    NEW_LEAD_DEAL: { icon: 'campaign', color: '#10B981', label: 'New Lead' },
+    LEAD_INBOUND: { icon: 'person_add', color: '#0EA5E9', label: 'Inbound Lead' },
 }
 
 function getMeta(type) {
@@ -109,6 +110,11 @@ export default function NotificationBell({ isSuperAdmin }) {
 
         if (n.type === 'CHAT_MESSAGE') {
             navigate('/chat', { state: { selectColleagueId: n.contactId } })
+            return
+        }
+
+        if ((n.type === 'LEAD_INBOUND' || n.type === 'NEW_LEAD_DEAL') && n.leadId) {
+            navigate(`/leads?leadId=${n.leadId}`)
             return
         }
 

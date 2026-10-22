@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
+import { useSearchParams } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import AgentSettings from '../components/settings/AgentSettings'
 import AdminSettings from '../components/settings/AdminSettings'
@@ -10,6 +11,7 @@ import AutomatedSequencesSettings from '../components/settings/AutomatedSequence
 import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
+import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -59,7 +61,20 @@ export default function Settings() {
     const role = useSelector(state => state.auth.role)
     const meta = ROLE_META[role] || ROLE_META.AGENT
     const badge = ROLE_BADGE[role] || ROLE_BADGE.AGENT
-    const [activeTab, setActiveTab] = useState('general')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tabParam = searchParams.get('tab')
+    const [activeTab, setActiveTab] = useState(tabParam || 'general')
+
+    useEffect(() => {
+        if (tabParam && tabParam !== activeTab) {
+            setActiveTab(tabParam)
+        }
+    }, [tabParam])
+
+    const handleTabClick = (tabId) => {
+        setActiveTab(tabId)
+        setSearchParams({ tab: tabId }, { replace: true })
+    }
 
     const renderPanel = () => {
         if (activeTab === 'templates') {
@@ -76,6 +91,18 @@ export default function Settings() {
         }
         if (activeTab === 'agents') {
             return <AgentManagementSettings />
+        }
+        if (activeTab === 'integrations') {
+            if (role === 'AGENT') {
+                return (
+                    <div className="p-8 text-center rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
+                        <p className="text-sm font-bold" style={{ color: T.error }}>
+                            Access Denied: Webhook and integration settings are restricted to Company Administrators.
+                        </p>
+                    </div>
+                )
+            }
+            return <CompanyIntegrationsSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') return <AdminSettings />
@@ -147,15 +174,16 @@ export default function Settings() {
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN') ? [
                             { id: 'custom_fields', label: 'Custom Fields', icon: 'extension' },
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
-                            { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' }
+                            { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
+                            { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
                         ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id
                         return (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className="flex-1 flex justify-center items-center gap-1.5 md:gap-2 px-2 sm:px-4 py-3 -mb-px border-b-2 font-bold text-[11px] sm:text-xs lg:text-sm transition-all shrink-0"
+                                onClick={() => handleTabClick(tab.id)}
+                                className="flex-1 flex justify-center items-center gap-1.5 md:gap-2 px-2 sm:px-4 py-3 -mb-px border-b-2 font-bold text-[11px] sm:text-xs lg:text-sm transition-all shrink-0 cursor-pointer"
                                 style={{
                                     borderColor: active ? T.primary : 'transparent',
                                     color: active ? T.primaryText : T.textSecondary,
