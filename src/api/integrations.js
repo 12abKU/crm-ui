@@ -23,6 +23,11 @@ export const companyIntegrationsAPI = {
     clearIndiamart: () => api.delete('/api/company/integrations/indiamart'),
 
     /**
+     * Trigger immediate on-demand IndiaMART sync
+     */
+    syncIndiamartNow: () => api.post('/api/company/integrations/indiamart/sync'),
+
+    /**
      * Save Sulekha Webhook Secret
      * @param {{ webhookSecret: string, enabled: boolean }} data
      */

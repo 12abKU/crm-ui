@@ -15,6 +15,9 @@ import {
     IconTerminal2,
     IconBrandPhp,
     IconInfoCircle,
+    IconCloudDownload,
+    IconClock,
+    IconExternalLink,
 } from '@tabler/icons-react'
 import { toast } from 'react-hot-toast'
 import { T } from '../../constants/theme'
@@ -50,6 +53,23 @@ async function copyToClipboard(text) {
     }
 }
 
+function formatLastSync(isoString) {
+    if (!isoString) return 'Never'
+    try {
+        const d = new Date(isoString)
+        if (isNaN(d.getTime())) return isoString
+        return d.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })
+    } catch {
+        return isoString
+    }
+}
+
 export default function CompanyIntegrationsSettings() {
     const [loading, setLoading] = useState(true)
     const [integrations, setIntegrations] = useState({
@@ -57,6 +77,7 @@ export default function CompanyIntegrationsSettings() {
         webhookUrl: '',
         indiamartCrmKey: '',
         indiamartEnabled: false,
+        lastIndiamartSyncAt: null,
         sulekhaWebhookSecret: '',
         sulekhaEnabled: false,
     })
@@ -77,10 +98,13 @@ export default function CompanyIntegrationsSettings() {
     const [copiedUrl, setCopiedUrl] = useState(false)
     const [copiedKey, setCopiedKey] = useState(false)
     const [copiedSnippet, setCopiedSnippet] = useState(false)
+    const [copiedSulekhaUrl, setCopiedSulekhaUrl] = useState(false)
+    const [copiedIndiamartWebhook, setCopiedIndiamartWebhook] = useState(false)
 
-    // Saving and confirmation modals
+    // Saving, syncing and confirmation modals
     const [regeneratingKey, setRegeneratingKey] = useState(false)
     const [savingIndiamart, setSavingIndiamart] = useState(false)
+    const [syncingIndiamart, setSyncingIndiamart] = useState(false)
     const [savingSulekha, setSavingSulekha] = useState(false)
     const [confirmModal, setConfirmModal] = useState(null) // { title, message, action, confirmText, confirmColor }
     const [errorMsg, setErrorMsg] = useState('')
@@ -188,6 +212,31 @@ export default function CompanyIntegrationsSettings() {
             toast.error(extractApiErrorMessage(err, 'Failed to save IndiaMart configuration'))
         } finally {
             setSavingIndiamart(false)
+        }
+    }
+
+    const handleSyncIndiamartNow = async () => {
+        if (!integrations.indiamartEnabled && !indiamartKeyInput.trim()) {
+            toast.error('Please configure and save your IndiaMart CRM Key first')
+            return
+        }
+        setSyncingIndiamart(true)
+        try {
+            const res = await companyIntegrationsAPI.syncIndiamartNow()
+            const data = res.data || {}
+            toast.success(data.message || 'IndiaMart leads synced successfully!')
+            if (data.lastIndiamartSyncAt) {
+                setIntegrations(prev => ({
+                    ...prev,
+                    lastIndiamartSyncAt: data.lastIndiamartSyncAt,
+                }))
+            } else {
+                loadIntegrations()
+            }
+        } catch (err) {
+            toast.error(extractApiErrorMessage(err, 'Failed to sync IndiaMart leads'))
+        } finally {
+            setSyncingIndiamart(false)
         }
     }
 
@@ -442,7 +491,7 @@ curl_close($ch);
                 </div>
             </div>
 
-            {/* CARD 2: IndiaMart Push API */}
+            {/* CARD 2: IndiaMart Automated Pull & Sync */}
             <div className="rounded-2xl border overflow-hidden" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b"
                     style={{ borderColor: T.border, background: T.surfaceRaised }}>
@@ -453,36 +502,48 @@ curl_close($ch);
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>IndiaMart (Push API)</h4>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>IndiaMART Lead Sync</h4>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
                                     style={{
                                         background: integrations.indiamartEnabled ? 'rgba(22,163,74,0.12)' : 'rgba(100,116,139,0.12)',
                                         color: integrations.indiamartEnabled ? '#16A34A' : T.textMuted,
                                     }}>
-                                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: integrations.indiamartEnabled ? '#16A34A' : T.border }} />
-                                    {integrations.indiamartEnabled ? 'Configured & Active' : 'Not Configured'}
+                                    <span className={`w-1.5 h-1.5 rounded-full ${integrations.indiamartEnabled ? 'bg-[#16A34A] animate-pulse' : 'bg-slate-400'}`} />
+                                    {integrations.indiamartEnabled ? 'Auto-Sync Active (Every 10m)' : 'Not Configured'}
                                 </span>
                             </div>
                             <p className="text-xs mt-0.5" style={{ color: T.textSecondary }}>
-                                Receive IndiaMart supplier inquiries directly into your CRM queue with automated account resolution.
+                                Automated background polling directly via IndiaMART REST API — zero middleware or Zapier required.
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-end flex-wrap">
                         {integrations.indiamartEnabled && (
-                            <button
-                                onClick={triggerClearIndiamart}
-                                disabled={savingIndiamart}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer"
-                                style={{ background: T.errorDim, borderColor: `${T.error}30`, color: T.error }}
-                            >
-                                <IconTrash size={13} /> Clear
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleSyncIndiamartNow}
+                                    disabled={syncingIndiamart}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-sm disabled:opacity-60"
+                                    style={{ background: T.surface, borderColor: T.primary, color: T.primary }}
+                                    title="Trigger immediate fetch from IndiaMART"
+                                >
+                                    <IconCloudDownload size={14} className={syncingIndiamart ? 'animate-bounce' : ''} />
+                                    {syncingIndiamart ? 'Syncing Leads...' : 'Sync Now'}
+                                </button>
+                                <button
+                                    onClick={triggerClearIndiamart}
+                                    disabled={savingIndiamart || syncingIndiamart}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer"
+                                    style={{ background: T.errorDim, borderColor: `${T.error}30`, color: T.error }}
+                                >
+                                    <IconTrash size={13} /> Clear
+                                </button>
+                            </>
                         )}
                         <button
                             onClick={handleSaveIndiamart}
-                            disabled={savingIndiamart}
+                            disabled={savingIndiamart || syncingIndiamart}
                             className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                             style={{ background: T.primary }}
                         >
@@ -493,16 +554,17 @@ curl_close($ch);
                 </div>
 
                 <div className="p-6 flex flex-col gap-4">
+                    {/* CRM Key input */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            IndiaMart CRM Key (GLUSR_CRM_KEY)
+                            IndiaMART CRM Key (GLUSR_CRM_KEY)
                         </label>
                         <div className="relative">
                             <input
                                 type={showIndiamartKey ? 'text' : 'password'}
                                 value={indiamartKeyInput}
                                 onChange={(e) => setIndiamartKeyInput(e.target.value)}
-                                placeholder="Enter IndiaMart GLUSR_CRM_KEY (e.g. mRxxxxxxx==)"
+                                placeholder="Enter your IndiaMART GLUSR_CRM_KEY (e.g. mRxxxxxxx==)"
                                 className="w-full px-3.5 py-2.5 pr-10 rounded-xl border text-xs font-mono outline-none"
                                 style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
                             />
@@ -515,14 +577,59 @@ curl_close($ch);
                                 {showIndiamartKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                             </button>
                         </div>
-                        <p className="text-[11px] mt-1" style={{ color: T.textSecondary }}>
-                            Obtain your CRM Key from IndiaMart Lead Manager Settings under Push API configuration. IndiaMart push webhook can point directly to: <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 font-mono">{activeWebhookUrl}</code>
-                        </p>
+                    </div>
+
+                    {/* Sync Status Info Bar */}
+                    {integrations.indiamartEnabled && (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 rounded-xl border text-xs"
+                            style={{ background: 'rgba(14,91,142,0.06)', borderColor: 'rgba(14,91,142,0.18)', color: T.textPrimary }}>
+                            <div className="flex items-center gap-2">
+                                <IconClock size={16} className="text-[#0E5B8E]" />
+                                <span>Last Polled: <strong>{formatLastSync(integrations.lastIndiamartSyncAt)}</strong></span>
+                            </div>
+                            <div className="text-[11px]" style={{ color: T.textSecondary }}>
+                                Next poll will run automatically in background within 10 minutes.
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step-by-Step Instructions */}
+                    <div className="rounded-xl p-4 border flex flex-col gap-2"
+                        style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                        <div className="flex items-center gap-2 text-xs font-bold" style={{ color: T.textPrimary }}>
+                            <IconInfoCircle size={15} className="text-blue-500" />
+                            <span>How to get your IndiaMART GLUSR_CRM_KEY:</span>
+                        </div>
+                        <ol className="text-xs list-decimal list-inside space-y-1.5 pl-1" style={{ color: T.textSecondary }}>
+                            <li>Log in to your seller portal at <a href="https://seller.indiamart.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline font-semibold inline-flex items-center gap-0.5">seller.indiamart.com <IconExternalLink size={11} /></a>.</li>
+                            <li>Navigate to <strong>Lead Manager</strong> &rarr; click the menu &rarr; select <strong>CRM Integration</strong> / <strong>Pull API</strong>.</li>
+                            <li>Click <strong>Generate Key</strong> (or copy your existing <strong>GLUSR_CRM_KEY</strong>).</li>
+                            <li>Paste the key above and click <strong>Save IndiaMart Key</strong>. The CRM background poller will automatically ingest your enquiries with deduplication.</li>
+                        </ol>
+                        <div className="pt-2 mt-1 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2" style={{ borderColor: T.borderSubtle }}>
+                            <span className="text-[11px]" style={{ color: T.textMuted }}>
+                                Alternatively, if IndiaMART provides you with an instant Push Webhook URL option:
+                            </span>
+                            <button
+                                onClick={async () => {
+                                    const ok = await copyToClipboard(activeWebhookUrl)
+                                    if (ok) {
+                                        setCopiedIndiamartWebhook(true)
+                                        setTimeout(() => setCopiedIndiamartWebhook(false), 2000)
+                                        toast.success('Webhook URL copied')
+                                    }
+                                }}
+                                className="flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer self-start sm:self-auto"
+                            >
+                                {copiedIndiamartWebhook ? <IconCheck size={12} className="text-green-500" /> : <IconCopy size={12} />}
+                                <span>{copiedIndiamartWebhook ? 'Copied' : 'Copy Push Webhook URL'}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* CARD 3: Sulekha Leads */}
+            {/* CARD 3: Sulekha Real-Time Webhook Push */}
             <div className="rounded-2xl border overflow-hidden" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b"
                     style={{ borderColor: T.border, background: T.surfaceRaised }}>
@@ -533,18 +640,18 @@ curl_close($ch);
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>Sulekha Leads</h4>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+                                <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>Sulekha Leads (Webhook Push)</h4>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
                                     style={{
-                                        background: integrations.sulekhaEnabled ? 'rgba(22,163,74,0.12)' : 'rgba(100,116,139,0.12)',
-                                        color: integrations.sulekhaEnabled ? '#16A34A' : T.textMuted,
+                                        background: integrations.sulekhaEnabled ? 'rgba(22,163,74,0.12)' : 'rgba(234,179,8,0.12)',
+                                        color: integrations.sulekhaEnabled ? '#16A34A' : '#CA8A04',
                                     }}>
-                                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: integrations.sulekhaEnabled ? '#16A34A' : T.border }} />
-                                    {integrations.sulekhaEnabled ? 'Configured & Active' : 'Not Configured'}
+                                    <span className={`w-1.5 h-1.5 rounded-full ${integrations.sulekhaEnabled ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'}`} />
+                                    {integrations.sulekhaEnabled ? 'Secret Verified & Active' : 'Ready for Inbound Push'}
                                 </span>
                             </div>
                             <p className="text-xs mt-0.5" style={{ color: T.textSecondary }}>
-                                Ingest verified local service inquiries and leads from Sulekha Campaign Manager.
+                                Receive verified local service customer inquiries in real time from Sulekha Business Partner Portal.
                             </p>
                         </div>
                     </div>
@@ -572,17 +679,52 @@ curl_close($ch);
                     </div>
                 </div>
 
-                <div className="p-6 flex flex-col gap-4">
+                <div className="p-6 flex flex-col gap-5">
+                    {/* Sulekha Target Webhook URL with 1-click copy */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            Webhook Secret Token
+                            Sulekha Webhook Forwarding URL
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1 px-3.5 py-2.5 rounded-xl border text-xs font-mono select-all overflow-x-auto whitespace-nowrap scrollbar-none"
+                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}>
+                                {activeWebhookUrl}
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    const ok = await copyToClipboard(activeWebhookUrl)
+                                    if (ok) {
+                                        setCopiedSulekhaUrl(true)
+                                        setTimeout(() => setCopiedSulekhaUrl(false), 2000)
+                                        toast.success('Sulekha Webhook URL copied!')
+                                    }
+                                }}
+                                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 shadow-sm cursor-pointer"
+                                style={{
+                                    background: copiedSulekhaUrl ? '#16A34A' : '#E74C3C',
+                                    color: '#fff',
+                                }}
+                            >
+                                {copiedSulekhaUrl ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                                <span>{copiedSulekhaUrl ? 'Copied!' : 'Copy Webhook URL'}</span>
+                            </button>
+                        </div>
+                        <p className="text-[11px] mt-1" style={{ color: T.textSecondary }}>
+                            Paste this URL directly into your Sulekha Business Partner dashboard under Webhook CRM Forwarding.
+                        </p>
+                    </div>
+
+                    {/* Optional Verification Secret Token */}
+                    <div className="flex flex-col gap-1.5 pt-2 border-t" style={{ borderColor: T.borderSubtle }}>
+                        <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
+                            Verification Secret Token (Optional)
                         </label>
                         <div className="relative">
                             <input
                                 type={showSulekhaSecret ? 'text' : 'password'}
                                 value={sulekhaSecretInput}
                                 onChange={(e) => setSulekhaSecretInput(e.target.value)}
-                                placeholder="Enter Sulekha verification secret token..."
+                                placeholder="Enter Sulekha webhook secret if configured..."
                                 className="w-full px-3.5 py-2.5 pr-10 rounded-xl border text-xs font-mono outline-none"
                                 style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
                             />
@@ -595,9 +737,22 @@ curl_close($ch);
                                 {showSulekhaSecret ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                             </button>
                         </div>
-                        <p className="text-[11px] mt-1" style={{ color: T.textSecondary }}>
-                            Configure this secret token inside the Sulekha partner portal. Point the webhook callback to your tenant inbound endpoint: <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 font-mono">{activeWebhookUrl}</code>
-                        </p>
+                    </div>
+
+                    {/* Step-by-Step Instructions */}
+                    <div className="rounded-xl p-4 border flex flex-col gap-2"
+                        style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                        <div className="flex items-center gap-2 text-xs font-bold" style={{ color: T.textPrimary }}>
+                            <IconInfoCircle size={15} className="text-red-500" />
+                            <span>How to connect your Sulekha business account:</span>
+                        </div>
+                        <ol className="text-xs list-decimal list-inside space-y-1.5 pl-1" style={{ color: T.textSecondary }}>
+                            <li>Log in to <a href="https://business.sulekha.com" target="_blank" rel="noopener noreferrer" className="text-red-600 dark:text-red-400 underline font-semibold inline-flex items-center gap-0.5">business.sulekha.com <IconExternalLink size={11} /></a>.</li>
+                            <li>Go to <strong>Settings</strong> &rarr; <strong>CRM & Lead Forwarding</strong> &rarr; <strong>Webhook Push</strong>.</li>
+                            <li>Copy and paste your <strong>Sulekha Webhook Forwarding URL</strong> above into the Sulekha URL endpoint box.</li>
+                            <li>(Optional) If Sulekha provides a security token or secret, enter it in the Secret Token box above and click <strong>Save Sulekha Secret</strong>.</li>
+                            <li>Customer inquiries will automatically appear in your CRM with nested service details, location, and requirement notes.</li>
+                        </ol>
                     </div>
                 </div>
             </div>
