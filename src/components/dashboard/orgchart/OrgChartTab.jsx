@@ -254,11 +254,13 @@ export default function OrgChartTab({ onAgentClick }) {
                     </div>
 
                     {/* Designation Dropdown Filter */}
-                    <div className="w-full sm:w-48">
+                    <div className="w-full sm:w-56">
                         <CustomSelect
                             value={selectedDesignation}
                             onChange={e => setSelectedDesignation(e.target.value)}
                             placeholder="All Designations"
+                            icon="badge"
+                            className="px-3.5 py-2.5 rounded-xl font-semibold text-sm"
                         >
                             <option value="ALL">All Designations</option>
                             {allDesignations.map(d => (
@@ -270,15 +272,18 @@ export default function OrgChartTab({ onAgentClick }) {
                     </div>
 
                     {/* Role Dropdown Filter */}
-                    <div className="w-full sm:w-36">
+                    <div className="w-full sm:w-48">
                         <CustomSelect
                             value={selectedRole}
                             onChange={e => setSelectedRole(e.target.value)}
                             placeholder="All Roles"
+                            icon="shield_person"
+                            className="px-3.5 py-2.5 rounded-xl font-semibold text-sm"
                         >
                             <option value="ALL">All Roles</option>
                             <option value="ADMIN">Admin</option>
                             <option value="AGENT">Agent</option>
+                            <option value="COMPANY_SUPER_ADMIN">Company Super Admin</option>
                             <option value="SUPER_ADMIN">Super Admin</option>
                         </CustomSelect>
                     </div>

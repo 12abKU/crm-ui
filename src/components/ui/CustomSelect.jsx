@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { T } from '../../constants/theme'
 import { useFloating, autoUpdate, offset, flip, shift, size, FloatingPortal } from '@floating-ui/react'
 
-const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom', wrapperClassName = '', wrapperStyle = {} }, forwardedRef) => {
+const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 'Select...', disabled = false, className = '', style = {}, children, name, menuPlacement = 'bottom', wrapperClassName = '', wrapperStyle = {}, icon = null }, forwardedRef) => {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
@@ -97,8 +97,11 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
                 type="button"
                 disabled={disabled}
                 onClick={() => !disabled && setOpen(o => !o)}
-                className={`w-full flex items-center justify-between gap-2 text-left cursor-pointer transition-all duration-150 ${className}`}
+                className={`w-full flex items-center justify-between gap-2 text-left cursor-pointer transition-all duration-150 rounded-xl text-sm font-semibold ${className}`}
                 style={{
+                    borderRadius: 12,
+                    minHeight: 42,
+                    padding: '9px 14px',
                     opacity: disabled ? 0.45 : 1,
                     cursor: disabled ? 'not-allowed' : 'pointer',
                     color: selectedOption && selectedOption.value !== '' ? T.textPrimary : T.textMuted,
@@ -112,7 +115,14 @@ const CustomSelect = React.forwardRef(({ value, onChange, onBlur, placeholder = 
                     paddingRight: '12px'
                 }}
             >
-                <span className="truncate text-sm">{displayLabel}</span>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {icon && (
+                        <span className="material-symbols-outlined text-[18px] shrink-0" style={{ color: T.textMuted }}>
+                            {icon}
+                        </span>
+                    )}
+                    <span className="truncate text-sm">{displayLabel}</span>
+                </div>
                 <span className="material-symbols-outlined text-[18px] shrink-0 transition-transform duration-200"
                     style={{ color: T.textMuted, transform: open ? 'rotate(180deg)' : 'none' }}>
                     expand_more
