@@ -439,55 +439,6 @@ curl_close($ch);
                             </button>
                         </div>
                     </div>
-
-                    {/* Sample Code Snippet Selector */}
-                    <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: T.borderSubtle }}>
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: T.textMuted }}>
-                                <IconCode size={14} />
-                                Sample Inbound Code
-                            </label>
-                            <div className="flex items-center gap-1 p-0.5 rounded-lg border text-xs font-bold"
-                                style={{ background: T.surfaceRaised, borderColor: T.border }}>
-                                <button
-                                    onClick={() => setSnippetTab('curl')}
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-[11px] cursor-pointer"
-                                    style={{
-                                        background: snippetTab === 'curl' ? T.primary : 'transparent',
-                                        color: snippetTab === 'curl' ? '#fff' : T.textSecondary,
-                                    }}
-                                >
-                                    <IconTerminal2 size={12} /> cURL
-                                </button>
-                                <button
-                                    onClick={() => setSnippetTab('php')}
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded-md transition-all text-[11px] cursor-pointer"
-                                    style={{
-                                        background: snippetTab === 'php' ? T.primary : 'transparent',
-                                        color: snippetTab === 'php' ? '#fff' : T.textSecondary,
-                                    }}
-                                >
-                                    <IconBrandPhp size={12} /> PHP (cURL)
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="relative rounded-xl border overflow-hidden"
-                            style={{ background: '#0F172A', borderColor: T.border }}>
-                            <div className="absolute right-3 top-3 z-10">
-                                <button
-                                    onClick={() => handleCopySnippet(snippetTab === 'curl' ? curlSnippet : phpSnippet)}
-                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-sm cursor-pointer"
-                                >
-                                    {copiedSnippet ? <IconCheck size={12} className="text-green-400" /> : <IconCopy size={12} />}
-                                    <span>{copiedSnippet ? 'Copied' : 'Copy Code'}</span>
-                                </button>
-                            </div>
-                            <pre className="p-4 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre leading-relaxed scrollbar-none">
-                                {snippetTab === 'curl' ? curlSnippet : phpSnippet}
-                            </pre>
-                        </div>
-                    </div>
                 </div>
             </div>
 

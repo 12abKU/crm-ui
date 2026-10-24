@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { setLeadStages } from '../store/pipelineSlice'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
 import SlideForm from '../components/SlideForm'
@@ -63,6 +64,7 @@ const EMPTY_FORM = { title: '', status: 'NEW', source: '', senderName: '', sende
 
 export default function Leads() {
     const { confirm, alert } = useDialog()
+    const dispatch = useDispatch()
     const { stages: leadStages, getStageStyle } = usePipelineStages('LEAD')
     const [viewMode, setViewMode] = useState('kanban') // 'kanban' or 'list' 
     const navigate = useNavigate()
@@ -149,16 +151,31 @@ export default function Leads() {
         }
     }, [])
 
-    const loadAllStages = async (currentSearch = '', page = 0) => {
+    useEffect(() => {
+        api.get('/api/pipelines?entityType=LEAD').then(r => {
+            if (r.data && r.data.length > 0 && r.data[0].stages?.length > 0) {
+                dispatch(setLeadStages(r.data[0].stages))
+            }
+        }).catch(() => {})
+    }, [dispatch])
+
+    const stagesKey = (leadStages || []).map(s => s.stageKey).join(',')
+
+    const loadAllStages = useCallback(async (currentSearch = '', page = 0) => {
+        if (!leadStages || leadStages.length === 0) return
         leadStages.forEach(stageObj => {
             loadStageLeads(stageObj.stageKey, page, false, currentSearch)
         })
-    }
+    }, [leadStages])
 
     useEffect(() => {
-        const timer = setTimeout(() => loadAllStages(search, 0), 350)
+        if (!leadStages || leadStages.length === 0) return
+        const timer = setTimeout(() => loadAllStages(search, 0), 200)
         return () => clearTimeout(timer)
-    }, [search])
+    }, [search, stagesKey, loadAllStages])
+
+
+
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search)
