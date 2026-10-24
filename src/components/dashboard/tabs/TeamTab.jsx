@@ -43,7 +43,7 @@ export default function TeamTab({ data, onAgentClick }) {
         } else {
             setSearchParams(prev => {
                 const next = new URLSearchParams(prev)
-                next.set('tab', 'team')
+                next.delete('tab')
                 next.set('view', view)
                 return next
             }, { replace: true })
@@ -60,7 +60,7 @@ export default function TeamTab({ data, onAgentClick }) {
         }
         setSearchParams(prev => {
             const next = new URLSearchParams(prev)
-            next.set('tab', 'team')
+            next.delete('tab')
             next.set('view', nextView)
             return next
         })

@@ -10,7 +10,7 @@ import DealsTab from './tabs/DealsTab'
 import ContactsTab from './tabs/ContactsTab'
 import ActivitiesTab from './tabs/ActivitiesTab'
 import RevenueTab from './tabs/RevenueTab'
-import TeamTab from './tabs/TeamTab'
+
 import BottlenecksTab from './tabs/BottlenecksTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
@@ -26,7 +26,7 @@ const TABS = [
     { key: 'contacts', label: 'Contacts', icon: 'groups' },
     { key: 'activities', label: 'Sales Activities', icon: 'event_note' },
     { key: 'revenue', label: 'Revenue', icon: 'payments' },
-    { key: 'team', label: 'Team', icon: 'people' },
+
 ]
 
 export default function AdminDashboard() {
@@ -73,6 +73,10 @@ export default function AdminDashboard() {
     }, [tabData])
 
     useEffect(() => {
+        if (activeTab === 'team') {
+            navigate('/org', { replace: true })
+            return
+        }
         const prefix = getCachePrefix()
         const fullKey = `${prefix}:dashboard:summary`
         const cached = listCache.get(fullKey)
@@ -101,10 +105,14 @@ export default function AdminDashboard() {
     }, [])
 
     useEffect(() => {
+        if (activeTab === 'team') {
+            navigate('/org', { replace: true })
+            return
+        }
         if (activeTab !== 'summary') {
             loadTab(activeTab, selectedPipelineId)
         }
-    }, [activeTab, selectedPipelineId, loadTab])
+    }, [activeTab, selectedPipelineId, loadTab, navigate])
 
     const handleTab = (key) => {
         setSearchParams({ tab: key })
@@ -246,7 +254,7 @@ export default function AdminDashboard() {
                         {activeTab === 'contacts' && <ContactsTab data={tabData.contacts} />}
                         {activeTab === 'activities' && <ActivitiesTab data={tabData.activities} />}
                         {activeTab === 'revenue' && <RevenueTab data={currentTabData} activeStages={activeStages} />}
-                        {activeTab === 'team' && <TeamTab data={tabData.team} onAgentClick={(id) => navigate(`/team/${id}`)} />}
+
                     </>
                 )}
             </main>
