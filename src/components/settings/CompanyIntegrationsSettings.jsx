@@ -105,9 +105,18 @@ export default function CompanyIntegrationsSettings() {
         loadIntegrations()
     }, [])
 
+    // ── Resolved Webhook URL (Ensures HTTPS when viewing over HTTPS) ────────
+    const getResolvedWebhookUrl = () => {
+        let url = integrations.webhookUrl || `${window.location.origin}/api/webhooks/inbound/${integrations.webhookApiKey}`
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+            url = url.replace('http://', 'https://')
+        }
+        return url
+    }
+
     // ── Copy Handlers ────────────────────────────────────────────────────────
     const handleCopyUrl = async () => {
-        const url = integrations.webhookUrl || `${window.location.origin}/api/webhooks/inbound/${integrations.webhookApiKey}`
+        const url = getResolvedWebhookUrl()
         const ok = await copyToClipboard(url)
         if (ok) {
             setCopiedUrl(true)
@@ -259,7 +268,7 @@ export default function CompanyIntegrationsSettings() {
         )
     }
 
-    const activeWebhookUrl = integrations.webhookUrl || `${window.location.origin}/api/webhooks/inbound/${integrations.webhookApiKey}`
+    const activeWebhookUrl = getResolvedWebhookUrl()
 
     const curlSnippet = `curl -X POST "${activeWebhookUrl}" \\
   -H "Content-Type: application/json" \\
