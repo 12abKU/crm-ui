@@ -204,8 +204,8 @@ button {
     border-bottom: 1px solid var(--crm-border, #F0EBE3);
 }
 
-.crm-sidebar nav a:hover {
-    background: rgba(255, 255, 255, 0.07) !important;
+.crm-sidebar nav a:not(.active):hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* ── Scrollbar Hiding Utility ── */

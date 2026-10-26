@@ -401,7 +401,7 @@ export default function Calendar() {
                             type="checkbox"
                             checked={form.remindHourlyOneDayBefore || false}
                             onChange={e => setF('remindHourlyOneDayBefore', e.target.checked)}
-                            className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-orange-300 cursor-pointer"
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
                         />
                         <label htmlFor="remindHourlyOneDayBefore" className="text-xs font-bold cursor-pointer" style={{ color: T.textPrimary }}>
                             Hourly alerts (Starting 24 hours prior)

@@ -160,34 +160,34 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
                 background: T.surfaceRaised, borderBottom: `1px solid ${T.borderSubtle}`,
                 flexShrink: 0,
             }}>
-                <button type="button" onClick={() => execCmd('bold')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bold">
+                <button type="button" onClick={() => execCmd('bold')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bold">
                     <span className="material-symbols-outlined text-[18px] font-bold">format_bold</span>
                 </button>
-                <button type="button" onClick={() => execCmd('italic')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Italic">
+                <button type="button" onClick={() => execCmd('italic')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Italic">
                     <span className="material-symbols-outlined text-[18px]">format_italic</span>
                 </button>
-                <button type="button" onClick={() => execCmd('underline')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Underline">
+                <button type="button" onClick={() => execCmd('underline')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Underline">
                     <span className="material-symbols-outlined text-[18px]">format_underlined</span>
                 </button>
-                <button type="button" onClick={() => execCmd('strikeThrough')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Strikethrough">
+                <button type="button" onClick={() => execCmd('strikeThrough')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Strikethrough">
                     <span className="material-symbols-outlined text-[18px]">format_strikethrough</span>
                 </button>
-                <button type="button" onClick={() => execCmd('insertUnorderedList')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bullet List">
+                <button type="button" onClick={() => execCmd('insertUnorderedList')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Bullet List">
                     <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
                 </button>
-                <button type="button" onClick={() => execCmd('hiliteColor', '#FDBA74')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Highlight">
+                <button type="button" onClick={() => execCmd('hiliteColor', '#93C5FD')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Highlight">
                     <span className="material-symbols-outlined text-[18px]">border_color</span>
                 </button>
 
                 <div style={{ width: 1, height: 18, background: T.borderSubtle, margin: '0 4px' }} />
 
-                <button type="button" onClick={() => execCmd('justifyLeft')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Left">
+                <button type="button" onClick={() => execCmd('justifyLeft')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Left">
                     <span className="material-symbols-outlined text-[18px]">format_align_left</span>
                 </button>
-                <button type="button" onClick={() => execCmd('justifyCenter')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Center">
+                <button type="button" onClick={() => execCmd('justifyCenter')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Center">
                     <span className="material-symbols-outlined text-[18px]">format_align_center</span>
                 </button>
-                <button type="button" onClick={() => execCmd('justifyRight')} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Right">
+                <button type="button" onClick={() => execCmd('justifyRight')} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Align Right">
                     <span className="material-symbols-outlined text-[18px]">format_align_right</span>
                 </button>
 
@@ -199,11 +199,11 @@ function ComposePanel({ contact, replyTo, onSent, onClose }) {
                         message: 'Enter link URL (e.g. https://google.com):'
                     });
                     if (url) execCmd('createLink', url);
-                }} className="w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Insert Link">
+                }} className="w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" style={{ color: T.textSecondary, background: 'transparent', border: 'none', cursor: 'pointer' }} title="Insert Link">
                     <span className="material-symbols-outlined text-[18px]">link</span>
                 </button>
 
-                <div className="relative w-8 h-8 rounded hover:bg-orange-100 flex items-center justify-center" title="Text Color" style={{ cursor: 'pointer' }}>
+                <div className="relative w-8 h-8 rounded hover:bg-slate-100 flex items-center justify-center" title="Text Color" style={{ cursor: 'pointer' }}>
                     <span className="material-symbols-outlined text-[18px]" style={{ color: T.textSecondary }}>format_color_text</span>
                     <input type="color" onChange={(e) => execCmd('foreColor', e.target.value)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
                 </div>
@@ -698,7 +698,7 @@ export default function Conversations() {
                                 <div className="flex items-center gap-3 flex-1 min-w-[200px]">
                                     <button 
                                         onClick={() => setSelectedContact(null)}
-                                        className="md:hidden flex items-center justify-center p-1.5 rounded-xl text-orange-600 transition-colors cursor-pointer shrink-0 -ml-1.5"
+                                        className="md:hidden flex items-center justify-center p-1.5 rounded-xl text-blue-600 transition-colors cursor-pointer shrink-0 -ml-1.5"
                                         style={{ color: T.primary }}
                                         onMouseEnter={e => e.currentTarget.style.background = T.primaryDim}
                                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
