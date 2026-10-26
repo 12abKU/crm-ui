@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, NAV_LINKS } from '../constants/theme'
+import { T, NAV_GROUPS } from '../constants/theme'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
@@ -12,9 +12,45 @@ export default function Sidebar() {
     const [overdue, setOverdue] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
 
-    // Auto-close sidebar on route change
+    // Collapsible group state with persistence in localStorage
+    const [collapsedGroups, setCollapsedGroups] = useState(() => {
+        try {
+            const saved = localStorage.getItem('crm_sidebar_collapsed')
+            return saved ? JSON.parse(saved) : {}
+        } catch {
+            return {}
+        }
+    })
+
+    const toggleGroup = (groupId) => {
+        setCollapsedGroups(prev => {
+            const next = { ...prev, [groupId]: !prev[groupId] }
+            try {
+                localStorage.setItem('crm_sidebar_collapsed', JSON.stringify(next))
+            } catch {}
+            return next
+        })
+    }
+
+    // Auto-close sidebar on mobile route change
     useEffect(() => {
         setIsOpen(false)
+    }, [pathname])
+
+    // Auto-expand group if current route is inside a collapsed group
+    useEffect(() => {
+        const activeGroup = NAV_GROUPS.find(g =>
+            g.items.some(item => item.to === pathname || (item.to !== '/' && pathname.startsWith(item.to)))
+        )
+        if (activeGroup && collapsedGroups[activeGroup.id]) {
+            setCollapsedGroups(prev => {
+                const next = { ...prev, [activeGroup.id]: false }
+                try {
+                    localStorage.setItem('crm_sidebar_collapsed', JSON.stringify(next))
+                } catch {}
+                return next
+            })
+        }
     }, [pathname])
 
     const { userId, name, role, companyName } = useSelector(state => state.auth)
@@ -115,7 +151,7 @@ export default function Sidebar() {
                 style={{ background: T.sidebar }}>
 
             {/* ── Logo ────────────────────────────────────── */}
-            <div className="px-5 pt-6 pb-5">
+            <div className="px-5 pt-6 pb-4">
                 <div className="flex items-center gap-3 px-1">
                     {/* Logo icon with glow */}
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative"
@@ -138,10 +174,10 @@ export default function Sidebar() {
             </div>
 
             {/* ── Divider ──────────────────────────────────── */}
-            <div className="mx-4 mb-3" style={{ height: 1, background: T.sidebarHover }} />
+            <div className="mx-4 mb-2.5" style={{ height: 1, background: T.sidebarHover }} />
 
             {/* ── Nav ─────────────────────────────────────── */}
-            <nav className="flex-1 flex flex-col gap-0.5 px-3 overflow-y-auto">
+            <nav className="flex-1 flex flex-col gap-0.5 px-3 overflow-y-auto scrollbar-thin">
 
                 {isSuperAdmin ? (
                     // SUPER_ADMIN sees ONLY platform nav (unchanged logic)
@@ -189,94 +225,121 @@ export default function Sidebar() {
                         </NavLink>
                     </>
                 ) : (
-                    // CRM users (ADMIN / AGENT) see CRM nav (unchanged logic)
+                    // CRM users (ADMIN / AGENT) see cleanly grouped navigation
                     <>
-                        <p className="px-4 pt-2 pb-2 text-[9px] font-black uppercase tracking-widest"
-                            style={{ color: T.heroSubText }}>Main Menu</p>
-
-                        {NAV_LINKS.filter(({ to }) => !(role === 'AGENT' && (to === '/documents' || to === '/de-duplication' || to === '/org'))).map(({ to, icon, label }) => (
-                            <NavLink key={to} to={to} end={to === '/'}
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 text-sm"
+                        {/* ── Top Dashboard ── */}
+                        <div className="mb-1">
+                            <NavLink to="/" end
+                                className="flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-150 text-sm"
                                 style={navStyle}>
                                 {({ isActive }) => (
                                     <>
                                         <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>
-                                            {icon}
+                                            dashboard
                                         </span>
-                                        <span className="flex-1">{label}</span>
-                                        {/* Overdue badge on Activities (unchanged) */}
-                                        {to === '/activities' && overdue > 0 && (
-                                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
-                                                style={{ background: '#DC2626', color: '#fff' }}>
-                                                {overdue > 99 ? '99+' : overdue}
-                                            </span>
-                                        )}
-                                        {/* Unread badge on Chat */}
-                                        {to === '/chat' && unreadChatCount > 0 && (
-                                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
-                                                style={{ background: '#DC2626', color: '#fff' }}>
-                                                {unreadChatCount > 99 ? '99+' : unreadChatCount}
-                                            </span>
-                                        )}
+                                        <span className="flex-1 font-semibold">Dashboard</span>
                                     </>
                                 )}
                             </NavLink>
-                        ))}
+                        </div>
+
+                        {/* ── Grouped Navigation ── */}
+                        {NAV_GROUPS.map(group => {
+                            // Check adminOnly group
+                            if (group.adminOnly && role === 'AGENT') return null
+
+                            // Filter visible items in group based on user role
+                            const visibleItems = group.items.filter(item => {
+                                if (role === 'AGENT') {
+                                    if (item.adminOnly) return false
+                                    if (item.to === '/documents' || item.to === '/de-duplication' || item.to === '/org' || item.to === '/audit-log' || item.to === '/privacy') {
+                                        return false
+                                    }
+                                }
+                                return true
+                            })
+
+                            if (visibleItems.length === 0) return null
+
+                            const isCollapsed = Boolean(collapsedGroups[group.id])
+
+                            // Calculate any active badges inside this group for collapsed state
+                            let groupBadgeCount = 0
+                            if (group.id === 'communication') {
+                                groupBadgeCount = (overdue > 0 ? overdue : 0) + (unreadChatCount > 0 ? unreadChatCount : 0)
+                            }
+
+                            return (
+                                <div key={group.id} className="pt-2 pb-0.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleGroup(group.id)}
+                                        className="flex items-center justify-between w-full px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors select-none group cursor-pointer hover:bg-white/5"
+                                        style={{ color: T.heroSubText }}
+                                    >
+                                        <span className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
+                                            {group.label}
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            {isCollapsed && groupBadgeCount > 0 && (
+                                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center"
+                                                    style={{ background: '#DC2626', color: '#fff' }}>
+                                                    {groupBadgeCount > 99 ? '99+' : groupBadgeCount}
+                                                </span>
+                                            )}
+                                            <span className="material-symbols-outlined text-[14px] transition-transform duration-200"
+                                                style={{
+                                                    transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                                                    color: T.heroSubText,
+                                                }}>
+                                                expand_more
+                                            </span>
+                                        </div>
+                                    </button>
+
+                                    {!isCollapsed && (
+                                        <div className="flex flex-col gap-0.5 mt-0.5">
+                                            {visibleItems.map(({ to, icon, label }) => (
+                                                <NavLink key={to} to={to} end={to === '/'}
+                                                    className="flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-150 text-sm"
+                                                    style={navStyle}>
+                                                    {({ isActive }) => (
+                                                        <>
+                                                            <span className={`material-symbols-outlined text-[19px] ${isActive ? 'filled' : ''}`}>
+                                                                {icon}
+                                                            </span>
+                                                            <span className="flex-1">{label}</span>
+                                                            {to === '/activities' && overdue > 0 && (
+                                                                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
+                                                                    style={{ background: '#DC2626', color: '#fff' }}>
+                                                                    {overdue > 99 ? '99+' : overdue}
+                                                                </span>
+                                                            )}
+                                                            {to === '/chat' && unreadChatCount > 0 && (
+                                                                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-4.5 text-center"
+                                                                    style={{ background: '#DC2626', color: '#fff' }}>
+                                                                    {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </NavLink>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })}
                     </>
                 )}
             </nav>
-
-
-
-            {/* ── Support — only for CRM users (unchanged logic) ── */}
-            {!isSuperAdmin && (
-                <div className="flex flex-col gap-0.5 px-3 py-2"
-                    style={{ borderTop: `1px solid ${T.sidebarBorder}` }}>
-                    <NavLink to="/support"
-                        className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
-                        style={navStyle}>
-                        {({ isActive }) => (
-                            <>
-                                <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>contact_support</span>
-                                <span>Support</span>
-                            </>
-                        )}
-                    </NavLink>
-
-                    {/* Audit Log — ADMIN and COMPANY_SUPER_ADMIN */}
-                    {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
-                        <>
-                            <NavLink to="/audit-log"
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
-                                style={navStyle}>
-                                {({ isActive }) => (
-                                    <>
-                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>history</span>
-                                        <span>Audit Log</span>
-                                    </>
-                                )}
-                            </NavLink>
-                            <NavLink to="/privacy"
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-left text-sm transition-all duration-150"
-                                style={navStyle}>
-                                {({ isActive }) => (
-                                    <>
-                                        <span className={`material-symbols-outlined text-[18px] ${isActive ? 'filled' : ''}`}>privacy_tip</span>
-                                        <span>Privacy & Compliance</span>
-                                    </>
-                                )}
-                            </NavLink>
-                        </>
-                    )}
-                </div>
-            )}
 
             {/* ── User footer (unchanged logic) ───────────── */}
             <button
                 onClick={() => navigate(isSuperAdmin ? '/platform/profile' : '/settings')}
                 onMouseEnter={() => setUserHover(true)}
                 onMouseLeave={() => setUserHover(false)}
-                className="px-4 py-4 flex items-center gap-3 w-full text-left transition-all duration-150"
+                className="px-4 py-3.5 flex items-center gap-3 w-full text-left transition-all duration-150"
                 style={{
                     borderTop: `1px solid ${T.sidebarBorder}`,
                     background: userHover ? T.sidebarHover : 'transparent',

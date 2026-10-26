@@ -261,6 +261,50 @@ export const TAGS = ['High-Value', 'Low-Value', 'Enterprise', 'Small Business', 
 export const EMPLOYEE_RANGES = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1001-5000', '10000+']
 export const ACTIVITY_TYPES = ['CALL', 'EMAIL', 'NOTE', 'MEETING']
 
+export const NAV_GROUPS = [
+    {
+        id: 'sales',
+        label: 'Sales & Pipeline',
+        items: [
+            { to: '/leads', icon: 'person_search', label: 'Leads' },
+            { to: '/deals', icon: 'handshake', label: 'Deals' },
+            { to: '/accounts', icon: 'business', label: 'Accounts' },
+            { to: '/contacts', icon: 'groups', label: 'Contacts' },
+        ],
+    },
+    {
+        id: 'communication',
+        label: 'Communication',
+        items: [
+            { to: '/activities', icon: 'event_note', label: 'Activities' },
+            { to: '/calendar', icon: 'calendar_month', label: 'Calendar' },
+            { to: '/calls', icon: 'call', label: 'Calls' },
+            { to: '/conversations', icon: 'forum', label: 'Conversations' },
+            { to: '/chat', icon: 'chat', label: 'Internal Chat' },
+        ],
+    },
+    {
+        id: 'organization',
+        label: 'Organization & Data',
+        adminOnly: true,
+        items: [
+            { to: '/org', icon: 'corporate_fare', label: 'Organization', adminOnly: true },
+            { to: '/documents', icon: 'description', label: 'Documents', adminOnly: true },
+            { to: '/de-duplication', icon: 'cleaning_services', label: 'De-Duplication', adminOnly: true },
+        ],
+    },
+    {
+        id: 'system',
+        label: 'System & Support',
+        items: [
+            { to: '/settings', icon: 'settings', label: 'Settings' },
+            { to: '/support', icon: 'contact_support', label: 'Support' },
+            { to: '/audit-log', icon: 'history', label: 'Audit Log', adminOnly: true },
+            { to: '/privacy', icon: 'privacy_tip', label: 'Privacy & Compliance', adminOnly: true },
+        ],
+    },
+]
+
 export const NAV_LINKS = [
     { to: '/', icon: 'dashboard', label: 'Dashboard' },
     { to: '/accounts', icon: 'business', label: 'Accounts' },
