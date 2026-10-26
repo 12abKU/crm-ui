@@ -168,7 +168,11 @@ export default function LeadProfile() {
                                         {profile.status}
                                     </span>
                                     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.8)' }}>
-                                        {profile.source}
+                                        {(profile.title?.toLowerCase().includes('demo request') || profile.customValues?.form_type === 'REQUEST_DEMO')
+                                            ? 'Demo Request'
+                                            : (profile.title?.toLowerCase().includes('contact us') || profile.customValues?.form_type === 'CONTACT_US')
+                                            ? 'Contact Us'
+                                            : profile.source}
                                     </span>
                                 </div>
                             </div>

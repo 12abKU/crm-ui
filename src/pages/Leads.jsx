@@ -530,8 +530,23 @@ export default function Leads() {
                                                         {lead.title || lead.senderName || 'Unknown Lead'}
                                                     </h4>
                                                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
-                                                        style={{ background: T.primaryFaint, color: T.primaryText }}>
-                                                        {lead.source}
+                                                        style={{
+                                                            background: (lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
+                                                                ? 'rgba(37,99,235,0.12)'
+                                                                : (lead.title?.toLowerCase().includes('contact us') || lead.customValues?.form_type === 'CONTACT_US')
+                                                                ? 'rgba(147,51,234,0.12)'
+                                                                : T.primaryFaint,
+                                                            color: (lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
+                                                                ? '#2563EB'
+                                                                : (lead.title?.toLowerCase().includes('contact us') || lead.customValues?.form_type === 'CONTACT_US')
+                                                                ? '#9333EA'
+                                                                : T.primaryText,
+                                                        }}>
+                                                        {(lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
+                                                            ? 'Demo Request'
+                                                            : (lead.title?.toLowerCase().includes('contact us') || lead.customValues?.form_type === 'CONTACT_US')
+                                                            ? 'Contact Us'
+                                                            : lead.source}
                                                     </span>
                                                 </div>
                                                 {lead.senderEmail && <p className="text-xs text-muted mb-1 truncate" style={{ color: T.textSecondary }}>{lead.senderEmail}</p>}
