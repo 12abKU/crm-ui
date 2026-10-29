@@ -5,6 +5,7 @@ import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import AssignDealModal from './AssignDealModal'
+import TallySyncBadge from './TallySyncBadge'
 
 // ── Helpers ───────────────────────────────────────────────────────
 function OwnerAvatar({ user, onClick }) {
@@ -37,6 +38,14 @@ export default function DealCard({
     const navigate = useNavigate()
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
+    const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
+
+    const tallySyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : deal.tallySyncStatus
+    const tallySalesOrderNo = reduxSync?.tallySalesOrderNo ?? deal.tallySalesOrderNo
+    const tallyDeliveryNoteNo = reduxSync?.tallyDeliveryNoteNo ?? deal.tallyDeliveryNoteNo
+    const tallySalesInvoiceNo = reduxSync?.tallySalesInvoiceNo ?? deal.tallySalesInvoiceNo
+    const tallyLastSyncError = reduxSync?.tallyLastSyncError ?? deal.tallyLastSyncError
+    const showSyncBadge = tallySyncStatus && tallySyncStatus !== 'NONE'
 
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'
@@ -158,6 +167,29 @@ export default function DealCard({
                             <p className="text-[15px] font-black mt-1 text-left" style={{ color: stageStyle.accent }}>
                                 ₹{Number(deal.amount).toLocaleString('en-IN')}
                             </p>
+                        )}
+                        {/* Tally Sync Status Pipeline Badge */}
+                        {showSyncBadge && (
+                            <div
+                                className="mt-1.5"
+                                data-testid={`deal-sync-badge-${deal.id}`}
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <TallySyncBadge
+                                    status={tallySyncStatus}
+                                    salesOrderNo={tallySalesOrderNo}
+                                    deliveryNoteNo={tallyDeliveryNoteNo}
+                                    invoiceNo={tallySalesInvoiceNo}
+                                    lastError={tallyLastSyncError}
+                                    dealId={deal.id}
+                                    compact={true}
+                                    onRetry={() => {
+                                        if (onAssigned) {
+                                            onAssigned({ ...deal, tallySyncStatus: 'QUEUED', tallyLastSyncError: null })
+                                        }
+                                    }}
+                                />
+                            </div>
                         )}
                     </div>
 

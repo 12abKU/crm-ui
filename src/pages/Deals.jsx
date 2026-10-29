@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { batchSetDealSyncStatuses } from '../store/dealsSlice'
 import { LOST_DEAL_REASONS, T } from '../constants/theme'
 import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
@@ -80,6 +81,7 @@ export default function Deals() {
     const [pipelines, setPipelines] = useState([])
     const [selectedPipelineId, setSelectedPipelineId] = useState(null)
 
+    const dispatch = useDispatch()
     const userId = useSelector(state => state.auth.userId)
     const role = useSelector(state => state.auth.role)
     const can = usePermissions(['DEALS_CREATE', 'DEALS_EDIT', 'DEALS_DELETE', 'DEALS_ASSIGN'])
@@ -127,6 +129,10 @@ export default function Deals() {
                 _assignedToMe: (d.assignees ?? []).some(u => String(u.id) === String(userId)),
                 _isOwner: String(d.owner?.id) === String(userId),
             }))
+
+            if (content.length > 0) {
+                dispatch(batchSetDealSyncStatuses(content))
+            }
 
             setDealsByStage(prev => {
                 const merged = isAppend ? [...(prev[stageKey] || []), ...processed] : processed
@@ -221,9 +227,12 @@ export default function Deals() {
             const nextTotalPages = {}
             const nextTotals = {}
 
+            const allContent = []
             stageKeys.forEach(stageKey => {
                 const data = stagesData[stageKey.toUpperCase()] ?? stagesData[stageKey] ?? {}
-                const content = (data.content ?? []).map(d => ({
+                const rawList = data.content ?? []
+                allContent.push(...rawList)
+                const content = rawList.map(d => ({
                     ...d,
                     _assignedToMe: (d.assignees ?? []).some(u => String(u.id) === String(userId)),
                     _isOwner: String(d.owner?.id) === String(userId),
@@ -233,6 +242,10 @@ export default function Deals() {
                 nextTotalPages[stageKey] = data.totalPages ?? 0
                 nextTotals[stageKey] = { count: data.stageTotalCount ?? 0, amount: data.stageTotalAmount ?? 0 }
             })
+
+            if (allContent.length > 0) {
+                dispatch(batchSetDealSyncStatuses(allContent))
+            }
 
             setDealsByStage(nextDeals)
             setPagesByStage(nextPages)
@@ -895,9 +908,19 @@ export default function Deals() {
                 <DealPanel
                     deal={selectedDeal}
                     initialTab={new URLSearchParams(location.search).get('tab')}
+                    onDealUpdated={(updated) => {
+                        if (updated) {
+                            updateDealInStage(updated.id, updated)
+                            if (selectedDeal && selectedDeal.id === updated.id) {
+                                setSelectedDeal(prev => ({ ...prev, ...updated }))
+                            }
+                        }
+                    }}
                     onClose={() => {
+                        const currentStg = selectedDeal.stage
                         setSelectedDeal(null)
                         navigate(location.pathname, { replace: true })
+                        if (currentStg) loadStageDeals(currentStg, 0, false, search)
                     }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
                     onEdit={() => setEditModalDeal(selectedDeal)}

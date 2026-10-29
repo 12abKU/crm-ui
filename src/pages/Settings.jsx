@@ -12,6 +12,7 @@ import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
+import TallySettings from '../components/settings/TallySettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -104,6 +105,18 @@ export default function Settings() {
             }
             return <CompanyIntegrationsSettings />
         }
+        if (activeTab === 'tally') {
+            if (!['ADMIN', 'SUPER_ADMIN', 'COMPANY_SUPER_ADMIN'].includes(role)) {
+                return (
+                    <div className="p-8 text-center rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
+                        <p className="text-sm font-bold" style={{ color: T.error }}>
+                            Access Denied: TallyPrime accounting integration settings are restricted to Company Administrators.
+                        </p>
+                    </div>
+                )
+            }
+            return <TallySettings />
+        }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') return <AdminSettings />
         return <AgentSettings />
@@ -176,6 +189,7 @@ export default function Settings() {
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
                             { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
+                            { id: 'tally', label: 'TallyPrime Integration', icon: 'receipt_long' },
                         ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id

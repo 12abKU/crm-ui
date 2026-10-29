@@ -302,6 +302,12 @@ export default function Accounts() {
                                                 {a.industry && (
                                                     <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>{a.industry}</p>
                                                 )}
+                                                {(a.creditLimit != null || a.closingBalance != null) && (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold mt-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                                        <span className="material-symbols-outlined text-[11px]">credit_card</span>
+                                                        Bal: ₹{Number(a.closingBalance || 0).toLocaleString('en-IN')}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </td>

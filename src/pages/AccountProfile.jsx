@@ -12,6 +12,7 @@ import { usePermissions } from '../hooks/usePermission'
 import EntityAuditHistory from '../components/audit/EntityAuditHistory'
 import DocumentList from './DocumentList'
 import CustomFieldsDisplay from '../components/CustomFieldsDisplay'
+import AccountFinancialsTab from '../components/account/AccountFinancialsTab'
 
 
 // ── Helpers (unchanged) ─────────────────────────────────────────
@@ -313,6 +314,11 @@ export default function AccountProfile() {
                                 <InfoRow label="Tag" value={profile.tag} />
                                 <InfoRow label="Account ID" value={`#${profile.id}`} />
                             </div>
+                        </SectionCard>
+
+                        {/* TallyPrime 360 Financials & Credit Overview */}
+                        <SectionCard title="TallyPrime 360 Financials" icon="account_balance">
+                            <AccountFinancialsTab accountId={profile.id} account={profile} />
                         </SectionCard>
 
                         {/* Custom Fields */}

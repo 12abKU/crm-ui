@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { setDealSyncStatus } from '../../store/dealsSlice'
 import { T, SHADOW } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
 import api from '../../api'
@@ -15,10 +16,13 @@ import InternalNotes from '../notes/InternalNotes'
 import { usePermissions } from '../../hooks/usePermission'
 import RequirePermission from '../RequirePermission'
 import EntityAuditHistory from '../audit/EntityAuditHistory'
+import DealQuoteBuilder from '../deals/DealQuoteBuilder'
+import TallySyncBadge from '../deals/TallySyncBadge'
 
-// ── Tab config (unchanged) ─────────────────────────────────────
+// ── Tab config ──────────────────────────────────────────────────
 const TABS = [
     { id: 'overview',      icon: 'dashboard',     label: 'Overview' },
+    { id: 'quote',         icon: 'receipt_long',  label: 'Quote & Line Items' },
     { id: 'account',       icon: 'business',       label: 'Account Details' },
     { id: 'conversation',  icon: 'forum',          label: 'Conversations' },
     { id: 'activities',    icon: 'event_note',     label: 'Activities' },
@@ -29,8 +33,9 @@ const TABS = [
     { id: 'audit',         icon: 'history',        label: 'Audit', adminOnly: true },
 ]
 
-export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, initialTab }) {
+export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, initialTab, onDealUpdated }) {
     const { getStageLabel, getStageStyle } = usePipelineStages()
+    const dispatch = useDispatch()
     const [activeTab, setActiveTab] = useState(initialTab || 'overview')
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -38,6 +43,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
 
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
+    const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
 
     const isAgent = role === 'AGENT'
     const isAssignedToMe = deal.assignedTo?.id === Number(userId) || deal.assignedTo?.id === userId
@@ -61,6 +67,16 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
         if (cachedValue && !bypassCache) {
             setProfile(cachedValue)
             setLoading(false)
+            if (cachedValue.deal) {
+                dispatch(setDealSyncStatus({
+                    dealId,
+                    tallySyncStatus: cachedValue.deal.tallySyncStatus,
+                    tallySalesOrderNo: cachedValue.deal.tallySalesOrderNo,
+                    tallyDeliveryNoteNo: cachedValue.deal.tallyDeliveryNoteNo,
+                    tallySalesInvoiceNo: cachedValue.deal.tallySalesInvoiceNo,
+                    tallyLastSyncError: cachedValue.deal.tallyLastSyncError,
+                }))
+            }
         } else {
             setProfile(null)
             setLoading(true)
@@ -74,6 +90,17 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
             .then(r => {
                 setProfile(r.data)
                 profileCacheSet(cacheKey, r.data)
+                if (r.data?.deal) {
+                    dispatch(setDealSyncStatus({
+                        dealId,
+                        tallySyncStatus: r.data.deal.tallySyncStatus,
+                        tallySalesOrderNo: r.data.deal.tallySalesOrderNo,
+                        tallyDeliveryNoteNo: r.data.deal.tallyDeliveryNoteNo,
+                        tallySalesInvoiceNo: r.data.deal.tallySalesInvoiceNo,
+                        tallyLastSyncError: r.data.deal.tallyLastSyncError,
+                    }))
+                    if (onDealUpdated) onDealUpdated(r.data.deal)
+                }
             })
             .finally(() => setLoading(false))
     }, [deal.id])
@@ -86,6 +113,13 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
     const leadInfo = profile?.leadInfo ?? null
+    const activeDeal = profile?.deal || deal
+    const liveSyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : activeDeal.tallySyncStatus
+    const liveSO = reduxSync?.tallySalesOrderNo ?? activeDeal.tallySalesOrderNo
+    const liveDN = reduxSync?.tallyDeliveryNoteNo ?? activeDeal.tallyDeliveryNoteNo
+    const liveINV = reduxSync?.tallySalesInvoiceNo ?? activeDeal.tallySalesInvoiceNo
+    const liveErr = reduxSync?.tallyLastSyncError ?? activeDeal.tallyLastSyncError
+    const showHeaderBadge = liveSyncStatus && liveSyncStatus !== 'NONE'
 
     // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {
@@ -97,6 +131,17 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                     isAssignedToMe={isAssignedToMe}
                     canEdit={canEdit}
                     leadInfo={leadInfo}
+                    onOpenQuoteTab={() => setActiveTab('quote')}
+                    onDealUpdated={() => loadProfile(deal.id, true)}
+                />
+            )
+            case 'quote': return (
+                <DealQuoteBuilder
+                    deal={profile?.deal || deal}
+                    canEdit={canEdit}
+                    onQuoteSaved={() => {
+                        loadProfile(deal.id, true)
+                    }}
                 />
             )
             case 'account':      return <DealPanelAccount deal={deal} />
@@ -259,6 +304,17 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                                         style={{ background: T.heroBadgeBg, color: '#DBEAFE' }}>
                                         Assigned to you
                                     </span>
+                                )}
+                                {showHeaderBadge && (
+                                    <TallySyncBadge
+                                        status={liveSyncStatus}
+                                        salesOrderNo={liveSO}
+                                        deliveryNoteNo={liveDN}
+                                        invoiceNo={liveINV}
+                                        lastError={liveErr}
+                                        dealId={activeDeal.id}
+                                        onRetry={() => loadProfile(deal.id, true)}
+                                    />
                                 )}
                             </div>
 

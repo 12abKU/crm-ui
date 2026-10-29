@@ -9,6 +9,8 @@ import LostDealReasonModal from '../deals/LostDealReasonModal'
 import DocumentList from '../../pages/DocumentList'
 import LeadInfoCard from '../deals/LeadInfoCard'
 import CustomFieldsDisplay from '../CustomFieldsDisplay'
+import TallyFulfillmentStepper from '../deals/TallyFulfillmentStepper'
+import DealQuoteSummaryCard from '../deals/DealQuoteSummaryCard'
 
 // ── Shared InfoCard ───────────────────────────────────────────
 const InfoCard = ({ label, children }) => (
@@ -18,7 +20,7 @@ const InfoCard = ({ label, children }) => (
     </div>
 )
 
-export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit, leadInfo }) {
+export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit, leadInfo, onOpenQuoteTab, onDealUpdated }) {
     const { stages, getStageLabel, getStageStyle } = usePipelineStages()
     const [stage, setStage] = useState(deal.stage)
     const [lostDetails, setLostDetails] = useState({
@@ -116,6 +118,20 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                     </div>
                 )}
             </div>
+
+            {/* ── 3-Stage Order-to-Cash Stepper (Won / Sync Deals) ── */}
+            {(deal.stage === 'WON' || (deal.tallySyncStatus && deal.tallySyncStatus !== 'NONE')) && (
+                <TallyFulfillmentStepper
+                    deal={deal}
+                    onStatusUpdated={onDealUpdated}
+                />
+            )}
+
+            {/* ── Deal Quote Summary Card ── */}
+            <DealQuoteSummaryCard
+                deal={deal}
+                onOpenQuoteBuilder={onOpenQuoteTab}
+            />
 
             {/* ── Lead Info Card ──────────────────────── */}
             <LeadInfoCard leadInfo={leadInfo} />
