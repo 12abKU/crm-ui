@@ -360,6 +360,16 @@ export default function TallySettings() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
+                            <a
+                                href="/TallyBridge.zip"
+                                download="TallyBridge.zip"
+                                className="px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1"
+                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
+                                title="Download Windows Desktop Bridge"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">download</span>
+                                Download Bridge (.zip)
+                            </a>
                             <button
                                 type="button"
                                 onClick={() => setShowApiKey(!showApiKey)}
