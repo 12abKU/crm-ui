@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setDealSyncStatus } from '../../store/dealsSlice'
 import { T, SHADOW } from '../../constants/theme'
@@ -37,10 +37,15 @@ const TABS = [
 export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, initialTab, onDealUpdated }) {
     const { getStageLabel, getStageStyle } = usePipelineStages()
     const dispatch = useDispatch()
-    const [activeTab, setActiveTab] = useState(initialTab || 'overview')
+    const [activeTab, setActiveTab] = useState(() => initialTab || new URLSearchParams(window.location.search).get('tab') || 'overview')
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
     const s = getStageStyle(deal.stage)
+
+    const onDealUpdatedRef = useRef(onDealUpdated)
+    useEffect(() => {
+        onDealUpdatedRef.current = onDealUpdated
+    }, [onDealUpdated])
 
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
@@ -58,6 +63,24 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
         return true
     })
 
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId)
+        try {
+            const params = new URLSearchParams(window.location.search)
+            params.set('tab', tabId)
+            window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
+        } catch {
+            // safe fallback
+        }
+    }
+
+    // Sync external initialTab if given
+    useEffect(() => {
+        if (initialTab && initialTab !== activeTab) {
+            setActiveTab(initialTab)
+        }
+    }, [initialTab])
+
     // ── Data loading ─────────────────────────────────────────
     const loadProfile = useCallback((dealId = deal.id, bypassCache = false) => {
         const cacheKey = `${getCachePrefix()}:${dealId}`
@@ -67,8 +90,8 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
             setProfile(cachedValue)
             setLoading(false)
         } else {
-            setProfile(null)
-            setLoading(true)
+            setProfile(prev => prev ? prev : null)
+            if (!cachedValue) setLoading(true)
         }
 
         // Always fetch fresh profile from API in background to ensure real-time accuracy
@@ -85,35 +108,35 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                         tallySalesInvoiceNo: r.data.deal.tallySalesInvoiceNo,
                         tallyLastSyncError: r.data.deal.tallyLastSyncError,
                     }))
-                    if (onDealUpdated) onDealUpdated(r.data.deal)
+                    if (onDealUpdatedRef.current) onDealUpdatedRef.current(r.data.deal)
                 }
             })
             .catch(() => {})
             .finally(() => setLoading(false))
-    }, [deal.id, dispatch, onDealUpdated])
+    }, [deal.id, dispatch])
 
     useEffect(() => {
-        setActiveTab(initialTab || 'overview')
+        if (!deal?.id) return
+        const currentTabInUrl = new URLSearchParams(window.location.search).get('tab')
+        setActiveTab(initialTab || currentTabInUrl || 'overview')
         loadProfile(deal.id)
 
         // Always fetch fresh Tally sync status on open to bypass any stale cache
-        if (deal?.id) {
-            tallyAPI.getDealSyncStatus(deal.id)
-                .then(res => {
-                    if (res?.data) {
-                        dispatch(setDealSyncStatus({
-                            dealId: deal.id,
-                            tallySyncStatus: res.data.tallySyncStatus,
-                            tallySalesOrderNo: res.data.tallySalesOrderNo,
-                            tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
-                            tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
-                            tallyLastSyncError: res.data.lastSyncError,
-                        }))
-                    }
-                })
-                .catch(() => {})
-        }
-    }, [deal?.id, initialTab, loadProfile, dispatch])
+        tallyAPI.getDealSyncStatus(deal.id)
+            .then(res => {
+                if (res?.data) {
+                    dispatch(setDealSyncStatus({
+                        dealId: deal.id,
+                        tallySyncStatus: res.data.tallySyncStatus,
+                        tallySalesOrderNo: res.data.tallySalesOrderNo,
+                        tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
+                        tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
+                        tallyLastSyncError: res.data.lastSyncError,
+                    }))
+                }
+            })
+            .catch(() => {})
+    }, [deal?.id])
 
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
@@ -146,7 +169,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                     isAssignedToMe={isAssignedToMe}
                     canEdit={canEdit}
                     leadInfo={leadInfo}
-                    onOpenQuoteTab={() => setActiveTab('quote')}
+                    onOpenQuoteTab={() => handleTabChange('quote')}
                     onDealUpdated={() => loadProfile(deal.id, true)}
                 />
             )
@@ -159,19 +182,19 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                     }}
                 />
             )
-            case 'account':      return <DealPanelAccount deal={deal} />
-            case 'conversation': return <DealPanelConversation deal={deal} />
+            case 'account':      return <DealPanelAccount deal={activeDeal} />
+            case 'conversation': return <DealPanelConversation deal={activeDeal} />
             case 'activities':   return (
                 <DealPanelActivities
                     activities={activities}
                     loading={loading}
-                    deal={deal}
+                    deal={activeDeal}
                     onActivityAdded={() => loadProfile(deal.id, true)}
                 />
             )
-            case 'journey':  return <DealPanelJourney deal={deal} />
+            case 'journey':  return <DealPanelJourney deal={activeDeal} />
             case 'notes':    return can.NOTES_VIEW ? <InternalNotes dealId={deal.id} /> : null
-            case 'contacts': return <DealPanelContacts deal={deal} />
+            case 'contacts': return <DealPanelContacts deal={activeDeal} />
             case 'deals':    return <DealPanelDeals accountDeals={accountDeals} currentDealId={deal.id} loading={loading} />
             case 'audit':    return <EntityAuditHistory entityType="DEAL" entityId={deal.id} />
             default: return null
@@ -211,12 +234,12 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                     {visibleTabs.map(tab => {
                         const isActive = activeTab === tab.id
                         return (
-                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label}
+                            <button key={tab.id} onClick={() => handleTabChange(tab.id)} title={tab.label}
                                 className="relative w-10 h-10 rounded-xl flex items-center justify-center transition-all group"
                                 style={{
                                     background: isActive ? T.sidebarHover : 'transparent',
                                     color: isActive ? T.sidebarActiveText : T.sidebarText,
-                                    borderLeft: isActive ? '2px solid ${T.sidebarActiveText}' : '2px solid transparent',
+                                    borderLeft: isActive ? `2px solid ${T.sidebarActiveText}` : '2px solid transparent',
                                 }}
                                 onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = T.sidebarBorder; e.currentTarget.style.color = T.sidebarActiveText } }}
                                 onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.sidebarText } }}>
@@ -224,7 +247,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                                 {/* Tooltip */}
                                 <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-[11px] font-bold
                                     pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50"
-                                    style={{ background: '#0A1628', color: '#DBEAFE', boxShadow: '0 4px 16px rgba(0,0,0,0.25)', border: '1px solid ${T.sidebarBorder}' }}>
+                                    style={{ background: '#0A1628', color: '#DBEAFE', boxShadow: '0 4px 16px rgba(0,0,0,0.25)', border: `1px solid ${T.sidebarBorder}` }}>
                                     {tab.label}
                                 </div>
                             </button>

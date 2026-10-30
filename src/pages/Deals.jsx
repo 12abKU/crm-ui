@@ -277,6 +277,12 @@ export default function Deals() {
         return () => clearTimeout(timer)
     }, [highlightId, dealsByStage])
 
+    // Keep a ref to selectedDeal to avoid stale closure in URL sync effect
+    const selectedDealRef = useRef(selectedDeal)
+    useEffect(() => {
+        selectedDealRef.current = selectedDeal
+    }, [selectedDeal])
+
     // Monitor URL parameters for selected deal profiles
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search)
@@ -287,7 +293,7 @@ export default function Deals() {
         }
 
         // Keep selectedDeal if it matches the current dealId to prevent unwanted re-renders/closes
-        if (selectedDeal && String(selectedDeal.id) === String(dealIdParam)) {
+        if (selectedDealRef.current && String(selectedDealRef.current.id) === String(dealIdParam)) {
             return
         }
 
