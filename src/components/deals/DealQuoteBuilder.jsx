@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
+import { fetchTallyConnectionStatus } from '../../store/dealsSlice'
 import {
     checkGodownAvailability,
     computeLineItemAmounts,
@@ -21,6 +23,14 @@ import TallyConnectionBadge from './TallyConnectionBadge'
  * Styled with CRM Central Theme (T) to adapt seamlessly to both Light and Dark modes.
  */
 export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true }) {
+    const dispatch = useDispatch()
+    const { isConnected, tallyCompanyName } = useSelector(
+        state => state.deals?.tallyConnection || {}
+    )
+    const [offlineModeChoice, setOfflineModeChoice] = useState('cached') // 'cached' | 'wait'
+    const [liveBanner, setLiveBanner] = useState(null)
+    const [prevConnected, setPrevConnected] = useState(isConnected)
+
     const [lineItems, setLineItems] = useState([])
     const [inventory, setInventory] = useState([])
     const [godowns, setGodowns] = useState([])
@@ -29,6 +39,33 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
     const [saving, setSaving] = useState(false)
     const [errorMsg, setErrorMsg] = useState(null)
     const [successMsg, setSuccessMsg] = useState(null)
+
+    // Auto-refresh when Tally reconnects
+    useEffect(() => {
+        if (!prevConnected && isConnected) {
+            setLiveBanner('🟢 Tally is now Online! Live stock and inventory loaded.')
+            const timer = setTimeout(() => setLiveBanner(null), 5000)
+
+            Promise.allSettled([
+                tallyAPI.getInventory({ size: 100 }),
+                tallyAPI.getGodowns(),
+            ]).then(([invRes, godownsRes]) => {
+                if (invRes.status === 'fulfilled') {
+                    const invList = invRes.value?.data || invRes.value || []
+                    setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
+                        ...inv,
+                        itemName: inv.itemName || inv.tallyItemName || '',
+                    })))
+                }
+                if (godownsRes.status === 'fulfilled') {
+                    const gList = godownsRes.value?.data || godownsRes.value || []
+                    setGodowns(Array.isArray(gList) ? gList : [])
+                }
+            })
+            return () => clearTimeout(timer)
+        }
+        setPrevConnected(isConnected)
+    }, [isConnected, prevConnected])
 
     // Load initial data
     useEffect(() => {
@@ -289,6 +326,106 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 )}
             </div>
 
+            {/* Live Reconnected Banner */}
+            {liveBanner && (
+                <div
+                    className="p-3.5 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 transition"
+                    style={{
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        borderColor: 'rgba(16, 185, 129, 0.35)',
+                        color: '#10b981',
+                    }}
+                >
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">verified</span>
+                        <span>{liveBanner}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setLiveBanner(null)}
+                        className="text-xs opacity-75 hover:opacity-100 cursor-pointer"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
+
+            {/* Offline Mode Banner & Choices */}
+            {!isConnected && (
+                <div
+                    className="rounded-2xl border p-4 flex flex-col gap-3 transition"
+                    style={{
+                        background: 'rgba(245, 158, 11, 0.08)',
+                        borderColor: 'rgba(245, 158, 11, 0.3)',
+                    }}
+                >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                            <div
+                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                                style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">cloud_off</span>
+                            </div>
+                            <div>
+                                <h4 className="text-xs font-black uppercase tracking-wider flex items-center gap-2" style={{ color: '#f59e0b' }}>
+                                    <span>Tally is Offline</span>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400">
+                                        Choose Mode
+                                    </span>
+                                </h4>
+                                <p className="text-xs mt-0.5" style={{ color: T.textSecondary }}>
+                                    Real-time stock reservation is unavailable. Choose how you want to build this quote:
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Two Options Toggle */}
+                        <div
+                            className="inline-flex items-center gap-1 p-1 rounded-xl self-start md:self-auto"
+                            style={{ background: T.surfaceRaised, border: `1px solid ${T.borderSubtle}` }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setOfflineModeChoice('cached')}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                style={{
+                                    background: offlineModeChoice === 'cached' ? '#f59e0b' : 'transparent',
+                                    color: offlineModeChoice === 'cached' ? '#000' : T.textPrimary,
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[15px]">inventory_2</span>
+                                Use Saved DB Data
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setOfflineModeChoice('wait')}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                style={{
+                                    background: offlineModeChoice === 'wait' ? T.primary : 'transparent',
+                                    color: offlineModeChoice === 'wait' ? '#fff' : T.textPrimary,
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[15px]">sync</span>
+                                Wait for Live Tally
+                            </button>
+                        </div>
+                    </div>
+
+                    {offlineModeChoice === 'cached' && (
+                        <div
+                            className="text-[11px] flex items-center gap-2 pt-2 border-t"
+                            style={{ borderColor: 'rgba(245, 158, 11, 0.2)', color: T.textSecondary }}
+                        >
+                            <span className="material-symbols-outlined text-[15px] text-amber-400">info</span>
+                            <span>
+                                Showing items saved in CRM database. Stock levels are marked as <strong className="text-amber-400">Cached / Unverified</strong>. When Tally reconnects, live verification will automatically resume.
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Banners */}
             {errorMsg && (
                 <div className="p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2" style={{ background: T.errorDim, borderColor: T.error + '40', color: T.error }}>
@@ -303,7 +440,50 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 </div>
             )}
 
-            {/* Line Items Table */}
+            {!isConnected && offlineModeChoice === 'wait' ? (
+                <div
+                    className="p-12 text-center rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition"
+                    style={{ background: T.surfaceRaised, borderColor: T.border }}
+                >
+                    <div
+                        className="w-14 h-14 rounded-full flex items-center justify-center"
+                        style={{ background: 'rgba(59, 130, 246, 0.15)', color: T.primary }}
+                    >
+                        <span className="material-symbols-outlined text-[30px] animate-pulse">hourglass_top</span>
+                    </div>
+                    <div className="max-w-md">
+                        <h4 className="text-sm font-black" style={{ color: T.textPrimary }}>
+                            Waiting for TallyPrime to Connect...
+                        </h4>
+                        <p className="text-xs mt-1 leading-relaxed" style={{ color: T.textMuted }}>
+                            Please start <strong>TallyPrime</strong> and ensure your <strong>Tally Bridge</strong> is running.
+                            Live inventory, godown stock, and accurate rates will automatically display once connected.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            type="button"
+                            onClick={() => dispatch(fetchTallyConnectionStatus(true))}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                            style={{ background: T.primary }}
+                        >
+                            <span className="material-symbols-outlined text-[16px]">refresh</span>
+                            Check Connection Now
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setOfflineModeChoice('cached')}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition cursor-pointer"
+                            style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
+                        >
+                            <span className="material-symbols-outlined text-[16px]">inventory_2</span>
+                            Use Saved DB Data Instead
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                {/* Line Items Table */}
             {lineItems.length === 0 ? (
                 <div className="p-12 text-center rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3" style={{ background: T.surfaceRaised, borderColor: T.border }}>
                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: T.primaryDim, color: T.primary }}>
@@ -428,32 +608,66 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                                             {/* Godown stock availability pill */}
                                             {row.availability && (
                                                 <div className="flex items-center gap-1 mt-0.5">
-                                                    {row.availability.isAvailable ? (
-                                                        <span
-                                                            data-testid="quote-stock-badge"
-                                                            className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                            style={{
-                                                                background: 'rgba(16, 185, 129, 0.12)',
-                                                                borderColor: 'rgba(16, 185, 129, 0.35)',
-                                                                color: '#10b981',
-                                                            }}
-                                                        >
-                                                            <span className="material-symbols-outlined text-[10px]">check</span>
-                                                            In Stock: {row.availability.availableStock} Nos
-                                                        </span>
+                                                    {isConnected ? (
+                                                        row.availability.isAvailable ? (
+                                                            <span
+                                                                data-testid="quote-stock-badge"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                style={{
+                                                                    background: 'rgba(16, 185, 129, 0.12)',
+                                                                    borderColor: 'rgba(16, 185, 129, 0.35)',
+                                                                    color: '#10b981',
+                                                                }}
+                                                                title="Verified live from TallyPrime"
+                                                            >
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                                Live Stock: {row.availability.availableStock} Nos
+                                                            </span>
+                                                        ) : (
+                                                            <span
+                                                                data-testid="quote-stock-badge"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                style={{
+                                                                    background: 'rgba(239, 68, 68, 0.12)',
+                                                                    borderColor: 'rgba(239, 68, 68, 0.35)',
+                                                                    color: '#ef4444',
+                                                                }}
+                                                                title="Live stock shortfall in TallyPrime"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[11px]">warning</span>
+                                                                Live Shortfall: {row.availability.shortfall} Nos (Stock: {row.availability.availableStock})
+                                                            </span>
+                                                        )
                                                     ) : (
-                                                        <span
-                                                            data-testid="quote-stock-badge"
-                                                            className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                            style={{
-                                                                background: 'rgba(245, 158, 11, 0.12)',
-                                                                borderColor: 'rgba(245, 158, 11, 0.35)',
-                                                                color: '#f59e0b',
-                                                            }}
-                                                        >
-                                                            <span className="material-symbols-outlined text-[10px]">warning</span>
-                                                            Stock Shortfall: {row.availability.shortfall} Nos (Available: {row.availability.availableStock})
-                                                        </span>
+                                                        row.availability.isAvailable ? (
+                                                            <span
+                                                                data-testid="quote-stock-badge"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                style={{
+                                                                    background: 'rgba(245, 158, 11, 0.12)',
+                                                                    borderColor: 'rgba(245, 158, 11, 0.35)',
+                                                                    color: '#f59e0b',
+                                                                }}
+                                                                title="Stock level saved from previous sync in CRM database. Tally is offline, so this is unverified."
+                                                            >
+                                                                <span className="material-symbols-outlined text-[11px]">history</span>
+                                                                Cached Stock: {row.availability.availableStock} Nos (Offline)
+                                                            </span>
+                                                        ) : (
+                                                            <span
+                                                                data-testid="quote-stock-badge"
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                style={{
+                                                                    background: 'rgba(245, 158, 11, 0.12)',
+                                                                    borderColor: 'rgba(245, 158, 11, 0.35)',
+                                                                    color: '#f59e0b',
+                                                                }}
+                                                                title="Saved stock shortfall from previous sync"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[11px]">warning</span>
+                                                                Cached Shortfall: {row.availability.shortfall} Nos (Cached: {row.availability.availableStock})
+                                                            </span>
+                                                        )
                                                     )}
                                                 </div>
                                             )}
@@ -613,24 +827,38 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                     </div>
 
                     {canEdit && (
-                        <button
-                            type="button"
-                            data-testid="quote-save-btn"
-                            onClick={handleSaveQuote}
-                            disabled={saving || lineItems.length === 0}
-                            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-black text-sm transition shadow-md disabled:opacity-50 cursor-pointer"
-                            style={{ background: '#10b981' }}
-                            onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-                            onMouseLeave={e => e.currentTarget.style.opacity = '1.0'}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">
-                                {saving ? 'sync' : 'save'}
+                        <div className="flex flex-col items-end gap-1.5">
+                            <button
+                                type="button"
+                                data-testid="quote-save-btn"
+                                onClick={handleSaveQuote}
+                                disabled={saving || lineItems.length === 0}
+                                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black text-sm transition shadow-md disabled:opacity-50 cursor-pointer"
+                                style={{
+                                    background: isConnected ? '#10b981' : '#f59e0b',
+                                    color: isConnected ? '#fff' : '#000',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '1.0'}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">
+                                    {saving ? 'sync' : (isConnected ? 'save' : 'cloud_upload')}
+                                </span>
+                                {saving
+                                    ? 'Saving Quote...'
+                                    : (isConnected ? 'Save Quote & Update Deal' : 'Save Offline Quote (Queues for Tally Sync)')}
+                            </button>
+                            <span className="text-[10px]" style={{ color: T.textMuted }}>
+                                {isConnected
+                                    ? '✓ Live Tally connection verified · Stock will be reserved.'
+                                    : 'ℹ️ Saved to CRM · Will sync to Tally when connection restores.'}
                             </span>
-                            {saving ? 'Saving Quote...' : 'Save Quote & Update Deal'}
-                        </button>
+                        </div>
                     )}
                 </div>
             </div>
+            </>
+            )}
         </div>
     )
 }
