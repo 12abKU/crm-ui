@@ -62,31 +62,16 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const loadProfile = useCallback((dealId = deal.id, bypassCache = false) => {
         const cacheKey = `${getCachePrefix()}:${dealId}`
         const cachedValue = profileCacheGet(cacheKey)
-        const cachedEntry = profileCache.get(cacheKey)
-        const fresh = isFresh(cachedEntry, PROFILE_TTL)
 
         if (cachedValue && !bypassCache) {
             setProfile(cachedValue)
             setLoading(false)
-            if (cachedValue.deal) {
-                dispatch(setDealSyncStatus({
-                    dealId,
-                    tallySyncStatus: cachedValue.deal.tallySyncStatus,
-                    tallySalesOrderNo: cachedValue.deal.tallySalesOrderNo,
-                    tallyDeliveryNoteNo: cachedValue.deal.tallyDeliveryNoteNo,
-                    tallySalesInvoiceNo: cachedValue.deal.tallySalesInvoiceNo,
-                    tallyLastSyncError: cachedValue.deal.tallyLastSyncError,
-                }))
-            }
         } else {
             setProfile(null)
             setLoading(true)
         }
 
-        if (fresh && !bypassCache) {
-            return
-        }
-
+        // Always fetch fresh profile from API in background to ensure real-time accuracy
         api.get(`/api/deals/${dealId}/profile`)
             .then(r => {
                 setProfile(r.data)
@@ -103,14 +88,15 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                     if (onDealUpdated) onDealUpdated(r.data.deal)
                 }
             })
+            .catch(() => {})
             .finally(() => setLoading(false))
-    }, [deal.id])
+    }, [deal.id, dispatch, onDealUpdated])
 
     useEffect(() => {
         setActiveTab(initialTab || 'overview')
         loadProfile(deal.id)
 
-        // Always fetch fresh Tally sync status on open to bypass stale profile cache
+        // Always fetch fresh Tally sync status on open to bypass any stale cache
         if (deal?.id) {
             tallyAPI.getDealSyncStatus(deal.id)
                 .then(res => {
@@ -132,7 +118,17 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
     const leadInfo = profile?.leadInfo ?? null
-    const activeDeal = profile?.deal || deal
+    const baseDeal = profile?.deal || deal
+    const activeDeal = {
+        ...baseDeal,
+        ...(reduxSync ? {
+            tallySyncStatus: reduxSync.tallySyncStatus || baseDeal.tallySyncStatus,
+            tallySalesOrderNo: reduxSync.tallySalesOrderNo ?? baseDeal.tallySalesOrderNo,
+            tallyDeliveryNoteNo: reduxSync.tallyDeliveryNoteNo ?? baseDeal.tallyDeliveryNoteNo,
+            tallySalesInvoiceNo: reduxSync.tallySalesInvoiceNo ?? baseDeal.tallySalesInvoiceNo,
+            tallyLastSyncError: reduxSync.tallyLastSyncError ?? baseDeal.tallyLastSyncError,
+        } : {})
+    }
     const liveSyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : activeDeal.tallySyncStatus
     const liveSO = reduxSync?.tallySalesOrderNo ?? activeDeal.tallySalesOrderNo
     const liveDN = reduxSync?.tallyDeliveryNoteNo ?? activeDeal.tallyDeliveryNoteNo
@@ -145,7 +141,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
         switch (activeTab) {
             case 'overview': return (
                 <DealPanelOverview
-                    deal={profile?.deal || deal}
+                    deal={activeDeal}
                     isAgent={isAgent}
                     isAssignedToMe={isAssignedToMe}
                     canEdit={canEdit}

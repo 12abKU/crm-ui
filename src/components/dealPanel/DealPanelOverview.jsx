@@ -119,13 +119,11 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 )}
             </div>
 
-            {/* ── 3-Stage Order-to-Cash Stepper (Won / Sync Deals) ── */}
-            {(deal.stage === 'WON' || (deal.tallySyncStatus && deal.tallySyncStatus !== 'NONE')) && (
-                <TallyFulfillmentStepper
-                    deal={deal}
-                    onStatusUpdated={onDealUpdated}
-                />
-            )}
+            {/* ── 3-Stage Order-to-Cash Stepper (Always visible across all stages for manual & automated fulfillment) ── */}
+            <TallyFulfillmentStepper
+                deal={deal}
+                onStatusUpdated={onDealUpdated}
+            />
 
             {/* ── Deal Quote Summary Card ── */}
             <DealQuoteSummaryCard

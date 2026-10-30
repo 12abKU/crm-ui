@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
 import { setDealSyncStatus } from '../../store/dealsSlice'
+import { profileCache, getCachePrefix } from '../../utils/cacheUtils'
 
 /**
  * TallySyncBadge
@@ -27,7 +28,15 @@ export default function TallySyncBadge({
     const [retrying, setRetrying] = useState(false)
     const [localError, setLocalError] = useState(null)
 
-    const normalizedStatus = (status || '').toUpperCase()
+    const reduxSync = useSelector(state => dealId ? state.deals?.syncStatuses?.[dealId] : null)
+
+    const effectiveStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : status
+    const effectiveInvoiceNo = reduxSync?.tallySalesInvoiceNo ?? invoiceNo
+    const effectiveDeliveryNoteNo = reduxSync?.tallyDeliveryNoteNo ?? deliveryNoteNo
+    const effectiveSalesOrderNo = reduxSync?.tallySalesOrderNo ?? salesOrderNo
+    const effectiveError = reduxSync?.tallyLastSyncError ?? lastError
+
+    const normalizedStatus = (effectiveStatus || '').toUpperCase()
 
     // ── Auto-poll when queued in SQS to catch Tally bridge ack live ─────
     useEffect(() => {
@@ -41,6 +50,11 @@ export default function TallySyncBadge({
 
                 const remoteStatus = (res.data.tallySyncStatus || '').toUpperCase()
                 if (remoteStatus && remoteStatus !== 'QUEUED') {
+                    // Invalidate deal profile cache so DealPanel receives fresh DB data immediately
+                    try {
+                        profileCache.delete(`${getCachePrefix()}:${dealId}`)
+                    } catch (_) {}
+
                     dispatch(setDealSyncStatus({
                         dealId,
                         tallySyncStatus: res.data.tallySyncStatus,
@@ -88,7 +102,7 @@ export default function TallySyncBadge({
     }
 
     // 1. Invoiced terminal state (highest priority when invoice number or INVOICED status present)
-    if (invoiceNo || normalizedStatus === 'INVOICED') {
+    if (effectiveInvoiceNo || normalizedStatus === 'INVOICED') {
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
@@ -97,10 +111,10 @@ export default function TallySyncBadge({
                     borderColor: 'rgba(22, 163, 74, 0.35)',
                     color: '#16a34a',
                 }}
-                title={invoiceNo ? `Sales Invoice: ${invoiceNo}` : 'Sales Tax Invoice Generated'}
+                title={effectiveInvoiceNo ? `Sales Invoice: ${effectiveInvoiceNo}` : 'Sales Tax Invoice Generated'}
             >
                 <span className="material-symbols-outlined text-[12px]">verified</span>
-                <span>{invoiceNo ? `INV: ${invoiceNo}` : 'Invoiced'}</span>
+                <span>{effectiveInvoiceNo ? `INV: ${effectiveInvoiceNo}` : 'Invoiced'}</span>
             </div>
         )
     }
@@ -124,7 +138,7 @@ export default function TallySyncBadge({
     }
 
     // 3. Dispatched / Delivery Note
-    if (deliveryNoteNo || normalizedStatus === 'DISPATCHED') {
+    if (effectiveDeliveryNoteNo || normalizedStatus === 'DISPATCHED') {
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
@@ -133,16 +147,16 @@ export default function TallySyncBadge({
                     borderColor: 'rgba(147, 51, 234, 0.35)',
                     color: '#9333ea',
                 }}
-                title={deliveryNoteNo ? `Delivery Note: ${deliveryNoteNo}` : 'Goods Dispatched'}
+                title={effectiveDeliveryNoteNo ? `Delivery Note: ${effectiveDeliveryNoteNo}` : 'Goods Dispatched'}
             >
                 <span className="material-symbols-outlined text-[12px]">local_shipping</span>
-                <span>{deliveryNoteNo ? `DN: ${deliveryNoteNo}` : 'Dispatched'}</span>
+                <span>{effectiveDeliveryNoteNo ? `DN: ${effectiveDeliveryNoteNo}` : 'Dispatched'}</span>
             </div>
         )
     }
 
     // 4. Sales Order Created
-    if (salesOrderNo || normalizedStatus === 'SALES_ORDER_CREATED') {
+    if (effectiveSalesOrderNo || normalizedStatus === 'SALES_ORDER_CREATED') {
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
@@ -151,17 +165,17 @@ export default function TallySyncBadge({
                     borderColor: 'rgba(59, 130, 246, 0.35)',
                     color: '#2563eb',
                 }}
-                title={salesOrderNo ? `Sales Order: ${salesOrderNo}` : 'Sales Order Created in Tally'}
+                title={effectiveSalesOrderNo ? `Sales Order: ${effectiveSalesOrderNo}` : 'Sales Order Created in Tally'}
             >
                 <span className="material-symbols-outlined text-[12px]">receipt_long</span>
-                <span>{salesOrderNo ? `SO: ${salesOrderNo}` : 'Sales Order Created'}</span>
+                <span>{effectiveSalesOrderNo ? `SO: ${effectiveSalesOrderNo}` : 'Sales Order Created'}</span>
             </div>
         )
     }
 
     // 5. Failed state with retry button
     if (normalizedStatus === 'FAILED' || normalizedStatus === 'SYNC_FAILED') {
-        const errorText = localError || lastError || 'Sync to Tally failed'
+        const errorText = localError || effectiveError || 'Sync to Tally failed'
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"

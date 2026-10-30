@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
 import { setDealSyncStatus } from '../../store/dealsSlice'
+import { profileCache, getCachePrefix } from '../../utils/cacheUtils'
 import { T } from '../../constants/theme'
 
 /**
@@ -28,7 +29,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
     const liveSO = reduxSync?.tallySalesOrderNo ?? deal.tallySalesOrderNo
     const liveDN = reduxSync?.tallyDeliveryNoteNo ?? deal.tallyDeliveryNoteNo
     const liveINV = reduxSync?.tallySalesInvoiceNo ?? deal.tallySalesInvoiceNo
-    const currentStatus = (liveSyncStatus || (deal.stage === 'WON' ? 'QUEUED' : 'NONE')).toUpperCase()
+    const currentStatus = (liveSyncStatus || 'NONE').toUpperCase()
 
     // Real data completion status based on voucher presence and lifecycle states
     const step1Completed = Boolean(liveSO || liveDN || liveINV || ['SALES_ORDER_CREATED', 'DISPATCHED', 'INVOICED'].includes(currentStatus))
@@ -48,6 +49,10 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
                 if (mounted && res?.data) {
                     const status = (res.data.tallySyncStatus || '').toUpperCase()
                     if (status && status !== 'QUEUED') {
+                        try {
+                            profileCache.delete(`${getCachePrefix()}:${deal.id}`)
+                        } catch (_) {}
+
                         dispatch(setDealSyncStatus({
                             dealId: deal.id,
                             tallySyncStatus: res.data.tallySyncStatus,
@@ -70,7 +75,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
     // Node statuses
     const step1Status = step1Completed
         ? 'COMPLETED'
-        : (isQueued && !step2Completed && !step3Completed ? 'QUEUED' : (isFailed ? 'FAILED' : 'PENDING'))
+        : (isQueued && !step2Completed && !step3Completed ? 'QUEUED' : (isFailed ? 'FAILED' : 'READY'))
 
     const step2Status = step2Completed
         ? 'COMPLETED'
@@ -86,6 +91,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         setActionError(null)
         setActionSuccess(null)
         try {
+            try { profileCache.delete(`${getCachePrefix()}:${deal.id}`) } catch (_) {}
             await tallyAPI.createSalesOrder(deal.id)
             dispatch(setDealSyncStatus({ dealId: deal.id, tallySyncStatus: 'QUEUED' }))
             setActionSuccess('Sales Order enqueued to Tally SQS! Tally Desktop Bridge will reserve stock.')
@@ -103,6 +109,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         setActionError(null)
         setActionSuccess(null)
         try {
+            try { profileCache.delete(`${getCachePrefix()}:${deal.id}`) } catch (_) {}
             await tallyAPI.dispatchDeal(deal.id, {})
             dispatch(setDealSyncStatus({ dealId: deal.id, tallySyncStatus: 'QUEUED' }))
             setActionSuccess('Goods marked dispatched! Delivery Note enqueued to Tally SQS.')
@@ -120,6 +127,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         setActionError(null)
         setActionSuccess(null)
         try {
+            try { profileCache.delete(`${getCachePrefix()}:${deal.id}`) } catch (_) {}
             await tallyAPI.invoiceDeal(deal.id, {})
             dispatch(setDealSyncStatus({ dealId: deal.id, tallySyncStatus: 'QUEUED' }))
             setActionSuccess('Sales Tax Invoice generated and enqueued to Tally SQS!')
@@ -137,6 +145,7 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         setActionError(null)
         setActionSuccess(null)
         try {
+            try { profileCache.delete(`${getCachePrefix()}:${deal.id}`) } catch (_) {}
             await tallyAPI.retryDealSync(deal.id)
             dispatch(setDealSyncStatus({ dealId: deal.id, tallySyncStatus: 'QUEUED', tallyLastSyncError: null }))
             setActionSuccess('Retry submitted! Voucher re-enqueued to SQS.')
@@ -327,12 +336,14 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
                         type="button"
                         data-testid="tally-create-so-btn"
                         onClick={handleCreateSalesOrder}
-                        disabled={actionLoading}
+                        disabled={actionLoading || step1Status === 'QUEUED'}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
                         style={{ background: '#2563eb' }}
                     >
-                        <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-                        {actionLoading ? 'Creating Sales Order...' : '1. Create Sales Order (Tally)'}
+                        <span className={`material-symbols-outlined text-[16px] ${step1Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                            {step1Status === 'QUEUED' ? 'sync' : 'receipt_long'}
+                        </span>
+                        {step1Status === 'QUEUED' ? 'Sales Order Syncing...' : (actionLoading ? 'Creating Sales Order...' : '1. Create Sales Order (Tally)')}
                     </button>
                 )}
 
@@ -342,12 +353,14 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
                         type="button"
                         data-testid="tally-dispatch-btn"
                         onClick={handleDispatch}
-                        disabled={actionLoading}
+                        disabled={actionLoading || step2Status === 'QUEUED'}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
                         style={{ background: '#8b5cf6' }}
                     >
-                        <span className="material-symbols-outlined text-[16px]">local_shipping</span>
-                        {actionLoading ? 'Dispatching...' : '2. Dispatch Goods (Delivery Note)'}
+                        <span className={`material-symbols-outlined text-[16px] ${step2Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                            {step2Status === 'QUEUED' ? 'sync' : 'local_shipping'}
+                        </span>
+                        {step2Status === 'QUEUED' ? 'Delivery Note Syncing...' : (actionLoading ? 'Dispatching...' : '2. Dispatch Goods (Delivery Note)')}
                     </button>
                 )}
 
@@ -357,12 +370,14 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
                         type="button"
                         data-testid="tally-invoice-btn"
                         onClick={handleInvoice}
-                        disabled={actionLoading}
+                        disabled={actionLoading || step3Status === 'QUEUED'}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
                         style={{ background: '#10b981' }}
                     >
-                        <span className="material-symbols-outlined text-[16px]">point_of_sale</span>
-                        {actionLoading ? 'Invoicing...' : '3. Generate Sales Tax Invoice'}
+                        <span className={`material-symbols-outlined text-[16px] ${step3Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                            {step3Status === 'QUEUED' ? 'sync' : 'point_of_sale'}
+                        </span>
+                        {step3Status === 'QUEUED' ? 'Sales Invoice Syncing...' : (actionLoading ? 'Invoicing...' : '3. Generate Sales Tax Invoice')}
                     </button>
                 )}
 

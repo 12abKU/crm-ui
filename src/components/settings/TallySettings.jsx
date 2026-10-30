@@ -476,34 +476,6 @@ export default function TallySettings() {
                             style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
                         />
                     </div>
-
-                    {/* Default Godown Dropdown */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            Default Fallback Godown (Optional)
-                        </label>
-                        <select
-                            data-testid="tally-default-godown-select"
-                            name="defaultGodown"
-                            value={config.defaultGodown || 'Main Location'}
-                            onChange={e => handleInputChange('defaultGodown', e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        >
-                            {godowns.length > 0 ? (
-                                godowns.map(g => (
-                                    <option key={g.id || g.name} value={g.name || g.godownName} style={{ background: T.surface, color: T.textPrimary }}>
-                                        {g.name || g.godownName}
-                                    </option>
-                                ))
-                            ) : (
-                                <option value="Main Location" style={{ background: T.surface, color: T.textPrimary }}>Main Location</option>
-                            )}
-                        </select>
-                        <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>
-                            ℹ️ Fallback only. Godowns and live stock are selected per line item inside Deal Quote Builder.
-                        </p>
-                    </div>
                 </div>
             </div>
 
