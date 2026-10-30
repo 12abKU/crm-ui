@@ -73,8 +73,8 @@ export const fetchTallyConnectionStatus = (force = false) => async (dispatch, ge
     const { lastFetchedAt, loading } = state.deals?.tallyConnection || {}
     const now = Date.now()
 
-    // Cache for 30 seconds unless force refresh is explicitly requested
-    if (!force && lastFetchedAt && (now - lastFetchedAt < 30000)) {
+    // Throttle to 3 seconds unless force refresh is explicitly requested
+    if (!force && lastFetchedAt && (now - lastFetchedAt < 3000)) {
         return
     }
     if (loading) return

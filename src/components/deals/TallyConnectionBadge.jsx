@@ -29,7 +29,12 @@ export default function TallyConnectionBadge({ className = '' }) {
     )
 
     useEffect(() => {
-        dispatch(fetchTallyConnectionStatus())
+        dispatch(fetchTallyConnectionStatus(true))
+        const intervalId = setInterval(() => {
+            dispatch(fetchTallyConnectionStatus(true))
+        }, 5000)
+
+        return () => clearInterval(intervalId)
     }, [dispatch])
 
     const handleRefresh = (e) => {
