@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTallyConnectionStatus } from '../../store/dealsSlice'
+import { fetchTallyConnectionStatus, setTallyConnection } from '../../store/dealsSlice'
 import { T } from '../../constants/theme'
 
 function formatRelativeTime(dateString) {
@@ -30,11 +30,28 @@ export default function TallyConnectionBadge({ className = '' }) {
 
     useEffect(() => {
         dispatch(fetchTallyConnectionStatus(true))
+
+        const handleLiveUpdate = (e) => {
+            if (e.detail) {
+                dispatch(setTallyConnection({
+                    isConnected: Boolean(e.detail.isConnected),
+                    lastHeartbeatAt: e.detail.lastHeartbeatAt || new Date().toISOString(),
+                    tallyCompanyName: e.detail.tallyCompanyName || '',
+                }))
+            }
+        }
+
+        window.addEventListener('crm-tally-status', handleLiveUpdate)
+
+        // Fast 2-second background heartbeat check
         const intervalId = setInterval(() => {
             dispatch(fetchTallyConnectionStatus(true))
-        }, 5000)
+        }, 2000)
 
-        return () => clearInterval(intervalId)
+        return () => {
+            window.removeEventListener('crm-tally-status', handleLiveUpdate)
+            clearInterval(intervalId)
+        }
     }, [dispatch])
 
     const handleRefresh = (e) => {
