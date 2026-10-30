@@ -18,6 +18,7 @@ import RequirePermission from '../RequirePermission'
 import EntityAuditHistory from '../audit/EntityAuditHistory'
 import DealQuoteBuilder from '../deals/DealQuoteBuilder'
 import TallySyncBadge from '../deals/TallySyncBadge'
+import tallyAPI from '../../api/tally'
 
 // ── Tab config ──────────────────────────────────────────────────
 const TABS = [
@@ -108,7 +109,25 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     useEffect(() => {
         setActiveTab(initialTab || 'overview')
         loadProfile(deal.id)
-    }, [deal.id, initialTab, loadProfile])
+
+        // Always fetch fresh Tally sync status on open to bypass stale profile cache
+        if (deal?.id) {
+            tallyAPI.getDealSyncStatus(deal.id)
+                .then(res => {
+                    if (res?.data) {
+                        dispatch(setDealSyncStatus({
+                            dealId: deal.id,
+                            tallySyncStatus: res.data.tallySyncStatus,
+                            tallySalesOrderNo: res.data.tallySalesOrderNo,
+                            tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
+                            tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
+                            tallyLastSyncError: res.data.lastSyncError,
+                        }))
+                    }
+                })
+                .catch(() => {})
+        }
+    }, [deal?.id, initialTab, loadProfile, dispatch])
 
     const activities = profile?.activities ?? []
     const accountDeals = profile?.accountDeals ?? []
@@ -313,7 +332,21 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                                         invoiceNo={liveINV}
                                         lastError={liveErr}
                                         dealId={activeDeal.id}
-                                        onRetry={() => loadProfile(deal.id, true)}
+                                        onRetry={() => {
+                                            loadProfile(deal.id, true)
+                                            tallyAPI.getDealSyncStatus(deal.id).then(r => {
+                                                if (r?.data) {
+                                                    dispatch(setDealSyncStatus({
+                                                        dealId: deal.id,
+                                                        tallySyncStatus: r.data.tallySyncStatus,
+                                                        tallySalesOrderNo: r.data.tallySalesOrderNo,
+                                                        tallyDeliveryNoteNo: r.data.tallyDeliveryNoteNo,
+                                                        tallySalesInvoiceNo: r.data.tallySalesInvoiceNo,
+                                                        tallyLastSyncError: r.data.lastSyncError,
+                                                    }))
+                                                }
+                                            }).catch(() => {})
+                                        }}
                                     />
                                 )}
                             </div>

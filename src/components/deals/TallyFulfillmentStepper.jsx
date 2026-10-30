@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
 import { setDealSyncStatus } from '../../store/dealsSlice'
@@ -37,6 +37,35 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
 
     const isFailed = currentStatus === 'FAILED' || currentStatus === 'SYNC_FAILED'
     const isQueued = currentStatus === 'QUEUED'
+
+    // Auto-poll when fulfillment is actively queued in SQS
+    useEffect(() => {
+        if (!isQueued || !deal?.id) return
+        let mounted = true
+        const timer = setInterval(async () => {
+            try {
+                const res = await tallyAPI.getDealSyncStatus(deal.id)
+                if (mounted && res?.data) {
+                    const status = (res.data.tallySyncStatus || '').toUpperCase()
+                    if (status && status !== 'QUEUED') {
+                        dispatch(setDealSyncStatus({
+                            dealId: deal.id,
+                            tallySyncStatus: res.data.tallySyncStatus,
+                            tallySalesOrderNo: res.data.tallySalesOrderNo,
+                            tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
+                            tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
+                            tallyLastSyncError: res.data.lastSyncError,
+                        }))
+                        if (onStatusUpdated) onStatusUpdated()
+                    }
+                }
+            } catch (err) {}
+        }, 2000)
+        return () => {
+            mounted = false
+            clearInterval(timer)
+        }
+    }, [isQueued, deal?.id, dispatch, onStatusUpdated])
 
     // Node statuses
     const step1Status = step1Completed

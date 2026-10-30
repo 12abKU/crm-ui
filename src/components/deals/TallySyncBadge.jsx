@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import tallyAPI from '../../api/tally'
+import { setDealSyncStatus } from '../../store/dealsSlice'
 
 /**
  * TallySyncBadge
  * Live status badge indicating TallyPrime sync status with inline retry controls.
  * Supported statuses:
- * - QUEUED: Order Queued in SQS
+ * - QUEUED: Order Queued in SQS (automatically polls every 2s to transition live)
  * - SALES_ORDER_CREATED: Sales Order Created in Tally
  * - DISPATCHED: Goods Dispatched / Delivery Challan Created
  * - INVOICED: Sales Tax Invoice Generated
@@ -21,10 +23,44 @@ export default function TallySyncBadge({
     onRetry,
     compact = false,
 }) {
+    const dispatch = useDispatch()
     const [retrying, setRetrying] = useState(false)
     const [localError, setLocalError] = useState(null)
 
     const normalizedStatus = (status || '').toUpperCase()
+
+    // ── Auto-poll when queued in SQS to catch Tally bridge ack live ─────
+    useEffect(() => {
+        if (normalizedStatus !== 'QUEUED' || !dealId) return
+
+        let isMounted = true
+        const pollInterval = setInterval(async () => {
+            try {
+                const res = await tallyAPI.getDealSyncStatus(dealId)
+                if (!isMounted || !res?.data) return
+
+                const remoteStatus = (res.data.tallySyncStatus || '').toUpperCase()
+                if (remoteStatus && remoteStatus !== 'QUEUED') {
+                    dispatch(setDealSyncStatus({
+                        dealId,
+                        tallySyncStatus: res.data.tallySyncStatus,
+                        tallySalesOrderNo: res.data.tallySalesOrderNo,
+                        tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
+                        tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
+                        tallyLastSyncError: res.data.lastSyncError,
+                    }))
+                    if (onRetry) onRetry(dealId)
+                }
+            } catch (err) {
+                // Background poll failure is non-fatal
+            }
+        }, 2000)
+
+        return () => {
+            isMounted = false
+            clearInterval(pollInterval)
+        }
+    }, [normalizedStatus, dealId, dispatch, onRetry])
 
     const handleRetry = async (e) => {
         if (e) {
@@ -37,6 +73,7 @@ export default function TallySyncBadge({
         setLocalError(null)
         try {
             await tallyAPI.retryDealSync(dealId)
+            dispatch(setDealSyncStatus({ dealId, tallySyncStatus: 'QUEUED', tallyLastSyncError: null }))
             if (onRetry) onRetry(dealId)
         } catch (err) {
             console.error('Failed to retry Tally sync:', err)
@@ -50,58 +87,8 @@ export default function TallySyncBadge({
         return null
     }
 
-    if (normalizedStatus === 'QUEUED') {
-        return (
-            <div
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
-                style={{
-                    background: 'rgba(245, 158, 11, 0.12)',
-                    borderColor: 'rgba(245, 158, 11, 0.35)',
-                    color: '#d97706',
-                }}
-                title="Order Queued in AWS SQS FIFO queue for Tally sync"
-            >
-                <span className="material-symbols-outlined text-[12px] animate-spin">sync</span>
-                <span>Queued in SQS</span>
-            </div>
-        )
-    }
-
-    if (normalizedStatus === 'SALES_ORDER_CREATED') {
-        return (
-            <div
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
-                style={{
-                    background: 'rgba(59, 130, 246, 0.12)',
-                    borderColor: 'rgba(59, 130, 246, 0.35)',
-                    color: '#2563eb',
-                }}
-                title={salesOrderNo ? `Sales Order: ${salesOrderNo}` : 'Sales Order Created in Tally'}
-            >
-                <span className="material-symbols-outlined text-[12px]">receipt_long</span>
-                <span>{salesOrderNo ? `SO: ${salesOrderNo}` : 'Sales Order Created'}</span>
-            </div>
-        )
-    }
-
-    if (normalizedStatus === 'DISPATCHED') {
-        return (
-            <div
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
-                style={{
-                    background: 'rgba(147, 51, 234, 0.12)',
-                    borderColor: 'rgba(147, 51, 234, 0.35)',
-                    color: '#9333ea',
-                }}
-                title={deliveryNoteNo ? `Delivery Note: ${deliveryNoteNo}` : 'Goods Dispatched'}
-            >
-                <span className="material-symbols-outlined text-[12px]">local_shipping</span>
-                <span>{deliveryNoteNo ? `DN: ${deliveryNoteNo}` : 'Dispatched'}</span>
-            </div>
-        )
-    }
-
-    if (normalizedStatus === 'INVOICED') {
+    // 1. Invoiced terminal state (highest priority when invoice number or INVOICED status present)
+    if (invoiceNo || normalizedStatus === 'INVOICED') {
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
@@ -118,6 +105,61 @@ export default function TallySyncBadge({
         )
     }
 
+    // 2. Queued in SQS (actively polling for bridge fulfillment)
+    if (normalizedStatus === 'QUEUED') {
+        return (
+            <div
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                style={{
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    borderColor: 'rgba(245, 158, 11, 0.35)',
+                    color: '#d97706',
+                }}
+                title="Order Queued in AWS SQS FIFO queue for Tally sync (syncing live...)"
+            >
+                <span className="material-symbols-outlined text-[12px] animate-spin">sync</span>
+                <span>Queued in SQS</span>
+            </div>
+        )
+    }
+
+    // 3. Dispatched / Delivery Note
+    if (deliveryNoteNo || normalizedStatus === 'DISPATCHED') {
+        return (
+            <div
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                style={{
+                    background: 'rgba(147, 51, 234, 0.12)',
+                    borderColor: 'rgba(147, 51, 234, 0.35)',
+                    color: '#9333ea',
+                }}
+                title={deliveryNoteNo ? `Delivery Note: ${deliveryNoteNo}` : 'Goods Dispatched'}
+            >
+                <span className="material-symbols-outlined text-[12px]">local_shipping</span>
+                <span>{deliveryNoteNo ? `DN: ${deliveryNoteNo}` : 'Dispatched'}</span>
+            </div>
+        )
+    }
+
+    // 4. Sales Order Created
+    if (salesOrderNo || normalizedStatus === 'SALES_ORDER_CREATED') {
+        return (
+            <div
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                style={{
+                    background: 'rgba(59, 130, 246, 0.12)',
+                    borderColor: 'rgba(59, 130, 246, 0.35)',
+                    color: '#2563eb',
+                }}
+                title={salesOrderNo ? `Sales Order: ${salesOrderNo}` : 'Sales Order Created in Tally'}
+            >
+                <span className="material-symbols-outlined text-[12px]">receipt_long</span>
+                <span>{salesOrderNo ? `SO: ${salesOrderNo}` : 'Sales Order Created'}</span>
+            </div>
+        )
+    }
+
+    // 5. Failed state with retry button
     if (normalizedStatus === 'FAILED' || normalizedStatus === 'SYNC_FAILED') {
         const errorText = localError || lastError || 'Sync to Tally failed'
         return (
