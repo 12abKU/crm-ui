@@ -64,6 +64,8 @@ export default function TallySettings() {
                     setConfig(prev => ({
                         ...prev,
                         ...data,
+                        syncEnabled: data.syncEnabled ?? true,
+                        autoCreateSalesOrder: data.autoCreateSalesOrder ?? true,
                         syncMode: data.syncMode || 'LOCAL_AGENT',
                         serverUrl: data.serverUrl || 'http://localhost:9000',
                         salesLedgerName: data.salesLedgerName || 'Sales Accounts',
@@ -388,7 +390,7 @@ export default function TallySettings() {
             <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
                     <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>account_balance</span>
-                    <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>2. Accounting Ledgers & Godown Mapping</h4>
+                    <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>2. Accounting Ledgers  Mapping</h4>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

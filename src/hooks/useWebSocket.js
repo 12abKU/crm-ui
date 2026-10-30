@@ -88,17 +88,20 @@ export function useWebSocket(token, onNotification) {
                     }
                 })
 
-                // Subscribe to real-time Tally connection status
-                client.subscribe('/topic/tally-status', (message) => {
-                    if (message.body) {
-                        try {
-                            const tallyUpdate = JSON.parse(message.body)
-                            window.dispatchEvent(new CustomEvent('crm-tally-status', { detail: tallyUpdate }))
-                        } catch (e) {
-                            console.error('Failed to parse Tally status update', e)
+                // Subscribe to real-time Tally connection status (strict tenant destination)
+                const loggedCompanyId = localStorage.getItem('companyId')
+                if (loggedCompanyId) {
+                    client.subscribe(`/topic/company/${loggedCompanyId}/tally-status`, (message) => {
+                        if (message.body) {
+                            try {
+                                const tallyUpdate = JSON.parse(message.body)
+                                window.dispatchEvent(new CustomEvent('crm-tally-status', { detail: tallyUpdate }))
+                            } catch (e) {
+                                console.error('Failed to parse Tally status update', e)
+                            }
                         }
-                    }
-                })
+                    })
+                }
 
             },
             onStompError: (frame) => {

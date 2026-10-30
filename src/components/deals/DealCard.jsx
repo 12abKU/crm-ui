@@ -39,13 +39,14 @@ export default function DealCard({
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
     const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
+    const { isConfigured } = useSelector(state => state.deals?.tallyConnection || {})
 
     const tallySyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : deal.tallySyncStatus
     const tallySalesOrderNo = reduxSync?.tallySalesOrderNo ?? deal.tallySalesOrderNo
     const tallyDeliveryNoteNo = reduxSync?.tallyDeliveryNoteNo ?? deal.tallyDeliveryNoteNo
     const tallySalesInvoiceNo = reduxSync?.tallySalesInvoiceNo ?? deal.tallySalesInvoiceNo
     const tallyLastSyncError = reduxSync?.tallyLastSyncError ?? deal.tallyLastSyncError
-    const showSyncBadge = tallySyncStatus && tallySyncStatus !== 'NONE'
+    const showSyncBadge = isConfigured && tallySyncStatus && tallySyncStatus !== 'NONE'
 
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'

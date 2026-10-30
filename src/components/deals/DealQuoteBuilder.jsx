@@ -37,8 +37,37 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
     const [sellerGstin, setSellerGstin] = useState('')
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [errorMsg, setErrorMsg] = useState(null)
     const [successMsg, setSuccessMsg] = useState(null)
+
+    const handleRefreshLiveInventory = async () => {
+        setRefreshing(true)
+        try {
+            dispatch(fetchTallyConnectionStatus(true))
+            const [invRes, godownsRes] = await Promise.allSettled([
+                tallyAPI.getInventory({ size: 100 }),
+                tallyAPI.getGodowns(),
+            ])
+            if (invRes.status === 'fulfilled') {
+                const invList = invRes.value?.data || invRes.value || []
+                setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
+                    ...inv,
+                    itemName: inv.itemName || inv.tallyItemName || '',
+                })))
+            }
+            if (godownsRes.status === 'fulfilled') {
+                const gList = godownsRes.value?.data || godownsRes.value || []
+                setGodowns(Array.isArray(gList) ? gList : [])
+            }
+            setLiveBanner('🟢 Live Tally catalog and warehouse stock refreshed!')
+            setTimeout(() => setLiveBanner(null), 4000)
+        } catch (err) {
+            console.error('Failed to refresh inventory:', err)
+        } finally {
+            setRefreshing(false)
+        }
+    }
 
     // Auto-refresh when Tally reconnects
     useEffect(() => {
@@ -148,9 +177,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             partNumber: defaultItem?.partNumber || '',
             godownName: defaultGodown,
             quantity: 1,
-            rate: defaultItem?.closingRate || 100,
+            rate: (defaultItem?.closingRate != null && Number(defaultItem.closingRate) > 0) ? Number(defaultItem.closingRate) : 0,
             discountPercent: 0,
-            taxRate: (defaultItem?.gstRate != null && Number(defaultItem.gstRate) > 0) ? Number(defaultItem.gstRate) : 18.0,
+            taxRate: (defaultItem?.gstRate != null && Number(defaultItem.gstRate) > 0) ? Number(defaultItem.gstRate) : 0,
         }
         setLineItems(prev => [...prev, newItem])
     }
@@ -167,8 +196,8 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                         ...item,
                         itemName: value,
                         partNumber: found?.partNumber || item.partNumber || '',
-                        rate: found?.closingRate ?? item.rate,
-                        taxRate: (found?.gstRate != null && Number(found.gstRate) > 0) ? Number(found.gstRate) : item.taxRate,
+                        rate: (found?.closingRate != null && Number(found.closingRate) > 0) ? Number(found.closingRate) : 0,
+                        taxRate: (found?.gstRate != null && Number(found.gstRate) > 0) ? Number(found.gstRate) : 0,
                     }
                 }
 
@@ -312,17 +341,30 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                     </p>
                 </div>
                 {canEdit && (
-                    <button
-                        type="button"
-                        onClick={() => handleAddItem()}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer"
-                        style={{ background: T.primary }}
-                        onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                        onMouseLeave={e => e.currentTarget.style.background = T.primary}
-                    >
-                        <span className="material-symbols-outlined text-[16px]">add</span>
-                        Add Line Item
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleRefreshLiveInventory}
+                            disabled={refreshing}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer"
+                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                            title="Fetch latest stock and rates directly from TallyPrime"
+                        >
+                            <span className={`material-symbols-outlined text-[16px] ${refreshing ? 'animate-spin' : ''}`}>sync</span>
+                            <span>{refreshing ? 'Syncing...' : 'Sync Live Tally'}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleAddItem()}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer"
+                            style={{ background: T.primary }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                            onMouseLeave={e => e.currentTarget.style.background = T.primary}
+                        >
+                            <span className="material-symbols-outlined text-[16px]">add</span>
+                            Add Line Item
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -541,9 +583,11 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                                                         )}
                                                         {inventory.map(inv => {
                                                             const name = inv.itemName || inv.tallyItemName
+                                                            const rateText = inv.closingRate ? ` • ₹${Number(inv.closingRate).toLocaleString('en-IN')}` : ''
+                                                            const stockText = inv.closingBalance != null ? ` (Stock: ${inv.closingBalance} ${inv.baseUnit || ''})` : ''
                                                             return (
                                                                 <option key={name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
-                                                                    {name} {inv.partNumber ? `(${inv.partNumber})` : ''}
+                                                                    {name} {inv.partNumber ? `[${inv.partNumber}]` : ''}{rateText}{stockText}
                                                                 </option>
                                                             )
                                                         })}

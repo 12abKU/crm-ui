@@ -22,6 +22,9 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
 
     const dispatch = useDispatch()
     const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal?.id])
+    const { isConfigured, isConnected, tallyCompanyName } = useSelector(
+        state => state.deals?.tallyConnection || {}
+    )
 
     if (!deal) return null
 
@@ -36,8 +39,8 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
     const step2Completed = Boolean(liveDN || liveINV || ['DISPATCHED', 'INVOICED'].includes(currentStatus))
     const step3Completed = Boolean(liveINV || currentStatus === 'INVOICED')
 
-    const isFailed = currentStatus === 'FAILED' || currentStatus === 'SYNC_FAILED'
-    const isQueued = currentStatus === 'QUEUED'
+    const isFailed = isConfigured && (currentStatus === 'FAILED' || currentStatus === 'SYNC_FAILED')
+    const isQueued = isConfigured && currentStatus === 'QUEUED'
 
     // Auto-poll when fulfillment is actively queued in SQS
     useEffect(() => {
@@ -72,21 +75,29 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         }
     }, [isQueued, deal?.id, dispatch, onStatusUpdated])
 
-    // Node statuses
+    // Node statuses: when Tally is not configured, nodes stay PENDING rather than showing READY
     const step1Status = step1Completed
         ? 'COMPLETED'
-        : (isQueued && !step2Completed && !step3Completed ? 'QUEUED' : (isFailed ? 'FAILED' : 'READY'))
+        : (isQueued && !step2Completed && !step3Completed ? 'QUEUED' : (isFailed ? 'FAILED' : (isConfigured ? 'READY' : 'PENDING')))
 
     const step2Status = step2Completed
         ? 'COMPLETED'
-        : (step1Completed && isQueued && !step3Completed ? 'QUEUED' : (step1Completed ? 'READY' : 'PENDING'))
+        : (step1Completed && isQueued && !step3Completed ? 'QUEUED' : (step1Completed && isConfigured ? 'READY' : 'PENDING'))
 
     const step3Status = step3Completed
         ? 'COMPLETED'
-        : (step2Completed && isQueued ? 'QUEUED' : (step2Completed ? 'READY' : 'PENDING'))
+        : (step2Completed && isQueued ? 'QUEUED' : (step2Completed && isConfigured ? 'READY' : 'PENDING'))
 
     // Handlers for manual stage creation
     const handleCreateSalesOrder = async () => {
+        if (!isConfigured) {
+            setActionError('Tally is not configured for your company. Please enter your Tally details in Settings first.')
+            return
+        }
+        if (!isConnected) {
+            setActionError('Tally Desktop Bridge is currently offline. Please start TallyPrime and your Tally Bridge agent to sync.')
+            return
+        }
         setActionLoading(true)
         setActionError(null)
         setActionSuccess(null)
@@ -105,6 +116,14 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
     }
 
     const handleDispatch = async () => {
+        if (!isConfigured) {
+            setActionError('Tally is not configured for your company. Please enter your Tally details in Settings first.')
+            return
+        }
+        if (!isConnected) {
+            setActionError('Tally Desktop Bridge is currently offline. Please start TallyPrime and your Tally Bridge agent to sync.')
+            return
+        }
         setActionLoading(true)
         setActionError(null)
         setActionSuccess(null)
@@ -123,6 +142,14 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
     }
 
     const handleInvoice = async () => {
+        if (!isConfigured) {
+            setActionError('Tally is not configured for your company. Please enter your Tally details in Settings first.')
+            return
+        }
+        if (!isConnected) {
+            setActionError('Tally Desktop Bridge is currently offline. Please start TallyPrime and your Tally Bridge agent to sync.')
+            return
+        }
         setActionLoading(true)
         setActionError(null)
         setActionSuccess(null)
@@ -329,79 +356,105 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
             )}
 
             {/* Stage-by-Stage Manual Actions Bar */}
-            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t" style={{ borderColor: T.borderSubtle }}>
-                {/* Step 1 Action: Create Sales Order manually */}
-                {!step1Completed && (
-                    <button
-                        type="button"
-                        data-testid="tally-create-so-btn"
-                        onClick={handleCreateSalesOrder}
-                        disabled={actionLoading || step1Status === 'QUEUED'}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
-                        style={{ background: '#2563eb' }}
-                    >
-                        <span className={`material-symbols-outlined text-[16px] ${step1Status === 'QUEUED' ? 'animate-spin' : ''}`}>
-                            {step1Status === 'QUEUED' ? 'sync' : 'receipt_long'}
-                        </span>
-                        {step1Status === 'QUEUED' ? 'Sales Order Syncing...' : (actionLoading ? 'Creating Sales Order...' : '1. Create Sales Order (Tally)')}
-                    </button>
-                )}
-
-                {/* Step 2 Action: Dispatch Goods / Delivery Challan */}
-                {step1Completed && !step2Completed && (
-                    <button
-                        type="button"
-                        data-testid="tally-dispatch-btn"
-                        onClick={handleDispatch}
-                        disabled={actionLoading || step2Status === 'QUEUED'}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
-                        style={{ background: '#8b5cf6' }}
-                    >
-                        <span className={`material-symbols-outlined text-[16px] ${step2Status === 'QUEUED' ? 'animate-spin' : ''}`}>
-                            {step2Status === 'QUEUED' ? 'sync' : 'local_shipping'}
-                        </span>
-                        {step2Status === 'QUEUED' ? 'Delivery Note Syncing...' : (actionLoading ? 'Dispatching...' : '2. Dispatch Goods (Delivery Note)')}
-                    </button>
-                )}
-
-                {/* Step 3 Action: Generate Sales Tax Invoice */}
-                {step2Completed && !step3Completed && (
-                    <button
-                        type="button"
-                        data-testid="tally-invoice-btn"
-                        onClick={handleInvoice}
-                        disabled={actionLoading || step3Status === 'QUEUED'}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
-                        style={{ background: '#10b981' }}
-                    >
-                        <span className={`material-symbols-outlined text-[16px] ${step3Status === 'QUEUED' ? 'animate-spin' : ''}`}>
-                            {step3Status === 'QUEUED' ? 'sync' : 'point_of_sale'}
-                        </span>
-                        {step3Status === 'QUEUED' ? 'Sales Invoice Syncing...' : (actionLoading ? 'Invoicing...' : '3. Generate Sales Tax Invoice')}
-                    </button>
-                )}
-
-                {/* All Steps Completed Notice */}
-                {step3Completed && (
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 py-1">
-                        <span className="material-symbols-outlined text-[18px]">verified</span>
-                        <span>Order-to-Cash Complete: All Vouchers Synced to Tally</span>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t" style={{ borderColor: T.borderSubtle }}>
+                {!isConfigured ? (
+                    <div className="flex flex-wrap items-center justify-between w-full p-3 rounded-xl border text-xs gap-3" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                        <div className="flex items-center gap-2" style={{ color: T.textSecondary }}>
+                            <span className="material-symbols-outlined text-[18px]" style={{ color: T.textMuted }}>settings_suggest</span>
+                            <span>Tally is not configured for your company. Configure your Tally details in Settings to enable Order-to-Cash sync.</span>
+                        </div>
+                        <a
+                            href="/settings"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold text-xs transition cursor-pointer"
+                            style={{ background: T.primary }}
+                        >
+                            <span className="material-symbols-outlined text-[14px]">settings</span>
+                            Configure Tally
+                        </a>
                     </div>
-                )}
+                ) : (
+                    <>
+                        <div className="flex items-center gap-2 text-xs" style={{ color: isConnected ? '#10b981' : T.textMuted }}>
+                            <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                            <span>{isConnected ? `Connected to ${tallyCompanyName || 'Tally'}` : 'Tally Desktop Bridge Offline'}</span>
+                        </div>
 
-                {/* Retry action if failed */}
-                {isFailed && !actionError && (
-                    <button
-                        type="button"
-                        data-testid="tally-retry-btn"
-                        onClick={handleRetry}
-                        disabled={actionLoading}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
-                        style={{ background: T.error }}
-                    >
-                        <span className="material-symbols-outlined text-[16px]">refresh</span>
-                        {actionLoading ? 'Retrying...' : 'Retry Tally Sync'}
-                    </button>
+                        <div className="flex items-center gap-2 ml-auto">
+                            {/* Step 1 Action: Create Sales Order manually */}
+                            {!step1Completed && (
+                                <button
+                                    type="button"
+                                    data-testid="tally-create-so-btn"
+                                    onClick={handleCreateSalesOrder}
+                                    disabled={actionLoading || step1Status === 'QUEUED'}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                                    style={{ background: '#2563eb' }}
+                                >
+                                    <span className={`material-symbols-outlined text-[16px] ${step1Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                                        {step1Status === 'QUEUED' ? 'sync' : 'receipt_long'}
+                                    </span>
+                                    {step1Status === 'QUEUED' ? 'Sales Order Syncing...' : (actionLoading ? 'Creating Sales Order...' : '1. Create Sales Order (Tally)')}
+                                </button>
+                            )}
+
+                            {/* Step 2 Action: Dispatch Goods / Delivery Challan */}
+                            {step1Completed && !step2Completed && (
+                                <button
+                                    type="button"
+                                    data-testid="tally-dispatch-btn"
+                                    onClick={handleDispatch}
+                                    disabled={actionLoading || step2Status === 'QUEUED'}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                                    style={{ background: '#8b5cf6' }}
+                                >
+                                    <span className={`material-symbols-outlined text-[16px] ${step2Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                                        {step2Status === 'QUEUED' ? 'sync' : 'local_shipping'}
+                                    </span>
+                                    {step2Status === 'QUEUED' ? 'Delivery Note Syncing...' : (actionLoading ? 'Dispatching...' : '2. Dispatch Goods (Delivery Note)')}
+                                </button>
+                            )}
+
+                            {/* Step 3 Action: Generate Sales Tax Invoice */}
+                            {step2Completed && !step3Completed && (
+                                <button
+                                    type="button"
+                                    data-testid="tally-invoice-btn"
+                                    onClick={handleInvoice}
+                                    disabled={actionLoading || step3Status === 'QUEUED'}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                                    style={{ background: '#10b981' }}
+                                >
+                                    <span className={`material-symbols-outlined text-[16px] ${step3Status === 'QUEUED' ? 'animate-spin' : ''}`}>
+                                        {step3Status === 'QUEUED' ? 'sync' : 'point_of_sale'}
+                                    </span>
+                                    {step3Status === 'QUEUED' ? 'Sales Invoice Syncing...' : (actionLoading ? 'Invoicing...' : '3. Generate Sales Tax Invoice')}
+                                </button>
+                            )}
+
+                            {/* All Steps Completed Notice */}
+                            {step3Completed && (
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 py-1">
+                                    <span className="material-symbols-outlined text-[18px]">verified</span>
+                                    <span>Order-to-Cash Complete: All Vouchers Synced to Tally</span>
+                                </div>
+                            )}
+
+                            {/* Retry action if failed */}
+                            {isFailed && !actionError && (
+                                <button
+                                    type="button"
+                                    data-testid="tally-retry-btn"
+                                    onClick={handleRetry}
+                                    disabled={actionLoading}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                                    style={{ background: T.error }}
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">refresh</span>
+                                    {actionLoading ? 'Retrying...' : 'Retry Tally Sync'}
+                                </button>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

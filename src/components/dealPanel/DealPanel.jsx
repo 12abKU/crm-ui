@@ -50,6 +50,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
     const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
+    const { isConfigured } = useSelector(state => state.deals?.tallyConnection || {})
 
     const isAgent = role === 'AGENT'
     const isAssignedToMe = deal.assignedTo?.id === Number(userId) || deal.assignedTo?.id === userId
@@ -157,7 +158,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const liveDN = reduxSync?.tallyDeliveryNoteNo ?? activeDeal.tallyDeliveryNoteNo
     const liveINV = reduxSync?.tallySalesInvoiceNo ?? activeDeal.tallySalesInvoiceNo
     const liveErr = reduxSync?.tallyLastSyncError ?? activeDeal.tallyLastSyncError
-    const showHeaderBadge = liveSyncStatus && liveSyncStatus !== 'NONE'
+    const showHeaderBadge = isConfigured && liveSyncStatus && liveSyncStatus !== 'NONE'
 
     // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {
