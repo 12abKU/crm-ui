@@ -6,7 +6,10 @@ import { T } from '../../constants/theme'
 function formatRelativeTime(dateString) {
     if (!dateString) return null
     try {
-        const d = new Date(dateString)
+        const utcStr = (typeof dateString === 'string' && !dateString.endsWith('Z') && !dateString.includes('+'))
+            ? dateString + 'Z'
+            : dateString
+        const d = new Date(utcStr)
         const diffSec = Math.floor((Date.now() - d.getTime()) / 1000)
         if (diffSec < 60) return 'Just now'
         const diffMin = Math.floor(diffSec / 60)

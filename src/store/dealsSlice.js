@@ -84,7 +84,7 @@ export const fetchTallyConnectionStatus = (force = false) => async (dispatch, ge
         const res = await tallyAPI.getConfig()
         const cfg = res?.data || res || {}
         dispatch(setTallyConnection({
-            isConnected: Boolean(cfg.isConnected),
+            isConnected: Boolean(cfg.isConnected ?? cfg.connected),
             lastHeartbeatAt: cfg.lastHeartbeatAt || null,
             lastSyncAt: cfg.lastSyncAt || null,
             tallyCompanyName: cfg.tallyCompanyName || '',
