@@ -54,7 +54,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                         Array.isArray(loadedItems) && loadedItems.length > 0
                             ? loadedItems.map(item => ({
                                   id: item.id || `item-${Date.now()}-${Math.random()}`,
-                                  itemName: item.itemName || item.productName || '',
+                                  itemName: item.itemName || item.tallyItemName || item.productName || '',
                                   partNumber: item.partNumber || item.sku || '',
                                   godownName: item.godownName || 'Main Location',
                                   quantity: Number(item.quantity) || 1,
@@ -68,7 +68,11 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
                 if (invRes.status === 'fulfilled') {
                     const invList = invRes.value?.data || invRes.value || []
-                    setInventory(Array.isArray(invList) ? invList : [])
+                    const normalized = (Array.isArray(invList) ? invList : []).map(inv => ({
+                        ...inv,
+                        itemName: inv.itemName || inv.tallyItemName || '',
+                    }))
+                    setInventory(normalized)
                 }
 
                 if (godownsRes.status === 'fulfilled') {
@@ -97,15 +101,18 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
     // Line items mutations
     const handleAddItem = (preset = null) => {
+        const defaultItem = preset || inventory[0]
+        const defaultName = defaultItem?.itemName || defaultItem?.tallyItemName || ''
+        const defaultGodown = godowns[0]?.name || godowns[0]?.godownName || 'Main Location'
         const newItem = {
             id: `temp-${Date.now()}-${Math.random()}`,
-            itemName: preset?.itemName || (inventory[0]?.itemName ?? ''),
-            partNumber: preset?.partNumber || (inventory[0]?.partNumber ?? ''),
-            godownName: godowns[0]?.name || godowns[0]?.godownName || 'Main Location',
+            itemName: defaultName,
+            partNumber: defaultItem?.partNumber || '',
+            godownName: defaultGodown,
             quantity: 1,
-            rate: preset?.closingRate || inventory[0]?.closingRate || 100,
+            rate: defaultItem?.closingRate || 100,
             discountPercent: 0,
-            taxRate: preset?.gstRate || inventory[0]?.gstRate || 18.0,
+            taxRate: (defaultItem?.gstRate != null && Number(defaultItem.gstRate) > 0) ? Number(defaultItem.gstRate) : 18.0,
         }
         setLineItems(prev => [...prev, newItem])
     }
@@ -117,20 +124,20 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
                 // Auto-fill rate, partNumber, taxRate on item selection
                 if (field === 'itemName') {
-                    const found = inventory.find(inv => inv.itemName === value)
+                    const found = inventory.find(inv => (inv.itemName || inv.tallyItemName) === value)
                     return {
                         ...item,
                         itemName: value,
-                        partNumber: found?.partNumber || item.partNumber,
+                        partNumber: found?.partNumber || item.partNumber || '',
                         rate: found?.closingRate ?? item.rate,
-                        taxRate: found?.gstRate ?? item.taxRate,
+                        taxRate: (found?.gstRate != null && Number(found.gstRate) > 0) ? Number(found.gstRate) : item.taxRate,
                     }
                 }
 
                 return {
                     ...item,
                     [field]: field === 'quantity' || field === 'rate' || field === 'discountPercent' || field === 'taxRate'
-                        ? Number(value)
+                        ? (value === '' ? '' : Number(value))
                         : value,
                 }
             })
@@ -150,9 +157,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
     const computedRows = lineItems.map(item => {
         const { gross, discount, taxable } = computeLineItemAmounts(
-            item.quantity,
-            item.rate,
-            item.discountPercent
+            Number(item.quantity) || 0,
+            Number(item.rate) || 0,
+            Number(item.discountPercent) || 0
         )
 
         totalGross += gross
@@ -164,9 +171,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
         }
 
         // Live godown stock availability
-        const matchedCatalog = inventory.find(inv => inv.itemName === item.itemName)
+        const matchedCatalog = inventory.find(inv => (inv.itemName || inv.tallyItemName) === item.itemName)
         const availability = matchedCatalog
-            ? checkGodownAvailability(matchedCatalog, item.godownName, item.quantity)
+            ? checkGodownAvailability(matchedCatalog, item.godownName, Number(item.quantity) || 0)
             : null
 
         return {
@@ -182,18 +189,46 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
     const handleSaveQuote = async () => {
         if (!deal?.id) return
+
+        // Pre-flight client validations
+        if (lineItems.length === 0) {
+            setErrorMsg('Please add at least one line item to the quote.')
+            return
+        }
+
+        const missingName = lineItems.some(i => !i.itemName || !i.itemName.trim())
+        if (missingName) {
+            setErrorMsg('All line items must have a product / stock item selected or entered.')
+            return
+        }
+
+        const invalidQty = lineItems.some(i => !i.quantity || Number(i.quantity) <= 0)
+        if (invalidQty) {
+            setErrorMsg('Quantity must be greater than zero for all items.')
+            return
+        }
+
+        const invalidRate = lineItems.some(i => i.rate === '' || Number(i.rate) < 0)
+        if (invalidRate) {
+            setErrorMsg('Rate cannot be negative.')
+            return
+        }
+
         setSaving(true)
         setErrorMsg(null)
         setSuccessMsg(null)
 
         try {
             const apiPayload = lineItems.map(item => ({
-                itemName: item.itemName,
+                itemName: item.itemName.trim(),
+                tallyItemName: item.itemName.trim(),
                 partNumber: item.partNumber || '',
                 godownName: item.godownName || 'Main Location',
                 quantity: Number(item.quantity) || 1,
+                unitPrice: Number(item.rate) || 0,
                 rate: Number(item.rate) || 0,
                 discountPercent: Number(item.discountPercent) || 0,
+                gstRate: Number(item.taxRate) || 18.0,
                 taxRate: Number(item.taxRate) || 18.0,
             }))
 
@@ -206,7 +241,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             }
         } catch (err) {
             console.error('Failed to save quote:', err)
-            setErrorMsg(err?.response?.data?.message || err?.message || 'Failed to save quote items.')
+            const backendMsg = err?.response?.data?.message || err?.response?.data?.error
+            const fieldErrors = err?.response?.data?.fields ? Object.values(err.response.data.fields).join(', ') : null
+            setErrorMsg(fieldErrors || backendMsg || err?.message || 'Failed to save quote items.')
         } finally {
             setSaving(false)
         }
@@ -306,22 +343,42 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                                     <td className="p-3">
                                         {canEdit ? (
                                             <div className="flex flex-col gap-1">
-                                                <select
-                                                    value={row.itemName}
-                                                    onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
-                                                    className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
-                                                    style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                                >
-                                                    {inventory.length > 0 ? (
-                                                        inventory.map(inv => (
-                                                            <option key={inv.itemName} value={inv.itemName} style={{ background: T.surface, color: T.textPrimary }}>
-                                                                {inv.itemName} {inv.partNumber ? `(${inv.partNumber})` : ''}
+                                                {inventory.length > 0 ? (
+                                                    <select
+                                                        value={row.itemName}
+                                                        onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
+                                                        className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
+                                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                    >
+                                                        {!row.itemName && (
+                                                            <option value="" disabled style={{ background: T.surface, color: T.textMuted }}>
+                                                                -- Select Stock Item --
                                                             </option>
-                                                        ))
-                                                    ) : (
-                                                        <option value={row.itemName} style={{ background: T.surface, color: T.textPrimary }}>{row.itemName || 'Custom Item'}</option>
-                                                    )}
-                                                </select>
+                                                        )}
+                                                        {inventory.map(inv => {
+                                                            const name = inv.itemName || inv.tallyItemName
+                                                            return (
+                                                                <option key={name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                    {name} {inv.partNumber ? `(${inv.partNumber})` : ''}
+                                                                </option>
+                                                            )
+                                                        })}
+                                                        {row.itemName && !inventory.some(inv => (inv.itemName || inv.tallyItemName) === row.itemName) && (
+                                                            <option value={row.itemName} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                {row.itemName} (Custom)
+                                                            </option>
+                                                        )}
+                                                    </select>
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        value={row.itemName}
+                                                        onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
+                                                        placeholder="Enter product / item name..."
+                                                        className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
+                                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                    />
+                                                )}
                                                 {row.partNumber && (
                                                     <span className="text-[10px] font-mono" style={{ color: T.textMuted }}>
                                                         Part: {row.partNumber}
