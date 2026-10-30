@@ -281,39 +281,45 @@ export default function Deals() {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search)
         const dealIdParam = queryParams.get('dealId')
-        if (dealIdParam) {
-            let found = null
-            Object.values(dealsByStage).forEach(list => {
-                const f = list.find(d => String(d.id) === String(dealIdParam))
-                if (f) found = f
-            })
-
-            if (found) {
-                setSelectedDeal(found)
-            } else {
-                // If the deal is not on page 0 in memory, pull directly from backend profile api
-                api.get(`/api/deals/${dealIdParam}/profile`)
-                    .then(r => {
-                        if (r.data?.deal) {
-                            setSelectedDeal({
-                                ...r.data.deal,
-                                _assignedToMe: (r.data.deal.assignees ?? []).some(u => String(u.id) === String(userId)),
-                                _isOwner: String(r.data.deal.owner?.id) === String(userId)
-                            })
-                        }
-                    })
-                    .catch(() => {
-                        setSelectedDeal({
-                            id: parseInt(dealIdParam),
-                            stage: 'NEW',
-                            title: 'Loading Deal...'
-                        })
-                    })
-            }
-        } else {
+        if (!dealIdParam) {
             setSelectedDeal(null)
+            return
         }
-    }, [location.search, dealsByStage])
+
+        // Keep selectedDeal if it matches the current dealId to prevent unwanted re-renders/closes
+        if (selectedDeal && String(selectedDeal.id) === String(dealIdParam)) {
+            return
+        }
+
+        let found = null
+        Object.values(dealsByStage).forEach(list => {
+            const f = list.find(d => String(d.id) === String(dealIdParam))
+            if (f) found = f
+        })
+
+        if (found) {
+            setSelectedDeal(found)
+        } else {
+            // If the deal is not on page 0 in memory, pull directly from backend profile api
+            api.get(`/api/deals/${dealIdParam}/profile`)
+                .then(r => {
+                    if (r.data?.deal) {
+                        setSelectedDeal({
+                            ...r.data.deal,
+                            _assignedToMe: (r.data.deal.assignees ?? []).some(u => String(u.id) === String(userId)),
+                            _isOwner: String(r.data.deal.owner?.id) === String(userId)
+                        })
+                    }
+                })
+                .catch(() => {
+                    setSelectedDeal({
+                        id: parseInt(dealIdParam),
+                        stage: 'NEW',
+                        title: 'Loading Deal...'
+                    })
+                })
+        }
+    }, [location.search])
 
     const getStageStyle = (stageKey) => {
         return getPipelineStageStyle(stageKey)
@@ -419,6 +425,14 @@ export default function Deals() {
                 setErrors({ general: extractApiErrorMessage(err) })
             }
         }
+    }
+
+    // ── Helper to open deal and sync URL query ────────────────
+    const handleOpenDeal = (deal) => {
+        setSelectedDeal(deal)
+        const params = new URLSearchParams(location.search)
+        params.set('dealId', deal.id)
+        navigate(`${location.pathname}?${params.toString()}`, { replace: false })
     }
 
     // ── Helper to scan and update cards in place ────────────────
@@ -761,7 +775,7 @@ export default function Deals() {
                                                     highlighted={isHighlighted}
                                                     assignedToMe={deal._assignedToMe}
                                                     canAssign={can.DEALS_ASSIGN}
-                                                    onClick={() => setSelectedDeal(deal)}
+                                                    onClick={() => handleOpenDeal(deal)}
                                                     onAssigned={updated => updateDealInStage(deal.id, updated)}
                                                     onEdit={(can.DEALS_EDIT && (isAdminOrAbove || deal._isOwner || deal._assignedToMe)) ? () => setEditModalDeal(deal) : undefined}
                                                     onRemove={canDelete ? async () => {
@@ -917,9 +931,13 @@ export default function Deals() {
                         }
                     }}
                     onClose={() => {
-                        const currentStg = selectedDeal.stage
+                        const currentStg = selectedDeal?.stage
                         setSelectedDeal(null)
-                        navigate(location.pathname, { replace: true })
+                        const params = new URLSearchParams(location.search)
+                        params.delete('dealId')
+                        params.delete('tab')
+                        const searchStr = params.toString() ? `?${params.toString()}` : ''
+                        navigate(`${location.pathname}${searchStr}`, { replace: true })
                         if (currentStg) loadStageDeals(currentStg, 0, false, search)
                     }}
                     canEdit={can.DEALS_EDIT || (isAgent && (selectedDeal._isOwner || selectedDeal._assignedToMe))}
@@ -933,10 +951,14 @@ export default function Deals() {
 
                         profileCache.delete(`${getCachePrefix()}:${id}`)
                         await api.delete(`/api/deals/${id}`)
-                        const deletedStage = selectedDeal.stage
+                        const deletedStage = selectedDeal?.stage
                         setSelectedDeal(null)
-                        loadStageDeals(deletedStage, 0, false, search)
-                        navigate(location.pathname, { replace: true })
+                        const params = new URLSearchParams(location.search)
+                        params.delete('dealId')
+                        params.delete('tab')
+                        const searchStr = params.toString() ? `?${params.toString()}` : ''
+                        navigate(`${location.pathname}${searchStr}`, { replace: true })
+                        if (deletedStage) loadStageDeals(deletedStage, 0, false, search)
                     } : undefined}
                 />
             )}
