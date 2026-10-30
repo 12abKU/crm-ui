@@ -7,6 +7,7 @@ export const tallyAPI = {
     getGodowns: () => api.get('/api/tally/godowns'),
     getAccountFinancials: (accountId) => api.get(`/api/tally/accounts/${accountId}/financials`),
     getDealSyncStatus: (dealId) => api.get(`/api/tally/deals/${dealId}/sync-status`),
+    createSalesOrder: (dealId) => api.post(`/api/tally/deals/${dealId}/sales-order`),
     dispatchDeal: (dealId, data = {}) => api.post(`/api/tally/deals/${dealId}/dispatch`, data),
     invoiceDeal: (dealId, data = {}) => api.post(`/api/tally/deals/${dealId}/invoice`, data),
     retryDealSync: (dealId) => api.post(`/api/tally/deals/${dealId}/retry`),

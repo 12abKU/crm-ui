@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import tallyAPI from '../../api/tally'
 import { validateTallyConfig } from '../../utils/tallyGstUtils'
 import { T } from '../../constants/theme'
+import TallyConnectionBadge from '../deals/TallyConnectionBadge'
 
 /**
  * TallySettings
@@ -198,10 +199,13 @@ export default function TallySettings() {
             {/* Header banner */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl border shadow-sm" style={{ background: T.surface, borderColor: T.border }}>
                 <div>
-                    <h3 className="text-lg font-black flex items-center gap-2" style={{ color: T.textPrimary }}>
-                        <span className="material-symbols-outlined" style={{ color: T.primary }}>receipt_long</span>
-                        TallyPrime Accounting & Factory Inventory Bridge
-                    </h3>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <h3 className="text-lg font-black flex items-center gap-2" style={{ color: T.textPrimary }}>
+                            <span className="material-symbols-outlined" style={{ color: T.primary }}>receipt_long</span>
+                            TallyPrime Accounting & Factory Inventory Bridge
+                        </h3>
+                        <TallyConnectionBadge />
+                    </div>
                     <p className="text-xs mt-1" style={{ color: T.textMuted }}>
                         Connect your Tally company, configure Indian GST tax ledgers, and monitor AWS SQS FIFO queues.
                     </p>
@@ -476,7 +480,7 @@ export default function TallySettings() {
                     {/* Default Godown Dropdown */}
                     <div>
                         <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            Default Godown / Warehouse
+                            Default Fallback Godown (Optional)
                         </label>
                         <select
                             data-testid="tally-default-godown-select"
@@ -496,6 +500,9 @@ export default function TallySettings() {
                                 <option value="Main Location" style={{ background: T.surface, color: T.textPrimary }}>Main Location</option>
                             )}
                         </select>
+                        <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>
+                            ℹ️ Fallback only. Godowns and live stock are selected per line item inside Deal Quote Builder.
+                        </p>
                     </div>
                 </div>
             </div>
