@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import tallyAPI from '../../api/tally'
 import { computeGstSplit } from '../../utils/tallyGstUtils'
 import { T } from '../../constants/theme'
+import TallyConnectionBadge from './TallyConnectionBadge'
 
 /**
  * DealQuoteSummaryCard
@@ -71,9 +72,10 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
     return (
         <div className="p-5 rounded-2xl border shadow-sm flex flex-col gap-4" style={{ background: T.surface, borderColor: T.border }}>
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>receipt_long</span>
                     <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>Quotation & Line Items</h4>
+                    <TallyConnectionBadge />
                 </div>
                 {onOpenQuoteBuilder && (
                     <button

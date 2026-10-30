@@ -6,6 +6,7 @@ import {
     computeGstSplit,
 } from '../../utils/tallyGstUtils'
 import { T } from '../../constants/theme'
+import TallyConnectionBadge from './TallyConnectionBadge'
 
 /**
  * DealQuoteBuilder
@@ -263,9 +264,12 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
     return (
         <div className="p-6 flex flex-col gap-6" style={{ color: T.textPrimary }}>
             {/* Header row */}
-            <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: T.borderSubtle }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b" style={{ borderColor: T.borderSubtle }}>
                 <div>
-                    <h3 className="text-base font-black" style={{ color: T.textPrimary }}>Manufacturing Deal Quote Builder</h3>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                        <h3 className="text-base font-black" style={{ color: T.textPrimary }}>Manufacturing Deal Quote Builder</h3>
+                        <TallyConnectionBadge />
+                    </div>
                     <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>
                         Configure itemized finished goods, select Godowns with live stock, and calculate Indian GST.
                     </p>
