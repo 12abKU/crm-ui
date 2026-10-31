@@ -43,6 +43,28 @@ export default function TallySettings() {
     const [feedback, setFeedback] = useState(null)
     const [showApiKey, setShowApiKey] = useState(false)
     const [copiedKey, setCopiedKey] = useState(false)
+    const [discoveredLedgers, setDiscoveredLedgers] = useState(null)
+    const [refreshingLedgers, setRefreshingLedgers] = useState(false)
+    const [customInputs, setCustomInputs] = useState({})
+
+    const toggleCustomInput = (field) => {
+        setCustomInputs(prev => ({ ...prev, [field]: !prev[field] }))
+    }
+
+    const handleRefreshLedgers = async () => {
+        setRefreshingLedgers(true)
+        try {
+            const res = await tallyAPI.getLedgers()
+            if (res?.data) {
+                setDiscoveredLedgers(res.data)
+                setFeedback({ type: 'success', message: `Discovered ${res.data.totalCount || 0} ledgers from Tally!` })
+            }
+        } catch (e) {
+            setFeedback({ type: 'error', message: 'Failed to fetch ledgers from Tally. Ensure Tally Bridge is online.' })
+        } finally {
+            setRefreshingLedgers(false)
+        }
+    }
 
     useEffect(() => {
         let isMounted = true
@@ -51,10 +73,11 @@ export default function TallySettings() {
             setLoading(true)
             setErrors([])
             try {
-                const [cfgRes, gdRes, dlqRes] = await Promise.allSettled([
+                const [cfgRes, gdRes, dlqRes, ledgersRes] = await Promise.allSettled([
                     tallyAPI.getConfig(),
                     tallyAPI.getGodowns(),
                     tallyAPI.getDlqMessages(),
+                    tallyAPI.getLedgers(),
                 ])
 
                 if (!isMounted) return
@@ -85,6 +108,10 @@ export default function TallySettings() {
                 if (dlqRes.status === 'fulfilled') {
                     const dlqList = dlqRes.value?.data || dlqRes.value || []
                     setDlqMessages(Array.isArray(dlqList) ? dlqList : [])
+                }
+
+                if (ledgersRes.status === 'fulfilled' && ledgersRes.value?.data) {
+                    setDiscoveredLedgers(ledgersRes.value.data)
                 }
             } catch (err) {
                 console.error('Failed to load Tally config:', err)
@@ -398,96 +425,311 @@ export default function TallySettings() {
 
             {/* 2. Ledger Mappings & Default Godown */}
             <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
-                <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
-                    <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>account_balance</span>
-                    <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>2. Accounting Ledgers  Mapping</h4>
+                <div className="flex flex-wrap items-center justify-between pb-3 border-b gap-2" style={{ borderColor: T.borderSubtle }}>
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>account_balance</span>
+                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>2. Accounting Ledgers Mapping</h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {discoveredLedgers?.totalCount > 0 ? (
+                            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                {discoveredLedgers.totalCount} Ledgers Discovered from Tally
+                            </span>
+                        ) : (
+                            <span className="text-[11px] text-gray-400">
+                                Discovered automatically when Bridge connects
+                            </span>
+                        )}
+                        <button
+                            type="button"
+                            onClick={handleRefreshLedgers}
+                            disabled={refreshingLedgers}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer disabled:opacity-50"
+                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                            title="Refresh Chart of Accounts live from Tally"
+                        >
+                            <span className={`material-symbols-outlined text-[14px] ${refreshingLedgers ? 'animate-spin' : ''}`}>sync</span>
+                            <span>{refreshingLedgers ? 'Syncing...' : 'Sync from Tally'}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {/* Sales Ledger */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            Sales Ledger Name <span style={{ color: T.error }}>*</span>
-                        </label>
-                        <input
-                            type="text"
-                            data-testid="tally-sales-ledger-input"
-                            name="salesLedgerName"
-                            value={config.salesLedgerName || ''}
-                            onChange={e => handleInputChange('salesLedgerName', e.target.value)}
-                            placeholder="Sales Accounts"
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        />
-                    </div>
+                    {(() => {
+                        const hasOptions = discoveredLedgers?.salesLedgers && discoveredLedgers.salesLedgers.length > 0
+                        const isCustom = customInputs['salesLedgerName']
+                        const val = config.salesLedgerName || ''
+                        return (
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold" style={{ color: T.textSecondary }}>
+                                        Sales Ledger Name <span style={{ color: T.error }}>*</span>
+                                    </label>
+                                    {hasOptions && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCustomInput('salesLedgerName')}
+                                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-0.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">{isCustom ? "list" : "edit"}</span>
+                                            <span>{isCustom ? "Select from Tally" : "Custom"}</span>
+                                        </button>
+                                    )}
+                                </div>
+                                {!isCustom && hasOptions ? (
+                                    <select
+                                        data-testid="tally-sales-ledger-input"
+                                        name="salesLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('salesLedgerName', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2 font-medium cursor-pointer"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    >
+                                        <option value="">-- Select Sales Ledger --</option>
+                                        {discoveredLedgers.salesLedgers.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                        {val && !discoveredLedgers.salesLedgers.includes(val) && (
+                                            <option value={val}>{val} (Current)</option>
+                                        )}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        data-testid="tally-sales-ledger-input"
+                                        name="salesLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('salesLedgerName', e.target.value)}
+                                        placeholder="Sales Accounts"
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    />
+                                )}
+                            </div>
+                        )
+                    })()}
 
                     {/* CGST Ledger */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            CGST Ledger Name <span style={{ color: T.error }}>*</span>
-                        </label>
-                        <input
-                            type="text"
-                            data-testid="tally-cgst-ledger-input"
-                            name="cgstLedgerName"
-                            value={config.cgstLedgerName || ''}
-                            onChange={e => handleInputChange('cgstLedgerName', e.target.value)}
-                            placeholder="Output CGST"
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        />
-                    </div>
+                    {(() => {
+                        const hasOptions = discoveredLedgers?.taxLedgers && discoveredLedgers.taxLedgers.length > 0
+                        const isCustom = customInputs['cgstLedgerName']
+                        const val = config.cgstLedgerName || ''
+                        return (
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold" style={{ color: T.textSecondary }}>
+                                        CGST Ledger Name <span style={{ color: T.error }}>*</span>
+                                    </label>
+                                    {hasOptions && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCustomInput('cgstLedgerName')}
+                                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-0.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">{isCustom ? "list" : "edit"}</span>
+                                            <span>{isCustom ? "Select from Tally" : "Custom"}</span>
+                                        </button>
+                                    )}
+                                </div>
+                                {!isCustom && hasOptions ? (
+                                    <select
+                                        data-testid="tally-cgst-ledger-input"
+                                        name="cgstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('cgstLedgerName', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2 font-medium cursor-pointer"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    >
+                                        <option value="">-- Select CGST Ledger --</option>
+                                        {discoveredLedgers.taxLedgers.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                        {val && !discoveredLedgers.taxLedgers.includes(val) && (
+                                            <option value={val}>{val} (Current)</option>
+                                        )}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        data-testid="tally-cgst-ledger-input"
+                                        name="cgstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('cgstLedgerName', e.target.value)}
+                                        placeholder="Output CGST"
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    />
+                                )}
+                            </div>
+                        )
+                    })()}
 
                     {/* SGST Ledger */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            SGST Ledger Name <span style={{ color: T.error }}>*</span>
-                        </label>
-                        <input
-                            type="text"
-                            data-testid="tally-sgst-ledger-input"
-                            name="sgstLedgerName"
-                            value={config.sgstLedgerName || ''}
-                            onChange={e => handleInputChange('sgstLedgerName', e.target.value)}
-                            placeholder="Output SGST"
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        />
-                    </div>
+                    {(() => {
+                        const hasOptions = discoveredLedgers?.taxLedgers && discoveredLedgers.taxLedgers.length > 0
+                        const isCustom = customInputs['sgstLedgerName']
+                        const val = config.sgstLedgerName || ''
+                        return (
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold" style={{ color: T.textSecondary }}>
+                                        SGST Ledger Name <span style={{ color: T.error }}>*</span>
+                                    </label>
+                                    {hasOptions && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCustomInput('sgstLedgerName')}
+                                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-0.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">{isCustom ? "list" : "edit"}</span>
+                                            <span>{isCustom ? "Select from Tally" : "Custom"}</span>
+                                        </button>
+                                    )}
+                                </div>
+                                {!isCustom && hasOptions ? (
+                                    <select
+                                        data-testid="tally-sgst-ledger-input"
+                                        name="sgstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('sgstLedgerName', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2 font-medium cursor-pointer"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    >
+                                        <option value="">-- Select SGST Ledger --</option>
+                                        {discoveredLedgers.taxLedgers.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                        {val && !discoveredLedgers.taxLedgers.includes(val) && (
+                                            <option value={val}>{val} (Current)</option>
+                                        )}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        data-testid="tally-sgst-ledger-input"
+                                        name="sgstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('sgstLedgerName', e.target.value)}
+                                        placeholder="Output SGST"
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    />
+                                )}
+                            </div>
+                        )
+                    })()}
 
                     {/* IGST Ledger */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            IGST Ledger Name <span style={{ color: T.error }}>*</span>
-                        </label>
-                        <input
-                            type="text"
-                            data-testid="tally-igst-ledger-input"
-                            name="igstLedgerName"
-                            value={config.igstLedgerName || ''}
-                            onChange={e => handleInputChange('igstLedgerName', e.target.value)}
-                            placeholder="Output IGST"
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        />
-                    </div>
+                    {(() => {
+                        const hasOptions = discoveredLedgers?.taxLedgers && discoveredLedgers.taxLedgers.length > 0
+                        const isCustom = customInputs['igstLedgerName']
+                        const val = config.igstLedgerName || ''
+                        return (
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold" style={{ color: T.textSecondary }}>
+                                        IGST Ledger Name <span style={{ color: T.error }}>*</span>
+                                    </label>
+                                    {hasOptions && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCustomInput('igstLedgerName')}
+                                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-0.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">{isCustom ? "list" : "edit"}</span>
+                                            <span>{isCustom ? "Select from Tally" : "Custom"}</span>
+                                        </button>
+                                    )}
+                                </div>
+                                {!isCustom && hasOptions ? (
+                                    <select
+                                        data-testid="tally-igst-ledger-input"
+                                        name="igstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('igstLedgerName', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2 font-medium cursor-pointer"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    >
+                                        <option value="">-- Select IGST Ledger --</option>
+                                        {discoveredLedgers.taxLedgers.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                        {val && !discoveredLedgers.taxLedgers.includes(val) && (
+                                            <option value={val}>{val} (Current)</option>
+                                        )}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        data-testid="tally-igst-ledger-input"
+                                        name="igstLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('igstLedgerName', e.target.value)}
+                                        placeholder="Output IGST"
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    />
+                                )}
+                            </div>
+                        )
+                    })()}
 
                     {/* Round-off Ledger */}
-                    <div>
-                        <label className="block text-xs font-bold mb-1" style={{ color: T.textSecondary }}>
-                            Round-off Ledger Name
-                        </label>
-                        <input
-                            type="text"
-                            data-testid="tally-roundoff-ledger-input"
-                            name="roundOffLedgerName"
-                            value={config.roundOffLedgerName || ''}
-                            onChange={e => handleInputChange('roundOffLedgerName', e.target.value)}
-                            placeholder="Round Off"
-                            className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                        />
-                    </div>
+                    {(() => {
+                        const hasOptions = discoveredLedgers?.roundOffLedgers && discoveredLedgers.roundOffLedgers.length > 0
+                        const isCustom = customInputs['roundOffLedgerName']
+                        const val = config.roundOffLedgerName || ''
+                        return (
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-xs font-bold" style={{ color: T.textSecondary }}>
+                                        Round-off Ledger Name
+                                    </label>
+                                    {hasOptions && (
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCustomInput('roundOffLedgerName')}
+                                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-0.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">{isCustom ? "list" : "edit"}</span>
+                                            <span>{isCustom ? "Select from Tally" : "Custom"}</span>
+                                        </button>
+                                    )}
+                                </div>
+                                {!isCustom && hasOptions ? (
+                                    <select
+                                        data-testid="tally-roundoff-ledger-input"
+                                        name="roundOffLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('roundOffLedgerName', e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2 font-medium cursor-pointer"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    >
+                                        <option value="">-- Select Round-Off Ledger --</option>
+                                        {discoveredLedgers.roundOffLedgers.map(name => (
+                                            <option key={name} value={name}>{name}</option>
+                                        ))}
+                                        {val && !discoveredLedgers.roundOffLedgers.includes(val) && (
+                                            <option value={val}>{val} (Current)</option>
+                                        )}
+                                    </select>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        data-testid="tally-roundoff-ledger-input"
+                                        name="roundOffLedgerName"
+                                        value={val}
+                                        onChange={e => handleInputChange('roundOffLedgerName', e.target.value)}
+                                        placeholder="Round Off"
+                                        className="w-full px-3 py-2 rounded-xl border text-xs outline-none transition focus:ring-2"
+                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                    />
+                                )}
+                            </div>
+                        )
+                    })()}
                 </div>
             </div>
 

@@ -88,7 +88,7 @@ export function useWebSocket(token, onNotification) {
                     }
                 })
 
-                // Subscribe to real-time Tally connection status (strict tenant destination)
+                // Subscribe to real-time Tally connection status and deal sync (strict tenant destination)
                 const loggedCompanyId = localStorage.getItem('companyId')
                 if (loggedCompanyId) {
                     client.subscribe(`/topic/company/${loggedCompanyId}/tally-status`, (message) => {
@@ -98,6 +98,17 @@ export function useWebSocket(token, onNotification) {
                                 window.dispatchEvent(new CustomEvent('crm-tally-status', { detail: tallyUpdate }))
                             } catch (e) {
                                 console.error('Failed to parse Tally status update', e)
+                            }
+                        }
+                    })
+
+                    client.subscribe(`/topic/company/${loggedCompanyId}/deal-sync`, (message) => {
+                        if (message.body) {
+                            try {
+                                const dealSyncUpdate = JSON.parse(message.body)
+                                window.dispatchEvent(new CustomEvent('crm-tally-deal-sync', { detail: dealSyncUpdate }))
+                            } catch (e) {
+                                console.error('Failed to parse Tally deal sync update', e)
                             }
                         }
                     })

@@ -75,6 +75,27 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
         }
     }, [isQueued, deal?.id, dispatch, onStatusUpdated])
 
+    // Real-time WebSocket deal-sync event listener
+    useEffect(() => {
+        const handleDealSync = (e) => {
+            const detail = e.detail
+            if (detail && detail.dealId === deal?.id) {
+                try { profileCache.delete(`${getCachePrefix()}:${deal.id}`) } catch (_) {}
+                dispatch(setDealSyncStatus({
+                    dealId: deal.id,
+                    tallySyncStatus: detail.status,
+                    tallySalesOrderNo: detail.voucherType === 'SALES_ORDER' ? detail.voucherNumber : liveSO,
+                    tallyDeliveryNoteNo: detail.voucherType === 'DELIVERY_NOTE' ? detail.voucherNumber : liveDN,
+                    tallySalesInvoiceNo: detail.voucherType === 'SALES_INVOICE' ? detail.voucherNumber : liveINV,
+                    tallyLastSyncError: detail.error || null,
+                }))
+                if (onStatusUpdated) onStatusUpdated()
+            }
+        }
+        window.addEventListener('crm-tally-deal-sync', handleDealSync)
+        return () => window.removeEventListener('crm-tally-deal-sync', handleDealSync)
+    }, [deal?.id, liveSO, liveDN, liveINV, dispatch, onStatusUpdated])
+
     // Node statuses: when Tally is not configured, nodes stay PENDING rather than showing READY
     const step1Status = step1Completed
         ? 'COMPLETED'
@@ -329,21 +350,26 @@ export default function TallyFulfillmentStepper({ deal, onStatusUpdated }) {
             </div>
 
             {/* Error or Success feedback banners */}
-            {actionError && (
-                <div className="p-3 rounded-lg border text-xs flex items-center justify-between" style={{ background: T.errorDim, borderColor: T.error + '40', color: T.error }}>
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px]">error</span>
-                        <span>{actionError}</span>
+            {(actionError || (isFailed && (reduxSync?.tallyLastSyncError || deal.tallyLastSyncError))) && (
+                <div className="p-3.5 rounded-xl border text-xs flex items-start justify-between gap-3 shadow-sm" style={{ background: T.errorDim, borderColor: T.error + '40', color: T.error }}>
+                    <div className="flex items-start gap-2.5">
+                        <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">error</span>
+                        <div>
+                            <p className="font-bold">TallyPrime Sync Notice</p>
+                            <p className="mt-0.5 font-mono text-[11px] leading-relaxed opacity-95">
+                                {actionError || reduxSync?.tallyLastSyncError || deal.tallyLastSyncError}
+                            </p>
+                        </div>
                     </div>
                     <button
                         type="button"
                         data-testid="tally-retry-btn"
                         onClick={handleRetry}
                         disabled={actionLoading}
-                        className="px-2.5 py-1 rounded text-white font-bold text-[10px] transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg text-white font-bold text-xs transition cursor-pointer shrink-0 shadow-sm"
                         style={{ background: T.error }}
                     >
-                        {actionLoading ? 'Retrying...' : 'Retry'}
+                        {actionLoading ? 'Retrying...' : 'Retry Sync'}
                     </button>
                 </div>
             )}
