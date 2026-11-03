@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
+import { formatTallyError } from '../../utils/tallyGstUtils'
 import { setDealSyncStatus } from '../../store/dealsSlice'
 import { profileCache, getCachePrefix } from '../../utils/cacheUtils'
 
@@ -175,7 +176,7 @@ export default function TallySyncBadge({
 
     // 5. Failed state with retry button
     if (normalizedStatus === 'FAILED' || normalizedStatus === 'SYNC_FAILED') {
-        const errorText = localError || effectiveError || 'Sync to Tally failed'
+        const errorText = formatTallyError(localError || effectiveError || 'Sync to Tally failed')
         return (
             <div
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border"

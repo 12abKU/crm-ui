@@ -45,8 +45,17 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
         }
 
         fetchSummary()
+
+        const handleQuoteSaved = (e) => {
+            if (e?.detail?.dealId === deal?.id) {
+                fetchSummary()
+            }
+        }
+        window.addEventListener('crm-quote-saved', handleQuoteSaved)
+
         return () => {
             isMounted = false
+            window.removeEventListener('crm-quote-saved', handleQuoteSaved)
         }
     }, [deal?.id])
 

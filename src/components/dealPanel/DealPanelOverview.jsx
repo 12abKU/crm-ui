@@ -123,6 +123,7 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
             <TallyFulfillmentStepper
                 deal={deal}
                 onStatusUpdated={onDealUpdated}
+                onOpenQuoteTab={onOpenQuoteTab}
             />
 
             {/* ── Deal Quote Summary Card ── */}

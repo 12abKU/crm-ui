@@ -135,6 +135,28 @@ export function isTallyConfigPermitted(role) {
     return role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 }
 
+
+export function formatTallyError(rawError) {
+    if (!rawError) return 'Voucher sync failed in Tally';
+    let cleaned = String(rawError)
+        .replace(/&apos;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim();
+
+    if (cleaned.includes('SVCurrentCompany') || cleaned.includes('Could not find Company')) {
+        const match = cleaned.match(/(?:to |Company )['"]?([^'"<>]+)['"]?/i);
+        const comp = match ? match[1].trim() : 'Iinventive Tech';
+        return 'Company "' + comp + '" is not opened in TallyPrime. Please open "' + comp + '" in TallyPrime and click "Retry Sync".';
+    }
+    if (cleaned.includes('Voucher date is missing') || cleaned.includes('retry Split')) {
+        return 'Tally date restriction. In Educational Mode, ensure transaction dates fall on 1st/2nd/31st.';
+    }
+    return cleaned;
+}
+
 export default {
     checkGodownAvailability,
     computeLineItemAmounts,
@@ -144,4 +166,5 @@ export default {
     evaluateAgingRisk,
     validateTallyConfig,
     isTallyConfigPermitted,
+    formatTallyError,
 }

@@ -306,6 +306,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             if (onQuoteSaved) {
                 onQuoteSaved(savedData, gstSplit.netPayable)
             }
+            try {
+                window.dispatchEvent(new CustomEvent('crm-quote-saved', { detail: { dealId: deal.id, items: apiPayload } }))
+            } catch (_) {}
         } catch (err) {
             console.error('Failed to save quote:', err)
             const backendMsg = err?.response?.data?.message || err?.response?.data?.error
