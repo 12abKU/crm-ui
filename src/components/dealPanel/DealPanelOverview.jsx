@@ -10,6 +10,7 @@ import DocumentList from '../../pages/DocumentList'
 import LeadInfoCard from '../deals/LeadInfoCard'
 import CustomFieldsDisplay from '../CustomFieldsDisplay'
 import TallyFulfillmentStepper from '../deals/TallyFulfillmentStepper'
+import BusyFulfillmentStepper from '../deals/BusyFulfillmentStepper'
 import DealQuoteSummaryCard from '../deals/DealQuoteSummaryCard'
 
 // ── Shared InfoCard ───────────────────────────────────────────
@@ -120,11 +121,19 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
             </div>
 
             {/* ── 3-Stage Order-to-Cash Stepper (Always visible across all stages for manual & automated fulfillment) ── */}
-            <TallyFulfillmentStepper
-                deal={deal}
-                onStatusUpdated={onDealUpdated}
-                onOpenQuoteTab={onOpenQuoteTab}
-            />
+            {((deal.activeErp === 'BUSY_ERP' || deal.erpProvider === 'BUSY_ERP') || (deal.busySyncStatus && deal.busySyncStatus !== 'NONE' && (!deal.tallySyncStatus || deal.tallySyncStatus === 'NONE'))) ? (
+                <BusyFulfillmentStepper
+                    deal={deal}
+                    onStatusUpdated={onDealUpdated}
+                    onOpenQuoteTab={onOpenQuoteTab}
+                />
+            ) : (
+                <TallyFulfillmentStepper
+                    deal={deal}
+                    onStatusUpdated={onDealUpdated}
+                    onOpenQuoteTab={onOpenQuoteTab}
+                />
+            )}
 
             {/* ── Deal Quote Summary Card ── */}
             <DealQuoteSummaryCard

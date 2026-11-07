@@ -1,39 +1,64 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
-import { fetchTallyConnectionStatus } from '../../store/dealsSlice'
+import busyAPI from '../../api/busy'
+import { fetchTallyConnectionStatus, fetchBusyConnectionStatus } from '../../store/dealsSlice'
 import {
     checkGodownAvailability,
     computeLineItemAmounts,
     computeGstSplit,
 } from '../../utils/tallyGstUtils'
+import { checkMaterialCenterAvailability } from '../../utils/busyGstUtils'
 import { T } from '../../constants/theme'
 import TallyConnectionBadge from './TallyConnectionBadge'
+import BusyConnectionBadge from './BusyConnectionBadge'
 
 /**
  * DealQuoteBuilder
- * Interactive Deal Line Items & Quote Builder with:
- * - Live Tally finished goods catalog & Godown availability
+ * Interactive Deal Line Items & Quote Builder supporting multi-ERP (TallyPrime & BUSY ERP):
+ * - Live catalog & stock availability (Godowns for Tally, Material Centers for BUSY)
  * - Shortfall warnings when requestedQty > availableStock
  * - Real-time line item calculations (Gross, Discount, Taxable)
  * - Section 170 Indian GST splitting (Intrastate CGST/SGST vs Interstate IGST)
  * - Integer net payable round-off calculation
+ * - Dynamic column headers ("Material Center / Store" vs "Godown / Warehouse")
  * - Atomic persistence to backend
  * 
  * Styled with CRM Central Theme (T) to adapt seamlessly to both Light and Dark modes.
  */
 export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true }) {
     const dispatch = useDispatch()
-    const { isConnected, tallyCompanyName } = useSelector(
-        state => state.deals?.tallyConnection || {}
-    )
+    const companyId = useSelector(state => state.auth?.companyId || localStorage.getItem('companyId') || '')
+    const tallyConnection = useSelector(state => state.deals?.tallyConnection || {})
+    const busyConnection = useSelector(state => state.deals?.busyConnection || {})
+
+    // Active ERP state: 'NONE' | 'TALLY_PRIME' | 'BUSY_ERP'
+    const [activeErp, setActiveErp] = useState(() => {
+        if (deal?.activeErp) return String(deal.activeErp).toUpperCase()
+        if (deal?.erpProvider) return String(deal.erpProvider).toUpperCase()
+        if (deal?.busySyncStatus && deal.busySyncStatus !== 'NONE') return 'BUSY_ERP'
+        return 'TALLY_PRIME'
+    })
+
+    const isBusy = activeErp === 'BUSY_ERP'
+    const isTally = activeErp === 'TALLY_PRIME'
+    const isNone = activeErp === 'NONE'
+
+    const isConnected = isBusy
+        ? Boolean(busyConnection.isConnected)
+        : (isTally ? Boolean(tallyConnection.isConnected) : true)
+
+    const erpLabel = isBusy ? 'BUSY ERP' : (isTally ? 'TallyPrime' : 'CRM')
+    const locationHeader = isBusy ? 'Material Center / Store' : 'Godown / Warehouse'
+    const defaultLocation = isBusy ? 'Main Store' : 'Main Location'
+
     const [offlineModeChoice, setOfflineModeChoice] = useState('cached') // 'cached' | 'wait'
     const [liveBanner, setLiveBanner] = useState(null)
     const [prevConnected, setPrevConnected] = useState(isConnected)
 
     const [lineItems, setLineItems] = useState([])
     const [inventory, setInventory] = useState([])
-    const [godowns, setGodowns] = useState([])
+    const [locations, setLocations] = useState([])
     const [sellerGstin, setSellerGstin] = useState('')
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -41,44 +66,57 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
     const [errorMsg, setErrorMsg] = useState(null)
     const [successMsg, setSuccessMsg] = useState(null)
 
+    // Fetch tenant-scoped active ERP
+    useEffect(() => {
+        let mounted = true
+        if (!companyId) return
+
+        busyAPI.getActiveErp(companyId).then(res => {
+            if (mounted && res?.data?.activeErp) {
+                setActiveErp(res.data.activeErp.toUpperCase())
+            }
+        }).catch(() => {})
+
+        const handleErpChanged = (e) => {
+            if (e.detail?.activeErp) {
+                setActiveErp(e.detail.activeErp.toUpperCase())
+            }
+        }
+        window.addEventListener('crm-erp-changed', handleErpChanged)
+
+        return () => {
+            mounted = false
+            window.removeEventListener('crm-erp-changed', handleErpChanged)
+        }
+    }, [companyId])
+
     const handleRefreshLiveInventory = async () => {
         setRefreshing(true)
         try {
-            dispatch(fetchTallyConnectionStatus(true))
-            const [invRes, godownsRes] = await Promise.allSettled([
-                tallyAPI.getInventory({ size: 100 }),
-                tallyAPI.getGodowns(),
-            ])
-            if (invRes.status === 'fulfilled') {
-                const invList = invRes.value?.data || invRes.value || []
-                setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
-                    ...inv,
-                    itemName: inv.itemName || inv.tallyItemName || '',
-                })))
-            }
-            if (godownsRes.status === 'fulfilled') {
-                const gList = godownsRes.value?.data || godownsRes.value || []
-                setGodowns(Array.isArray(gList) ? gList : [])
-            }
-            setLiveBanner('🟢 Live Tally catalog and warehouse stock refreshed!')
-            setTimeout(() => setLiveBanner(null), 4000)
-        } catch (err) {
-            console.error('Failed to refresh inventory:', err)
-        } finally {
-            setRefreshing(false)
-        }
-    }
-
-    // Auto-refresh when Tally reconnects
-    useEffect(() => {
-        if (!prevConnected && isConnected) {
-            setLiveBanner('🟢 Tally is now Online! Live stock and inventory loaded.')
-            const timer = setTimeout(() => setLiveBanner(null), 5000)
-
-            Promise.allSettled([
-                tallyAPI.getInventory({ size: 100 }),
-                tallyAPI.getGodowns(),
-            ]).then(([invRes, godownsRes]) => {
+            if (isBusy) {
+                dispatch(fetchBusyConnectionStatus(true))
+                const [invRes, mcRes] = await Promise.allSettled([
+                    busyAPI.getItems({ size: 100 }),
+                    busyAPI.getMaterialCenters(),
+                ])
+                if (invRes.status === 'fulfilled') {
+                    const invList = invRes.value?.data || invRes.value || []
+                    setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
+                        ...inv,
+                        itemName: inv.itemName || inv.busyItemName || inv.name || '',
+                    })))
+                }
+                if (mcRes.status === 'fulfilled') {
+                    const mcList = mcRes.value?.data || mcRes.value || []
+                    setLocations(Array.isArray(mcList) ? mcList : [])
+                }
+                setLiveBanner('🟢 Live BUSY catalog and Material Center stock refreshed!')
+            } else {
+                dispatch(fetchTallyConnectionStatus(true))
+                const [invRes, godownsRes] = await Promise.allSettled([
+                    tallyAPI.getInventory({ size: 100 }),
+                    tallyAPI.getGodowns(),
+                ])
                 if (invRes.status === 'fulfilled') {
                     const invList = invRes.value?.data || invRes.value || []
                     setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
@@ -88,13 +126,63 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 }
                 if (godownsRes.status === 'fulfilled') {
                     const gList = godownsRes.value?.data || godownsRes.value || []
-                    setGodowns(Array.isArray(gList) ? gList : [])
+                    setLocations(Array.isArray(gList) ? gList : [])
                 }
-            })
+                setLiveBanner('🟢 Live Tally catalog and warehouse stock refreshed!')
+            }
+            setTimeout(() => setLiveBanner(null), 4000)
+        } catch (err) {
+            console.error('Failed to refresh inventory:', err)
+        } finally {
+            setRefreshing(false)
+        }
+    }
+
+    // Auto-refresh when ERP reconnects
+    useEffect(() => {
+        if (!prevConnected && isConnected) {
+            setLiveBanner(`🟢 ${erpLabel} is now Online! Live stock and inventory loaded.`)
+            const timer = setTimeout(() => setLiveBanner(null), 5000)
+
+            if (isBusy) {
+                Promise.allSettled([
+                    busyAPI.getItems({ size: 100 }),
+                    busyAPI.getMaterialCenters(),
+                ]).then(([invRes, mcRes]) => {
+                    if (invRes.status === 'fulfilled') {
+                        const invList = invRes.value?.data || invRes.value || []
+                        setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
+                            ...inv,
+                            itemName: inv.itemName || inv.busyItemName || inv.name || '',
+                        })))
+                    }
+                    if (mcRes.status === 'fulfilled') {
+                        const mcList = mcRes.value?.data || mcRes.value || []
+                        setLocations(Array.isArray(mcList) ? mcList : [])
+                    }
+                })
+            } else {
+                Promise.allSettled([
+                    tallyAPI.getInventory({ size: 100 }),
+                    tallyAPI.getGodowns(),
+                ]).then(([invRes, godownsRes]) => {
+                    if (invRes.status === 'fulfilled') {
+                        const invList = invRes.value?.data || invRes.value || []
+                        setInventory((Array.isArray(invList) ? invList : []).map(inv => ({
+                            ...inv,
+                            itemName: inv.itemName || inv.tallyItemName || '',
+                        })))
+                    }
+                    if (godownsRes.status === 'fulfilled') {
+                        const gList = godownsRes.value?.data || godownsRes.value || []
+                        setLocations(Array.isArray(gList) ? gList : [])
+                    }
+                })
+            }
             return () => clearTimeout(timer)
         }
         setPrevConnected(isConnected)
-    }, [isConnected, prevConnected])
+    }, [isConnected, prevConnected, isBusy, erpLabel])
 
     // Load initial data
     useEffect(() => {
@@ -106,11 +194,13 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             setErrorMsg(null)
 
             try {
-                const [itemsRes, invRes, godownsRes, configRes] = await Promise.allSettled([
-                    tallyAPI.getDealLineItems(deal.id),
-                    tallyAPI.getInventory({ size: 100 }),
-                    tallyAPI.getGodowns(),
-                    tallyAPI.getConfig(),
+                const api = isBusy ? busyAPI : tallyAPI
+
+                const [itemsRes, invRes, locsRes, configRes] = await Promise.allSettled([
+                    api.getDealLineItems(deal.id),
+                    isBusy ? busyAPI.getItems({ size: 100 }) : tallyAPI.getInventory({ size: 100 }),
+                    isBusy ? busyAPI.getMaterialCenters() : tallyAPI.getGodowns(),
+                    api.getConfig(),
                 ])
 
                 if (!isMounted) return
@@ -121,9 +211,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                         Array.isArray(loadedItems) && loadedItems.length > 0
                             ? loadedItems.map(item => ({
                                   id: item.id || `item-${Date.now()}-${Math.random()}`,
-                                  itemName: item.itemName || item.tallyItemName || item.productName || '',
-                                  partNumber: item.partNumber || item.sku || '',
-                                  godownName: item.godownName || 'Main Location',
+                                  itemName: item.itemName || item.busyItemName || item.tallyItemName || item.productName || '',
+                                  partNumber: item.partNumber || item.itemCode || item.sku || '',
+                                  godownName: item.godownName || defaultLocation,
                                   quantity: Number(item.quantity) || 1,
                                   rate: Number(item.rate ?? item.unitPrice ?? 0),
                                   discountPercent: Number(item.discountPercent) || 0,
@@ -137,14 +227,14 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                     const invList = invRes.value?.data || invRes.value || []
                     const normalized = (Array.isArray(invList) ? invList : []).map(inv => ({
                         ...inv,
-                        itemName: inv.itemName || inv.tallyItemName || '',
+                        itemName: inv.itemName || inv.busyItemName || inv.tallyItemName || inv.name || '',
                     }))
                     setInventory(normalized)
                 }
 
-                if (godownsRes.status === 'fulfilled') {
-                    const gList = godownsRes.value?.data || godownsRes.value || []
-                    setGodowns(Array.isArray(gList) ? gList : [])
+                if (locsRes.status === 'fulfilled') {
+                    const lList = locsRes.value?.data || locsRes.value || []
+                    setLocations(Array.isArray(lList) ? lList : [])
                 }
 
                 if (configRes.status === 'fulfilled') {
@@ -164,22 +254,22 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
         return () => {
             isMounted = false
         }
-    }, [deal?.id])
+    }, [deal?.id, isBusy, defaultLocation])
 
     // Line items mutations
     const handleAddItem = (preset = null) => {
         const defaultItem = preset || inventory[0]
-        const defaultName = defaultItem?.itemName || defaultItem?.tallyItemName || ''
-        const defaultGodown = godowns[0]?.name || godowns[0]?.godownName || 'Main Location'
+        const defaultName = defaultItem?.itemName || defaultItem?.busyItemName || defaultItem?.tallyItemName || ''
+        const defaultLocName = locations[0]?.materialCenterName || locations[0]?.name || locations[0]?.godownName || defaultLocation
         const newItem = {
             id: `temp-${Date.now()}-${Math.random()}`,
             itemName: defaultName,
-            partNumber: defaultItem?.partNumber || '',
-            godownName: defaultGodown,
+            partNumber: defaultItem?.partNumber || defaultItem?.itemCode || '',
+            godownName: defaultLocName,
             quantity: 1,
             rate: (defaultItem?.closingRate != null && Number(defaultItem.closingRate) > 0) ? Number(defaultItem.closingRate) : 0,
             discountPercent: 0,
-            taxRate: (defaultItem?.gstRate != null && Number(defaultItem.gstRate) > 0) ? Number(defaultItem.gstRate) : 0,
+            taxRate: (defaultItem?.gstRate != null && Number(defaultItem.gstRate) > 0) ? Number(defaultItem.gstRate) : 18.0,
         }
         setLineItems(prev => [...prev, newItem])
     }
@@ -191,13 +281,13 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
 
                 // Auto-fill rate, partNumber, taxRate on item selection
                 if (field === 'itemName') {
-                    const found = inventory.find(inv => (inv.itemName || inv.tallyItemName) === value)
+                    const found = inventory.find(inv => (inv.itemName || inv.busyItemName || inv.tallyItemName) === value)
                     return {
                         ...item,
                         itemName: value,
-                        partNumber: found?.partNumber || item.partNumber || '',
+                        partNumber: found?.partNumber || found?.itemCode || item.partNumber || '',
                         rate: (found?.closingRate != null && Number(found.closingRate) > 0) ? Number(found.closingRate) : 0,
-                        taxRate: (found?.gstRate != null && Number(found.gstRate) > 0) ? Number(found.gstRate) : 0,
+                        taxRate: (found?.gstRate != null && Number(found.gstRate) > 0) ? Number(found.gstRate) : 18.0,
                     }
                 }
 
@@ -237,11 +327,16 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             maxGstRate = Math.max(maxGstRate, Number(item.taxRate))
         }
 
-        // Live godown stock availability
-        const matchedCatalog = inventory.find(inv => (inv.itemName || inv.tallyItemName) === item.itemName)
-        const availability = matchedCatalog
-            ? checkGodownAvailability(matchedCatalog, item.godownName, Number(item.quantity) || 0)
-            : null
+        // Live location stock availability
+        const matchedCatalog = inventory.find(inv => (inv.itemName || inv.busyItemName || inv.tallyItemName) === item.itemName)
+        let availability = null
+        if (matchedCatalog) {
+            if (isBusy) {
+                availability = checkMaterialCenterAvailability(matchedCatalog, item.godownName, Number(item.quantity) || 0)
+            } else {
+                availability = checkGodownAvailability(matchedCatalog, item.godownName, Number(item.quantity) || 0)
+            }
+        }
 
         return {
             ...item,
@@ -289,8 +384,9 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             const apiPayload = lineItems.map(item => ({
                 itemName: item.itemName.trim(),
                 tallyItemName: item.itemName.trim(),
+                busyItemName: item.itemName.trim(),
                 partNumber: item.partNumber || '',
-                godownName: item.godownName || 'Main Location',
+                godownName: item.godownName || defaultLocation,
                 quantity: Number(item.quantity) || 1,
                 unitPrice: Number(item.rate) || 0,
                 rate: Number(item.rate) || 0,
@@ -299,9 +395,10 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 taxRate: Number(item.taxRate) || 18.0,
             }))
 
-            const res = await tallyAPI.setDealLineItems(deal.id, apiPayload)
+            const api = isBusy ? busyAPI : tallyAPI
+            const res = await api.setDealLineItems(deal.id, apiPayload)
             const savedData = res?.data || res || {}
-            setSuccessMsg('Quote successfully saved and synchronized with Deal!')
+            setSuccessMsg(`Quote successfully saved and synchronized with Deal (${erpLabel})!`)
 
             if (onQuoteSaved) {
                 onQuoteSaved(savedData, gstSplit.netPayable)
@@ -325,7 +422,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 <span className="material-symbols-outlined text-[28px] animate-spin block mb-2" style={{ color: T.primary }}>
                     sync
                 </span>
-                Loading Tally finished goods catalog and quote line items...
+                Loading {erpLabel} catalog and quote line items...
             </div>
         )
     }
@@ -337,25 +434,27 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 <div>
                     <div className="flex items-center gap-2.5 flex-wrap">
                         <h3 className="text-base font-black" style={{ color: T.textPrimary }}>Manufacturing Deal Quote Builder</h3>
-                        <TallyConnectionBadge />
+                        {isBusy ? <BusyConnectionBadge /> : (isTally ? <TallyConnectionBadge /> : null)}
                     </div>
                     <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>
-                        Configure itemized finished goods, select Godowns with live stock, and calculate Indian GST.
+                        Configure itemized finished goods, select {locationHeader} with live stock, and calculate Indian GST.
                     </p>
                 </div>
                 {canEdit && (
                     <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={handleRefreshLiveInventory}
-                            disabled={refreshing}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer"
-                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                            title="Fetch latest stock and rates directly from TallyPrime"
-                        >
-                            <span className={`material-symbols-outlined text-[16px] ${refreshing ? 'animate-spin' : ''}`}>sync</span>
-                            <span>{refreshing ? 'Syncing...' : 'Sync Live Tally'}</span>
-                        </button>
+                        {!isNone && (
+                            <button
+                                type="button"
+                                onClick={handleRefreshLiveInventory}
+                                disabled={refreshing}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer"
+                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                title={`Fetch latest stock and rates directly from ${erpLabel}`}
+                            >
+                                <span className={`material-symbols-outlined text-[16px] ${refreshing ? 'animate-spin' : ''}`}>sync</span>
+                                <span>{refreshing ? 'Syncing...' : `Sync Live ${isBusy ? 'BUSY' : 'Tally'}`}</span>
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={() => handleAddItem()}
@@ -396,7 +495,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             )}
 
             {/* Offline Mode Banner & Choices */}
-            {!isConnected && (
+            {!isConnected && !isNone && (
                 <div
                     className="rounded-2xl border p-4 flex flex-col gap-3 transition"
                     style={{
@@ -414,7 +513,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                             </div>
                             <div>
                                 <h4 className="text-xs font-black uppercase tracking-wider flex items-center gap-2" style={{ color: '#f59e0b' }}>
-                                    <span>Tally is Offline</span>
+                                    <span>{erpLabel} is Offline</span>
                                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400">
                                         Choose Mode
                                     </span>
@@ -452,7 +551,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                                 }}
                             >
                                 <span className="material-symbols-outlined text-[15px]">sync</span>
-                                Wait for Live Tally
+                                Wait for Live {isBusy ? 'BUSY' : 'Tally'}
                             </button>
                         </div>
                     </div>
@@ -464,7 +563,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                         >
                             <span className="material-symbols-outlined text-[15px] text-amber-400">info</span>
                             <span>
-                                Showing items saved in CRM database. Stock levels are marked as <strong className="text-amber-400">Cached / Unverified</strong>. When Tally reconnects, live verification will automatically resume.
+                                Showing items saved in CRM database. Stock levels are marked as <strong className="text-amber-400">Cached / Unverified</strong>. When {erpLabel} reconnects, live verification will automatically resume.
                             </span>
                         </div>
                     )}
@@ -485,7 +584,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                 </div>
             )}
 
-            {!isConnected && offlineModeChoice === 'wait' ? (
+            {!isConnected && !isNone && offlineModeChoice === 'wait' ? (
                 <div
                     className="p-12 text-center rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition"
                     style={{ background: T.surfaceRaised, borderColor: T.border }}
@@ -498,17 +597,20 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                     </div>
                     <div className="max-w-md">
                         <h4 className="text-sm font-black" style={{ color: T.textPrimary }}>
-                            Waiting for TallyPrime to Connect...
+                            Waiting for {erpLabel} to Connect...
                         </h4>
                         <p className="text-xs mt-1 leading-relaxed" style={{ color: T.textMuted }}>
-                            Please start <strong>TallyPrime</strong> and ensure your <strong>Tally Bridge</strong> is running.
-                            Live inventory, godown stock, and accurate rates will automatically display once connected.
+                            Please start <strong>{erpLabel}</strong> and ensure your bridge daemon is running on {isBusy ? 'Port 981' : 'Port 9000'}.
+                            Live inventory, {locationHeader.toLowerCase()} stock, and accurate rates will automatically display once connected.
                         </p>
                     </div>
                     <div className="flex items-center gap-2.5">
                         <button
                             type="button"
-                            onClick={() => dispatch(fetchTallyConnectionStatus(true))}
+                            onClick={() => {
+                                if (isBusy) dispatch(fetchBusyConnectionStatus(true))
+                                else dispatch(fetchTallyConnectionStatus(true))
+                            }}
                             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition shadow-sm cursor-pointer"
                             style={{ background: T.primary }}
                         >
@@ -529,382 +631,382 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
             ) : (
                 <>
                 {/* Line Items Table */}
-            {lineItems.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3" style={{ background: T.surfaceRaised, borderColor: T.border }}>
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: T.primaryDim, color: T.primary }}>
-                        <span className="material-symbols-outlined text-[24px]">inventory_2</span>
+                {lineItems.length === 0 ? (
+                    <div className="p-12 text-center rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3" style={{ background: T.surfaceRaised, borderColor: T.border }}>
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: T.primaryDim, color: T.primary }}>
+                            <span className="material-symbols-outlined text-[24px]">inventory_2</span>
+                        </div>
+                        <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No products added to this quote yet</p>
+                        <p className="text-xs max-w-sm" style={{ color: T.textMuted }}>
+                            Select finished goods from your {erpLabel} catalog to reserve stock and generate Sales Orders.
+                        </p>
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={() => handleAddItem()}
+                                className="px-4 py-2 rounded-xl text-white text-xs font-bold transition cursor-pointer"
+                                style={{ background: T.primary }}
+                                onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
+                                onMouseLeave={e => e.currentTarget.style.background = T.primary}
+                            >
+                                + Add First Item
+                            </button>
+                        )}
                     </div>
-                    <p className="text-sm font-bold" style={{ color: T.textPrimary }}>No products added to this quote yet</p>
-                    <p className="text-xs max-w-sm" style={{ color: T.textMuted }}>
-                        Select finished goods from your Tally catalog to reserve stock and generate Sales Orders.
-                    </p>
-                    {canEdit && (
-                        <button
-                            type="button"
-                            onClick={() => handleAddItem()}
-                            className="px-4 py-2 rounded-xl text-white text-xs font-bold transition cursor-pointer"
-                            style={{ background: T.primary }}
-                            onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                            onMouseLeave={e => e.currentTarget.style.background = T.primary}
-                        >
-                            + Add First Item
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="overflow-x-auto rounded-xl border" style={{ background: T.surface, borderColor: T.border }}>
-                    <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr className="border-b uppercase tracking-wider text-[10px]" style={{ background: T.surfaceHigh, borderColor: T.borderSubtle, color: T.textMuted }}>
-                                <th className="p-3">Product / Stock Item</th>
-                                <th className="p-3">Godown / Warehouse</th>
-                                <th className="p-3 w-24">Qty</th>
-                                <th className="p-3 w-28">Rate (₹)</th>
-                                <th className="p-3 w-24">Disc %</th>
-                                <th className="p-3 w-28 text-right">Taxable (₹)</th>
-                                {canEdit && <th className="p-3 w-12 text-center"></th>}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {computedRows.map((row) => (
-                                <tr key={row.id} className="transition" style={{ borderBottom: '1px solid ' + T.borderSubtle, color: T.textPrimary }}>
-                                    {/* Product Selector */}
-                                    <td className="p-3">
-                                        {canEdit ? (
+                ) : (
+                    <div className="overflow-x-auto rounded-xl border" style={{ background: T.surface, borderColor: T.border }}>
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr className="border-b uppercase tracking-wider text-[10px]" style={{ background: T.surfaceHigh, borderColor: T.borderSubtle, color: T.textMuted }}>
+                                    <th className="p-3">Product / Stock Item</th>
+                                    <th className="p-3">{locationHeader}</th>
+                                    <th className="p-3 w-24">Qty</th>
+                                    <th className="p-3 w-28">Rate (₹)</th>
+                                    <th className="p-3 w-24">Disc %</th>
+                                    <th className="p-3 w-28 text-right">Taxable (₹)</th>
+                                    {canEdit && <th className="p-3 w-12 text-center"></th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {computedRows.map((row) => (
+                                    <tr key={row.id} className="transition" style={{ borderBottom: '1px solid ' + T.borderSubtle, color: T.textPrimary }}>
+                                        {/* Product Selector */}
+                                        <td className="p-3">
+                                            {canEdit ? (
+                                                <div className="flex flex-col gap-1">
+                                                    {inventory.length > 0 ? (
+                                                        <select
+                                                            value={row.itemName}
+                                                            onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
+                                                            className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
+                                                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                        >
+                                                            <option value="">-- Select {erpLabel} Product --</option>
+                                                            {inventory.map(inv => {
+                                                                const name = inv.itemName || inv.busyItemName || inv.tallyItemName
+                                                                const bal = inv.closingBalance ?? inv.balance ?? 0
+                                                                return (
+                                                                    <option key={name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                        {name} (Stock: {bal} Nos)
+                                                                    </option>
+                                                                )
+                                                            })}
+                                                            {row.itemName && !inventory.find(i => (i.itemName || i.busyItemName || i.tallyItemName) === row.itemName) && (
+                                                                <option value={row.itemName} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                    {row.itemName} (Custom)
+                                                                </option>
+                                                            )}
+                                                        </select>
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            value={row.itemName}
+                                                            onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
+                                                            placeholder="Enter product / item name..."
+                                                            className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
+                                                            style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                        />
+                                                    )}
+                                                    {row.partNumber && (
+                                                        <span className="text-[10px] font-mono" style={{ color: T.textMuted }}>
+                                                            Part: {row.partNumber}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <p className="font-bold" style={{ color: T.textPrimary }}>{row.itemName}</p>
+                                                    {row.partNumber && (
+                                                        <p className="text-[10px] font-mono" style={{ color: T.textMuted }}>
+                                                            {row.partNumber}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </td>
+
+                                        {/* Location (Godown or Material Center) Dropdown & Live Stock Badge */}
+                                        <td className="p-3">
                                             <div className="flex flex-col gap-1">
-                                                {inventory.length > 0 ? (
+                                                {canEdit ? (
                                                     <select
-                                                        value={row.itemName}
-                                                        onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
-                                                        className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
+                                                        value={row.godownName}
+                                                        onChange={e => handleUpdateItem(row.id, 'godownName', e.target.value)}
+                                                        className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-medium outline-none cursor-pointer"
                                                         style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
                                                     >
-                                                        {!row.itemName && (
-                                                            <option value="" disabled style={{ background: T.surface, color: T.textMuted }}>
-                                                                -- Select Stock Item --
-                                                            </option>
-                                                        )}
-                                                        {inventory.map(inv => {
-                                                            const name = inv.itemName || inv.tallyItemName
-                                                            const rateText = inv.closingRate ? ` • ₹${Number(inv.closingRate).toLocaleString('en-IN')}` : ''
-                                                            const stockText = inv.closingBalance != null ? ` (Stock: ${inv.closingBalance} ${inv.baseUnit || ''})` : ''
-                                                            return (
-                                                                <option key={name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
-                                                                    {name} {inv.partNumber ? `[${inv.partNumber}]` : ''}{rateText}{stockText}
-                                                                </option>
-                                                            )
-                                                        })}
-                                                        {row.itemName && !inventory.some(inv => (inv.itemName || inv.tallyItemName) === row.itemName) && (
-                                                            <option value={row.itemName} style={{ background: T.surface, color: T.textPrimary }}>
-                                                                {row.itemName} (Custom)
+                                                        {locations.length > 0 ? (
+                                                            locations.map(loc => {
+                                                                const name = loc.materialCenterName || loc.name || loc.godownName
+                                                                return (
+                                                                    <option key={loc.id || name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                        {name}
+                                                                    </option>
+                                                                )
+                                                            })
+                                                        ) : (
+                                                            <option value={row.godownName} style={{ background: T.surface, color: T.textPrimary }}>
+                                                                {row.godownName || defaultLocation}
                                                             </option>
                                                         )}
                                                     </select>
                                                 ) : (
-                                                    <input
-                                                        type="text"
-                                                        value={row.itemName}
-                                                        onChange={e => handleUpdateItem(row.id, 'itemName', e.target.value)}
-                                                        placeholder="Enter product / item name..."
-                                                        className="w-full px-2.5 py-1.5 rounded-lg border font-medium text-xs outline-none"
-                                                        style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                                    />
+                                                    <span className="font-medium" style={{ color: T.textPrimary }}>{row.godownName}</span>
                                                 )}
-                                                {row.partNumber && (
-                                                    <span className="text-[10px] font-mono" style={{ color: T.textMuted }}>
-                                                        Part: {row.partNumber}
-                                                    </span>
+
+                                                {/* Stock availability pill */}
+                                                {row.availability && (
+                                                    <div className="flex items-center gap-1 mt-0.5">
+                                                        {isConnected ? (
+                                                            row.availability.isAvailable ? (
+                                                                <span
+                                                                    data-testid="quote-stock-badge"
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                    style={{
+                                                                        background: 'rgba(16, 185, 129, 0.12)',
+                                                                        borderColor: 'rgba(16, 185, 129, 0.35)',
+                                                                        color: '#10b981',
+                                                                    }}
+                                                                    title={`Verified live from ${erpLabel}`}
+                                                                >
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                                    Live Stock: {row.availability.availableStock} Nos
+                                                                </span>
+                                                            ) : (
+                                                                <span
+                                                                    data-testid="quote-stock-badge"
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                    style={{
+                                                                        background: 'rgba(239, 68, 68, 0.12)',
+                                                                        borderColor: 'rgba(239, 68, 68, 0.35)',
+                                                                        color: '#ef4444',
+                                                                    }}
+                                                                    title={`Live stock shortfall in ${erpLabel}`}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[11px]">warning</span>
+                                                                    Live Shortfall: {row.availability.shortfall} Nos (Stock: {row.availability.availableStock})
+                                                                </span>
+                                                            )
+                                                        ) : (
+                                                            row.availability.isAvailable ? (
+                                                                <span
+                                                                    data-testid="quote-stock-badge"
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                    style={{
+                                                                        background: 'rgba(245, 158, 11, 0.12)',
+                                                                        borderColor: 'rgba(245, 158, 11, 0.35)',
+                                                                        color: '#f59e0b',
+                                                                    }}
+                                                                    title={`Stock level saved from previous sync in CRM database. ${erpLabel} is offline.`}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[11px]">history</span>
+                                                                    Cached Stock: {row.availability.availableStock} Nos (Offline)
+                                                                </span>
+                                                            ) : (
+                                                                <span
+                                                                    data-testid="quote-stock-badge"
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
+                                                                    style={{
+                                                                        background: 'rgba(245, 158, 11, 0.12)',
+                                                                        borderColor: 'rgba(245, 158, 11, 0.35)',
+                                                                        color: '#f59e0b',
+                                                                    }}
+                                                                    title="Saved stock shortfall from previous sync"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[11px]">warning</span>
+                                                                    Cached Shortfall: {row.availability.shortfall} Nos (Cached: {row.availability.availableStock})
+                                                                </span>
+                                                            )
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
-                                        ) : (
-                                            <div>
-                                                <p className="font-bold" style={{ color: T.textPrimary }}>{row.itemName}</p>
-                                                {row.partNumber && (
-                                                    <p className="text-[10px] font-mono" style={{ color: T.textMuted }}>
-                                                        {row.partNumber}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-                                    </td>
-
-                                    {/* Godown Dropdown & Live Stock Badge */}
-                                    <td className="p-3">
-                                        <div className="flex flex-col gap-1">
-                                            {canEdit ? (
-                                                <select
-                                                    value={row.godownName}
-                                                    onChange={e => handleUpdateItem(row.id, 'godownName', e.target.value)}
-                                                    className="w-full px-2.5 py-1.5 rounded-lg border text-xs font-medium outline-none"
-                                                    style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                                >
-                                                    {godowns.length > 0 ? (
-                                                        godowns.map(g => (
-                                                            <option key={g.id || g.name} value={g.name || g.godownName} style={{ background: T.surface, color: T.textPrimary }}>
-                                                                {g.name || g.godownName}
-                                                            </option>
-                                                        ))
-                                                    ) : (
-                                                        <option value={row.godownName} style={{ background: T.surface, color: T.textPrimary }}>{row.godownName || 'Main Location'}</option>
-                                                    )}
-                                                </select>
-                                            ) : (
-                                                <span className="font-medium" style={{ color: T.textPrimary }}>{row.godownName}</span>
-                                            )}
-
-                                            {/* Godown stock availability pill */}
-                                            {row.availability && (
-                                                <div className="flex items-center gap-1 mt-0.5">
-                                                    {isConnected ? (
-                                                        row.availability.isAvailable ? (
-                                                            <span
-                                                                data-testid="quote-stock-badge"
-                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                                style={{
-                                                                    background: 'rgba(16, 185, 129, 0.12)',
-                                                                    borderColor: 'rgba(16, 185, 129, 0.35)',
-                                                                    color: '#10b981',
-                                                                }}
-                                                                title="Verified live from TallyPrime"
-                                                            >
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                                Live Stock: {row.availability.availableStock} Nos
-                                                            </span>
-                                                        ) : (
-                                                            <span
-                                                                data-testid="quote-stock-badge"
-                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                                style={{
-                                                                    background: 'rgba(239, 68, 68, 0.12)',
-                                                                    borderColor: 'rgba(239, 68, 68, 0.35)',
-                                                                    color: '#ef4444',
-                                                                }}
-                                                                title="Live stock shortfall in TallyPrime"
-                                                            >
-                                                                <span className="material-symbols-outlined text-[11px]">warning</span>
-                                                                Live Shortfall: {row.availability.shortfall} Nos (Stock: {row.availability.availableStock})
-                                                            </span>
-                                                        )
-                                                    ) : (
-                                                        row.availability.isAvailable ? (
-                                                            <span
-                                                                data-testid="quote-stock-badge"
-                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                                style={{
-                                                                    background: 'rgba(245, 158, 11, 0.12)',
-                                                                    borderColor: 'rgba(245, 158, 11, 0.35)',
-                                                                    color: '#f59e0b',
-                                                                }}
-                                                                title="Stock level saved from previous sync in CRM database. Tally is offline, so this is unverified."
-                                                            >
-                                                                <span className="material-symbols-outlined text-[11px]">history</span>
-                                                                Cached Stock: {row.availability.availableStock} Nos (Offline)
-                                                            </span>
-                                                        ) : (
-                                                            <span
-                                                                data-testid="quote-stock-badge"
-                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border"
-                                                                style={{
-                                                                    background: 'rgba(245, 158, 11, 0.12)',
-                                                                    borderColor: 'rgba(245, 158, 11, 0.35)',
-                                                                    color: '#f59e0b',
-                                                                }}
-                                                                title="Saved stock shortfall from previous sync"
-                                                            >
-                                                                <span className="material-symbols-outlined text-[11px]">warning</span>
-                                                                Cached Shortfall: {row.availability.shortfall} Nos (Cached: {row.availability.availableStock})
-                                                            </span>
-                                                        )
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-
-                                    {/* Quantity */}
-                                    <td className="p-3">
-                                        {canEdit ? (
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                value={row.quantity}
-                                                onChange={e => handleUpdateItem(row.id, 'quantity', e.target.value)}
-                                                className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
-                                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                            />
-                                        ) : (
-                                            <span className="font-semibold">{row.quantity}</span>
-                                        )}
-                                    </td>
-
-                                    {/* Unit Rate */}
-                                    <td className="p-3">
-                                        {canEdit ? (
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={row.rate}
-                                                onChange={e => handleUpdateItem(row.id, 'rate', e.target.value)}
-                                                className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
-                                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                            />
-                                        ) : (
-                                            <span>₹{row.rate.toFixed(2)}</span>
-                                        )}
-                                    </td>
-
-                                    {/* Discount % */}
-                                    <td className="p-3">
-                                        {canEdit ? (
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                step="0.1"
-                                                value={row.discountPercent}
-                                                onChange={e => handleUpdateItem(row.id, 'discountPercent', e.target.value)}
-                                                className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
-                                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
-                                            />
-                                        ) : (
-                                            <span>{row.discountPercent}%</span>
-                                        )}
-                                    </td>
-
-                                    {/* Taxable Amount */}
-                                    <td className="p-3 text-right font-black" style={{ color: T.textPrimary }}>
-                                        ₹{row.taxable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </td>
-
-                                    {/* Delete Row Button */}
-                                    {canEdit && (
-                                        <td className="p-3 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDeleteItem(row.id)}
-                                                className="p-1 rounded-lg transition cursor-pointer"
-                                                style={{ color: T.textMuted }}
-                                                onMouseEnter={e => { e.currentTarget.style.color = T.error; e.currentTarget.style.background = T.errorDim }}
-                                                onMouseLeave={e => { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent' }}
-                                                title="Remove line item"
-                                            >
-                                                <span className="material-symbols-outlined text-[16px]">delete</span>
-                                            </button>
                                         </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
 
-            {/* Real-time GST & Net Payable Summary Card */}
-            <div className="p-5 rounded-2xl border flex flex-col gap-4 shadow-sm" style={{ background: T.surface, borderColor: T.border }}>
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                        Indian GST Tax Breakdown ({gstSplit.isIntrastate ? 'Intrastate 50/50' : 'Interstate 100%'})
-                    </span>
-                    <span className="text-[11px]" style={{ color: T.textMuted }}>
-                        Seller: <span className="font-mono font-bold" style={{ color: T.textPrimary }}>{gstSplit.sellerState}</span> | Buyer:{' '}
-                        <span className="font-mono font-bold" style={{ color: T.textPrimary }}>{gstSplit.buyerState}</span>
-                    </span>
-                </div>
+                                        {/* Quantity */}
+                                        <td className="p-3">
+                                            {canEdit ? (
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={row.quantity}
+                                                    onChange={e => handleUpdateItem(row.id, 'quantity', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
+                                                    style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                />
+                                            ) : (
+                                                <span className="font-semibold">{row.quantity}</span>
+                                            )}
+                                        </td>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                        <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Gross Total</p>
-                        <p className="text-xs font-bold mt-1" style={{ color: T.textPrimary }}>₹{totalGross.toFixed(2)}</p>
+                                        {/* Unit Rate */}
+                                        <td className="p-3">
+                                            {canEdit ? (
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={row.rate}
+                                                    onChange={e => handleUpdateItem(row.id, 'rate', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
+                                                    style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                />
+                                            ) : (
+                                                <span>₹{row.rate.toFixed(2)}</span>
+                                            )}
+                                        </td>
+
+                                        {/* Discount % */}
+                                        <td className="p-3">
+                                            {canEdit ? (
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    step="0.1"
+                                                    value={row.discountPercent}
+                                                    onChange={e => handleUpdateItem(row.id, 'discountPercent', e.target.value)}
+                                                    className="w-full px-2 py-1.5 rounded-lg border text-xs font-medium text-right outline-none"
+                                                    style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                                />
+                                            ) : (
+                                                <span>{row.discountPercent}%</span>
+                                            )}
+                                        </td>
+
+                                        {/* Taxable Amount */}
+                                        <td className="p-3 text-right font-black" style={{ color: T.textPrimary }}>
+                                            ₹{row.taxable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+
+                                        {/* Delete Row Button */}
+                                        {canEdit && (
+                                            <td className="p-3 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteItem(row.id)}
+                                                    className="p-1 rounded-lg transition cursor-pointer"
+                                                    style={{ color: T.textMuted }}
+                                                    onMouseEnter={e => { e.currentTarget.style.color = T.error; e.currentTarget.style.background = T.errorDim }}
+                                                    onMouseLeave={e => { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent' }}
+                                                    title="Remove line item"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {/* Real-time GST & Net Payable Summary Card */}
+                <div className="p-5 rounded-2xl border flex flex-col gap-4 shadow-sm" style={{ background: T.surface, borderColor: T.border }}>
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
+                            Indian GST Tax Breakdown ({gstSplit.isIntrastate ? 'Intrastate 50/50' : 'Interstate 100%'})
+                        </span>
+                        <span className="text-[11px]" style={{ color: T.textMuted }}>
+                            Seller: <span className="font-mono font-bold" style={{ color: T.textPrimary }}>{gstSplit.sellerState}</span> | Buyer:{' '}
+                            <span className="font-mono font-bold" style={{ color: T.textPrimary }}>{gstSplit.buyerState}</span>
+                        </span>
                     </div>
 
-                    <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                        <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Discount</p>
-                        <p className="text-xs font-bold mt-1" style={{ color: T.textPrimary }}>₹{totalDiscount.toFixed(2)}</p>
-                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Gross Total</p>
+                            <p className="text-xs font-bold mt-1" style={{ color: T.textPrimary }}>₹{totalGross.toFixed(2)}</p>
+                        </div>
 
-                    <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                        <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Taxable</p>
-                        <p data-testid="quote-taxable-amount" className="text-xs font-black mt-1" style={{ color: T.textPrimary }}>
-                            ₹{totalTaxable.toFixed(2)}
-                        </p>
-                    </div>
+                        <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Discount</p>
+                            <p className="text-xs font-bold mt-1" style={{ color: T.textPrimary }}>₹{totalDiscount.toFixed(2)}</p>
+                        </div>
 
-                    {gstSplit.isIntrastate ? (
-                        <>
-                            <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                                <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>CGST ({gstSplit.cgstRate}%)</p>
-                                <p data-testid="quote-cgst-amount" className="text-xs font-black mt-1" style={{ color: T.primary }}>
-                                    ₹{gstSplit.cgstAmount.toFixed(2)}
-                                </p>
-                            </div>
-                            <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                                <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>SGST ({gstSplit.sgstRate}%)</p>
-                                <p data-testid="quote-sgst-amount" className="text-xs font-black mt-1" style={{ color: T.primary }}>
-                                    ₹{gstSplit.sgstAmount.toFixed(2)}
-                                </p>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="p-3.5 rounded-xl border col-span-2" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                            <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>IGST ({gstSplit.igstRate}%)</p>
-                            <p data-testid="quote-igst-amount" className="text-xs font-black mt-1" style={{ color: '#8b5cf6' }}>
-                                ₹{gstSplit.igstAmount.toFixed(2)}
+                        <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Taxable</p>
+                            <p data-testid="quote-taxable-amount" className="text-xs font-black mt-1" style={{ color: T.textPrimary }}>
+                                ₹{totalTaxable.toFixed(2)}
                             </p>
                         </div>
-                    )}
 
-                    <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
-                        <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Round Off</p>
-                        <p data-testid="quote-roundoff-amount" className="text-xs font-bold mt-1" style={{ color: T.textSecondary }}>
-                            {gstSplit.roundOff >= 0 ? `+₹${gstSplit.roundOff.toFixed(2)}` : `-₹${Math.abs(gstSplit.roundOff).toFixed(2)}`}
-                        </p>
-                    </div>
-                </div>
+                        {gstSplit.isIntrastate ? (
+                            <>
+                                <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                                    <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>CGST ({gstSplit.cgstRate}%)</p>
+                                    <p data-testid="quote-cgst-amount" className="text-xs font-black mt-1" style={{ color: T.primary }}>
+                                        ₹{gstSplit.cgstAmount.toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                                    <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>SGST ({gstSplit.sgstRate}%)</p>
+                                    <p data-testid="quote-sgst-amount" className="text-xs font-black mt-1" style={{ color: T.primary }}>
+                                        ₹{gstSplit.sgstAmount.toFixed(2)}
+                                    </p>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="p-3.5 rounded-xl border col-span-2" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                                <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>IGST ({gstSplit.igstRate}%)</p>
+                                <p data-testid="quote-igst-amount" className="text-xs font-black mt-1" style={{ color: '#8b5cf6' }}>
+                                    ₹{gstSplit.igstAmount.toFixed(2)}
+                                </p>
+                            </div>
+                        )}
 
-                {/* Net Payable Banner & Save Button */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t" style={{ borderColor: T.borderSubtle }}>
-                    <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            Net Payable (Section 170 CGST Act Round-off)
-                        </p>
-                        <p data-testid="quote-net-payable" className="text-2xl font-black mt-0.5" style={{ color: '#10b981' }}>
-                            ₹{gstSplit.netPayable.toLocaleString('en-IN')}
-                        </p>
-                    </div>
-
-                    {canEdit && (
-                        <div className="flex flex-col items-end gap-1.5">
-                            <button
-                                type="button"
-                                data-testid="quote-save-btn"
-                                onClick={handleSaveQuote}
-                                disabled={saving || lineItems.length === 0}
-                                className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black text-sm transition shadow-md disabled:opacity-50 cursor-pointer"
-                                style={{
-                                    background: isConnected ? '#10b981' : '#f59e0b',
-                                    color: isConnected ? '#fff' : '#000',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-                                onMouseLeave={e => e.currentTarget.style.opacity = '1.0'}
-                            >
-                                <span className="material-symbols-outlined text-[18px]">
-                                    {saving ? 'sync' : (isConnected ? 'save' : 'cloud_upload')}
-                                </span>
-                                {saving
-                                    ? 'Saving Quote...'
-                                    : (isConnected ? 'Save Quote & Update Deal' : 'Save Offline Quote (Queues for Tally Sync)')}
-                            </button>
-                            <span className="text-[10px]" style={{ color: T.textMuted }}>
-                                {isConnected
-                                    ? '✓ Live Tally connection verified · Stock will be reserved.'
-                                    : 'ℹ️ Saved to CRM · Will sync to Tally when connection restores.'}
-                            </span>
+                        <div className="p-3.5 rounded-xl border" style={{ background: T.surfaceRaised, borderColor: T.borderSubtle }}>
+                            <p className="text-[10px] font-bold uppercase" style={{ color: T.textMuted }}>Round Off</p>
+                            <p data-testid="quote-roundoff-amount" className="text-xs font-bold mt-1" style={{ color: T.textSecondary }}>
+                                {gstSplit.roundOff >= 0 ? `+₹${gstSplit.roundOff.toFixed(2)}` : `-₹${Math.abs(gstSplit.roundOff).toFixed(2)}`}
+                            </p>
                         </div>
-                    )}
+                    </div>
+
+                    {/* Net Payable Banner & Save Button */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t" style={{ borderColor: T.borderSubtle }}>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
+                                Net Payable (Section 170 CGST Act Round-off)
+                            </p>
+                            <p data-testid="quote-net-payable" className="text-2xl font-black mt-0.5" style={{ color: '#10b981' }}>
+                                ₹{gstSplit.netPayable.toLocaleString('en-IN')}
+                            </p>
+                        </div>
+
+                        {canEdit && (
+                            <div className="flex flex-col items-end gap-1.5">
+                                <button
+                                    type="button"
+                                    data-testid="quote-save-btn"
+                                    onClick={handleSaveQuote}
+                                    disabled={saving || lineItems.length === 0}
+                                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black text-sm transition shadow-md disabled:opacity-50 cursor-pointer"
+                                    style={{
+                                        background: isConnected ? '#10b981' : '#f59e0b',
+                                        color: isConnected ? '#fff' : '#000',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1.0'}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">
+                                        {saving ? 'sync' : (isConnected ? 'save' : 'cloud_upload')}
+                                    </span>
+                                    {saving
+                                        ? 'Saving Quote...'
+                                        : (isConnected ? 'Save Quote & Update Deal' : `Save Offline Quote (Queues for ${isBusy ? 'BUSY' : 'Tally'} Sync)`)}
+                                </button>
+                                <span className="text-[10px]" style={{ color: T.textMuted }}>
+                                    {isConnected
+                                        ? `✓ Live ${erpLabel} connection verified · Stock will be reserved.`
+                                        : `ℹ️ Saved to CRM · Will sync to ${erpLabel} when connection restores.`}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-            </>
+                </>
             )}
         </div>
     )

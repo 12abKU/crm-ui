@@ -6,6 +6,7 @@ import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import AssignDealModal from './AssignDealModal'
 import TallySyncBadge from './TallySyncBadge'
+import BusySyncBadge from './BusySyncBadge'
 
 // ── Helpers ───────────────────────────────────────────────────────
 function OwnerAvatar({ user, onClick }) {
@@ -47,6 +48,13 @@ export default function DealCard({
     const tallySalesInvoiceNo = reduxSync?.tallySalesInvoiceNo ?? deal.tallySalesInvoiceNo
     const tallyLastSyncError = reduxSync?.tallyLastSyncError ?? deal.tallyLastSyncError
     const showSyncBadge = isConfigured && tallySyncStatus && tallySyncStatus !== 'NONE'
+
+    const busySyncStatus = reduxSync?.busySyncStatus !== undefined ? reduxSync.busySyncStatus : deal.busySyncStatus
+    const busySalesOrderNo = reduxSync?.busySalesOrderNo ?? deal.busySalesOrderNo
+    const busyDeliveryNoteNo = reduxSync?.busyDeliveryNoteNo ?? deal.busyDeliveryNoteNo
+    const busySalesInvoiceNo = reduxSync?.busySalesInvoiceNo ?? deal.busySalesInvoiceNo
+    const busyLastSyncError = reduxSync?.busyLastSyncError ?? deal.busyLastSyncError
+    const showBusySyncBadge = busySyncStatus && busySyncStatus !== 'NONE'
 
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'
@@ -169,27 +177,44 @@ export default function DealCard({
                                 ₹{Number(deal.amount).toLocaleString('en-IN')}
                             </p>
                         )}
-                        {/* Tally Sync Status Pipeline Badge */}
-                        {showSyncBadge && (
+                        {/* Multi-ERP Sync Status Pipeline Badge */}
+                        {(showBusySyncBadge || showSyncBadge) && (
                             <div
                                 className="mt-1.5"
                                 data-testid={`deal-sync-badge-${deal.id}`}
                                 onClick={e => e.stopPropagation()}
                             >
-                                <TallySyncBadge
-                                    status={tallySyncStatus}
-                                    salesOrderNo={tallySalesOrderNo}
-                                    deliveryNoteNo={tallyDeliveryNoteNo}
-                                    invoiceNo={tallySalesInvoiceNo}
-                                    lastError={tallyLastSyncError}
-                                    dealId={deal.id}
-                                    compact={true}
-                                    onRetry={() => {
-                                        if (onAssigned) {
-                                            onAssigned({ ...deal, tallySyncStatus: 'QUEUED', tallyLastSyncError: null })
-                                        }
-                                    }}
-                                />
+                                {showBusySyncBadge ? (
+                                    <BusySyncBadge
+                                        status={busySyncStatus}
+                                        salesOrderNo={busySalesOrderNo}
+                                        deliveryNoteNo={busyDeliveryNoteNo}
+                                        invoiceNo={busySalesInvoiceNo}
+                                        lastError={busyLastSyncError}
+                                        dealId={deal.id}
+                                        compact={true}
+                                        onRetry={() => {
+                                            if (onAssigned) {
+                                                onAssigned({ ...deal, busySyncStatus: 'QUEUED', busyLastSyncError: null })
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <TallySyncBadge
+                                        status={tallySyncStatus}
+                                        salesOrderNo={tallySalesOrderNo}
+                                        deliveryNoteNo={tallyDeliveryNoteNo}
+                                        invoiceNo={tallySalesInvoiceNo}
+                                        lastError={tallyLastSyncError}
+                                        dealId={deal.id}
+                                        compact={true}
+                                        onRetry={() => {
+                                            if (onAssigned) {
+                                                onAssigned({ ...deal, tallySyncStatus: 'QUEUED', tallyLastSyncError: null })
+                                            }
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>

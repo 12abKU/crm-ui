@@ -12,7 +12,7 @@ import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
-import TallySettings from '../components/settings/TallySettings'
+import ErpSettings from '../components/settings/ErpSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -64,13 +64,17 @@ export default function Settings() {
     const badge = ROLE_BADGE[role] || ROLE_BADGE.AGENT
     const [searchParams, setSearchParams] = useSearchParams()
     const tabParam = searchParams.get('tab')
-    const [activeTab, setActiveTab] = useState(tabParam || 'general')
+    const normalizedTab = tabParam === 'tally' ? 'erp' : tabParam
+    const [activeTab, setActiveTab] = useState(normalizedTab || 'general')
 
     useEffect(() => {
-        if (tabParam && tabParam !== activeTab) {
-            setActiveTab(tabParam)
+        if (tabParam) {
+            const resolved = tabParam === 'tally' ? 'erp' : tabParam
+            if (resolved !== activeTab) {
+                setActiveTab(resolved)
+            }
         }
-    }, [tabParam])
+    }, [tabParam, activeTab])
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId)
@@ -105,17 +109,17 @@ export default function Settings() {
             }
             return <CompanyIntegrationsSettings />
         }
-        if (activeTab === 'tally') {
+        if (activeTab === 'erp' || activeTab === 'tally') {
             if (!['ADMIN', 'SUPER_ADMIN', 'COMPANY_SUPER_ADMIN'].includes(role)) {
                 return (
                     <div className="p-8 text-center rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
                         <p className="text-sm font-bold" style={{ color: T.error }}>
-                            Access Denied: TallyPrime accounting integration settings are restricted to Company Administrators.
+                            Access Denied: Accounting and ERP integration settings are restricted to Company Administrators.
                         </p>
                     </div>
                 )
             }
-            return <TallySettings />
+            return <ErpSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') return <AdminSettings />
@@ -189,10 +193,10 @@ export default function Settings() {
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
                             { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
-                            { id: 'tally', label: 'TallyPrime Integration', icon: 'receipt_long' },
+                            { id: 'erp', label: 'Accounting & ERP', icon: 'account_balance' },
                         ] : [])
                     ].map(tab => {
-                        const active = activeTab === tab.id
+                        const active = activeTab === tab.id || (tab.id === 'erp' && activeTab === 'tally')
                         return (
                             <button
                                 key={tab.id}

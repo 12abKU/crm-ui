@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import tallyAPI from '../../api/tally'
+import busyAPI from '../../api/busy'
 import { computeGstSplit } from '../../utils/tallyGstUtils'
 import { T } from '../../constants/theme'
 import TallyConnectionBadge from './TallyConnectionBadge'
+import BusyConnectionBadge from './BusyConnectionBadge'
 
 /**
  * DealQuoteSummaryCard
@@ -16,15 +18,18 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
     const [loading, setLoading] = useState(true)
     const [sellerGstin, setSellerGstin] = useState('')
 
+    const isBusy = (deal?.activeErp === 'BUSY_ERP' || deal?.erpProvider === 'BUSY_ERP') || (deal?.busySyncStatus && deal.busySyncStatus !== 'NONE')
+
     useEffect(() => {
         let isMounted = true
         const fetchSummary = async () => {
             if (!deal?.id) return
             setLoading(true)
             try {
+                const api = isBusy ? busyAPI : tallyAPI
                 const [itemsRes, configRes] = await Promise.allSettled([
-                    tallyAPI.getDealLineItems(deal.id),
-                    tallyAPI.getConfig(),
+                    api.getDealLineItems(deal.id),
+                    api.getConfig(),
                 ])
 
                 if (!isMounted) return
@@ -84,7 +89,7 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>receipt_long</span>
                     <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>Quotation & Line Items</h4>
-                    <TallyConnectionBadge />
+                    {isBusy ? <BusyConnectionBadge /> : (deal?.activeErp !== 'NONE' ? <TallyConnectionBadge /> : null)}
                 </div>
                 {onOpenQuoteBuilder && (
                     <button

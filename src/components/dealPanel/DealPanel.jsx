@@ -18,7 +18,9 @@ import RequirePermission from '../RequirePermission'
 import EntityAuditHistory from '../audit/EntityAuditHistory'
 import DealQuoteBuilder from '../deals/DealQuoteBuilder'
 import TallySyncBadge from '../deals/TallySyncBadge'
+import BusySyncBadge from '../deals/BusySyncBadge'
 import tallyAPI from '../../api/tally'
+import busyAPI from '../../api/busy'
 
 // ── Tab config ──────────────────────────────────────────────────
 const TABS = [
@@ -122,7 +124,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
         setActiveTab(initialTab || currentTabInUrl || 'overview')
         loadProfile(deal.id)
 
-        // Always fetch fresh Tally sync status on open to bypass any stale cache
+        // Fetch fresh sync status on open to bypass any stale cache
         tallyAPI.getDealSyncStatus(deal.id)
             .then(res => {
                 if (res?.data) {
@@ -133,6 +135,21 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                         tallyDeliveryNoteNo: res.data.tallyDeliveryNoteNo,
                         tallySalesInvoiceNo: res.data.tallySalesInvoiceNo,
                         tallyLastSyncError: res.data.lastSyncError,
+                    }))
+                }
+            })
+            .catch(() => {})
+
+        busyAPI.getDealSyncStatus(deal.id)
+            .then(res => {
+                if (res?.data) {
+                    dispatch(setDealSyncStatus({
+                        dealId: deal.id,
+                        busySyncStatus: res.data.busySyncStatus || res.data.syncStatus,
+                        busySalesOrderNo: res.data.busySalesOrderNo || res.data.salesOrderNo,
+                        busyDeliveryNoteNo: res.data.busyDeliveryNoteNo || res.data.deliveryNoteNo,
+                        busySalesInvoiceNo: res.data.busySalesInvoiceNo || res.data.salesInvoiceNo,
+                        busyLastSyncError: res.data.lastSyncError,
                     }))
                 }
             })
@@ -151,6 +168,11 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
             tallyDeliveryNoteNo: reduxSync.tallyDeliveryNoteNo ?? baseDeal.tallyDeliveryNoteNo,
             tallySalesInvoiceNo: reduxSync.tallySalesInvoiceNo ?? baseDeal.tallySalesInvoiceNo,
             tallyLastSyncError: reduxSync.tallyLastSyncError ?? baseDeal.tallyLastSyncError,
+            busySyncStatus: reduxSync.busySyncStatus || baseDeal.busySyncStatus,
+            busySalesOrderNo: reduxSync.busySalesOrderNo ?? baseDeal.busySalesOrderNo,
+            busyDeliveryNoteNo: reduxSync.busyDeliveryNoteNo ?? baseDeal.busyDeliveryNoteNo,
+            busySalesInvoiceNo: reduxSync.busySalesInvoiceNo ?? baseDeal.busySalesInvoiceNo,
+            busyLastSyncError: reduxSync.busyLastSyncError ?? baseDeal.busyLastSyncError,
         } : {})
     }
     const liveSyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : activeDeal.tallySyncStatus
@@ -159,6 +181,13 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const liveINV = reduxSync?.tallySalesInvoiceNo ?? activeDeal.tallySalesInvoiceNo
     const liveErr = reduxSync?.tallyLastSyncError ?? activeDeal.tallyLastSyncError
     const showHeaderBadge = isConfigured && liveSyncStatus && liveSyncStatus !== 'NONE'
+
+    const liveBusySyncStatus = reduxSync?.busySyncStatus !== undefined ? reduxSync.busySyncStatus : activeDeal.busySyncStatus
+    const liveBusySO = reduxSync?.busySalesOrderNo ?? activeDeal.busySalesOrderNo
+    const liveBusyDN = reduxSync?.busyDeliveryNoteNo ?? activeDeal.busyDeliveryNoteNo
+    const liveBusyINV = reduxSync?.busySalesInvoiceNo ?? activeDeal.busySalesInvoiceNo
+    const liveBusyErr = reduxSync?.busyLastSyncError ?? activeDeal.busyLastSyncError
+    const showBusyHeaderBadge = liveBusySyncStatus && liveBusySyncStatus !== 'NONE'
 
     // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {
@@ -344,7 +373,31 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                                         Assigned to you
                                     </span>
                                 )}
-                                {showHeaderBadge && (
+                                {showBusyHeaderBadge ? (
+                                    <BusySyncBadge
+                                        status={liveBusySyncStatus}
+                                        salesOrderNo={liveBusySO}
+                                        deliveryNoteNo={liveBusyDN}
+                                        invoiceNo={liveBusyINV}
+                                        lastError={liveBusyErr}
+                                        dealId={activeDeal.id}
+                                        onRetry={() => {
+                                            loadProfile(deal.id, true)
+                                            busyAPI.getDealSyncStatus(deal.id).then(r => {
+                                                if (r?.data) {
+                                                    dispatch(setDealSyncStatus({
+                                                        dealId: deal.id,
+                                                        busySyncStatus: r.data.busySyncStatus || r.data.syncStatus,
+                                                        busySalesOrderNo: r.data.busySalesOrderNo || r.data.salesOrderNo,
+                                                        busyDeliveryNoteNo: r.data.busyDeliveryNoteNo || r.data.deliveryNoteNo,
+                                                        busySalesInvoiceNo: r.data.busySalesInvoiceNo || r.data.salesInvoiceNo,
+                                                        busyLastSyncError: r.data.lastSyncError,
+                                                    }))
+                                                }
+                                            }).catch(() => {})
+                                        }}
+                                    />
+                                ) : (showHeaderBadge && (
                                     <TallySyncBadge
                                         status={liveSyncStatus}
                                         salesOrderNo={liveSO}
@@ -368,7 +421,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
                                             }).catch(() => {})
                                         }}
                                     />
-                                )}
+                                ))}
                             </div>
 
                             {/* Active tab label */}
