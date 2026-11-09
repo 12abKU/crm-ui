@@ -220,30 +220,17 @@ export default function BusySettings() {
         setTimeout(() => setCopiedKey(false), 2000)
     }
 
-    const handleDownloadBridge = async () => {
-        setDownloadingBridge(true)
-        try {
-            const res = await busyAPI.downloadBridge()
-            const blob = new Blob([res.data], { type: 'application/zip' })
-            const downloadUrl = window.URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.href = downloadUrl
-            link.setAttribute('download', 'BusyBridge.zip')
-            document.body.appendChild(link)
-            link.click()
-            link.parentNode.removeChild(link)
-            window.URL.revokeObjectURL(downloadUrl)
-            setFeedback({
-                type: 'success',
-                message: 'BusyBridge.zip downloaded successfully! Extract and run on the host where BUSY ERP is installed.',
-            })
-        } catch (err) {
-            console.error('Failed to download BusyBridge:', err)
-            // Fallback direct navigation
-            window.location.href = '/BusyBridge.zip'
-        } finally {
-            setDownloadingBridge(false)
-        }
+    const handleDownloadBridge = () => {
+        const link = document.createElement('a')
+        link.href = '/BusyBridge.zip'
+        link.setAttribute('download', 'BusyBridge.zip')
+        document.body.appendChild(link)
+        link.click()
+        link.parentNode.removeChild(link)
+        setFeedback({
+            type: 'success',
+            message: 'BusyBridge.zip download started! Extract and run on the host where BUSY ERP is installed.',
+        })
     }
 
     const handleRetryDlq = async (dlqId) => {
@@ -505,20 +492,17 @@ export default function BusySettings() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <button
-                                type="button"
+                            <a
+                                href="/BusyBridge.zip"
+                                download="BusyBridge.zip"
                                 data-testid="busy-download-bridge-btn"
-                                onClick={handleDownloadBridge}
-                                disabled={downloadingBridge}
-                                className="px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50"
-                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
+                                className="px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1 shadow-sm"
+                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary, textDecoration: 'none' }}
                                 title="Download Windows Desktop Bridge (BusyBridge.zip)"
                             >
-                                <span className={`material-symbols-outlined text-[14px] ${downloadingBridge ? 'animate-spin' : ''}`}>
-                                    {downloadingBridge ? 'sync' : 'download'}
-                                </span>
-                                <span>{downloadingBridge ? 'Downloading...' : 'Download Bridge (.zip)'}</span>
-                            </button>
+                                <span className="material-symbols-outlined text-[14px]">download</span>
+                                <span>Download Bridge (.zip)</span>
+                            </a>
                             <button
                                 type="button"
                                 onClick={() => setShowApiKey(!showApiKey)}
