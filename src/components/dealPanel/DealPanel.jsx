@@ -51,6 +51,7 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
 
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
+    const activeErp = useSelector(state => state.deals?.activeErp || 'NONE')
     const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
     const { isConfigured } = useSelector(state => state.deals?.tallyConnection || {})
 
@@ -160,8 +161,14 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const accountDeals = profile?.accountDeals ?? []
     const leadInfo = profile?.leadInfo ?? null
     const baseDeal = profile?.deal || deal
+
+    const effectiveErp = (baseDeal?.activeErp || baseDeal?.erpProvider || profile?.activeErp || (activeErp !== 'NONE' ? activeErp : (baseDeal?.busySyncStatus && baseDeal.busySyncStatus !== 'NONE' ? 'BUSY_ERP' : (baseDeal?.tallySyncStatus && baseDeal.tallySyncStatus !== 'NONE' ? 'TALLY_PRIME' : 'NONE')))).toUpperCase()
+    const isBusyActive = effectiveErp === 'BUSY_ERP'
+    const isTallyActive = effectiveErp === 'TALLY_PRIME'
+
     const activeDeal = {
         ...baseDeal,
+        activeErp: effectiveErp,
         ...(reduxSync ? {
             tallySyncStatus: reduxSync.tallySyncStatus || baseDeal.tallySyncStatus,
             tallySalesOrderNo: reduxSync.tallySalesOrderNo ?? baseDeal.tallySalesOrderNo,
@@ -180,14 +187,14 @@ export default function DealPanel({ deal, onClose, onDelete, onEdit, canEdit, in
     const liveDN = reduxSync?.tallyDeliveryNoteNo ?? activeDeal.tallyDeliveryNoteNo
     const liveINV = reduxSync?.tallySalesInvoiceNo ?? activeDeal.tallySalesInvoiceNo
     const liveErr = reduxSync?.tallyLastSyncError ?? activeDeal.tallyLastSyncError
-    const showHeaderBadge = isConfigured && liveSyncStatus && liveSyncStatus !== 'NONE'
+    const showHeaderBadge = isTallyActive && isConfigured && liveSyncStatus && liveSyncStatus !== 'NONE'
 
     const liveBusySyncStatus = reduxSync?.busySyncStatus !== undefined ? reduxSync.busySyncStatus : activeDeal.busySyncStatus
     const liveBusySO = reduxSync?.busySalesOrderNo ?? activeDeal.busySalesOrderNo
     const liveBusyDN = reduxSync?.busyDeliveryNoteNo ?? activeDeal.busyDeliveryNoteNo
     const liveBusyINV = reduxSync?.busySalesInvoiceNo ?? activeDeal.busySalesInvoiceNo
     const liveBusyErr = reduxSync?.busyLastSyncError ?? activeDeal.busyLastSyncError
-    const showBusyHeaderBadge = liveBusySyncStatus && liveBusySyncStatus !== 'NONE'
+    const showBusyHeaderBadge = isBusyActive && liveBusySyncStatus && liveBusySyncStatus !== 'NONE'
 
     // ── Tab content renderer (unchanged) ────────────────────
     const renderContent = () => {

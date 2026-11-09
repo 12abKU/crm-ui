@@ -16,6 +16,7 @@ export function checkMaterialCenterAvailability(item, requestedMaterialCenter, r
     const centers = item.materialCenterBalances || item.materialCenters || item.godowns || item.godownBalances || []
 
     const center = centers.find(c => 
+        (c.centerName && c.centerName.trim().toLowerCase() === target.trim().toLowerCase()) ||
         (c.materialCenterName && c.materialCenterName.trim().toLowerCase() === target.trim().toLowerCase()) ||
         (c.name && c.name.trim().toLowerCase() === target.trim().toLowerCase()) ||
         (c.godownName && c.godownName.trim().toLowerCase() === target.trim().toLowerCase())

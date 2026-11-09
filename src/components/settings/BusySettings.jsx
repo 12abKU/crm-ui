@@ -557,10 +557,11 @@ export default function BusySettings() {
                         style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
                     >
                         {materialCenters.length > 0 ? (
-                            materialCenters.map(mc => {
-                                const name = mc.materialCenterName || mc.name || mc
+                            materialCenters.map((mc, idx) => {
+                                const name = typeof mc === 'string' ? mc : (mc?.centerName || mc?.materialCenterName || mc?.name || '')
+                                if (!name) return null
                                 return (
-                                    <option key={name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
+                                    <option key={mc.id || name || idx} value={name} style={{ background: T.surface, color: T.textPrimary }}>
                                         {name}
                                     </option>
                                 )
@@ -1017,8 +1018,12 @@ export default function BusySettings() {
                                     const totalBal = item.closingBalance ?? item.balance ?? 0
 
                                     // Material center balance preview
-                                    const mcBalances = item.materialCenterBalances || item.materialCenters || []
-                                    const mainBal = mcBalances.find(m => (m.materialCenterName || m.name) === config.defaultMaterialCenter)?.balance ?? '-'
+                                    const mcBalances = item.materialCenterBalances || item.materialCenters || item.centerBalances || []
+                                    const matchedCenter = mcBalances.find(m => {
+                                        const cName = typeof m === 'string' ? m : (m?.centerName || m?.materialCenterName || m?.name)
+                                        return cName === config.defaultMaterialCenter
+                                    })
+                                    const mainBal = matchedCenter?.balance ?? matchedCenter?.quantity ?? '-'
 
                                     return (
                                         <tr key={idx} style={{ borderTop: '1px solid ' + T.borderSubtle, color: T.textPrimary }}>

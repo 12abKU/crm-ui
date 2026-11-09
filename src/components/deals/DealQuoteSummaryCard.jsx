@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import tallyAPI from '../../api/tally'
 import busyAPI from '../../api/busy'
 import { computeGstSplit } from '../../utils/tallyGstUtils'
@@ -18,7 +19,11 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
     const [loading, setLoading] = useState(true)
     const [sellerGstin, setSellerGstin] = useState('')
 
-    const isBusy = (deal?.activeErp === 'BUSY_ERP' || deal?.erpProvider === 'BUSY_ERP') || (deal?.busySyncStatus && deal.busySyncStatus !== 'NONE')
+    const activeErp = useSelector(state => state.deals?.activeErp || 'NONE')
+    const effectiveErp = (deal?.activeErp || deal?.erpProvider || (activeErp !== 'NONE' ? activeErp : (deal?.busySyncStatus && deal.busySyncStatus !== 'NONE' ? 'BUSY_ERP' : (deal?.tallySyncStatus && deal.tallySyncStatus !== 'NONE' ? 'TALLY_PRIME' : 'NONE')))).toUpperCase()
+
+    const isBusy = effectiveErp === 'BUSY_ERP'
+    const isTally = effectiveErp === 'TALLY_PRIME'
 
     useEffect(() => {
         let isMounted = true
@@ -89,7 +94,7 @@ export default function DealQuoteSummaryCard({ deal, onOpenQuoteBuilder }) {
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>receipt_long</span>
                     <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>Quotation & Line Items</h4>
-                    {isBusy ? <BusyConnectionBadge /> : (deal?.activeErp !== 'NONE' ? <TallyConnectionBadge /> : null)}
+                    {isBusy ? <BusyConnectionBadge /> : (isTally ? <TallyConnectionBadge /> : null)}
                 </div>
                 {onOpenQuoteBuilder && (
                     <button

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { batchSetDealSyncStatuses } from '../store/dealsSlice'
+import { batchSetDealSyncStatuses, fetchActiveErp } from '../store/dealsSlice'
 import { LOST_DEAL_REASONS, T } from '../constants/theme'
 import { usePipelineStages } from '../hooks/usePipelineStages'
 import TopBar from '../components/TopBar'
@@ -169,8 +169,9 @@ export default function Deals() {
         }
     }, [])
 
-    // Load initial pipelines
+    // Load initial pipelines and active ERP
     useEffect(() => {
+        dispatch(fetchActiveErp())
         api.get('/api/pipelines?entityType=DEAL').then(r => {
             let data = r.data ?? []
             // Hide Partnership Pipeline as requested
@@ -180,7 +181,7 @@ export default function Deals() {
                 setSelectedPipelineId(data[0].id)
             }
         })
-    }, [])
+    }, [dispatch])
 
     const loadAccountOptions = useCallback(async (query = '') => {
         const params = new URLSearchParams({ page: '0', size: '10' })

@@ -23,6 +23,8 @@ const InfoCard = ({ label, children }) => (
 
 export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEdit, leadInfo, onOpenQuoteTab, onDealUpdated }) {
     const { stages, getStageLabel, getStageStyle } = usePipelineStages()
+    const activeErp = useSelector(state => state.deals?.activeErp || 'NONE')
+    const effectiveErp = (deal.activeErp || deal.erpProvider || (activeErp !== 'NONE' ? activeErp : (deal.busySyncStatus && deal.busySyncStatus !== 'NONE' ? 'BUSY_ERP' : (deal.tallySyncStatus && deal.tallySyncStatus !== 'NONE' ? 'TALLY_PRIME' : 'NONE')))).toUpperCase()
     const [stage, setStage] = useState(deal.stage)
     const [lostDetails, setLostDetails] = useState({
         lostReason: deal.lostReason,
@@ -120,14 +122,15 @@ export default function DealPanelOverview({ deal, isAgent, isAssignedToMe, canEd
                 )}
             </div>
 
-            {/* ── 3-Stage Order-to-Cash Stepper (Always visible across all stages for manual & automated fulfillment) ── */}
-            {((deal.activeErp === 'BUSY_ERP' || deal.erpProvider === 'BUSY_ERP') || (deal.busySyncStatus && deal.busySyncStatus !== 'NONE' && (!deal.tallySyncStatus || deal.tallySyncStatus === 'NONE'))) ? (
+            {/* ── 3-Stage Order-to-Cash Stepper (Rendered strictly according to active ERP: BUSY_ERP, TALLY_PRIME, or NONE) ── */}
+            {effectiveErp === 'BUSY_ERP' && (
                 <BusyFulfillmentStepper
                     deal={deal}
                     onStatusUpdated={onDealUpdated}
                     onOpenQuoteTab={onOpenQuoteTab}
                 />
-            ) : (
+            )}
+            {effectiveErp === 'TALLY_PRIME' && (
                 <TallyFulfillmentStepper
                     deal={deal}
                     onStatusUpdated={onDealUpdated}

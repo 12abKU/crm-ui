@@ -5,6 +5,7 @@ import busyAPI from '../api/busy'
 const initialState = {
     // Map of dealId -> { tallySyncStatus, tallySalesOrderNo, tallyDeliveryNoteNo, tallySalesInvoiceNo, tallyLastSyncError, busySyncStatus, busySalesOrderNo, busyDeliveryNoteNo, busySalesInvoiceNo, busyLastSyncError }
     syncStatuses: {},
+    activeErp: 'NONE', // 'NONE' | 'TALLY_PRIME' | 'BUSY_ERP'
     tallyConnection: {
         isConfigured: false,
         isConnected: false,
@@ -115,11 +116,15 @@ const dealsSlice = createSlice({
         setBusyConnectionLoading: (state, action) => {
             state.busyConnection.loading = action.payload ?? true
         },
+        setActiveErp: (state, action) => {
+            state.activeErp = (action.payload || 'NONE').toUpperCase()
+        },
     },
     extraReducers: (builder) => {
         builder
             .addCase('auth/signOut', (state) => {
                 state.syncStatuses = {}
+                state.activeErp = 'NONE'
                 state.tallyConnection = {
                     isConfigured: false,
                     isConnected: false,
@@ -185,7 +190,22 @@ export const {
     setTallyConnectionLoading,
     setBusyConnection,
     setBusyConnectionLoading,
+    setActiveErp,
 } = dealsSlice.actions
+
+export const fetchActiveErp = (companyId, force = false) => async (dispatch, getState) => {
+    const state = getState()
+    const targetCompanyId = companyId || state.auth?.companyId || localStorage.getItem('companyId')
+    if (!targetCompanyId) return
+    try {
+        const res = await busyAPI.getActiveErp(targetCompanyId)
+        if (res?.data?.activeErp) {
+            dispatch(dealsSlice.actions.setActiveErp(res.data.activeErp))
+        }
+    } catch (e) {
+        // preserve current state on network error
+    }
+}
 
 export const fetchTallyConnectionStatus = (force = false) => async (dispatch, getState) => {
     const state = getState()

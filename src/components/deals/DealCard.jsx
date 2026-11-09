@@ -39,22 +39,27 @@ export default function DealCard({
     const navigate = useNavigate()
     const role = useSelector(state => state.auth.role)
     const userId = useSelector(state => state.auth.userId)
+    const activeErp = useSelector(state => state.deals?.activeErp || 'NONE')
     const reduxSync = useSelector(state => state.deals?.syncStatuses?.[deal.id])
     const { isConfigured } = useSelector(state => state.deals?.tallyConnection || {})
+
+    const effectiveErp = (deal?.activeErp || deal?.erpProvider || (activeErp !== 'NONE' ? activeErp : (deal?.busySyncStatus && deal.busySyncStatus !== 'NONE' ? 'BUSY_ERP' : (deal?.tallySyncStatus && deal.tallySyncStatus !== 'NONE' ? 'TALLY_PRIME' : 'NONE')))).toUpperCase()
+    const isBusyActive = effectiveErp === 'BUSY_ERP'
+    const isTallyActive = effectiveErp === 'TALLY_PRIME'
 
     const tallySyncStatus = reduxSync?.tallySyncStatus !== undefined ? reduxSync.tallySyncStatus : deal.tallySyncStatus
     const tallySalesOrderNo = reduxSync?.tallySalesOrderNo ?? deal.tallySalesOrderNo
     const tallyDeliveryNoteNo = reduxSync?.tallyDeliveryNoteNo ?? deal.tallyDeliveryNoteNo
     const tallySalesInvoiceNo = reduxSync?.tallySalesInvoiceNo ?? deal.tallySalesInvoiceNo
     const tallyLastSyncError = reduxSync?.tallyLastSyncError ?? deal.tallyLastSyncError
-    const showSyncBadge = isConfigured && tallySyncStatus && tallySyncStatus !== 'NONE'
+    const showSyncBadge = isTallyActive && isConfigured && tallySyncStatus && tallySyncStatus !== 'NONE'
 
     const busySyncStatus = reduxSync?.busySyncStatus !== undefined ? reduxSync.busySyncStatus : deal.busySyncStatus
     const busySalesOrderNo = reduxSync?.busySalesOrderNo ?? deal.busySalesOrderNo
     const busyDeliveryNoteNo = reduxSync?.busyDeliveryNoteNo ?? deal.busyDeliveryNoteNo
     const busySalesInvoiceNo = reduxSync?.busySalesInvoiceNo ?? deal.busySalesInvoiceNo
     const busyLastSyncError = reduxSync?.busyLastSyncError ?? deal.busyLastSyncError
-    const showBusySyncBadge = busySyncStatus && busySyncStatus !== 'NONE'
+    const showBusySyncBadge = isBusyActive && busySyncStatus && busySyncStatus !== 'NONE'
 
     const isAdminOrAbove = role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const isAgent = role === 'AGENT'

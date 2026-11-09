@@ -260,7 +260,7 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
     const handleAddItem = (preset = null) => {
         const defaultItem = preset || inventory[0]
         const defaultName = defaultItem?.itemName || defaultItem?.busyItemName || defaultItem?.tallyItemName || ''
-        const defaultLocName = locations[0]?.materialCenterName || locations[0]?.name || locations[0]?.godownName || defaultLocation
+        const defaultLocName = (typeof locations[0] === 'string' ? locations[0] : (locations[0]?.centerName || locations[0]?.materialCenterName || locations[0]?.godownName || locations[0]?.name)) || defaultLocation
         const newItem = {
             id: `temp-${Date.now()}-${Math.random()}`,
             itemName: defaultName,
@@ -737,7 +737,8 @@ export default function DealQuoteBuilder({ deal, onQuoteSaved, canEdit = true })
                                                     >
                                                         {locations.length > 0 ? (
                                                             locations.map(loc => {
-                                                                const name = loc.materialCenterName || loc.name || loc.godownName
+                                                                const name = typeof loc === 'string' ? loc : (loc?.centerName || loc?.materialCenterName || loc?.godownName || loc?.name || '')
+                                                                if (!name) return null
                                                                 return (
                                                                     <option key={loc.id || name} value={name} style={{ background: T.surface, color: T.textPrimary }}>
                                                                         {name}
