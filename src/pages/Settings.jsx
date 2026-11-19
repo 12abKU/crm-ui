@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import TopBar from '../components/TopBar'
 import AgentSettings from '../components/settings/AgentSettings'
 import AdminSettings from '../components/settings/AdminSettings'
@@ -12,7 +12,6 @@ import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
-import ErpSettings from '../components/settings/ErpSettings'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -62,19 +61,22 @@ export default function Settings() {
     const role = useSelector(state => state.auth.role)
     const meta = ROLE_META[role] || ROLE_META.AGENT
     const badge = ROLE_BADGE[role] || ROLE_BADGE.AGENT
+    const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     const tabParam = searchParams.get('tab')
-    const normalizedTab = tabParam === 'tally' ? 'erp' : tabParam
-    const [activeTab, setActiveTab] = useState(normalizedTab || 'general')
+    const [activeTab, setActiveTab] = useState(
+        (tabParam === 'erp' || tabParam === 'tally') ? 'general' : (tabParam || 'general')
+    )
 
     useEffect(() => {
-        if (tabParam) {
-            const resolved = tabParam === 'tally' ? 'erp' : tabParam
-            if (resolved !== activeTab) {
-                setActiveTab(resolved)
-            }
+        if (tabParam === 'erp' || tabParam === 'tally') {
+            navigate('/erp', { replace: true })
+            return
         }
-    }, [tabParam, activeTab])
+        if (tabParam && tabParam !== activeTab) {
+            setActiveTab(tabParam)
+        }
+    }, [tabParam, activeTab, navigate])
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId)
@@ -108,18 +110,6 @@ export default function Settings() {
                 )
             }
             return <CompanyIntegrationsSettings />
-        }
-        if (activeTab === 'erp' || activeTab === 'tally') {
-            if (!['ADMIN', 'SUPER_ADMIN', 'COMPANY_SUPER_ADMIN'].includes(role)) {
-                return (
-                    <div className="p-8 text-center rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
-                        <p className="text-sm font-bold" style={{ color: T.error }}>
-                            Access Denied: Accounting and ERP integration settings are restricted to Company Administrators.
-                        </p>
-                    </div>
-                )
-            }
-            return <ErpSettings />
         }
         if (role === 'SUPER_ADMIN') return <SuperAdminSettings />
         if (role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') return <AdminSettings />
@@ -193,10 +183,9 @@ export default function Settings() {
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
                             { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
-                            { id: 'erp', label: 'Accounting & ERP', icon: 'account_balance' },
                         ] : [])
                     ].map(tab => {
-                        const active = activeTab === tab.id || (tab.id === 'erp' && activeTab === 'tally')
+                        const active = activeTab === tab.id
                         return (
                             <button
                                 key={tab.id}

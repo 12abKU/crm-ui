@@ -24,30 +24,34 @@ test('Milestone M4 Empirical Adversarial Challenge: Settings Multi-ERP Switcher,
         assert.ok(fs.existsSync(settingsPath), 'Settings.jsx must exist')
         const settingsSrc = fs.readFileSync(settingsPath, 'utf-8')
 
+        const erpPagePath = path.join(rootDir, 'src/pages/ErpPage.jsx')
+        assert.ok(fs.existsSync(erpPagePath), 'ErpPage.jsx must exist as a dedicated page')
+        const erpPageSrc = fs.readFileSync(erpPagePath, 'utf-8')
+
         // 1.1 Source-level contract verification
-        await t2.test('1.1 Source Contract: Normalization of ?tab=tally query param in Settings.jsx', () => {
+        await t2.test('1.1 Source Contract: Normalization & Redirect of ?tab=tally and ?tab=erp in Settings.jsx', () => {
             assert.match(
                 settingsSrc,
-                /const\s+normalizedTab\s*=\s*tabParam\s*===\s*['"]tally['"]\s*\?\s*['"]erp['"]\s*:\s*tabParam/,
-                'Settings.jsx must normalize tabParam "tally" to "erp"'
+                /tabParam\s*===\s*['"]erp['"]\s*\|\|\s*tabParam\s*===\s*['"]tally['"]/,
+                'Settings.jsx must check for tabParam "erp" or "tally"'
             )
 
             assert.match(
                 settingsSrc,
-                /const\s*\[activeTab,\s*setActiveTab\]\s*=\s*useState\(\s*normalizedTab\s*\|\|\s*['"]general['"]\s*\)/,
-                'Settings.jsx must initialize activeTab with normalizedTab or "general"'
+                /navigate\(\s*['"]\/erp['"]\s*,\s*\{\s*replace:\s*true\s*\}\s*\)/,
+                'Settings.jsx must redirect legacy ?tab=tally or ?tab=erp to dedicated /erp route'
             )
 
             assert.match(
-                settingsSrc,
-                /if\s*\(\s*activeTab\s*===\s*['"]erp['"]\s*\|\|\s*activeTab\s*===\s*['"]tally['"]\s*\)/,
-                'Settings.jsx must treat both "erp" and legacy "tally" as ERP tab in renderPanel()'
+                erpPageSrc,
+                /ErpSettings/,
+                'ErpPage.jsx must render ErpSettings'
             )
 
             assert.match(
-                settingsSrc,
-                /tab\.id\s*===\s*['"]erp['"]\s*&&\s*activeTab\s*===\s*['"]tally['"]/,
-                'Settings.jsx tab highlight must highlight erp tab when activeTab is legacy "tally"'
+                erpPageSrc,
+                /role\s*===\s*['"]AGENT['"]/,
+                'ErpPage.jsx must guard access against AGENT role'
             )
         })
 
@@ -66,17 +70,12 @@ test('Milestone M4 Empirical Adversarial Challenge: Settings Multi-ERP Switcher,
             assert.equal(resolveTab(undefined), 'general', 'Undefined tab param fallback to "general"')
         })
 
-        // 1.3 Tab button active state evaluator
-        await t2.test('1.3 Tab Active State: erp tab button is active when activeTab is "erp" or "tally"', () => {
-            const isTabActive = (tabId, currentActiveTab) => {
-                return currentActiveTab === tabId || (tabId === 'erp' && currentActiveTab === 'tally')
-            }
-
-            assert.equal(isTabActive('erp', 'erp'), true, 'erp tab is active when activeTab === "erp"')
-            assert.equal(isTabActive('erp', 'tally'), true, 'erp tab is active when activeTab === "tally" (backward compat)')
-            assert.equal(isTabActive('erp', 'general'), false, 'erp tab is inactive when activeTab === "general"')
-            assert.equal(isTabActive('general', 'erp'), false, 'general tab is inactive when activeTab === "erp"')
-            assert.equal(isTabActive('general', 'general'), true, 'general tab is active when activeTab === "general"')
+        // 1.3 Navigation link verification
+        await t2.test('1.3 Navigation link active state: /erp route navigation', () => {
+            const themePath = path.join(rootDir, 'src/constants/theme.js')
+            const themeSrc = fs.readFileSync(themePath, 'utf-8')
+            assert.match(themeSrc, /to:\s*['"]\/erp['"]/, 'theme.js must configure /erp navigation item')
+            assert.match(themeSrc, /label:\s*['"]Accounting & ERP['"]/, 'theme.js must label navigation item as Accounting & ERP')
         })
 
         // 1.4 Role-based ERP panel gating simulation

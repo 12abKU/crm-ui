@@ -298,6 +298,7 @@ export const NAV_GROUPS = [
         label: 'System & Support',
         items: [
             { to: '/settings', icon: 'settings', label: 'Settings' },
+            { to: '/erp', icon: 'account_balance', label: 'Accounting & ERP', adminOnly: true },
             { to: '/support', icon: 'contact_support', label: 'Support' },
             { to: '/audit-log', icon: 'history', label: 'Audit Log', adminOnly: true },
             { to: '/privacy', icon: 'privacy_tip', label: 'Privacy & Compliance', adminOnly: true },
@@ -319,5 +320,6 @@ export const NAV_LINKS = [
     { to: '/org', icon: 'corporate_fare', label: 'Organization' },
     { to: '/documents', icon: 'description', label: 'Documents' },
     { to: '/de-duplication', icon: 'cleaning_services', label: 'De-Duplication' },
+    { to: '/erp', icon: 'account_balance', label: 'Accounting & ERP', adminOnly: true },
     { to: '/settings', icon: 'settings', label: 'Settings' },
 ]

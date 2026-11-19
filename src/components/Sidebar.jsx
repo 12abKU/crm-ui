@@ -284,7 +284,8 @@ export default function Sidebar() {
                                             item.to === '/de-duplication' ||
                                             item.to === '/org' ||
                                             item.to === '/audit-log' ||
-                                            item.to === '/privacy'
+                                            item.to === '/privacy' ||
+                                            item.to === '/erp'
                                         ) {
                                             return false
                                         }

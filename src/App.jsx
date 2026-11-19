@@ -18,6 +18,7 @@ const AccountProfile = lazy(() => import('./pages/AccountProfile'))
 const ContactProfile = lazy(() => import('./pages/ContactProfile'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Settings = lazy(() => import('./pages/Settings'))
+const ErpPage = lazy(() => import('./pages/ErpPage'))
 const Calendar = lazy(() => import('./pages/Calendar'))
 const Conversations = lazy(() => import('./pages/Conversations'))
 const Calls = lazy(() => import('./pages/Calls'))
@@ -270,6 +271,7 @@ export default function App() {
         <Route path="/calendar" element={<CrmLayout><Calendar /></CrmLayout>} />
         <Route path="/profile" element={<CrmLayout><Profile /></CrmLayout>} />
         <Route path="/settings" element={<CrmLayout><Settings /></CrmLayout>} />
+        <Route path="/erp" element={<CrmLayout><ErpPage /></CrmLayout>} />
         <Route path="/conversations" element={<CrmLayout><Conversations /></CrmLayout>} />
         <Route path="/chat" element={<CrmLayout><TeammatesChat /></CrmLayout>} />
         <Route path="/calls" element={<CrmLayout><Calls /></CrmLayout>} />
