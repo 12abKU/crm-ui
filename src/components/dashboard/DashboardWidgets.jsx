@@ -80,40 +80,39 @@ export function CardTitle({ children, icon, accent = T.primary, meta }) {
 
 export function StatBox({ label, value, icon, color }) {
     const iconColor = color || T.primary
-    const iconBg = color ? `${color}0D` : T.primaryDim
+    const iconBg = color ? `${color}14` : T.primaryDim
 
     return (
-        <div className="p-3 sm:p-4 md:p-5 flex items-center gap-3 sm:gap-4 transition-all duration-300 relative overflow-hidden"
+        <div className="p-4 sm:p-4.5 flex items-center gap-3.5 transition-all duration-200 relative overflow-hidden group cursor-default"
             style={{
-                borderRadius: 20,
+                borderRadius: 16,
                 ...luxeSurface(iconColor),
             }}
             onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-3px)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
                 e.currentTarget.style.boxShadow = luxeShadow(iconColor, true)
                 e.currentTarget.style.borderColor = `${iconColor}45`
             }}
             onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)'
                 e.currentTarget.style.boxShadow = luxeShadow(iconColor)
-                e.currentTarget.style.borderColor = `${T.border}80`
+                e.currentTarget.style.borderColor = typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'rgba(255,255,255,0.08)' : `${T.border}`
             }}>
-            <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full"
+            <div className="absolute left-0 top-3 bottom-3 w-[2.5px] rounded-full"
                 style={{ background: `linear-gradient(180deg, ${iconColor}, ${iconColor}35)` }} />
-            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0"
+            <div className="w-10 h-10 flex items-center justify-center shrink-0 transition-transform duration-150 group-hover:scale-105"
                 style={{
-                    borderRadius: 14,
-                    background: `linear-gradient(135deg, ${iconBg} 0%, ${iconColor}18 100%)`,
+                    borderRadius: 12,
+                    background: `linear-gradient(135deg, ${iconBg} 0%, ${iconColor}22 100%)`,
                     border: `1px solid ${iconColor}30`,
-                    boxShadow: `0 10px 20px ${iconColor}12`,
                 }}>
-                <span className="material-symbols-outlined filled text-[16px] sm:text-[20px]"
+                <span className="material-symbols-outlined filled text-[18px]"
                     style={{ color: iconColor }}>{icon}</span>
             </div>
-            <div className="z-10 min-w-0">
-                <p className="text-[10px] font-black uppercase truncate"
-                    style={{ color: T.textMuted, letterSpacing: '0.1em' }}>{label}</p>
-                <p className="text-xl sm:text-2xl font-black mt-1 truncate"
+            <div className="z-10 min-w-0 flex-1">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider truncate"
+                    style={{ color: T.textMuted, letterSpacing: '0.07em' }}>{label}</p>
+                <p className="text-xl sm:text-2xl font-black mt-0.5 truncate tracking-tight"
                     style={{ color: T.textPrimary }}>{value ?? '-'}</p>
             </div>
         </div>
@@ -191,19 +190,48 @@ export function TableCell({ children, className = '', style = {} }) {
     )
 }
 
-export function Empty() {
+export function Empty({
+    icon = 'inbox',
+    title = 'No data available',
+    subtitle = 'Data will populate automatically as your team creates records.',
+    actionLabel,
+    onAction,
+}) {
     return (
-        <div className="flex flex-col items-center py-12 gap-3">
-            <div className="w-11 h-11 flex items-center justify-center"
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+            <div
+                className="w-12 h-12 flex items-center justify-center mb-3 transition-transform duration-200"
                 style={{
-                    borderRadius: 14,
-                    background: T.primaryFaint,
-                    border: `1px solid ${T.borderSubtle}`,
-                }}>
-                <span className="material-symbols-outlined text-[21px]"
-                    style={{ color: T.textMuted }}>inbox</span>
+                    borderRadius: 16,
+                    background: `linear-gradient(135deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`,
+                    border: `1px solid ${T.primary}30`,
+                    boxShadow: '0 8px 20px -4px rgba(0,0,0,0.15)',
+                }}
+            >
+                <span className="material-symbols-outlined text-[22px]" style={{ color: T.primary }}>
+                    {icon}
+                </span>
             </div>
-            <p className="text-sm font-bold" style={{ color: T.textMuted }}>No data available</p>
+            <p className="text-sm font-bold tracking-tight" style={{ color: T.textPrimary }}>
+                {title}
+            </p>
+            {subtitle && (
+                <p className="text-xs max-w-sm mt-1 leading-relaxed" style={{ color: T.textMuted }}>
+                    {subtitle}
+                </p>
+            )}
+            {actionLabel && onAction && (
+                <button
+                    onClick={onAction}
+                    className="mt-4 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer shadow-sm"
+                    style={{
+                        background: T.primary,
+                        color: '#FFFFFF',
+                    }}
+                >
+                    {actionLabel}
+                </button>
+            )}
         </div>
     )
 }
@@ -217,7 +245,13 @@ export function RecentActivityList({ activities, loading }) {
         </div>
     )
 
-    if (!activities?.length) return <Empty />
+    if (!activities?.length) return (
+        <Empty
+            icon="event_available"
+            title="No sales activities logged yet"
+            subtitle="Meetings, discovery calls, follow-up emails, and notes will appear here in real-time."
+        />
+    )
 
     return (
         <div className="flex flex-col gap-2">
@@ -225,7 +259,7 @@ export function RecentActivityList({ activities, loading }) {
                 const s = ACTIVITY_STYLES[a.type] || ACTIVITY_STYLES.NOTE
                 return (
                     <div key={a.id}
-                        className="flex items-center gap-3 py-3 px-3 rounded-2xl transition-all duration-150"
+                        className="flex items-center gap-3 py-3 px-3.5 rounded-xl transition-all duration-150"
                         style={{
                             background: dashboardRowBg(),
                             border: `1px solid ${T.borderSubtle}`,
@@ -238,19 +272,21 @@ export function RecentActivityList({ activities, loading }) {
                             e.currentTarget.style.background = dashboardRowBg()
                             e.currentTarget.style.borderColor = T.borderSubtle
                         }}>
-                        <div className="w-9 h-9 flex items-center justify-center shrink-0"
-                            style={{ borderRadius: 12, background: s.bg, border: `1px solid ${s.color}20` }}>
-                            <span className="material-symbols-outlined filled text-[15px]"
+                        <div className="w-8.5 h-8.5 flex items-center justify-center shrink-0"
+                            style={{ borderRadius: 10, background: s.bg, border: `1px solid ${s.color}25` }}>
+                            <span className="material-symbols-outlined filled text-[16px]"
                                 style={{ color: s.color }}>{s.icon}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold truncate" style={{ color: T.textPrimary }}>{a.subject}</p>
-                            <p className="text-xs truncate" style={{ color: T.textMuted }}>
-                                {[a.accountName, a.contactName].filter(Boolean).join(' / ')}
+                            <p className="text-xs sm:text-sm font-bold truncate" style={{ color: T.textPrimary }}>{a.subject}</p>
+                            <p className="text-[11px] truncate mt-0.5" style={{ color: T.textMuted }}>
+                                {[a.accountName, a.contactName].filter(Boolean).join(' · ')}
                             </p>
                         </div>
-                        <span className="text-[10px] px-2.5 py-1 rounded-full font-black shrink-0"
-                            style={{ background: s.bg, color: s.color }}>{a.type}</span>
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0"
+                            style={{ background: s.bg, color: s.color, border: `1px solid ${s.color}30` }}>
+                            {a.type}
+                        </span>
                     </div>
                 )
             })}

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import api from '../api'
 import TopBar from '../components/TopBar'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import CustomSelect from '../components/ui/CustomSelect'
 import { useDialog } from '../contexts/DialogContext'
 
@@ -228,27 +229,15 @@ export default function AuditLogPage() {
             <TopBar />
             <main className="p-4 md:p-8 w-full max-w-full min-w-0">
 
-                    {/* ── Header ─────────────────────────────── */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                                    style={{ background: T.primaryDim }}>
-                                    <span className="material-symbols-outlined filled text-[19px]"
-                                        style={{ color: T.primary }}>history</span>
-                                </div>
-                                <h1 className="text-xl sm:text-2xl font-black truncate" style={{ color: T.textPrimary }}>Audit Log</h1>
-                            </div>
-                            <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
-                                Complete history of every action performed in your CRM
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold w-full lg:w-auto justify-center shrink-0"
-                            style={{ background: T.surfaceHigh, color: T.textMuted }}>
-                            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
-                            {total.toLocaleString()} total events
-                        </div>
-                    </div>
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="history"
+                    title="Audit Log & Security Trail"
+                    subtitle="Immutable chronological history of every change, record, and user action performed in your CRM"
+                    stats={[
+                        { label: 'Logged Events', value: `${total.toLocaleString()} Events`, icon: 'receipt_long', color: '#38BDF8' },
+                    ]}
+                />
 
                     {/* ── Filters ────────────────────────────── */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">

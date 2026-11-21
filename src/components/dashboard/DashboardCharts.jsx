@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { T } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
 import { Empty } from './DashboardWidgets'
@@ -77,10 +78,72 @@ export function BarChart({ data, valueKey = 'count', labelKey = 'label', colorKe
     );
 }
 
+// ── Interactive Pipeline Blueprint (Onboarding State) ────────
+function PipelineBlueprint() {
+    const navigate = useNavigate()
+    const blueprintStages = [
+        { key: 'NEW', label: 'Lead In', desc: 'Inbound & SDR Qualified', time: 'Day 1-2', color: '#38BDF8' },
+        { key: 'QUALIFIED', label: 'Qualified', desc: 'Needs Analysis & Fit', time: 'Day 3-5', color: '#818CF8' },
+        { key: 'PROPOSAL', label: 'Proposal', desc: 'Custom Quote & Terms', time: 'Day 6-10', color: '#A78BFA' },
+        { key: 'NEGOTIATION', label: 'Review', desc: 'Legal & Procurement', time: 'Day 11-15', color: '#F59E0B' },
+        { key: 'WON', label: 'Closed Won', desc: 'Contract Signed', time: 'Active', color: '#10B981' },
+    ]
+
+    return (
+        <div className="py-2 px-1 flex flex-col justify-between h-full min-h-[220px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-3">
+                {blueprintStages.map((stg, i) => (
+                    <div
+                        key={stg.key}
+                        className="p-3 rounded-xl border flex flex-col justify-between transition-all"
+                        style={{
+                            background: `${stg.color}08`,
+                            borderColor: `${stg.color}25`,
+                        }}
+                    >
+                        <div className="flex items-center justify-between gap-1 mb-2">
+                            <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md"
+                                style={{ background: `${stg.color}20`, color: stg.color }}>
+                                0{i + 1}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400">{stg.time}</span>
+                        </div>
+                        <div>
+                            <p className="text-xs font-black truncate" style={{ color: T.textPrimary }}>{stg.label}</p>
+                            <p className="text-[10.5px] truncate text-slate-400 mt-0.5">{stg.desc}</p>
+                        </div>
+                        <div className="mt-3 h-1 w-full rounded-full overflow-hidden bg-white/[0.04]">
+                            <div className="h-full rounded-full" style={{ width: `${(i + 1) * 20}%`, background: stg.color }} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex items-center justify-between flex-wrap gap-2 px-3.5 py-2.5 rounded-xl border"
+                style={{ background: T.surfaceHigh, borderColor: T.borderSubtle }}>
+                <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-emerald-400">tune</span>
+                    <span className="text-xs font-medium" style={{ color: T.textSecondary }}>
+                        Your automated stage drop-off and conversion telemetry will activate with your first live deal.
+                    </span>
+                </div>
+                <button
+                    onClick={() => navigate('/deals')}
+                    className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg text-white transition-all cursor-pointer shadow-xs shrink-0"
+                    style={{ background: T.primary }}
+                >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Create Deal
+                </button>
+            </div>
+        </div>
+    )
+}
+
 // ── FunnelChart ────────────────────────────────────────────────
 export function FunnelChart({ stages, activeStages = [] }) {
     const { getStageStyle } = usePipelineStages()
-    if (!stages?.length) return <Empty />
+    if (!stages?.length) return <PipelineBlueprint />
     
     const activeKeys = activeStages.length > 0 
         ? activeStages.filter(s => s.stageKey !== 'WON' && s.stageKey !== 'LOST').map(s => s.stageKey)
@@ -89,6 +152,8 @@ export function FunnelChart({ stages, activeStages = [] }) {
     const ordered = activeKeys
         .map(k => stages.find(x => x.stage === k))
         .filter(Boolean);
+
+    if (ordered.length === 0) return <PipelineBlueprint />
 
     const chartData = ordered.map((s, i) => {
         const stageObj = activeStages.find(x => x.stageKey === s.stage);
@@ -207,7 +272,50 @@ export function ForecastChart({ data, activeStages = [] }) {
 }
 
 // ── WinRateDonut ───────────────────────────────────────────────
-export function WinRateDonut({ winRate, wonCount, lostCount }) {
+export function WinRateDonut({ winRate = 0, wonCount = 0, lostCount = 0 }) {
+    if (wonCount === 0 && lostCount === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-2 px-2 text-center w-full">
+                <div className="relative w-22 h-22 mb-3 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path
+                            className="text-slate-800"
+                            strokeWidth="3.5"
+                            stroke="rgba(255, 255, 255, 0.08)"
+                            fill="none"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                            strokeDasharray="45, 100"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            stroke="rgba(16, 185, 129, 0.6)"
+                            fill="none"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-black leading-tight" style={{ color: T.textPrimary }}>45%</span>
+                        <span className="text-[8.5px] font-black uppercase tracking-wider text-emerald-400">Target</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        0 Won
+                    </span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                        0 Lost
+                    </span>
+                </div>
+
+                <p className="text-[11px] leading-tight max-w-[210px]" style={{ color: T.textMuted }}>
+                    Close won pipeline opportunities to calibrate your sales conversion velocity.
+                </p>
+            </div>
+        )
+    }
+
     const chartData = [
         { name: 'Won', value: winRate, fill: T.success },
         { name: 'Lost', value: 100 - winRate, fill: T.surfaceHigh }

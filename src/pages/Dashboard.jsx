@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar'
 import DashboardStatCard from '../components/dashboard/DashboardStatCard'
 import RecentActivityList from '../components/dashboard/RecentActivityList'
 import AdminDashboard from '../components/dashboard/AdminDashboard'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import api from '../api'
 import DownloadReport from '../components/Downloadreport'
 import usePermission from '../hooks/usePermission'
@@ -34,84 +35,29 @@ function AgentDashboard() {
     const fmt = (value) => Number(value || 0).toLocaleString('en-IN')
 
     return (
-        <div>
+        <div className="min-h-screen" style={{ background: 'var(--crm-bg)' }}>
             <TopBar />
             <main className="p-4 md:p-8">
+                {/* ── Ultra-Premium Hero Welcome Banner ────────────── */}
+                <PageHeroBanner
+                    icon="waving_hand"
+                    title={`Welcome back, ${name || 'Agent'}`}
+                    subtitle="Here's what's happening with your deals and pipeline today."
+                    stats={[
+                        { label: 'Active Deals', value: loading ? '...' : `${fmt(stats?.activeDeals)} Deals`, icon: 'handshake', color: '#38BDF8' },
+                        { label: 'Network', value: loading ? '...' : `${fmt(stats?.totalContacts)} Contacts`, icon: 'groups', color: '#34D399' },
+                    ]}
+                    actions={canExport && <DownloadReport stats={stats} />}
+                />
 
-                {/* ── Hero Welcome Banner ──────────────────────────── */}
-                <section className="relative mb-8 overflow-hidden"
-                    style={{
-                        borderRadius: 26,
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        minHeight: 148,
-                        border: '1px solid rgba(255,255,255,0.10)',
-                        boxShadow: '0 22px 54px rgba(15,23,42,0.18)',
-                    }}>
-                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent)' }} />
-                    <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
-                        style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
-
-                    <div className="relative px-4 py-5 sm:px-6 lg:px-10 lg:py-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div>
-                            <p className="text-sm font-bold mb-1" style={{ color: T.heroSubText }}>
-                                Good day 👋
-                            </p>
-                            <h2 className="text-2xl sm:text-3xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                Welcome back, {name}
-                            </h2>
-                            <p className="text-sm mt-1.5" style={{ color: T.heroSubText }}>
-                                Here's what's happening with your accounts today.
-                            </p>
-                        </div>
-                        {/* ── Download Report button — lives here now ── */}
-                        {canExport && <DownloadReport stats={stats} />}
-
-                        {/* Right side — stat chips + download */}
-                        <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-                                    style={{
-                                        background: 'rgba(255,255,255,0.10)',
-                                        border: '1px solid rgba(255,255,255,0.18)',
-                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
-                                    }}>
-                                    <span className="material-symbols-outlined filled text-[16px]"
-                                        style={{ color: T.successLight }}>handshake</span>
-                                    <span className="text-sm font-bold" style={{ color: '#fff' }}>
-                                        {loading ? 'No value' : fmt(stats?.activeDeals)} Deals
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-                                    style={{
-                                        background: 'rgba(255,255,255,0.10)',
-                                        border: '1px solid rgba(255,255,255,0.18)',
-                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
-                                    }}>
-                                    <span className="material-symbols-outlined filled text-[16px]"
-                                        style={{ color: T.sidebarText }}>groups</span>
-                                    <span className="text-sm font-bold" style={{ color: '#fff' }}>
-                                        {loading ? 'No value' : fmt(stats?.totalContacts)} Contacts
-                                    </span>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </section>
-
-
-                {/* ── Stat Cards Row 1 ─────────────────────────────── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-                    <DashboardStatCard icon="handshake" label="Active Deals" value={fmt(stats?.activeDeals)} sub="Open pipeline" loading={loading} />
-                    <DashboardStatCard icon="payments" label="Revenue Won" value={`₹${fmt(stats?.totalRevenue)}`} sub="From won deals" loading={loading} />
-                    <DashboardStatCard icon="business" label="Total Accounts" value={fmt(stats?.totalAccounts)} sub="All time" loading={loading} />
-                </div>
-
-                {/* ── Stat Cards Row 2 ─────────────────────────────── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-                    <DashboardStatCard icon="groups" label="Contacts" value={fmt(stats?.totalContacts)} sub="In your network" loading={loading} />
-                    <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(stats?.newContactsThisMonth)} sub="This month" loading={loading} />
-                    <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(stats?.newDealsThisMonth)} sub="This month" loading={loading} />
+                {/* ── Stat Cards Unified 6-KPI Executive Grid ─────────── */}
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-3.5 mb-6">
+                    <DashboardStatCard icon="handshake" label="Active Deals" value={fmt(stats?.activeDeals)} sub="Pipeline" loading={loading} />
+                    <DashboardStatCard icon="payments" label="Won Revenue" value={`\u20B9${fmt(stats?.totalRevenue)}`} sub="Closed" loading={loading} />
+                    <DashboardStatCard icon="business" label="Accounts" value={fmt(stats?.totalAccounts)} sub="All time" loading={loading} />
+                    <DashboardStatCard icon="groups" label="Contacts" value={fmt(stats?.totalContacts)} sub="Network" loading={loading} />
+                    <DashboardStatCard icon="person_add" label="New Contacts" value={fmt(stats?.newContactsThisMonth)} sub="This Mo" loading={loading} />
+                    <DashboardStatCard icon="task_alt" label="New Deals" value={fmt(stats?.newDealsThisMonth)} sub="This Mo" loading={loading} />
                 </div>
 
                 {/* ── Charts Panel ─────────────────────────────────── */}
@@ -139,19 +85,18 @@ function AgentDashboard() {
                 </div>
 
                 {/* ── Recent Activity Card ──────────────────────────── */}
-                    <Card accent={DASHBOARD_ACCENTS.teal}>
-                        <CardTitle
-                            icon="event_note"
-                            accent={DASHBOARD_ACCENTS.teal}
-                            meta={stats?.recentActivities?.length > 0 ? `${stats.recentActivities.length} activities` : undefined}
-                        >
-                            Recent Activity
-                        </CardTitle>
-                        <div>
-                            <RecentActivityList activities={stats?.recentActivities} loading={loading} />
-                        </div>
-                    </Card>
-
+                <Card accent={DASHBOARD_ACCENTS.teal}>
+                    <CardTitle
+                        icon="event_note"
+                        accent={DASHBOARD_ACCENTS.teal}
+                        meta={stats?.recentActivities?.length > 0 ? `${stats.recentActivities.length} activities` : undefined}
+                    >
+                        Recent Activity
+                    </CardTitle>
+                    <div>
+                        <RecentActivityList activities={stats?.recentActivities} loading={loading} />
+                    </div>
+                </Card>
             </main>
         </div>
     )

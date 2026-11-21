@@ -6,6 +6,7 @@ import SlideForm from '../components/SlideForm'
 import { Input, Select } from '../components/FormField'
 import SearchableSelect from '../components/SearchableSelect'
 import CustomSelect from '../components/ui/CustomSelect'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import api from '../api'
 import { toIsoDate } from '../utils/cacheUtils'
 
@@ -247,10 +248,23 @@ export default function Calendar() {
         <div className="h-full flex flex-col">
             <TopBar />
             <main className="p-4 sm:p-8 flex-1 flex flex-col">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>Calendar</h1>
-                        <p className="mt-1 font-medium" style={{ color: T.textMuted }}>Manage your schedule and upcoming activities.</p>
+                <PageHeroBanner
+                    icon="calendar_month"
+                    title="Calendar & Scheduling"
+                    subtitle="Track sales appointments, scheduled calls, and synchronized team agenda"
+                    actions={
+                        <button onClick={() => setOpen(true)} className="crm-btn-primary whitespace-nowrap">
+                            <span className="material-symbols-outlined text-[18px]">add</span>
+                            Create Event/Task
+                        </button>
+                    }
+                />
+
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-2">
+                        <button onClick={today} className="crm-btn-ghost px-4 py-2 text-xs">
+                            Today
+                        </button>
                     </div>
 
                     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">

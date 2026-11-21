@@ -94,12 +94,12 @@ export default function Login() {
                     <div className="space-y-4">
                         <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold border"
                               style={{ background: T.heroBadgeBg, color: T.heroBadgeText, borderColor: T.heroBadgeBorder }}>
-                            <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+                            <span className="w-2 h-2 rounded-full animate-ping" style={{ background: T.primary }} />
                             Live Workspace Active
                         </span>
                         <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-white">
                             Manage relationships <br />
-                            with <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${T.primary}, #FDBA74)` }}>precision.</span>
+                            with <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${T.primary}, #A5B4FC)` }}>precision.</span>
                         </h2>
                         <p className="text-sm leading-relaxed text-gray-300 max-w-md">
                             Unify call logs, emails, pipelines, and activities in a premium, lightning-fast workspace tailored for high-growth teams.
@@ -116,7 +116,7 @@ export default function Login() {
                                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">Team Pipeline Performance</span>
                             </div>
-                            <span className="text-[10px] text-orange-400 font-bold bg-orange-950/40 px-2 py-0.5 rounded-md border border-orange-900/30">Real-time sync</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border" style={{ color: T.primaryText, background: T.primaryDim, borderColor: T.primary }}>Real-time sync</span>
                         </div>
 
                         {/* Interactive Stats Grid */}
@@ -132,7 +132,7 @@ export default function Login() {
                                 <p className="text-[10px] text-gray-400 uppercase font-semibold">Win Rate</p>
                                 <div className="flex items-baseline gap-2 mt-1">
                                     <h4 className="text-xl sm:text-2xl font-black text-white">24.8%</h4>
-                                    <span className="text-xs text-orange-400 font-bold flex items-center">↑3.2%</span>
+                                    <span className="text-xs font-bold flex items-center" style={{ color: T.primary }}>↑3.2%</span>
                                 </div>
                             </div>
                         </div>
@@ -157,7 +157,7 @@ export default function Login() {
 
                             <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative shadow-sm" style={{ background: '#EA580C' }}>
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative shadow-sm" style={{ background: T.primary }}>
                                         AS
                                         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 bg-emerald-500" />
                                     </div>

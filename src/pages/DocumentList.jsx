@@ -9,6 +9,7 @@ import DocumentPreviewModal from '../components/documents/DocumentPreviewModal';
 import { useDialog } from '../contexts/DialogContext';
 import TopBar from '../components/TopBar';
 import StorageLimitBar from '../components/ui/StorageLimitBar';
+import PageHeroBanner from '../components/ui/PageHeroBanner';
 
 export default function DocumentList({ entityType, entityId }) {
   const isNested = !!entityType;
@@ -154,20 +155,20 @@ export default function DocumentList({ entityType, entityId }) {
       
       {/* Page Header (Only when full page) */}
       {!isNested && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-black" style={{ color: T.textPrimary, letterSpacing: '-0.02em' }}>Documents</h1>
-            <p className="text-xs mt-1" style={{ color: T.textMuted }}>Manage files and attachments across your CRM.</p>
-          </div>
-          <button
-            onClick={() => setUploadOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-white hover:opacity-95 self-start sm:self-auto"
-            style={{ background: T.primary, boxShadow: `0 4px 12px ${T.primary}20` }}
-          >
-            <span className="material-symbols-outlined text-[16px]">upload_file</span>
-            Upload Document
-          </button>
-        </div>
+        <PageHeroBanner
+          icon="description"
+          title="Documents & File Storage"
+          subtitle="Manage attachments, contracts, and company assets across your CRM"
+          actions={
+            <button
+              onClick={() => setUploadOpen(true)}
+              className="crm-btn-primary whitespace-nowrap shrink-0"
+            >
+              <span className="material-symbols-outlined text-[18px]">upload_file</span>
+              Upload Document
+            </button>
+          }
+        />
       )}
 
       {/* Toolbar / Search (Only when full page) */}

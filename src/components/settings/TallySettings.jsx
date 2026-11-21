@@ -224,33 +224,54 @@ export default function TallySettings() {
     }
 
     return (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
             {/* Header banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl border shadow-sm" style={{ background: T.surface, borderColor: T.border }}>
-                <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-lg font-black flex items-center gap-2" style={{ color: T.textPrimary }}>
-                            <span className="material-symbols-outlined" style={{ color: T.primary }}>receipt_long</span>
-                            TallyPrime Accounting & Factory Inventory Bridge
-                        </h3>
-                        <TallyConnectionBadge />
+            <div
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-3xl border relative overflow-hidden transition-all duration-300"
+                style={{
+                    background: T.surface,
+                    borderColor: T.border,
+                    boxShadow: '0 8px 24px -6px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+                }}
+            >
+                <div
+                    className="absolute inset-x-0 top-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, transparent 0%, ${T.primary}50 50%, transparent 100%)` }}
+                />
+                <div className="flex items-center gap-4">
+                    <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                        style={{
+                            background: T.primaryDim,
+                            border: `1px solid ${T.primary}35`,
+                            boxShadow: `0 4px 14px ${T.primary}20`,
+                        }}
+                    >
+                        <span className="material-symbols-outlined filled text-[24px]" style={{ color: T.primary }}>
+                            receipt_long
+                        </span>
                     </div>
-                    <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                        Connect your Tally company, configure Indian GST tax ledgers, and monitor AWS SQS FIFO queues.
-                    </p>
+                    <div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="text-base sm:text-lg font-black tracking-tight" style={{ color: T.textPrimary }}>
+                                TallyPrime Accounting &amp; Factory Inventory Bridge
+                            </h3>
+                            <TallyConnectionBadge />
+                        </div>
+                        <p className="text-xs sm:text-sm mt-0.5 leading-relaxed" style={{ color: T.textMuted }}>
+                            Connect your Tally company, configure Indian GST tax ledgers, and monitor AWS SQS FIFO queues.
+                        </p>
+                    </div>
                 </div>
                 <button
                     type="button"
                     data-testid="tally-save-config-btn"
                     onClick={handleSaveConfig}
                     disabled={saving}
-                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-black text-xs transition shadow-sm disabled:opacity-50 cursor-pointer shrink-0"
-                    style={{ background: T.primary }}
-                    onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                    onMouseLeave={e => e.currentTarget.style.background = T.primary}
+                    className="crm-btn-primary shrink-0"
                 >
                     <span className="material-symbols-outlined text-[16px]">{saving ? 'sync' : 'save'}</span>
-                    {saving ? 'Saving...' : 'Save Configuration'}
+                    <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
                 </button>
             </div>
 

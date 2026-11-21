@@ -295,33 +295,54 @@ export default function BusySettings() {
     }
 
     return (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full">
             {/* Header banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl border shadow-sm" style={{ background: T.surface, borderColor: T.border }}>
-                <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-lg font-black flex items-center gap-2" style={{ color: T.textPrimary }}>
-                            <span className="material-symbols-outlined" style={{ color: T.primary }}>receipt_long</span>
-                            BUSY ERP Accounting & Material Center Bridge
-                        </h3>
-                        <BusyConnectionBadge />
+            <div
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-3xl border relative overflow-hidden transition-all duration-300"
+                style={{
+                    background: T.surface,
+                    borderColor: T.border,
+                    boxShadow: '0 8px 24px -6px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+                }}
+            >
+                <div
+                    className="absolute inset-x-0 top-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, transparent 0%, ${T.primary}50 50%, transparent 100%)` }}
+                />
+                <div className="flex items-center gap-4">
+                    <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                        style={{
+                            background: T.primaryDim,
+                            border: `1px solid ${T.primary}35`,
+                            boxShadow: `0 4px 14px ${T.primary}20`,
+                        }}
+                    >
+                        <span className="material-symbols-outlined filled text-[24px]" style={{ color: T.primary }}>
+                            receipt_long
+                        </span>
                     </div>
-                    <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                        Connect your BUSY ERP instance on Port 981, configure Material Centers, and manage AWS SQS FIFO fulfillment.
-                    </p>
+                    <div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="text-base sm:text-lg font-black tracking-tight" style={{ color: T.textPrimary }}>
+                                BUSY ERP Accounting &amp; Material Center Bridge
+                            </h3>
+                            <BusyConnectionBadge />
+                        </div>
+                        <p className="text-xs sm:text-sm mt-0.5 leading-relaxed" style={{ color: T.textMuted }}>
+                            Connect your BUSY ERP instance on Port 981, configure Material Centers, and manage AWS SQS FIFO fulfillment.
+                        </p>
+                    </div>
                 </div>
                 <button
                     type="button"
                     data-testid="busy-save-config-btn"
                     onClick={handleSaveConfig}
                     disabled={saving}
-                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-black text-xs transition shadow-sm disabled:opacity-50 cursor-pointer shrink-0"
-                    style={{ background: T.primary }}
-                    onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                    onMouseLeave={e => e.currentTarget.style.background = T.primary}
+                    className="crm-btn-primary shrink-0"
                 >
                     <span className="material-symbols-outlined text-[16px]">{saving ? 'sync' : 'save'}</span>
-                    {saving ? 'Saving...' : 'Save Configuration'}
+                    <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
                 </button>
             </div>
 
@@ -358,10 +379,13 @@ export default function BusySettings() {
             )}
 
             {/* Section 1 & 2: Connection Mode, Company Master, Agent API Key, and Bridge Download */}
-            <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
-                <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
-                    <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>hub</span>
-                    <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>1. Connection Mode & Company Profile</h4>
+            <div className="p-6 rounded-3xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
+                <div className="flex items-center gap-3 pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
+                    <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>01</span>
+                    <div>
+                        <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>Connection Mode &amp; Company Profile</h4>
+                        <p className="text-[11px]" style={{ color: T.textMuted }}>Port 981 bridge URL, BUSY company name, and GSTIN registration</p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -530,11 +554,14 @@ export default function BusySettings() {
             </div>
 
             {/* Section 3: Dynamic Material Center Selector */}
-            <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-4" style={{ background: T.surface, borderColor: T.border }}>
+            <div className="p-6 rounded-3xl border shadow-sm flex flex-col gap-4" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="flex flex-wrap items-center justify-between pb-3 border-b gap-2" style={{ borderColor: T.borderSubtle }}>
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>store</span>
-                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>3. Default Material Center / Store Location</h4>
+                    <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>02</span>
+                        <div>
+                            <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>Default Material Center / Store Location</h4>
+                            <p className="text-[11px]" style={{ color: T.textMuted }}>Warehouse inventory allocation for new deals and quotations</p>
+                        </div>
                     </div>
                     {materialCenters.length > 0 && (
                         <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
@@ -581,11 +608,14 @@ export default function BusySettings() {
             </div>
 
             {/* Section 4: Accounting Accounts Mapping & Discovered Masters */}
-            <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
+            <div className="p-6 rounded-3xl border shadow-sm flex flex-col gap-5" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="flex flex-wrap items-center justify-between pb-3 border-b gap-2" style={{ borderColor: T.borderSubtle }}>
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>account_balance</span>
-                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>4. Accounting Accounts Mapping</h4>
+                    <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>03</span>
+                        <div>
+                            <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>Accounting Accounts &amp; GST Ledger Mapping</h4>
+                            <p className="text-[11px]" style={{ color: T.textMuted }}>Map Sales, CGST, SGST, IGST, and Round-Off accounts to BUSY Ledgers</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         {discoveredMasters?.totalCount > 0 ? (
@@ -965,14 +995,19 @@ export default function BusySettings() {
             </div>
 
             {/* Section 5: Synced Masters Catalog Table */}
-            <div className="p-6 rounded-2xl border shadow-sm flex flex-col gap-4" style={{ background: T.surface, borderColor: T.border }}>
+            <div className="p-6 rounded-3xl border shadow-sm flex flex-col gap-4" style={{ background: T.surface, borderColor: T.border }}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3" style={{ borderColor: T.borderSubtle }}>
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>inventory_2</span>
-                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>5. Synced Master Catalog & Inventory Items</h4>
-                        <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-neutral-500/10 text-neutral-400">
-                            {filteredCatalog.length} of {catalogItems.length}
-                        </span>
+                    <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>04</span>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>Synced Master Catalog &amp; Inventory Items</h4>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-neutral-500/10 text-neutral-400">
+                                    {filteredCatalog.length} of {catalogItems.length} items
+                                </span>
+                            </div>
+                            <p className="text-[11px]" style={{ color: T.textMuted }}>Items, stock units, and GST tax codes discovered from BUSY</p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1051,13 +1086,16 @@ export default function BusySettings() {
             {/* Section 6: SQS FIFO Queue Health & DLQ Message Monitor */}
             <div
                 data-testid="busy-queue-health-card"
-                className="p-6 rounded-2xl border shadow-sm flex flex-col gap-4"
+                className="p-6 rounded-3xl border shadow-sm flex flex-col gap-4"
                 style={{ background: T.surface, borderColor: T.border }}
             >
                 <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>dns</span>
-                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>6. AWS SQS FIFO Queue & DLQ Monitor</h4>
+                    <div className="flex items-center gap-3">
+                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>05</span>
+                        <div>
+                            <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>AWS SQS FIFO Queue &amp; DLQ Monitor</h4>
+                            <p className="text-[11px]" style={{ color: T.textMuted }}>Guaranteed message ordering, deduplication, and failure diagnostics</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: T.successDim, color: T.success }}>

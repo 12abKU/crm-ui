@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import Pagination from '../components/Pagination'
 import CallLogTable from '../components/voice/CallLogTable'
 import CallWidget from '../components/voice/CallWidget'
@@ -75,58 +76,19 @@ export default function Calls() {
             <TopBar />
             <main className="p-4 md:p-8">
 
-                {/* ── Hero Banner ──────────────────────────── */}
-                <div className="relative rounded-3xl overflow-hidden mb-7"
-                    style={{
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                    }}>
-                    {/* Orbs */}
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle,  0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '45%', width: 130, height: 130,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
-                        pointerEvents: 'none',
-                    }} />
-
-                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>call</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Calls
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    Voice call history and logs
-                                </p>
-                            </div>
-                        </div>
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="call"
+                    title="Calls & Voice Operations"
+                    subtitle="Real-time call logs, duration tracking, and agent telephony history"
+                    actions={
                         <button onClick={() => setShowDialer(true)}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
-                            style={{
-                                background: T.heroBadgeBg,
-                                border: '1px solid rgba(255,255,255,0.22)',
-                                color: '#fff',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                            onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                            className="crm-btn-primary whitespace-nowrap shrink-0">
                             <span className="material-symbols-outlined text-[18px]">add_call</span>
                             New Call
                         </button>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* ── Stat cards ───────────────────────────── */}
                 <div className="flex flex-wrap gap-4 mb-7">

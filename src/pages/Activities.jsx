@@ -8,6 +8,7 @@ import Pagination from '../components/Pagination'
 import SearchableSelect from '../components/SearchableSelect'
 import { Input, Select } from '../components/FormField'
 import SearchInput from '../components/ui/SearchInput'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import EmptyTableRow from '../components/ui/EmptyTableRow'
 import ActivityRow from '../components/activities/ActivityRow'
 
@@ -247,68 +248,22 @@ export default function Activities() {
             <TopBar />
             <main className="p-4 md:p-8">
 
-                {/* ── Hero Banner ──────────────────────────── */}
-                <div className="relative rounded-3xl overflow-hidden mb-7"
-                    style={{
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                    }}>
-                    {/* Orbs */}
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle,  0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '45%', width: 140, height: 140,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
-                        pointerEvents: 'none',
-                    }} />
-
-                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>event_note</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Activities
-                                </h2>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <p className="text-sm" style={{ color: T.heroSubText }}>
-                                        {totalElements} logged
-                                    </p>
-                                    {dashboardData.stats.overdue > 0 && (
-                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                            style={{ background: 'rgba(220,38,38,0.25)', color: T.errorLight }}>
-                                            {dashboardData.stats.overdue} overdue
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        {can.ACTIVITIES_CREATE && (
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="event_note"
+                    title="Activities"
+                    subtitle={`${totalElements} logged calls, meetings, and sales follow-up tasks`}
+                    badge={dashboardData.stats.overdue > 0 ? `${dashboardData.stats.overdue} overdue` : undefined}
+                    actions={
+                        can.ACTIVITIES_CREATE && (
                             <button onClick={handleOpenModal}
-                                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 shrink-0 w-full lg:w-auto"
-                                style={{
-                                    background: T.heroBadgeBg,
-                                    border: '1px solid rgba(255,255,255,0.22)',
-                                    color: '#fff',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                className="crm-btn-primary whitespace-nowrap shrink-0">
                                 <span className="material-symbols-outlined text-[18px]">add</span>
                                 Log Activity
                             </button>
-                        )}
-                    </div>
-                </div>
+                        )
+                    }
+                />
 
                 {/* ── Stat cards ───────────────────────────── */}
                 <div className="flex flex-wrap gap-4 mb-6">

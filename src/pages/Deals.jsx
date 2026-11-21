@@ -9,6 +9,7 @@ import SlideForm from '../components/SlideForm'
 import SearchableSelect from '../components/SearchableSelect'
 import { Input, Select, Textarea } from '../components/FormField'
 import PageHeader from '../components/ui/PageHeader'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import SearchInput from '../components/ui/SearchInput'
 import CustomSelect from '../components/ui/CustomSelect'
 import DealPanel from '../components/dealPanel/DealPanel'
@@ -595,51 +596,13 @@ export default function Deals() {
             <TopBar />
             <main className="p-4 sm:p-8 flex-1 overflow-hidden flex flex-col">
 
-                {/* ── Hero Banner ──────────────────────────── */}
-                <div className="relative rounded-3xl mb-7"
-                    style={{
-                        minHeight: 120,
-                    }}>
-                    
-                    {/* Background layer that clips absolute orbs without clipping dropdown menus */}
-                    <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none"
-                        style={{
-                            background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        }}>
-                        <div style={{
-                            position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.primaryHover}30 0%, transparent 70%)`,
-                            pointerEvents: 'none',
-                        }} />
-                        <div style={{
-                            position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
-                            pointerEvents: 'none',
-                        }} />
-                    </div>
-
-                    <div className="relative z-10 px-5 py-5 sm:px-9 sm:py-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>handshake</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Deals
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {subtitleText}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1 justify-start lg:justify-end">
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="handshake"
+                    title="Deals"
+                    subtitle={subtitleText}
+                    actions={
+                        <>
                             {pipelines.length > 1 && (
                                 <div className="w-full sm:w-48 text-center shrink-0">
                                     <CustomSelect
@@ -651,7 +614,7 @@ export default function Deals() {
                                         className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 outline-none cursor-pointer text-center"
                                         style={{
                                             background: 'rgba(255,255,255,0.08)',
-                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            border: '1px solid rgba(255,255,255,0.18)',
                                             color: '#fff',
                                         }}>
                                         {pipelines.map(p => (
@@ -665,47 +628,43 @@ export default function Deals() {
                             <SearchInput value={search} onChange={setSearch} placeholder="Search deals..." />
                             {can.DEALS_CREATE && (
                                 <button onClick={openCreateForm}
-                                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto shrink-0"
-                                    style={{
-                                        background: T.heroBadgeBg,
-                                        border: '1px solid rgba(255,255,255,0.22)',
-                                        color: '#fff',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                    className="crm-btn-primary whitespace-nowrap shrink-0 w-full sm:w-auto">
                                     <span className="material-symbols-outlined text-[18px]">add</span>
                                     New Deal
                                 </button>
                             )}
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
 
                 {/* ── Pipeline summary strip ───────────────── */}
-                <div className="flex flex-wrap gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, value, style }) => (
                         <div key={stage}
-                            className="flex-1 min-w-[140px] sm:min-w-[170px] rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
+                            className="rounded-2xl p-4 flex flex-col justify-between gap-2 transition-all duration-200 border relative overflow-hidden group hover:scale-[1.01]"
                             style={{
                                 background: T.surface,
-                                border: `1.5px solid ${style.accent}30`,
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                borderColor: T.border,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                             }}>
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase tracking-widest truncate"
+                            <div className="absolute inset-x-0 top-0 h-[2.5px]" style={{ background: style.accent }} />
+                            <div className="flex items-center justify-between gap-1">
+                                <span className="text-[10px] font-black uppercase tracking-wider truncate"
                                     style={{ color: style.accent }}>{label}</span>
-                                <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
-                                    style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
+                                <span className="text-[10.5px] font-black px-2 py-0.5 rounded-full shrink-0"
+                                    style={{ background: style.badgeBg, color: style.badgeColor, border: `1px solid ${style.accent}25` }}>
+                                    {count}
+                                </span>
                             </div>
-                            <p className="text-base font-black" style={{ color: T.textPrimary }}>
-                                {value > 0 ? `₹${Number(value).toLocaleString('en-IN')}` : '0'}
+                            <p className="text-base sm:text-lg font-black tracking-tight" style={{ color: T.textPrimary }}>
+                                {value > 0 ? `₹${Number(value).toLocaleString('en-IN')}` : '₹0'}
                             </p>
                         </div>
                     ))}
                 </div>
 
                 {/* ── Kanban board — scrollable columns ───── */}
-                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
+                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0 kanban-scroll">
                     {activeStages.map(stageObj => {
                         const stage = stageObj.stageKey
                         const stageDeals = dealsByStage[stage] || []
@@ -718,35 +677,34 @@ export default function Deals() {
 
                         return (
                             <div key={stage}
-                                className="flex flex-col shrink-0 flex-1"
+                                className="flex flex-col shrink-0 flex-1 transition-all duration-200"
                                 style={{
-                                    minWidth: 300,
-                                    borderRadius: 16, overflow: 'hidden', height: '100%',
+                                    minWidth: 310,
+                                    borderRadius: 20, overflow: 'hidden', height: '100%',
                                     background: colBg,
-                                    border: `1.5px solid ${colBorder}`,
+                                    border: isOver ? `2px dashed ${style.accent}` : `1.5px solid ${colBorder}`,
                                     boxShadow: isOver
-                                        ? `0 0 0 3px ${style.accent}22, 0 4px 20px rgba(0,0,0,0.10)`
-                                        : '0 2px 10px rgba(0,0,0,0.05)',
-                                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                                        ? `0 0 0 3px ${style.accent}25, 0 8px 24px rgba(0,0,0,0.12)`
+                                        : '0 2px 10px rgba(0,0,0,0.04)',
                                 }}
                                 onDragOver={e => { e.preventDefault(); setOverStage(stage) }}
                                 onDragLeave={() => setOverStage(null)}
                                 onDrop={() => handleDrop(stage)}>
 
                                 {/* Column header */}
-                                <div className="px-4 py-3.5 flex items-center justify-between"
+                                <div className="px-4 py-3.5 flex items-center justify-between border-b"
                                     style={{
                                         background: getStageHeaderBg(stage),
-                                        borderBottom: `2px solid ${style.accent}`,
+                                        borderColor: `${style.accent}30`,
                                     }}>
                                     <div className="flex items-center gap-2.5 min-w-0">
                                         <div className="w-2.5 h-2.5 rounded-full shrink-0"
-                                            style={{ background: style.accent }} />
-                                        <span className="text-[12px] font-black uppercase tracking-[0.12em] truncate"
+                                            style={{ background: style.accent, boxShadow: `0 0 8px ${style.accent}` }} />
+                                        <span className="text-[12px] font-black uppercase tracking-[0.10em] truncate"
                                             style={{ color: style.accent }}>
                                             {stageObj.label}
                                         </span>
-                                        <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full shrink-0"
+                                        <span className="text-[10.5px] font-extrabold px-2 py-0.5 rounded-full shrink-0"
                                             style={{
                                                 background: style.badgeBg,
                                                 color: style.badgeColor,
@@ -756,8 +714,12 @@ export default function Deals() {
                                         </span>
                                     </div>
                                     {totalValue > 0 && (
-                                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 ml-1"
-                                            style={{ background: style.badgeBg, color: style.badgeColor }}>
+                                        <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg shrink-0 ml-1 tracking-tight"
+                                            style={{
+                                                background: style.badgeBg,
+                                                color: style.badgeColor,
+                                                border: `1px solid ${style.accent}25`,
+                                            }}>
                                             ₹{Number(totalValue).toLocaleString('en-IN')}
                                         </span>
                                     )}

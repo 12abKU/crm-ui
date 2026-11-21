@@ -1,28 +1,31 @@
-import { T } from '../../constants/theme'
+import { T, getThemeName } from '../../constants/theme'
 
-const isDark = () => T.bg === '#0A0D16'
+const isDark = () => getThemeName() === 'dark'
 
 export const DASHBOARD_ACCENTS = {
-    blue: '#2563EB',
-    teal: '#0F766E',
-    gold: '#D97706',
-    rose: '#DB2777',
-    green: '#16A34A',
-    red: '#DC2626',
-    violet: '#7C3AED',
+    blue: '#38BDF8',
+    teal: '#2DD4BF',
+    gold: '#F59E0B',
+    rose: '#FB7185',
+    green: '#10B981',
+    red: '#F87171',
+    violet: '#A78BFA',
+    indigo: '#818CF8',
 }
 
 export const luxeShadow = (accent = T.primary, lifted = false) => (
     isDark()
-        ? `${lifted ? '0 22px 52px' : '0 16px 40px'} rgba(0,0,0,0.34), 0 0 0 1px ${accent}10`
-        : `${lifted ? '0 22px 48px' : '0 14px 34px'} rgba(28,18,10,0.08), 0 1px 0 rgba(255,255,255,0.72)`
+        ? `${lifted ? '0 20px 40px -8px' : '0 10px 24px -4px'} rgba(0,0,0,0.55), 0 0 0 1px ${accent}25`
+        : `${lifted ? '0 14px 28px -4px' : '0 4px 16px -2px'} rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(0,0,0,0.04)`
 )
 
 export const luxeSurface = (accent = T.primary) => ({
     background: isDark()
-        ? T.surfaceRaised
+        ? `linear-gradient(180deg, ${T.surface} 0%, ${T.surfaceRaised} 100%)`
         : '#FFFFFF',
-    border: `1px solid ${T.border}80`,
+    border: isDark()
+        ? '1px solid rgba(255, 255, 255, 0.08)'
+        : `1px solid ${T.border}`,
     boxShadow: luxeShadow(accent),
 })
 

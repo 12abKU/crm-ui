@@ -5,6 +5,8 @@ import { toast } from 'react-hot-toast';
 import { format, differenceInDays } from 'date-fns';
 import { useDialog } from '../contexts/DialogContext';
 import { Link } from 'react-router-dom';
+import TopBar from '../components/TopBar';
+import PageHeroBanner from '../components/ui/PageHeroBanner';
 
 export default function PrivacyCompliance() {
     const { confirm, prompt } = useDialog();
@@ -99,29 +101,49 @@ export default function PrivacyCompliance() {
     if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
     return (
-        <div className="p-8 h-full flex flex-col">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: T.textPrimary }}>Privacy & Compliance</h1>
-            <p className="mb-6 text-sm" style={{ color: T.textMuted }}>
-                Manage Data Principal requests and security incident logging.
-            </p>
+        <div className="min-h-screen" style={{ background: 'var(--crm-bg)' }}>
+            <TopBar />
+            <main className="p-4 sm:p-8 flex flex-col">
+                <PageHeroBanner
+                    icon="privacy_tip"
+                    title="Privacy & Compliance (DPDP)"
+                    subtitle="Manage Data Principal requests, audit data breaches, and review retention lifecycle"
+                    actions={
+                        <button
+                            onClick={logBreach}
+                            className="crm-btn-primary whitespace-nowrap shrink-0"
+                            style={{ background: '#EF4444' }}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">warning</span>
+                            Log Security Breach
+                        </button>
+                    }
+                />
 
-            <div className="flex gap-4 mb-4 border-b" style={{ borderColor: T.border }}>
-                <button 
-                    onClick={() => setActiveTab('requests')}
-                    className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'requests' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                    Data Requests
-                </button>
-                <button 
-                    onClick={() => setActiveTab('breaches')}
-                    className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'breaches' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                    Data Breaches
-                </button>
-                <button 
-                    onClick={() => setActiveTab('recycle')}
-                    className={`pb-2 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'recycle' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                    Recycle Bin
-                </button>
-            </div>
+                <div className="flex gap-2 mb-5 p-1 rounded-2xl border w-fit"
+                    style={{ background: T.surface, borderColor: T.border }}>
+                    <button 
+                        onClick={() => setActiveTab('requests')}
+                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                            activeTab === 'requests' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                        }`}>
+                        Data Requests ({requests.length})
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('breaches')}
+                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                            activeTab === 'breaches' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                        }`}>
+                        Data Breaches ({breaches.length})
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('recycle')}
+                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all ${
+                            activeTab === 'recycle' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                        }`}>
+                        Recycle Bin ({recycledItems.length})
+                    </button>
+                </div>
 
             <div className="flex-1 bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col" style={{ borderColor: T.border, backgroundColor: T.surface }}>
                 {activeTab === 'requests' ? (
@@ -283,6 +305,7 @@ export default function PrivacyCompliance() {
                     </div>
                 ) : null}
             </div>
+            </main>
         </div>
     );
 }

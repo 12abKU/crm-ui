@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
-import { T, getThemeName } from './constants/theme'
+import { T, getThemeName, getPaletteName } from './constants/theme'
 import ApiErrorToast from './components/ui/ApiErrorToast'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -220,10 +220,18 @@ function RouteKey({ prefix, children }) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(getThemeName())
+  const [themeState, setThemeState] = useState(() => ({
+    mode: getThemeName(),
+    palette: getPaletteName()
+  }))
 
   useEffect(() => {
-    const handler = (e) => setTheme(e.detail)
+    const handler = () => {
+      setThemeState({
+        mode: getThemeName(),
+        palette: getPaletteName()
+      })
+    }
     window.addEventListener('crm-theme-changed', handler)
     return () => window.removeEventListener('crm-theme-changed', handler)
   }, [])
@@ -232,11 +240,30 @@ export default function App() {
     const root = document.documentElement
     root.style.setProperty('--crm-bg', T.bg)
     root.style.setProperty('--crm-surface', T.surface)
+    root.style.setProperty('--crm-surface-raised', T.surfaceRaised || T.surface)
+    root.style.setProperty('--crm-surface-high', T.surfaceHigh || T.surface)
     root.style.setProperty('--crm-border', T.border)
+    root.style.setProperty('--crm-border-subtle', T.borderSubtle || T.border)
+    root.style.setProperty('--crm-border-hover', T.borderHover || T.primary)
     root.style.setProperty('--crm-text', T.textPrimary)
+    root.style.setProperty('--crm-text-secondary', T.textSecondary)
     root.style.setProperty('--crm-text-muted', T.textMuted)
     root.style.setProperty('--crm-primary', T.primary)
-  }, [theme])
+    root.style.setProperty('--crm-primary-hover', T.primaryHover)
+    root.style.setProperty('--crm-primary-dim', T.primaryDim)
+    root.style.setProperty('--crm-primary-faint', T.primaryFaint)
+    root.style.setProperty('--crm-primary-text', T.primaryText)
+    root.style.setProperty('--crm-sidebar', T.sidebar)
+    root.style.setProperty('--crm-sidebar-raised', T.sidebarRaised || T.sidebar)
+    root.style.setProperty('--crm-sidebar-border', T.sidebarBorder)
+    root.style.setProperty('--crm-sidebar-text', T.sidebarText)
+
+    if (themeState.mode === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+  }, [themeState])
 
   return (
     <DialogProvider>

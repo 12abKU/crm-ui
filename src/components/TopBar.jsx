@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, getThemeName, toggleTheme } from '../constants/theme'
+import { T, getThemeName, toggleTheme, getPaletteName, setPaletteName, CURATED_PALETTES } from '../constants/theme'
 import { CRM_LANDING_URL } from '../constants/config'
 import UserMenu from './UserMenu'
 import NotificationBell from './NotificationBell'
@@ -86,14 +86,31 @@ export default function TopBar() {
     const [results, setResults] = useState({ accounts: [], contacts: [], deals: [], activities: [] })
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [paletteOpen, setPaletteOpen] = useState(false)
     const ref = useRef(null)
     const inputRef = useRef(null)
+    const paletteRef = useRef(null)
 
-    // ── Close on outside click (unchanged) ─────────────────────
+    // ── Close on outside click ─────────────────────────────────
     useEffect(() => {
-        const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+        const h = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+            if (paletteRef.current && !paletteRef.current.contains(e.target)) setPaletteOpen(false)
+        }
         document.addEventListener('mousedown', h)
         return () => document.removeEventListener('mousedown', h)
+    }, [])
+
+    // ── Global Cmd/Ctrl + K shortcut ───────────────────────────
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault()
+                inputRef.current?.focus()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
 
     // ── Debounced search (unchanged) ───────────────────────────
@@ -152,17 +169,17 @@ export default function TopBar() {
 
             {/* ── Search bar — hidden for SUPER_ADMIN ─────── */}
             {!isSuperAdmin && (
-            <div className="relative flex-1 max-w-[180px] min-[400px]:max-w-[240px] sm:max-w-xs md:max-w-lg" ref={ref}>
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px]"
+            <div className="relative flex-1 max-w-[180px] min-[400px]:max-w-[240px] sm:max-w-xs md:max-w-md lg:max-w-lg" ref={ref}>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] pointer-events-none"
                     style={{ color: open ? T.primary : T.textMuted }}>search</span>
                 <input
                     ref={inputRef}
-                    className="w-full pl-10 pr-10 py-2 py-2.5 text-xs sm:text-sm outline-none rounded-xl"
+                    className="w-full pl-9 pr-10 py-2 text-xs sm:text-[13px] font-medium outline-none rounded-xl"
                     style={{
                         background: T.surface,
                         color: T.textPrimary,
-                        border: `1.5px solid ${open ? T.primary : T.border}`,
-                        boxShadow: open ? `0 0 0 3px ${T.primaryDim}` : '0 1px 4px rgba(0,0,0,0.05)',
+                        border: `1px solid ${open ? T.primary : T.border}`,
+                        boxShadow: open ? `0 0 0 3px ${T.primaryDim}` : '0 1px 3px rgba(0,0,0,0.02)',
                         transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
                     placeholder={placeholder}
@@ -170,15 +187,20 @@ export default function TopBar() {
                     onChange={e => setQuery(e.target.value)}
                     onFocus={() => { if (totalResults > 0) setOpen(true) }}
                 />
-                {query && (
+                {query ? (
                     <button
                         onClick={() => { setQuery(''); setOpen(false); inputRef.current?.focus() }}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition-all"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition-all cursor-pointer"
                         style={{ background: T.surfaceHigh, color: T.textMuted }}
                         onMouseEnter={e => e.currentTarget.style.background = T.border}
                         onMouseLeave={e => e.currentTarget.style.background = T.surfaceHigh}>
                         <span className="material-symbols-outlined text-[12px]">close</span>
                     </button>
+                ) : (
+                    <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 select-none"
+                        style={{ background: T.surfaceHigh, color: T.textMuted, border: `1px solid ${T.borderSubtle}` }}>
+                        ⌘K
+                    </kbd>
                 )}
 
                 {/* ── Dropdown ─────────────────────────── */}
@@ -309,33 +331,128 @@ export default function TopBar() {
             <div className="flex items-center gap-1 ml-auto shrink-0">
 
                 {!isSuperAdmin && companyStatus === 'TRIAL' && (
-                    <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl mr-2 font-bold text-xs"
+                    <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl mr-2 font-bold text-xs"
                         style={{
-                            background: `linear-gradient(135deg, ${T.primaryDim} 0%, rgba(234,88,12,0.04) 100%)`,
-                            border: `1.5px solid ${T.border}`,
+                            background: T.primaryDim,
+                            border: `1px solid ${T.primary}30`,
                             color: T.primaryText,
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                         }}>
-                        <span className="material-symbols-outlined filled text-[14px]" style={{ color: T.primary }}>info</span>
-                        <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in trial</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} trial</span>
                         {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
                             <button onClick={() => {
                                 const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`;
                                 window.location.href = `${CRM_LANDING_URL}/pricing${params}`;
                             }}
-                                className="ml-1.5 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white transition-all duration-100"
+                                className="ml-1 px-2.5 py-0.5 rounded-lg text-[10.5px] font-extrabold uppercase tracking-wider text-white transition-all duration-150 cursor-pointer shadow-xs hover:scale-105"
                                 style={{
-                                    background: T.primary,
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = T.primaryHover}
-                                onMouseLeave={e => e.currentTarget.style.background = T.primary}>
+                                    background: `linear-gradient(135deg, ${T.primary} 0%, ${T.primaryHover} 100%)`,
+                                }}>
                                 Upgrade
                             </button>
                         )}
                     </div>
                 )}
 
-                {/* Dark Mode Toggle */}
+                {/* ── Theme & Palette Popover ── */}
+                <div className="relative" ref={paletteRef}>
+                    <button onClick={() => setPaletteOpen(v => !v)}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer relative"
+                        style={{ color: T.textMuted }}
+                        onMouseEnter={e => { e.currentTarget.style.background = T.surfaceHigh; e.currentTarget.style.color = T.textPrimary }}
+                        onMouseLeave={e => { e.currentTarget.style.background = paletteOpen ? T.surfaceHigh : 'transparent'; e.currentTarget.style.color = paletteOpen ? T.textPrimary : T.textMuted }}
+                        title="Theme & Color Palette">
+                        <span className="material-symbols-outlined text-[20px]">palette</span>
+                        <span className="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full border border-white"
+                            style={{ background: T.primary, boxShadow: `0 0 6px ${T.primary}` }} />
+                    </button>
+
+                    {paletteOpen && (
+                        <div className="absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150"
+                            style={{
+                                background: T.surface,
+                                border: `1px solid ${T.border}`,
+                                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.25)',
+                            }}>
+                            {/* Header & Mode Switch */}
+                            <div className="flex items-center justify-between pb-2.5 mb-2.5" style={{ borderBottom: `1px solid ${T.border}` }}>
+                                <span className="text-[11px] font-bold tracking-tight" style={{ color: T.textPrimary }}>
+                                    Appearance
+                                </span>
+                                <div className="inline-flex items-center p-0.5 rounded-lg" style={{ background: T.surfaceHigh }}>
+                                    <button
+                                        onClick={() => { if (getThemeName() !== 'light') toggleTheme() }}
+                                        className={`px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-all ${
+                                            getThemeName() === 'light' ? 'shadow-xs' : ''
+                                        }`}
+                                        style={{
+                                            background: getThemeName() === 'light' ? T.surface : 'transparent',
+                                            color: getThemeName() === 'light' ? T.primary : T.textMuted,
+                                        }}>
+                                        <span className="material-symbols-outlined text-[14px]">light_mode</span>
+                                        Light
+                                    </button>
+                                    <button
+                                        onClick={() => { if (getThemeName() !== 'dark') toggleTheme() }}
+                                        className={`px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-all ${
+                                            getThemeName() === 'dark' ? 'shadow-xs' : ''
+                                        }`}
+                                        style={{
+                                            background: getThemeName() === 'dark' ? T.surface : 'transparent',
+                                            color: getThemeName() === 'dark' ? T.primary : T.textMuted,
+                                        }}>
+                                        <span className="material-symbols-outlined text-[14px]">dark_mode</span>
+                                        Dark
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Curated Color Palettes */}
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold uppercase tracking-wider px-1 mb-1.5" style={{ color: T.textMuted }}>
+                                    Curated Palettes
+                                </p>
+                                {CURATED_PALETTES.map((p) => {
+                                    const isSelected = getPaletteName() === p.id
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => {
+                                                setPaletteName(p.id)
+                                            }}
+                                            className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-all group"
+                                            style={{
+                                                background: isSelected ? T.primaryDim : 'transparent',
+                                                border: `1px solid ${isSelected ? T.primary : 'transparent'}`,
+                                            }}
+                                            onMouseEnter={e => {
+                                                if (!isSelected) e.currentTarget.style.background = T.surfaceHigh
+                                            }}
+                                            onMouseLeave={e => {
+                                                if (!isSelected) e.currentTarget.style.background = 'transparent'
+                                            }}>
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs"
+                                                    style={{ background: p.accentColor }} />
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold truncate" style={{ color: isSelected ? T.primary : T.textPrimary }}>
+                                                        {p.name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {isSelected && (
+                                                <span className="material-symbols-outlined text-[16px] shrink-0 font-bold"
+                                                    style={{ color: T.primary }}>check</span>
+                                            )}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Dark Mode Quick Toggle */}
                 <button onClick={toggleTheme}
                     className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer"
                     style={{ color: T.textMuted }}

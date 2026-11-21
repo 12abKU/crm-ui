@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { T } from '../../../constants/theme'
 import { usePipelineStages } from '../../../hooks/usePipelineStages'
+import DashboardStatCard from '../DashboardStatCard'
 import {
     Card,
     CardTitle,
     Empty,
-    StatBox,
     TabSkeleton,
     TableCard,
     TableCell,
@@ -17,6 +18,7 @@ import { FunnelChart, ForecastChart, WinRateDonut, BarChart } from '../Dashboard
 import api from '../../../api'
 
 export default function DealsTab({ data, activeStages = [] }) {
+    const navigate = useNavigate()
     const { getStageLabel, getStageStyle: getPipelineStageStyle } = usePipelineStages()
     const [velocity, setVelocity] = useState([])
     const [velocityLoading, setVelocityLoading] = useState(true)
@@ -47,11 +49,11 @@ export default function DealsTab({ data, activeStages = [] }) {
 
     return (
         <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-                <StatBox label="Revenue Won" value={fmtK(data.wonRevenue)} icon="payments" color={DASHBOARD_ACCENTS.green} />
-                <StatBox label="Revenue Lost" value={fmtK(data.lostRevenue)} icon="money_off" color={DASHBOARD_ACCENTS.red} />
-                <StatBox label="Deals Won" value={fmt(data.wonCount)} icon="check_circle" color={DASHBOARD_ACCENTS.green} />
-                <StatBox label="Deals Lost" value={fmt(data.lostCount)} icon="cancel" color={DASHBOARD_ACCENTS.red} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-5">
+                <DashboardStatCard icon="payments" label="Revenue Won" value={fmtK(data.wonRevenue)} sub="Closed Won" />
+                <DashboardStatCard icon="money_off" label="Revenue Lost" value={fmtK(data.lostRevenue)} sub="Closed Lost" />
+                <DashboardStatCard icon="check_circle" label="Deals Won" value={fmt(data.wonCount)} sub="Success" />
+                <DashboardStatCard icon="cancel" label="Deals Lost" value={fmt(data.lostCount)} sub="Drop-off" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
@@ -105,7 +107,7 @@ export default function DealsTab({ data, activeStages = [] }) {
                                     const s = getStageStyle(d.stage)
                                     const label = activeStages.find(x => x.stageKey === d.stage)?.label || d.stage
                                     return (
-                                        <TableRow key={d.id}>
+                                        <TableRow key={d.id} onClick={() => navigate(`/deals?dealId=${d.id}`)}>
                                             <TableCell className="font-bold min-w-[220px]" style={firstCell}>{d.title}</TableCell>
                                             <TableCell>{d.accountName || '-'}</TableCell>
                                             <TableCell>
@@ -123,7 +125,15 @@ export default function DealsTab({ data, activeStages = [] }) {
                             </tbody>
                         </table>
                     </TableCard>
-                ) : <Empty />}
+                ) : (
+                    <Empty
+                        icon="handshake"
+                        title="No Open Deals in Pipeline"
+                        subtitle="Your deals table will populate as leads are qualified and proposals are initiated."
+                        actionLabel="+ Create First Deal"
+                        onAction={() => navigate('/deals')}
+                    />
+                )}
             </Card>
         </>
     )

@@ -406,7 +406,7 @@ export default function PlatformDashboard() {
                 <div style={{ position: 'absolute', bottom: -60, left: '25%', width: 240, height: 240, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(60px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', top: 40, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
-                <div className="px-4 pt-8 md:px-9 md:pt-10" style={{ maxWidth: 1120, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                <div className="px-4 pt-8 md:px-9 md:pt-10" style={{ position: 'relative', zIndex: 1 }}>
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10">
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
                             <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -449,7 +449,7 @@ export default function PlatformDashboard() {
             </div>
 
             {/* MAIN CONTENT */}
-            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 1120, margin: '0 auto' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10">
 
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import { usePipelineStages } from '../../hooks/usePipelineStages'
-import { IconUserCheck, IconUserPlus } from '@tabler/icons-react'
+import { IconUserPlus } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import AssignDealModal from './AssignDealModal'
 import TallySyncBadge from './TallySyncBadge'
@@ -15,12 +15,26 @@ function OwnerAvatar({ user, onClick }) {
     const colors = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4','#6366F1']
     const color = colors[name.charCodeAt(0) % colors.length]
     return (
-        <div title={`Owner: ${name}`} onClick={onClick} className={onClick ? "cursor-pointer hover:scale-105 active:scale-95 transition-transform" : ""} style={{
-            width: 22, height: 22, borderRadius: '50%',
-            background: color + '22', border: `1.5px solid ${color}44`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 9, fontWeight: 800, color, flexShrink: 0
-        }}>
+        <div
+            title={`Owner: ${name}`}
+            onClick={onClick}
+            className={onClick ? "cursor-pointer hover:scale-110 active:scale-95 transition-transform" : ""}
+            style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background: color + '20',
+                border: `1.5px solid ${color}50`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 9.5,
+                fontWeight: 800,
+                color,
+                flexShrink: 0,
+                boxShadow: `0 2px 6px ${color}20`,
+            }}
+        >
             {initials}
         </div>
     )
@@ -65,10 +79,8 @@ export default function DealCard({
     const isAgent = role === 'AGENT'
 
     const assignees = deal.assignees ?? []
-    const assigneeNames = assignees.map(u => u.name)
     const assignedToMe = isAgent && assignees.some(u => String(u.id) === String(userId))
     const assignedByName = deal.owner?.name ?? 'Admin'
-    const createdByName = deal.createdBy?.name ?? deal.owner?.name ?? 'No value'
     const creatorUser = deal.createdBy || deal.owner
 
     const { getStageStyle } = usePipelineStages()
@@ -102,49 +114,60 @@ export default function DealCard({
                 onClick={() => { if (!wasDragging.current) onClick?.() }}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                className="group rounded-xl cursor-pointer active:cursor-grabbing select-none overflow-hidden relative"
+                className="group rounded-2xl cursor-pointer active:cursor-grabbing select-none overflow-hidden relative border transition-all duration-200"
                 style={{
-                    background: blink ? '' : T.surface,
-                    border: isDragging
-                        ? `1.5px solid ${T.primary}`
+                    background: blink ? T.primaryDim : T.surface,
+                    borderColor: isDragging
+                        ? T.primary
                         : assignedToMe
-                            ? `1.5px solid ${T.secondary}`
+                            ? T.secondary
                             : hovered
-                                ? `1.5px solid ${stageStyle.accent}60`
-                                : `1.5px solid ${T.border}`,
+                                ? `${stageStyle.accent}70`
+                                : T.border,
                     boxShadow: isDragging
-                        ? '0 12px 32px rgba(0,0,0,0.20)'
+                        ? '0 16px 36px rgba(0, 0, 0, 0.22)'
                         : hovered
-                            ? `0 4px 16px rgba(0,0,0,0.10)`
-                            : '0 1px 4px rgba(0,0,0,0.06)',
-                    opacity: isDragging ? 0.5 : 1,
-                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease',
-                }}>
+                            ? '0 8px 24px -4px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+                            : '0 2px 6px rgba(0, 0, 0, 0.04)',
+                    transform: hovered && !isDragging ? 'translateY(-2px)' : 'none',
+                    opacity: isDragging ? 0.45 : 1,
+                }}
+            >
+                {/* Left Stage Accent Strip */}
+                <div
+                    className="absolute left-0 top-0 bottom-0 w-1.2 rounded-l-2xl"
+                    style={{
+                        background: stageStyle.accent,
+                        boxShadow: `0 0 8px ${stageStyle.accent}60`,
+                    }}
+                />
 
-                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
-                    style={{ background: stageStyle.accent }} />
-
-                <div className="p-3.5 flex flex-col gap-2.5">
-                    
+                <div className="p-3.5 sm:p-4 flex flex-col gap-2.5">
                     {/* Header Row: Stuck/Close Date Pill + Owner Avatar */}
                     <div className="flex items-center justify-between gap-2 min-w-0">
                         {daysInStage >= 5 && !['WON', 'LOST'].includes(stage) ? (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide shrink-0"
-                                style={{ background: T.warningDim, border: `1px solid ${T.warning}30`, color: T.warning }}>
-                                <span className="material-symbols-outlined text-[10px]" style={{ verticalAlign: 'middle' }}>warning</span>
-                                {daysInStage}d stuck
+                            <div
+                                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wide shrink-0"
+                                style={{ background: T.warningDim, border: `1px solid ${T.warning}30`, color: T.warning }}
+                            >
+                                <span className="material-symbols-outlined text-[11px]" style={{ verticalAlign: 'middle' }}>warning</span>
+                                <span>{daysInStage}d in stage</span>
                             </div>
                         ) : deal.expectedCloseDate ? (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0"
+                            <div
+                                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-bold shrink-0"
                                 style={{
                                     background: isOverdue ? T.errorDim : T.surfaceHigh,
-                                    border: `1px solid ${isOverdue ? T.error + '40' : T.border}`,
+                                    border: `1px solid ${isOverdue ? T.error + '40' : T.borderSubtle}`,
                                     color: isOverdue ? T.error : T.textMuted
-                                }}>
-                                <span className="material-symbols-outlined text-[10px]" style={{ verticalAlign: 'middle' }}>
+                                }}
+                            >
+                                <span className="material-symbols-outlined text-[11px]">
                                     {isOverdue ? 'error' : 'event'}
                                 </span>
-                                {new Date(deal.expectedCloseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                <span>
+                                    {new Date(deal.expectedCloseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                </span>
                             </div>
                         ) : (
                             <div />
@@ -163,25 +186,34 @@ export default function DealCard({
 
                     {/* Agent assigned notification */}
                     {isAgent && assignedToMe && (
-                        <div className="flex items-center gap-1 px-2 py-0.75 rounded-lg text-[9px] font-bold tracking-wide"
-                            style={{ background: T.secondaryFaint, border: `1px solid ${T.secondaryDim}`, color: T.secondaryText }}>
-                            <span className="material-symbols-outlined text-[11px]">assignment_ind</span>
-                            Assigned by {assignedByName}
+                        <div
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9.5px] font-extrabold tracking-wide"
+                            style={{ background: T.secondaryFaint, border: `1px solid ${T.secondaryDim}`, color: T.secondaryText }}
+                        >
+                            <span className="material-symbols-outlined text-[12px]">assignment_ind</span>
+                            <span>Assigned by {assignedByName}</span>
                         </div>
                     )}
 
                     {/* Deal Title and Amount */}
                     <div className="min-w-0">
-                        <h4 className="text-[13px] font-bold leading-snug text-left line-clamp-2"
+                        <h4
+                            className="text-xs sm:text-[13.5px] font-bold leading-snug text-left line-clamp-2 transition-colors duration-150"
                             style={{ color: T.textPrimary }}
-                            title={deal.title}>
+                            title={deal.title}
+                        >
                             {deal.title}
                         </h4>
+
                         {deal.amount != null && (
-                            <p className="text-[15px] font-black mt-1 text-left" style={{ color: stageStyle.accent }}>
+                            <p
+                                className="text-sm sm:text-base font-black mt-1 text-left tracking-tight"
+                                style={{ color: stageStyle.accent }}
+                            >
                                 ₹{Number(deal.amount).toLocaleString('en-IN')}
                             </p>
                         )}
+
                         {/* Multi-ERP Sync Status Pipeline Badge */}
                         {(showBusySyncBadge || showSyncBadge) && (
                             <div
@@ -228,11 +260,14 @@ export default function DealCard({
                     {(deal.account?.name || deal.source || (stage === 'LOST' && deal.lostReason)) && (
                         <div className="flex flex-col gap-1.5 min-w-0">
                             {deal.source && (
-                                <div className="flex items-center gap-1.5 w-max px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider"
-                                     style={{ 
-                                         background: deal.source === 'INDIAMART' ? '#f9731615' : deal.source === 'WHATSAPP' ? '#22c55e15' : deal.source === 'SULEKHA' ? '#3b82f615' : 'rgba(120,113,108,0.1)',
-                                         color: deal.source === 'INDIAMART' ? '#ea580c' : deal.source === 'WHATSAPP' ? '#16a34a' : deal.source === 'SULEKHA' ? '#2563eb' : T.textMuted
-                                     }}>
+                                <div
+                                    className="flex items-center gap-1.5 w-max px-2 py-0.5 rounded-md text-[9.5px] font-extrabold uppercase tracking-wider"
+                                    style={{ 
+                                        background: deal.source === 'INDIAMART' ? '#f9731615' : deal.source === 'WHATSAPP' ? '#22c55e15' : deal.source === 'SULEKHA' ? '#3b82f615' : 'rgba(120,113,108,0.1)',
+                                        color: deal.source === 'INDIAMART' ? '#ea580c' : deal.source === 'WHATSAPP' ? '#16a34a' : deal.source === 'SULEKHA' ? '#2563eb' : T.textMuted,
+                                        border: `1px solid ${deal.source === 'INDIAMART' ? '#f9731630' : deal.source === 'WHATSAPP' ? '#22c55e30' : deal.source === 'SULEKHA' ? '#3b82f630' : 'transparent'}`,
+                                    }}
+                                >
                                     <span className="material-symbols-outlined text-[12px] opacity-80 shrink-0">
                                         {deal.source === 'INDIAMART' ? 'storefront' : deal.source === 'WHATSAPP' ? 'chat' : deal.source === 'SULEKHA' ? 'campaign' : 'api'}
                                     </span>
@@ -241,8 +276,8 @@ export default function DealCard({
                             )}
 
                             {deal.account?.name && (
-                                <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: T.textSecondary }}>
-                                    <span className="material-symbols-outlined text-[12px] opacity-75 shrink-0">business</span>
+                                <div className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: T.textSecondary }}>
+                                    <span className="material-symbols-outlined text-[13px] opacity-70 shrink-0">business</span>
                                     <span className="truncate" title={deal.account.name}>
                                         {deal.account.name}
                                     </span>
@@ -250,8 +285,8 @@ export default function DealCard({
                             )}
 
                             {stage === 'LOST' && deal.lostReason && (
-                                <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: T.error }}>
-                                    <span className="material-symbols-outlined text-[12px] shrink-0">flag</span>
+                                <div className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: T.error }}>
+                                    <span className="material-symbols-outlined text-[13px] shrink-0">flag</span>
                                     <span className="truncate" title={deal.lostReason}>
                                         {deal.lostReason}
                                     </span>
@@ -262,29 +297,34 @@ export default function DealCard({
 
                     {/* Footer divider + action bar */}
                     {((isAdminOrAbove && canAssign) || onRemove || onEdit || assignees.length > 0) && (
-                        <div className="flex items-center justify-between pt-2 mt-0.5"
-                            style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
-                            
+                        <div
+                            className="flex items-center justify-between pt-2.5 mt-0.5 border-t"
+                            style={{ borderColor: T.borderSubtle }}
+                        >
                             {/* Left: Assignees Stack & Assign Button */}
                             <div className="flex items-center gap-1.5 min-w-0">
                                 {assignees.length > 0 ? (
                                     <div className="flex -space-x-1.5 shrink-0">
                                         {assignees.slice(0, 3).map((u, i) => (
-                                            <div key={u.id}
+                                            <div
+                                                key={u.id}
                                                 title={`Assignee: ${u.name}`}
                                                 onClick={e => { e.stopPropagation(); navigate(`/team/${u.id}`) }}
-                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8.5px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-110 active:scale-95 transition-transform"
                                                 style={{
                                                     background: T.primaryDim,
                                                     color: T.primary,
                                                     zIndex: 3 - i,
-                                                }}>
+                                                }}
+                                            >
                                                 {u.name.charAt(0).toUpperCase()}
                                             </div>
                                         ))}
                                         {assignees.length > 3 && (
-                                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
-                                                style={{ background: T.surfaceHigh, color: T.textMuted }}>
+                                            <div
+                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white"
+                                                style={{ background: T.surfaceHigh, color: T.textMuted }}
+                                            >
                                                 +{assignees.length - 3}
                                             </div>
                                         )}
@@ -294,9 +334,10 @@ export default function DealCard({
                                 {isAdminOrAbove && canAssign && (
                                     <button
                                         onClick={e => { e.stopPropagation(); setAssignOpen(true) }}
-                                        className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors shrink-0"
-                                        title="Manage Assignees">
-                                        <IconUserPlus size={13} />
+                                        className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors shrink-0 cursor-pointer"
+                                        title="Manage Assignees"
+                                    >
+                                        <IconUserPlus size={14} />
                                     </button>
                                 )}
                             </div>
@@ -306,17 +347,19 @@ export default function DealCard({
                                 {onEdit && (
                                     <button
                                         onClick={e => { e.stopPropagation(); onEdit() }}
-                                        className="p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                                        title="Edit Deal">
-                                        <span className="material-symbols-outlined text-[15px]">edit</span>
+                                        className="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
+                                        title="Edit Deal"
+                                    >
+                                        <span className="material-symbols-outlined text-[16px]">edit</span>
                                     </button>
                                 )}
                                 {onRemove && (
                                     <button
                                         onClick={e => { e.stopPropagation(); onRemove() }}
-                                        className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                                        title="Delete Deal">
-                                        <span className="material-symbols-outlined text-[15px]">delete</span>
+                                        className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
+                                        title="Delete Deal"
+                                    >
+                                        <span className="material-symbols-outlined text-[16px]">delete</span>
                                     </button>
                                 )}
                             </div>

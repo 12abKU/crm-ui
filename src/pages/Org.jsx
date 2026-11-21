@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import TopBar from '../components/TopBar'
-import PageHeader from '../components/ui/PageHeader'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import TeamTab from '../components/dashboard/tabs/TeamTab'
 import api from '../api'
 import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../utils/cacheUtils'
@@ -60,27 +60,22 @@ export default function Org() {
         <div>
             <TopBar />
             <main className="p-4 md:p-8">
-                <PageHeader
-                    title="Organization"
-                    subtitle="Organizational hierarchy, reporting lines & team performance"
+                <PageHeroBanner
+                    title="Organization Hierarchy & Team Performance"
+                    subtitle="Organizational structure, agent reporting lines, quota fulfillment & team conversion velocity"
                     icon="corporate_fare"
                     actions={
                         <button
                             type="button"
                             onClick={() => fetchTeamData(true)}
                             disabled={loading}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                            style={{
-                                background: T.surface,
-                                border: `1px solid ${T.border}`,
-                                color: T.textPrimary,
-                            }}
+                            className="crm-btn-ghost whitespace-nowrap"
                             title="Refresh team metrics"
                         >
                             <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>
                                 refresh
                             </span>
-                            <span>Refresh</span>
+                            <span>Refresh Data</span>
                         </button>
                     }
                 />

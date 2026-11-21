@@ -31,14 +31,12 @@ export default function AdminSettings() {
 
     useEffect(() => { load() }, [])
 
-    useEffect(() => { load() }, [])
-
     const limitItems = stats ? [
-        { label: 'Storage (MB)', value: Math.round((stats.currentStorageBytes || 0) / 1024 / 1024), limit: stats.maxStorageBytes ? Math.round(stats.maxStorageBytes / 1024 / 1024) : 0 },
-        { label: 'Accounts', value: stats.totalAccounts, limit: stats.maxAccounts },
-        { label: 'Contacts', value: stats.totalContacts, limit: stats.maxContacts },
-        { label: 'Deals', value: stats.activeDeals, limit: stats.maxDeals },
-        { label: 'Users', value: stats.totalUsers, limit: stats.maxUsers },
+        { label: 'Storage (MB)', icon: 'hard_drive', value: Math.round((stats.currentStorageBytes || 0) / 1024 / 1024), limit: stats.maxStorageBytes ? Math.round(stats.maxStorageBytes / 1024 / 1024) : 0 },
+        { label: 'Accounts', icon: 'business', value: stats.totalAccounts, limit: stats.maxAccounts },
+        { label: 'Contacts', icon: 'groups', value: stats.totalContacts, limit: stats.maxContacts },
+        { label: 'Deals', icon: 'handshake', value: stats.activeDeals, limit: stats.maxDeals },
+        { label: 'Users', icon: 'badge', value: stats.totalUsers, limit: stats.maxUsers },
     ] : []
 
     return (
@@ -50,40 +48,77 @@ export default function AdminSettings() {
             {stats && (
                 <SettingsSection
                     title="Subscription & Resource Limits"
-                    description={`Your company is on the ${stats.companyPlan} plan. Limits are set by your platform administrator.`}
+                    description={`Your company is active on the ${stats.companyPlan || 'Enterprise'} plan. Resource allocation is monitored in real time.`}
+                    badge={`${stats.companyPlan || 'Pro'} Tier`}
                 >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                        {limitItems.map(({ label, value, limit }) => {
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {limitItems.map(({ label, icon, value, limit }) => {
                             const isUnlimited = !limit || limit <= 0
                             const percent = isUnlimited ? 0 : Math.min(100, Math.round((value / limit) * 100))
+                            const isHigh = percent >= 90
+                            const isMed = percent >= 75
+                            const accentColor = isHigh ? T.error : isMed ? '#F59E0B' : T.primary
+
                             return (
-                                <div key={label} className="flex flex-col gap-2 p-4 rounded-xl border"
-                                    style={{ background: T.surface, borderColor: T.borderSubtle }}>
-                                    <div className="flex justify-between items-center text-sm font-bold">
-                                        <span style={{ color: T.textPrimary }}>{label} Limit</span>
-                                        <span style={{ color: T.textSecondary }}>
-                                            {value} / {isUnlimited ? 'Unlimited' : limit}
+                                <div
+                                    key={label}
+                                    className="flex flex-col justify-between p-4 rounded-2xl border transition-all duration-200 group relative overflow-hidden"
+                                    style={{
+                                        background: T.surfaceRaised,
+                                        borderColor: T.borderSubtle,
+                                    }}
+                                >
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                                                style={{
+                                                    background: `${accentColor}15`,
+                                                    border: `1px solid ${accentColor}30`,
+                                                }}
+                                            >
+                                                <span className="material-symbols-outlined text-[17px]" style={{ color: accentColor }}>
+                                                    {icon}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-bold truncate" style={{ color: T.textPrimary }}>
+                                                {label}
+                                            </span>
+                                        </div>
+
+                                        <span
+                                            className="text-[10px] font-black px-2 py-0.5 rounded-full shrink-0"
+                                            style={{
+                                                background: isUnlimited ? `${T.success}15` : `${accentColor}15`,
+                                                color: isUnlimited ? T.success : accentColor,
+                                                border: `1px solid ${isUnlimited ? `${T.success}30` : `${accentColor}30`}`,
+                                            }}
+                                        >
+                                            {isUnlimited ? 'Unlimited' : `${percent}%`}
                                         </span>
                                     </div>
-                                    {!isUnlimited && (
-                                        <>
-                                            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: T.borderSubtle }}>
-                                                <div className="h-full rounded-full transition-all duration-500"
-                                                    style={{
-                                                        width: `${percent}%`,
-                                                        background: percent >= 90 ? T.error : percent >= 75 ? '#D97706' : T.primary
-                                                    }} />
-                                            </div>
-                                            <span className="text-[10px] font-bold self-end"
-                                                style={{ color: percent >= 90 ? T.error : T.textMuted }}>
-                                                {percent}% used
-                                            </span>
-                                        </>
-                                    )}
-                                    {isUnlimited && (
-                                        <span className="text-[10px] font-bold" style={{ color: T.success }}>
-                                            Unlimited resources available
+
+                                    <div className="flex items-baseline justify-between mb-2">
+                                        <span className="text-lg font-black" style={{ color: T.textPrimary }}>
+                                            {value ?? 0}
                                         </span>
+                                        <span className="text-xs font-medium" style={{ color: T.textMuted }}>
+                                            of {isUnlimited ? 'Unlimited' : limit}
+                                        </span>
+                                    </div>
+
+                                    {!isUnlimited ? (
+                                        <div className="w-full h-1.5 rounded-full overflow-hidden bg-white/[0.06]">
+                                            <div
+                                                className="h-full rounded-full transition-all duration-500"
+                                                style={{
+                                                    width: `${percent}%`,
+                                                    background: `linear-gradient(90deg, ${accentColor}, ${accentColor}90)`,
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-1.5 rounded-full bg-emerald-500/20" />
                                     )}
                                 </div>
                             )

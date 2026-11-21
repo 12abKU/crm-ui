@@ -144,11 +144,20 @@ export default function Sidebar() {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                    `group relative flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 select-none ${
+                    `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 select-none ${
                         isActive
-                            ? 'bg-gradient-to-r from-white/[0.12] to-white/[0.04] text-white font-semibold shadow-xs border border-white/[0.08]'
-                            : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] border border-transparent'
+                            ? 'text-white font-bold shadow-sm'
+                            : 'text-slate-400 hover:text-white hover:bg-white/[0.05] hover:translate-x-0.5 font-medium border border-transparent'
                     }`
+                }
+                style={({ isActive }) =>
+                    isActive
+                        ? {
+                              background: `linear-gradient(90deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`,
+                              border: `1px solid ${T.primary}45`,
+                              boxShadow: `0 4px 16px -2px ${T.primary}30, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                          }
+                        : {}
                 }
             >
                 {({ isActive }) => (
@@ -156,20 +165,20 @@ export default function Sidebar() {
                         {/* Glowing Left Indicator for active item */}
                         {isActive && (
                             <div
-                                className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
                                 style={{
                                     background: T.primary,
-                                    boxShadow: `0 0 10px ${T.primary}`,
+                                    boxShadow: `0 0 12px ${T.primary}`,
                                 }}
                             />
                         )}
 
-                        {/* Icon */}
+                        {/* Icon with active glow */}
                         <span
-                            className={`material-symbols-outlined text-[19px] shrink-0 transition-transform duration-150 ${
+                            className={`material-symbols-outlined text-[19px] shrink-0 transition-transform duration-200 ${
                                 isActive
-                                    ? 'filled scale-105'
-                                    : 'text-slate-400 group-hover:text-slate-200 group-hover:scale-105'
+                                    ? 'filled scale-110'
+                                    : 'text-slate-400 group-hover:text-slate-100 group-hover:scale-105'
                             }`}
                             style={{
                                 color: isActive ? T.primary : undefined,
@@ -184,7 +193,7 @@ export default function Sidebar() {
                         {/* Notification Badge */}
                         {badgeCount > 0 && (
                             <span
-                                className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4.5 text-center shadow-xs ${
+                                className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full min-w-5 text-center shadow-xs ${
                                     badgeColor === 'emerald'
                                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]'
                                         : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.25)]'
@@ -219,10 +228,13 @@ export default function Sidebar() {
                 {/* ── Brand / Workspace Header ────────────────────── */}
                 <div className="px-4 pt-5 pb-3 shrink-0">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div
+                            onClick={() => navigate(isSuperAdmin ? '/platform' : '/')}
+                            className="flex items-center gap-3 min-w-0 cursor-pointer group"
+                        >
                             {/* Logo with ambient glow */}
                             <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ring-1 ring-white/20 shadow-md"
+                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ring-1 ring-white/20 shadow-md transition-transform duration-200 group-hover:scale-105"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     boxShadow: `0 0 16px ${T.avatarGlow}`,
@@ -232,7 +244,7 @@ export default function Sidebar() {
                             </div>
 
                             <div className="min-w-0">
-                                <h1 className="text-[15px] font-extrabold tracking-tight text-white leading-tight truncate">
+                                <h1 className="text-[15px] font-extrabold tracking-tight text-white leading-tight truncate group-hover:text-white">
                                     Iinventive CRM
                                 </h1>
                             </div>
@@ -312,10 +324,14 @@ export default function Sidebar() {
                                         <button
                                             type="button"
                                             onClick={() => toggleGroup(group.id)}
-                                            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.09em] transition-all select-none group cursor-pointer text-slate-400/70 hover:text-slate-200 hover:bg-white/[0.04]"
+                                            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.14em] transition-all select-none group cursor-pointer text-slate-400/80 hover:text-slate-100 hover:bg-white/[0.04]"
                                         >
-                                            <span className="flex items-center gap-1.5 truncate">
-                                                {group.label}
+                                            <span className="flex items-center gap-2 truncate">
+                                                <span className="w-1 h-1 rounded-full bg-white/30 group-hover:bg-white/60 transition-colors" />
+                                                <span>{group.label}</span>
+                                                <span className="text-[9px] font-bold text-slate-500 lowercase tracking-normal">
+                                                    ({visibleItems.length})
+                                                </span>
                                             </span>
                                             <div className="flex items-center gap-1.5 shrink-0">
                                                 {isCollapsed && groupBadgeCount > 0 && (
@@ -324,7 +340,7 @@ export default function Sidebar() {
                                                     </span>
                                                 )}
                                                 <span
-                                                    className="material-symbols-outlined text-[15px] transition-transform duration-200 text-slate-500 group-hover:text-slate-300"
+                                                    className="material-symbols-outlined text-[14px] transition-transform duration-200 text-slate-500 group-hover:text-slate-300"
                                                     style={{
                                                         transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                                                     }}
@@ -359,42 +375,41 @@ export default function Sidebar() {
                 </nav>
 
                 {/* ── User Profile Footer Card ────────────────────── */}
-                <div className="p-3 shrink-0 border-t border-white/[0.06]">
+                <div className="p-3 shrink-0 border-t border-white/[0.06] bg-black/10">
                     <button
                         type="button"
                         onClick={() => navigate(isSuperAdmin ? '/platform/profile' : '/settings')}
-                        className="w-full flex items-center gap-3 p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 text-left group shadow-sm cursor-pointer"
+                        className="w-full flex items-center gap-2.5 p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 text-left group shadow-xs cursor-pointer"
                     >
                         {/* Avatar */}
                         <div className="relative shrink-0">
                             <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm text-white ring-1 ring-white/10 shadow-sm"
+                                className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs text-white ring-1 ring-white/15 shadow-sm"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
+                                    boxShadow: `0 0 10px ${T.avatarGlow}`,
                                 }}
                             >
                                 {name ? name.charAt(0).toUpperCase() : 'U'}
                             </div>
                             {/* Online Status Dot */}
-                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#1A1E2A]" />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0A0D14] shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                         </div>
 
                         {/* User Meta */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-white truncate leading-tight group-hover:text-orange-300 transition-colors">
+                            <p className="text-[12.5px] font-bold text-white truncate leading-tight group-hover:text-white transition-colors">
                                 {name}
                             </p>
-                            <p className="text-[11px] text-slate-400 truncate mt-0.5 font-medium">
-                                {isSuperAdmin
-                                    ? 'Super Admin'
-                                    : companyName
-                                    ? `${companyName} · ${displayRole}`
-                                    : displayRole}
-                            </p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <span className="inline-block px-1.5 py-0.2 rounded text-[9.5px] font-extrabold uppercase tracking-wider text-slate-300 bg-white/[0.06] border border-white/[0.08] truncate max-w-[130px]">
+                                    {displayRole}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Action Icon */}
-                        <span className="material-symbols-outlined text-[17px] text-slate-500 group-hover:text-slate-200 group-hover:rotate-45 transition-all duration-200 shrink-0">
+                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-white group-hover:rotate-45 transition-all duration-200 shrink-0">
                             {isSuperAdmin ? 'manage_accounts' : 'settings'}
                         </span>
                     </button>

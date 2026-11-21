@@ -12,6 +12,7 @@ import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import { T } from '../constants/theme'
 
 // -- Role metadata (unchanged) ---------------------------------
@@ -121,59 +122,24 @@ export default function Settings() {
             <TopBar />
             <main className="p-4 sm:p-8">
 
-                {/* -- Hero Banner ---------------------------- */}
-                <div className="relative rounded-3xl overflow-hidden mb-8"
-                    style={{ background: meta.gradient, minHeight: 120 }}>
-                    {/* Orbs */}
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${meta.accent}35 0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${meta.accent}12 0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon={meta.icon}
+                    title={meta.label}
+                    subtitle={meta.description}
+                    badge={badge.label}
+                    gradient={meta.gradient}
+                />
 
-                    <div className="relative px-6 py-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            {/* Icon */}
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: 'rgba(255,255,255,0.90)' }}>{meta.icon}</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    {meta.label}
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                                    {meta.description}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Role badge */}
-                        <span className="px-4 py-2 rounded-xl text-sm font-black shrink-0 w-full lg:w-auto text-center"
-                            style={{
-                                background: T.heroBadgeBg,
-                                color: '#fff',
-                                border: '1px solid rgba(255,255,255,0.20)',
-                                letterSpacing: '0.02em',
-                             }}>
-                            {badge.label}
-                        </span>
-                    </div>
-                </div>
-
-                {/* -- Tabs Navigation -------------------------- */}
-                <div className="flex w-full mb-6 border-b pb-px overflow-x-auto whitespace-nowrap scrollbar-none" style={{ borderColor: T.border }}>
+                {/* ── Sleek Segmented Pill Navigation ──────────────── */}
+                <div
+                    className="flex w-full mb-7 p-1.5 rounded-2xl border overflow-x-auto whitespace-nowrap scrollbar-none gap-1 sm:gap-2"
+                    style={{
+                        background: T.surface,
+                        borderColor: T.border,
+                        boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                    }}
+                >
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
@@ -190,14 +156,17 @@ export default function Settings() {
                             <button
                                 key={tab.id}
                                 onClick={() => handleTabClick(tab.id)}
-                                className="flex-1 flex justify-center items-center gap-1.5 md:gap-2 px-2 sm:px-4 py-3 -mb-px border-b-2 font-bold text-[11px] sm:text-xs lg:text-sm transition-all shrink-0 cursor-pointer"
+                                className={`flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 cursor-pointer shrink-0 ${
+                                    active ? 'shadow-md scale-[1.01]' : 'hover:opacity-90'
+                                }`}
                                 style={{
-                                    borderColor: active ? T.primary : 'transparent',
-                                    color: active ? T.primaryText : T.textSecondary,
-                                    opacity: active ? 1 : 0.7,
+                                    background: active ? T.primary : 'transparent',
+                                    color: active ? '#FFFFFF' : T.textMuted,
+                                    border: active ? `1px solid ${T.primary}70` : '1px solid transparent',
+                                    boxShadow: active ? `0 8px 18px -4px ${T.primary}40` : 'none',
                                 }}
                             >
-                                <span className="hidden sm:block material-symbols-outlined text-[16px] lg:text-[18px]">{tab.icon}</span>
+                                <span className="material-symbols-outlined text-[17px]">{tab.icon}</span>
                                 <span>{tab.label}</span>
                             </button>
                         )

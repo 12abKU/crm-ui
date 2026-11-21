@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { T } from '../constants/theme'
 import api from '../api'
 import TopBar from '../components/TopBar'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import MergeCompareModal from '../components/ui/MergeCompareModal'
 import Pagination from '../components/Pagination'
 
@@ -67,38 +68,25 @@ export default function DeDuplicationPage() {
             <TopBar />
             <main className="p-4 md:p-8 animate-fade-in">
                     
-                    {/* Header */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                                    style={{ background: T.primaryDim }}>
-                                    <span className="material-symbols-outlined filled text-[19px]"
-                                        style={{ color: T.primary }}>merge</span>
-                                </div>
-                                <h1 className="text-xl sm:text-2xl font-black" style={{ color: T.textPrimary }}>De-Duplication Dashboard</h1>
-                            </div>
-                            <p className="text-sm sm:ml-12" style={{ color: T.textMuted }}>
-                                Scan and resolve duplicate records in your CRM to keep data clean.
-                            </p>
-                        </div>
-                        
-                        <button
-                            onClick={() => scanDuplicates(page)}
-                            disabled={loading}
-                            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer w-full lg:w-auto"
-                            style={{
-                                background: T.surface,
-                                border: `1px solid ${T.border}`,
-                                color: T.textSecondary
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = T.primaryFaint}
-                            onMouseLeave={e => e.currentTarget.style.background = T.surface}
-                        >
-                            <span className="material-symbols-outlined text-[16px] animate-spin-slow">refresh</span>
-                            Rescan
-                        </button>
-                    </div>
+                    {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                    <PageHeroBanner
+                        icon="cleaning_services"
+                        title="De-Duplication & Data Hygiene"
+                        subtitle="Scan, identify, and merge duplicate accounts and contacts to maintain clean CRM intelligence"
+                        stats={[
+                            { label: 'Duplicate Groups', value: `${totalElements} Groups`, icon: 'merge', color: '#F59E0B' },
+                        ]}
+                        actions={
+                            <button
+                                onClick={() => scanDuplicates(page)}
+                                disabled={loading}
+                                className="crm-btn-primary whitespace-nowrap shrink-0"
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                                Rescan Database
+                            </button>
+                        }
+                    />
 
                     {/* Tabs / Switcher */}
                     <div className="flex items-center gap-3 mb-6">

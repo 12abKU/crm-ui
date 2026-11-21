@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
 import TopBar from '../TopBar'
+import PageHeroBanner from '../ui/PageHeroBanner'
 import { TabSkeleton } from './DashboardWidgets'
 import { DASHBOARD_ACCENTS, luxeShadow } from './dashboardDesign'
 import SummaryTab from './tabs/SummaryTab'
@@ -10,7 +11,6 @@ import DealsTab from './tabs/DealsTab'
 import ContactsTab from './tabs/ContactsTab'
 import ActivitiesTab from './tabs/ActivitiesTab'
 import RevenueTab from './tabs/RevenueTab'
-
 import BottlenecksTab from './tabs/BottlenecksTab'
 import api from '../../api'
 import DownloadReport from '../Downloadreport'
@@ -18,7 +18,7 @@ import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../.
 import CustomSelect from '../ui/CustomSelect'
 import usePermission from '../../hooks/usePermission'
 
-// ── Tabs definition (unchanged) ──────────────────
+// ── Tabs definition ──────────────────
 const TABS = [
     { key: 'summary', label: 'Summary', icon: 'dashboard' },
     { key: 'deals', label: 'Deals', icon: 'handshake' },
@@ -26,7 +26,6 @@ const TABS = [
     { key: 'contacts', label: 'Contacts', icon: 'groups' },
     { key: 'activities', label: 'Sales Activities', icon: 'event_note' },
     { key: 'revenue', label: 'Revenue', icon: 'payments' },
-
 ]
 
 export default function AdminDashboard() {
@@ -95,7 +94,6 @@ export default function AdminDashboard() {
 
         api.get('/api/pipelines?entityType=DEAL').then(r => {
             let list = r.data ?? []
-            // Hide Partnership Pipeline as requested
             list = list.filter(p => p.name !== 'Partnership Pipeline')
             setPipelines(list)
             if (list.length > 0) {
@@ -127,113 +125,83 @@ export default function AdminDashboard() {
     const activePipeline = pipelines.find(p => p.id === selectedPipelineId)
     const activeStages = activePipeline ? activePipeline.stages : []
 
+    const fmt = (val) => Number(val || 0).toLocaleString('en-IN')
+
     return (
-        <div>
+        <div className="min-h-screen" style={{ background: 'var(--crm-bg)' }}>
             <TopBar />
             <main className="p-4 md:p-8">
+                {/* ── Ultra-Premium Executive Header ─────────────── */}
+                <PageHeroBanner
+                    icon="analytics"
+                    title="Analytics Dashboard"
+                    subtitle={`Welcome back, ${name || 'Executive'} · Real-time pipeline & company performance overview`}
+                    stats={[
+                        { label: 'Active Deals', value: loading ? '...' : fmt(summary?.activeDeals), icon: 'handshake', color: '#38BDF8' },
+                        { label: 'Won Revenue', value: loading ? '...' : `₹${fmt(summary?.totalRevenue)}`, icon: 'payments', color: '#34D399' },
+                    ]}
+                    actions={canExport && <DownloadReport stats={summary} />}
+                />
 
-                {/* ── Hero Header ───────────────────────────────── */}
-                <div className="relative overflow-hidden mb-7"
+                {/* ── Sleek Floating Tab Navigation ─────────────── */}
+                <div
+                    className="flex items-center justify-between gap-3 mb-7 flex-wrap p-1.5 sm:p-2 rounded-2xl border"
                     style={{
-                        borderRadius: 26,
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 52%, ${T.heroBgTo} 100%)`,
-                        minHeight: 118,
-                        border: '1px solid rgba(255,255,255,0.10)',
-                        boxShadow: '0 22px 54px rgba(15,23,42,0.18)',
-                    }}>
-                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent)' }} />
-                    <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none"
-                        style={{ background: 'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.08) 100%)' }} />
-
-                    <div className="relative px-5 py-5 sm:px-9 sm:py-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex items-center justify-center shrink-0"
-                                style={{
-                                    borderRadius: 14,
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
-                                 }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>analytics</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Analytics Dashboard
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    Welcome back, {name} · Company-wide overview
-                                </p>
-                            </div>
-                        </div>
-
-                        {canExport && (
-                            <div className="shrink-0">
-                                <DownloadReport stats={summary} />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* ── Tab Bar ───────────────────────────────────── */}
-                <div className="flex items-center gap-2.5 mb-7 flex-wrap p-1 sm:p-2"
-                    style={{
-                        borderRadius: 22,
                         background: T.surface,
-                        border: `1px solid ${T.border}80`,
-                        boxShadow: luxeShadow(T.primary),
-                    }}>
-                    {TABS.map(tab => {
-                        const active = activeTab === tab.key
-                        return (
-                            <button key={tab.key} onClick={() => handleTab(tab.key)}
-                                className="flex items-center gap-2 px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-black transition-all duration-200"
-                                style={{
-                                    borderRadius: 16,
-                                    background: active
-                                        ? T.primary
-                                        : 'transparent',
-                                    color: active ? '#fff' : T.textMuted,
-                                    border: active ? `1px solid ${T.primary}55` : '1px solid transparent',
-                                    boxShadow: active ? `0 10px 22px ${T.primary}24` : 'none',
-                                    transform: active ? 'translateY(-1px)' : 'none',
-                                }}
-                                onMouseEnter={e => {
-                                    if (!active) {
-                                        e.currentTarget.style.background = T.primaryFaint
-                                        e.currentTarget.style.transform = 'translateY(-1px)'
-                                    }
-                                }}
-                                onMouseLeave={e => {
-                                    if (!active) {
-                                        e.currentTarget.style.background = 'transparent'
-                                        e.currentTarget.style.transform = 'none'
-                                    }
-                                }}>
-                                <span className="material-symbols-outlined text-[16px]"
-                                    style={{ color: active ? '#fff' : T.textMuted }}>
-                                    {tab.icon}
-                                </span>
-                                {tab.label}
-                            </button>
-                        )
-                    })}
+                        borderColor: T.border,
+                        boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                    }}
+                >
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        {TABS.map(tab => {
+                            const active = activeTab === tab.key
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => handleTab(tab.key)}
+                                    className={`flex items-center gap-2 px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-black rounded-xl transition-all duration-200 cursor-pointer ${
+                                        active ? 'shadow-md scale-[1.01]' : 'hover:opacity-90'
+                                    }`}
+                                    style={{
+                                        background: active
+                                            ? T.primary
+                                            : 'transparent',
+                                        color: active ? '#FFFFFF' : T.textMuted,
+                                        border: active ? `1px solid ${T.primary}70` : '1px solid transparent',
+                                        boxShadow: active ? `0 8px 20px -4px ${T.primary}40` : 'none',
+                                    }}
+                                >
+                                    <span
+                                        className="material-symbols-outlined text-[17px]"
+                                        style={{ color: active ? '#FFFFFF' : T.textMuted }}
+                                    >
+                                        {tab.icon}
+                                    </span>
+                                    <span>{tab.label}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
 
                     {/* Pipeline selector — right side of tab bar */}
                     {(activeTab === 'deals' || activeTab === 'revenue') && pipelines.length > 1 && (
-                        <div className="sm:ml-auto flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all duration-200"
+                        <div className="sm:ml-auto flex items-center gap-2">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted hidden sm:inline" style={{ color: T.textMuted }}>
+                                Pipeline:
+                            </span>
+                            <div
+                                className="px-3 py-1.5 rounded-xl border text-xs font-bold"
                                 style={{
-                                    borderRadius: 16,
-                                    background: T.primaryFaint,
-                                    border: `1px solid ${T.border}80`,
-                                }}>
-                                <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Pipeline:</span>
+                                    background: T.surfaceRaised,
+                                    borderColor: T.border,
+                                }}
+                            >
                                 <CustomSelect
                                     value={selectedPipelineId || ''}
                                     onChange={e => handlePipelineChange(Number(e.target.value))}
-                                    className="bg-transparent text-sm font-bold outline-none"
-                                    style={{ color: T.textPrimary, minWidth: 120 }}>
+                                    className="bg-transparent text-xs sm:text-sm font-bold outline-none cursor-pointer"
+                                    style={{ color: T.textPrimary, minWidth: 130 }}
+                                >
                                     {pipelines.map(p => (
                                         <option key={p.id} value={p.id}>
                                             {p.name}
@@ -254,7 +222,6 @@ export default function AdminDashboard() {
                         {activeTab === 'contacts' && <ContactsTab data={tabData.contacts} />}
                         {activeTab === 'activities' && <ActivitiesTab data={tabData.activities} />}
                         {activeTab === 'revenue' && <RevenueTab data={currentTabData} activeStages={activeStages} />}
-
                     </>
                 )}
             </main>

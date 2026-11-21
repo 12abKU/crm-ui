@@ -7,6 +7,7 @@ import InlineEdit from '../components/InlineEdit'
 import Pagination from '../components/Pagination'
 import { Input, Select } from '../components/FormField'
 import PageHeader from '../components/ui/PageHeader'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import SearchInput from '../components/ui/SearchInput'
 import TableShell from '../components/ui/TableShell'
 import VirtualTableBody, { virtualRowHandlers } from '../components/ui/VirtualTableBody'
@@ -186,62 +187,24 @@ export default function Accounts() {
             <TopBar />
             <main className="p-4 md:p-8">
 
-                {/* -- Hero Banner ------------------------------- */}
-                <div className="relative rounded-3xl overflow-hidden mb-7"
-                    style={{
-                        background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                    }}>
-                    {/* Orbs */}
-                    <div style={{
-                        position: 'absolute', top: -40, right: -40, width: 200, height: 200,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle,  0%, transparent 70%)`,
-                        pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                        position: 'absolute', bottom: -20, left: '35%', width: 140, height: 140,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)',
-                        pointerEvents: 'none',
-                    }} />
-                    <div className="relative px-6 py-6 lg:px-9 lg:py-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>business</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Accounts
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    {loading ? 'Loading...' : `Total Accounts - ${totalElements}`}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1 justify-start lg:justify-end">
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="business"
+                    title="Accounts"
+                    subtitle={loading ? 'Loading company accounts...' : `Total Accounts — ${totalElements} active client companies`}
+                    actions={
+                        <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
                             {can.ACCOUNTS_CREATE && (
                                 <button onClick={handleOpenModal}
-                                    className="whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto"
-                                    style={{
-                                        background: T.heroBadgeBg,
-                                        border: '1px solid rgba(255,255,255,0.22)',
-                                        color: '#fff',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                    className="crm-btn-primary whitespace-nowrap shrink-0 w-full sm:w-auto">
                                     <span className="material-symbols-outlined text-[18px]">add</span>
                                     Add Account
                                 </button>
                             )}
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
 
                 {/* -- Table ------------------------------------- */}
                 <TableShell

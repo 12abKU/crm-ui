@@ -22,9 +22,9 @@ const TYPE_META = {
     TICKET_RESOLVED: { icon: 'check_circle', color: '#16A34A', label: 'Resolved' },
     TICKET_CLOSED: { icon: 'cancel', color: '#64748B', label: 'Closed' },
     ACTIVITY_REMINDER: { icon: 'notifications_active', color: '#D97706', label: 'Activity Reminder' },
-    MENTION: { icon: 'alternate_email', color: '#EA580C', label: 'Mentioned You' },
+    MENTION: { icon: 'alternate_email', color: '#6366F1', label: 'Mentioned You' },
     AUTOMATION_RUN: { icon: 'smart_toy', color: '#8B5CF6', label: 'Automation Executed' },
-    CHAT_MESSAGE: { icon: 'chat', color: '#EA580C', label: 'Internal Chat' },
+    CHAT_MESSAGE: { icon: 'chat', color: '#6366F1', label: 'Internal Chat' },
     NEW_LEAD_DEAL: { icon: 'campaign', color: '#10B981', label: 'New Lead' },
     LEAD_INBOUND: { icon: 'person_add', color: '#0EA5E9', label: 'Inbound Lead' },
 }

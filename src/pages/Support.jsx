@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import TopBar from '../components/TopBar'
 import api from '../api'
 import { EMPTY_FORM } from '../components/support/supportConstants'
-import SupportHeader from '../components/support/SupportHeader'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import SupportTabs from '../components/support/SupportTabs'
 import FaqTab from '../components/support/FaqTab'
 import SubmitTicketTab from '../components/support/SubmitTicketTab'
@@ -106,7 +106,15 @@ export default function Support() {
         <div>
             <TopBar />
             <main className="p-4 sm:p-8">
-                <SupportHeader isAdmin={isAdmin} companyName={companyName} badge={badge} />
+                <PageHeroBanner
+                    icon="contact_support"
+                    title="Support & Resource Center"
+                    subtitle="Knowledge base, system documentation, and 24/7 technical ticketing support"
+                    badge={companyName}
+                    stats={[
+                        { label: 'My Open Tickets', value: `${badge?.myOpenTickets ?? 0}`, icon: 'confirmation_number', color: '#38BDF8' },
+                    ]}
+                />
                 <SupportTabs tab={tab} setTab={setTab} badge={badge} isAdmin={isAdmin} />
 
                 {tab === 'faq' && (

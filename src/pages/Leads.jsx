@@ -8,6 +8,7 @@ import SlideForm from '../components/SlideForm'
 import SearchableSelect from '../components/SearchableSelect'
 import { Input, Select, Textarea } from '../components/FormField'
 import SearchInput from '../components/ui/SearchInput'
+import PageHeroBanner from '../components/ui/PageHeroBanner'
 import api, { extractApiErrorMessage } from '../api'
 import { usePermissions } from '../hooks/usePermission'
 import LeadPanel from '../components/leadPanel/LeadPanel'
@@ -362,86 +363,45 @@ export default function Leads() {
             <TopBar />
             <main className="p-4 sm:p-8 flex-1 overflow-hidden flex flex-col">
 
-                {/* ── Hero Banner ──────────────────────────── */}
-                <div className="relative rounded-3xl mb-7"
-                    style={{
-                        minHeight: 120,
-                    }}>
-
-                    <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none"
-                        style={{
-                            background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 55%, ${T.heroBgTo} 100%)`,
-                        }}>
-                        <div style={{
-                            position: 'absolute', top: -40, right: -40, width: 220, height: 220,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.primaryHover}30 0%, transparent 70%)`,
-                            pointerEvents: 'none',
-                        }} />
-                        <div style={{
-                            position: 'absolute', bottom: -20, left: '40%', width: 140, height: 140,
-                            borderRadius: '50%',
-                            background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)`,
-                            pointerEvents: 'none',
-                        }} />
-                    </div>
-
-                    <div className="relative z-10 px-5 py-5 sm:px-9 sm:py-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                                style={{
-                                    background: 'rgba(255,255,255,0.10)',
-                                    border: '1px solid rgba(255,255,255,0.18)',
-                                }}>
-                                <span className="material-symbols-outlined filled text-[24px]"
-                                    style={{ color: T.sidebarActiveText }}>person_search</span>
-                            </div>
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-black" style={{ color: '#fff', letterSpacing: '-0.02em' }}>
-                                    Leads
-                                </h2>
-                                <p className="text-sm mt-0.5" style={{ color: T.heroSubText }}>
-                                    Total Leads - {totalPipelineLeadsCount}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto shrink-0">
+                {/* ── Ultra-Premium Hero Banner ──────────────────── */}
+                <PageHeroBanner
+                    icon="person_search"
+                    title="Leads"
+                    subtitle={`Total Leads — ${totalPipelineLeadsCount} active prospects in funnel`}
+                    actions={
+                        <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search leads..." />
                             {canCreateLead && (
                                 <button onClick={openCreateForm}
-                                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150 w-full sm:w-auto shrink-0"
-                                    style={{
-                                        background: T.heroBadgeBg,
-                                        border: '1px solid rgba(255,255,255,0.22)',
-                                        color: '#fff',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.20)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = T.heroBadgeBg}>
+                                    className="crm-btn-primary whitespace-nowrap shrink-0 w-full sm:w-auto">
                                     <span className="material-symbols-outlined text-[18px]">add</span>
                                     New Lead
                                 </button>
                             )}
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
 
                 {/* ── Pipeline summary strip ───────────────── */}
-                <div className="flex flex-wrap gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, style }) => (
                         <div key={stage}
-                            className="flex-1 min-w-[140px] sm:min-w-[170px] rounded-2xl p-4 flex flex-col gap-1 transition-all duration-150"
+                            className="rounded-2xl p-4 flex flex-col justify-between gap-2 transition-all duration-200 border relative overflow-hidden group hover:scale-[1.01]"
                             style={{
                                 background: T.surface,
-                                border: `1.5px solid ${style.accent}30`,
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                borderColor: T.border,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                             }}>
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase tracking-widest truncate"
+                            <div className="absolute inset-x-0 top-0 h-[2.5px]" style={{ background: style.accent }} />
+                            <div className="flex items-center justify-between gap-1">
+                                <span className="text-[10px] font-black uppercase tracking-wider truncate"
                                     style={{ color: style.accent }}>{label}</span>
-                                <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
-                                    style={{ background: style.badgeBg, color: style.badgeColor }}>{count}</span>
+                                <span className="text-[10.5px] font-black px-2 py-0.5 rounded-full shrink-0"
+                                    style={{ background: style.badgeBg, color: style.badgeColor, border: `1px solid ${style.accent}25` }}>
+                                    {count}
+                                </span>
                             </div>
-                            <p className="text-base font-black mt-0.5" style={{ color: T.textPrimary }}>
+                            <p className="text-base sm:text-lg font-black tracking-tight" style={{ color: T.textPrimary }}>
                                 {count} {count === 1 ? 'Lead' : 'Leads'}
                             </p>
                         </div>
@@ -449,7 +409,7 @@ export default function Leads() {
                 </div>
 
                 {/* ── Kanban board — scrollable columns ───── */}
-                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0">
+                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0 kanban-scroll">
                     {leadStages.map(stageObj => {
                         const stage = stageObj.stageKey
                         const stageLeads = leadsByStage[stage] || []
@@ -513,23 +473,40 @@ export default function Leads() {
                                                     dragLead.current = lead
                                                 }}
                                                 onDragEnd={() => { setDraggingId(null); setOverStage(null) }}
-                                                className="p-4 rounded-xl cursor-pointer group relative"
+                                                className="p-4 rounded-2xl cursor-pointer group relative border transition-all duration-200"
                                                 style={{
                                                     background: T.surface,
-                                                    border: `1px solid ${T.borderSubtle}`,
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                                    opacity: draggingId === lead.id ? 0.5 : 1,
+                                                    borderColor: draggingId === lead.id ? T.primary : T.border,
+                                                    boxShadow: draggingId === lead.id
+                                                        ? '0 14px 32px rgba(0,0,0,0.20)'
+                                                        : '0 2px 8px rgba(0,0,0,0.03)',
+                                                    opacity: draggingId === lead.id ? 0.45 : 1,
+                                                    transform: 'none',
                                                     cursor: canDrag ? 'grab' : 'pointer'
+                                                }}
+                                                onMouseEnter={e => {
+                                                    if (draggingId !== lead.id) {
+                                                        e.currentTarget.style.transform = 'translateY(-2px)'
+                                                        e.currentTarget.style.boxShadow = '0 8px 24px -4px rgba(0,0,0,0.10)'
+                                                        e.currentTarget.style.borderColor = `${style.accent}70`
+                                                    }
+                                                }}
+                                                onMouseLeave={e => {
+                                                    if (draggingId !== lead.id) {
+                                                        e.currentTarget.style.transform = 'none'
+                                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)'
+                                                        e.currentTarget.style.borderColor = T.border
+                                                    }
                                                 }}
                                                 onClick={() => {
                                                     navigate(`?leadId=${lead.id}`)
                                                     setSelectedLead(lead)
                                                 }}>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-bold text-sm text-primary max-w-[85%] truncate" style={{ color: T.textPrimary }}>
+                                                <div className="flex justify-between items-start gap-2 mb-2">
+                                                    <h4 className="font-bold text-xs sm:text-[13.5px] max-w-[80%] truncate leading-snug" style={{ color: T.textPrimary }}>
                                                         {lead.title || lead.senderName || 'Unknown Lead'}
                                                     </h4>
-                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+                                                    <span className="text-[9.5px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wide shrink-0"
                                                         style={{
                                                             background: (lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
                                                                 ? 'rgba(37,99,235,0.12)'
@@ -541,6 +518,13 @@ export default function Leads() {
                                                                 : (lead.title?.toLowerCase().includes('contact us') || lead.customValues?.form_type === 'CONTACT_US')
                                                                 ? '#9333EA'
                                                                 : T.primaryText,
+                                                            border: `1px solid ${
+                                                                (lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
+                                                                    ? 'rgba(37,99,235,0.25)'
+                                                                    : (lead.title?.toLowerCase().includes('contact us') || lead.customValues?.form_type === 'CONTACT_US')
+                                                                    ? 'rgba(147,51,234,0.25)'
+                                                                    : T.primary + '25'
+                                                            }`
                                                         }}>
                                                         {(lead.title?.toLowerCase().includes('demo request') || lead.customValues?.form_type === 'REQUEST_DEMO')
                                                             ? 'Demo Request'
@@ -549,16 +533,26 @@ export default function Leads() {
                                                             : lead.source}
                                                     </span>
                                                 </div>
-                                                {lead.senderEmail && <p className="text-xs text-muted mb-1 truncate" style={{ color: T.textSecondary }}>{lead.senderEmail}</p>}
-                                                {lead.senderPhone && <p className="text-xs text-muted truncate" style={{ color: T.textSecondary }}>{lead.senderPhone}</p>}
+                                                {lead.senderEmail && (
+                                                    <div className="flex items-center gap-1.5 text-xs text-muted mb-1 truncate" style={{ color: T.textSecondary }}>
+                                                        <span className="material-symbols-outlined text-[13px] opacity-70 shrink-0">mail</span>
+                                                        <span className="truncate">{lead.senderEmail}</span>
+                                                    </div>
+                                                )}
+                                                {lead.senderPhone && (
+                                                    <div className="flex items-center gap-1.5 text-xs text-muted truncate" style={{ color: T.textSecondary }}>
+                                                        <span className="material-symbols-outlined text-[13px] opacity-70 shrink-0">call</span>
+                                                        <span className="truncate">{lead.senderPhone}</span>
+                                                    </div>
+                                                )}
                                                 {lead._assignedToMe && (
                                                     <div className="absolute top-3 right-3 w-2 h-2 rounded-full"
-                                                        style={{ background: T.primary, boxShadow: `0 0 6px ${T.primary}` }}
+                                                        style={{ background: T.primary, boxShadow: `0 0 8px ${T.primary}` }}
                                                         title="Assigned to you" />
                                                 )}
 
-                                                <div className="flex items-center justify-between pt-2 mt-2"
-                                                    style={{ borderTop: `1px solid ${T.borderSubtle}` }}>
+                                                <div className="flex items-center justify-between pt-2.5 mt-2 border-t"
+                                                    style={{ borderColor: T.borderSubtle }}>
 
                                                     <div className="flex items-center gap-1.5 min-w-0">
                                                         {(lead.assignees ?? []).length > 0 && (
@@ -567,7 +561,7 @@ export default function Leads() {
                                                                     <div key={u.id}
                                                                         title={`Assignee: ${u.name}`}
                                                                         onClick={e => { e.stopPropagation(); navigate(`/team/${u.id}`) }}
-                                                                        className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                                                                        className="w-5 h-5 rounded-full flex items-center justify-center text-[8.5px] font-black shrink-0 ring-1 ring-white cursor-pointer hover:scale-110 active:scale-95 transition-transform"
                                                                         style={{
                                                                             background: T.primaryDim,
                                                                             color: T.primary,
@@ -588,9 +582,9 @@ export default function Leads() {
                                                         {isAdminOrAbove && (
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); setAssignModalLead(lead) }}
-                                                                className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50/50 transition-colors shrink-0"
+                                                                className="flex items-center justify-center p-1 rounded-lg text-gray-400 hover:text-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-colors shrink-0 cursor-pointer"
                                                                 title="Manage Assignees">
-                                                                <IconUserPlus size={13} />
+                                                                <IconUserPlus size={14} />
                                                             </button>
                                                         )}
                                                     </div>

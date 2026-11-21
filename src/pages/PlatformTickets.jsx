@@ -288,7 +288,7 @@ export default function PlatformTickets() {
                 <div style={{ position: 'absolute', top: -70, right: -70, width: 300, height: 300, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(75px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: -40, left: '30%', width: 200, height: 200, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(50px)', pointerEvents: 'none' }} />
 
-                <div className="px-4 py-8 md:px-9 md:py-9" style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                <div className="px-4 py-8 md:px-9 md:py-9" style={{ position: 'relative', zIndex: 1 }}>
                     {/* Title row */}
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
@@ -366,7 +366,7 @@ export default function PlatformTickets() {
             </div>
 
             {/* ── Main content ──────────────────────────────────── */}
-            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10">
 
                 {/* Filters bar */}
                 <div className="flex flex-col md:flex-row md:items-center gap-3 mb-5"

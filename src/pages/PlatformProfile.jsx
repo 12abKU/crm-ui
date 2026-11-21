@@ -130,7 +130,7 @@ export default function PlatformProfile() {
                 <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: T.heroAccentGlow, filter: 'blur(70px)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: -40, left: '35%', width: 220, height: 220, borderRadius: '50%', background: T.heroOrb2, filter: 'blur(55px)', pointerEvents: 'none' }} />
 
-                <div className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                <div className="px-4 py-8 md:px-9 md:py-10" style={{ position: 'relative', zIndex: 1 }}>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
                         {/* Left: avatar + identity */}
@@ -208,7 +208,7 @@ export default function PlatformProfile() {
             {/* ══════════════════════════════════════════════════
                 FORMS — side by side layout
             ══════════════════════════════════════════════════ */}
-            <main className="px-4 py-8 md:px-9 md:py-10" style={{ maxWidth: 900, margin: '0 auto' }}>
+            <main className="px-4 py-8 md:px-9 md:py-10">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
