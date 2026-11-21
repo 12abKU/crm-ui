@@ -83,19 +83,14 @@ export default function ProfileForm() {
                     <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
                         Full Name
                     </label>
-                    <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                            person
-                        </span>
-                        <input
-                            className="crm-input pl-10"
-                            type="text"
-                            placeholder="Your full name"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            required
-                        />
-                    </div>
+                    <input
+                        className="crm-input"
+                        type="text"
+                        placeholder="Your full name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                    />
                 </div>
 
                 {/* Email Field */}
@@ -103,19 +98,14 @@ export default function ProfileForm() {
                     <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
                         Email Address
                     </label>
-                    <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                            mail
-                        </span>
-                        <input
-                            className="crm-input pl-10"
-                            type="email"
-                            placeholder="your@email.com"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
+                    <input
+                        className="crm-input"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                    />
                 </div>
 
                 <button

@@ -63,27 +63,22 @@ export default function ChangePasswordForm() {
                 )}
 
                 {[
-                    { key: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password', icon: 'key' },
-                    { key: 'newPassword', label: 'New Password', placeholder: 'Min 6 characters', icon: 'lock' },
-                    { key: 'confirm', label: 'Confirm New Password', placeholder: 'Re-enter new password', icon: 'lock_reset' },
-                ].map(({ key, label, placeholder, icon }) => (
+                    { key: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
+                    { key: 'newPassword', label: 'New Password', placeholder: 'Min 6 characters' },
+                    { key: 'confirm', label: 'Confirm New Password', placeholder: 'Re-enter new password' },
+                ].map(({ key, label, placeholder }) => (
                     <div key={key} className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
                             {label}
                         </label>
-                        <div className="relative">
-                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-slate-400">
-                                {icon}
-                            </span>
-                            <input
-                                className="crm-input pl-10 pr-10"
-                                type={showPasswords ? 'text' : 'password'}
-                                placeholder={placeholder}
-                                value={form[key]}
-                                onChange={e => set(key, e.target.value)}
-                                required
-                            />
-                        </div>
+                        <input
+                            className="crm-input"
+                            type={showPasswords ? 'text' : 'password'}
+                            placeholder={placeholder}
+                            value={form[key]}
+                            onChange={e => set(key, e.target.value)}
+                            required
+                        />
                     </div>
                 ))}
 
