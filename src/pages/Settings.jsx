@@ -12,6 +12,7 @@ import PipelineSettings from '../components/settings/PipelineSettings'
 import AgentManagementSettings from '../components/settings/AgentManagementSettings'
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
+import ThemeAppearanceSettings from '../components/settings/ThemeAppearanceSettings'
 import PageHeroBanner from '../components/ui/PageHeroBanner'
 import { T } from '../constants/theme'
 
@@ -85,6 +86,9 @@ export default function Settings() {
     }
 
     const renderPanel = () => {
+        if (activeTab === 'appearance') {
+            return <ThemeAppearanceSettings />
+        }
         if (activeTab === 'templates') {
             return <EmailTemplatesSettings />
         }
@@ -142,6 +146,7 @@ export default function Settings() {
                 >
                     {[
                         { id: 'general', label: 'General Settings', icon: 'settings' },
+                        { id: 'appearance', label: 'Theme & Appearance', icon: 'palette' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN') ? [

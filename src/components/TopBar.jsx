@@ -87,9 +87,17 @@ export default function TopBar() {
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
     const [paletteOpen, setPaletteOpen] = useState(false)
+    const [, setTick] = useState(0)
     const ref = useRef(null)
     const inputRef = useRef(null)
     const paletteRef = useRef(null)
+
+    // Listen to theme & palette changes
+    useEffect(() => {
+        const handleTheme = () => setTick(t => t + 1)
+        window.addEventListener('crm-theme-changed', handleTheme)
+        return () => window.removeEventListener('crm-theme-changed', handleTheme)
+    }, [])
 
     // ── Close on outside click ─────────────────────────────────
     useEffect(() => {
@@ -447,6 +455,31 @@ export default function TopBar() {
                                         </button>
                                     )
                                 })}
+                            </div>
+
+                            {/* Link to Settings Appearance tab */}
+                            <div className="pt-2 mt-2 border-t" style={{ borderColor: T.borderSubtle }}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setPaletteOpen(false)
+                                        navigate('/settings?tab=appearance')
+                                    }}
+                                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-all hover:opacity-90 group cursor-pointer"
+                                    style={{ background: T.primaryFaint }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[16px]" style={{ color: T.primary }}>
+                                            tune
+                                        </span>
+                                        <span className="text-[11px] font-bold" style={{ color: T.primary }}>
+                                            Custom Theme Studio
+                                        </span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-[14px] transition-transform group-hover:translate-x-0.5" style={{ color: T.primary }}>
+                                        chevron_right
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     )}

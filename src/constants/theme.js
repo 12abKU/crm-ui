@@ -45,14 +45,14 @@ const OBSIDIAN_INDIGO = {
         errorDim: 'rgba(239, 68, 68, 0.12)',
         warning: '#F59E0B',
         warningDim: 'rgba(245, 158, 11, 0.12)',
-        sidebar: '#0B0F19',
-        sidebarRaised: '#111827',
-        sidebarHover: 'rgba(255, 255, 255, 0.06)',
-        sidebarBorder: 'rgba(255, 255, 255, 0.08)',
-        sidebarText: '#94A3B8',
-        sidebarTextHover: '#F8FAFC',
-        sidebarActive: '#6366F1',
-        sidebarActiveText: '#818CF8',
+        sidebar: '#FFFFFF',
+        sidebarRaised: '#F8FAFC',
+        sidebarHover: 'rgba(0, 0, 0, 0.04)',
+        sidebarBorder: '#E2E8F0',
+        sidebarText: '#64748B',
+        sidebarTextHover: '#0F172A',
+        sidebarActive: '#4F46E5',
+        sidebarActiveText: '#4F46E5',
         progressGradEnd: '#6366F1',
         heroBgFrom: '#0B0F19',
         heroBgMid: '#1E1B4B',
@@ -125,10 +125,10 @@ const OBSIDIAN_INDIGO = {
         errorDim: 'rgba(239, 68, 68, 0.18)',
         warning: '#F59E0B',
         warningDim: 'rgba(245, 158, 11, 0.18)',
-        sidebar: '#06080E',
-        sidebarRaised: '#0D111A',
-        sidebarHover: 'rgba(99, 102, 241, 0.10)',
-        sidebarBorder: 'rgba(255, 255, 255, 0.07)',
+        sidebar: '#0D111D',
+        sidebarRaised: '#131929',
+        sidebarHover: 'rgba(255, 255, 255, 0.05)',
+        sidebarBorder: 'rgba(255, 255, 255, 0.08)',
         sidebarText: '#94A3B8',
         sidebarTextHover: '#FFFFFF',
         sidebarActive: '#6366F1',
@@ -186,7 +186,7 @@ const LUXE_EMERALD = {
         primaryFaint: 'rgba(16, 185, 129, 0.05)',
         primaryText: '#047857',
         sidebarActive: '#10B981',
-        sidebarActiveText: '#34D399',
+        sidebarActiveText: '#047857',
         heroBgMid: '#064E3B',
         heroAccentGlow: 'rgba(16, 185, 129, 0.35)',
         heroBadgeText: '#A7F3D0',
@@ -210,11 +210,11 @@ const LUXE_EMERALD = {
         primaryDim: 'rgba(16, 185, 129, 0.18)',
         primaryFaint: 'rgba(16, 185, 129, 0.06)',
         primaryText: '#34D399',
-        sidebar: '#06080B',
-        sidebarRaised: '#0B0F15',
+        sidebar: '#0D1514',
+        sidebarRaised: '#121E1C',
         sidebarActive: '#10B981',
-        sidebarActiveText: '#34D399',
-        heroBgFrom: '#06080B',
+        sidebarActiveText: '#047857',
+        heroBgFrom: '#0D1514',
         heroBgMid: '#0A1813',
         heroBgTo: '#080A0E',
         heroAccentGlow: 'rgba(16, 185, 129, 0.30)',
@@ -240,8 +240,8 @@ const CYBER_VIOLET = {
         primaryDim: 'rgba(139, 92, 246, 0.14)',
         primaryFaint: 'rgba(139, 92, 246, 0.05)',
         primaryText: '#7C3AED',
-        sidebarActive: '#8B5CF6',
-        sidebarActiveText: '#C4B5FD',
+        sidebarActive: '#7C3AED',
+        sidebarActiveText: '#7C3AED',
         heroBgMid: '#4C1D95',
         heroAccentGlow: 'rgba(139, 92, 246, 0.35)',
         heroBadgeText: '#DDD6FE',
@@ -265,11 +265,12 @@ const CYBER_VIOLET = {
         primaryDim: 'rgba(139, 92, 246, 0.20)',
         primaryFaint: 'rgba(139, 92, 246, 0.07)',
         primaryText: '#A78BFA',
-        sidebar: '#06080B',
-        sidebarRaised: '#0B0E17',
+        sidebar: '#11101E',
+        sidebarRaised: '#18152A',
+        sidebarBorder: 'rgba(139, 92, 246, 0.15)',
         sidebarActive: '#8B5CF6',
         sidebarActiveText: '#C4B5FD',
-        heroBgFrom: '#06080B',
+        heroBgFrom: '#11101E',
         heroBgMid: '#161129',
         heroBgTo: '#080A0E',
         heroAccentGlow: 'rgba(139, 92, 246, 0.30)',
@@ -296,7 +297,7 @@ const OCEANIC_AZURE = {
         primaryFaint: 'rgba(2, 132, 199, 0.05)',
         primaryText: '#0369A1',
         sidebarActive: '#0284C7',
-        sidebarActiveText: '#7DD3FC',
+        sidebarActiveText: '#0284C7',
         heroBgMid: '#075985',
         heroAccentGlow: 'rgba(2, 132, 199, 0.35)',
         heroBadgeText: '#BAE6FD',
@@ -320,11 +321,12 @@ const OCEANIC_AZURE = {
         primaryDim: 'rgba(56, 189, 248, 0.18)',
         primaryFaint: 'rgba(56, 189, 248, 0.06)',
         primaryText: '#7DD3FC',
-        sidebar: '#06080B',
-        sidebarRaised: '#0B0F17',
+        sidebar: '#0C141F',
+        sidebarRaised: '#111D2D',
+        sidebarBorder: 'rgba(56, 189, 248, 0.15)',
         sidebarActive: '#38BDF8',
         sidebarActiveText: '#BAE6FD',
-        heroBgFrom: '#06080B',
+        heroBgFrom: '#0C141F',
         heroBgMid: '#0A1728',
         heroBgTo: '#080A0E',
         heroAccentGlow: 'rgba(56, 189, 248, 0.30)',
@@ -350,8 +352,8 @@ const SUNSET_AMBER = {
         primaryDim: 'rgba(217, 119, 6, 0.14)',
         primaryFaint: 'rgba(217, 119, 6, 0.05)',
         primaryText: '#B45309',
-        sidebarActive: '#F59E0B',
-        sidebarActiveText: '#FDE68A',
+        sidebarActive: '#D97706',
+        sidebarActiveText: '#D97706',
         heroBgMid: '#78350F',
         heroAccentGlow: 'rgba(245, 158, 11, 0.35)',
         heroBadgeText: '#FDE68A',
@@ -375,11 +377,12 @@ const SUNSET_AMBER = {
         primaryDim: 'rgba(245, 158, 11, 0.18)',
         primaryFaint: 'rgba(245, 158, 11, 0.06)',
         primaryText: '#FDE68A',
-        sidebar: '#06080B',
-        sidebarRaised: '#0B0F15',
+        sidebar: '#141210',
+        sidebarRaised: '#1E1915',
+        sidebarBorder: 'rgba(245, 158, 11, 0.15)',
         sidebarActive: '#F59E0B',
         sidebarActiveText: '#FDE68A',
-        heroBgFrom: '#06080B',
+        heroBgFrom: '#141210',
         heroBgMid: '#18140B',
         heroBgTo: '#080A0E',
         heroAccentGlow: 'rgba(245, 158, 11, 0.28)',
@@ -392,13 +395,196 @@ const SUNSET_AMBER = {
     }
 }
 
+// ── Palette 6: Crimson Rose (Modern Vibrant Tech) ──
+const CRIMSON_ROSE = {
+    id: 'crimson-rose',
+    name: 'Crimson Rose',
+    description: 'Vibrant ruby rose and crimson tech accents.',
+    accentColor: '#F43F5E',
+    light: {
+        ...OBSIDIAN_INDIGO.light,
+        primary: '#E11D48',
+        primaryHover: '#BE123C',
+        primaryDim: 'rgba(244, 63, 94, 0.14)',
+        primaryFaint: 'rgba(244, 63, 94, 0.05)',
+        primaryText: '#BE123C',
+        sidebarActive: '#E11D48',
+        sidebarActiveText: '#BE123C',
+        heroBgMid: '#881337',
+        heroAccentGlow: 'rgba(244, 63, 94, 0.35)',
+        heroBadgeText: '#FECDD3',
+        heroBadgeBg: 'rgba(244, 63, 94, 0.22)',
+        avatarGradFrom: '#F43F5E',
+        avatarGradTo: '#BE123C',
+        avatarGlow: 'rgba(244, 63, 94, 0.45)',
+        chartBlue: '#F43F5E',
+    },
+    dark: {
+        ...OBSIDIAN_INDIGO.dark,
+        bg: '#080A0E',
+        surface: '#120F14',
+        surfaceRaised: '#19151C',
+        surfaceHigh: '#241E28',
+        border: 'rgba(255, 255, 255, 0.08)',
+        borderSubtle: 'rgba(255, 255, 255, 0.04)',
+        borderHover: 'rgba(244, 63, 94, 0.35)',
+        primary: '#FB7185',
+        primaryHover: '#FDA4AF',
+        primaryDim: 'rgba(244, 63, 94, 0.20)',
+        primaryFaint: 'rgba(244, 63, 94, 0.07)',
+        primaryText: '#FECDD3',
+        sidebar: '#140E13',
+        sidebarRaised: '#1D141C',
+        sidebarBorder: 'rgba(244, 63, 94, 0.15)',
+        sidebarActive: '#F43F5E',
+        sidebarActiveText: '#FECDD3',
+        heroBgFrom: '#140E13',
+        heroBgMid: '#24101A',
+        heroBgTo: '#080A0E',
+        heroAccentGlow: 'rgba(244, 63, 94, 0.30)',
+        heroBadgeText: '#FECDD3',
+        heroBadgeBg: 'rgba(244, 63, 94, 0.20)',
+        avatarGradFrom: '#F43F5E',
+        avatarGradTo: '#E11D48',
+        avatarGlow: 'rgba(244, 63, 94, 0.45)',
+        chartBlue: '#FB7185',
+    }
+}
+
+// ── Palette 7: Nordic Teal (Deep Sea & Pine) ──
+const NORDIC_TEAL = {
+    id: 'nordic-teal',
+    name: 'Nordic Teal',
+    description: 'Clean Scandinavian teal on deep pine surfaces.',
+    accentColor: '#0D9488',
+    light: {
+        ...OBSIDIAN_INDIGO.light,
+        primary: '#0D9488',
+        primaryHover: '#0F766E',
+        primaryDim: 'rgba(13, 148, 136, 0.14)',
+        primaryFaint: 'rgba(13, 148, 136, 0.05)',
+        primaryText: '#0F766E',
+        sidebarActive: '#0D9488',
+        sidebarActiveText: '#0F766E',
+        heroBgMid: '#134E4A',
+        heroAccentGlow: 'rgba(13, 148, 136, 0.35)',
+        heroBadgeText: '#99F6E4',
+        heroBadgeBg: 'rgba(13, 148, 136, 0.22)',
+        avatarGradFrom: '#0D9488',
+        avatarGradTo: '#0F766E',
+        avatarGlow: 'rgba(13, 148, 136, 0.45)',
+        chartBlue: '#0D9488',
+    },
+    dark: {
+        ...OBSIDIAN_INDIGO.dark,
+        bg: '#080A0E',
+        surface: '#0E1416',
+        surfaceRaised: '#131B1E',
+        surfaceHigh: '#1A252A',
+        border: 'rgba(255, 255, 255, 0.08)',
+        borderSubtle: 'rgba(255, 255, 255, 0.04)',
+        borderHover: 'rgba(13, 148, 136, 0.35)',
+        primary: '#2DD4BF',
+        primaryHover: '#5EEAD4',
+        primaryDim: 'rgba(45, 212, 191, 0.18)',
+        primaryFaint: 'rgba(45, 212, 191, 0.06)',
+        primaryText: '#99F6E4',
+        sidebar: '#0C1517',
+        sidebarRaised: '#111D20',
+        sidebarBorder: 'rgba(13, 148, 136, 0.15)',
+        sidebarActive: '#2DD4BF',
+        sidebarActiveText: '#99F6E4',
+        heroBgFrom: '#0C1517',
+        heroBgMid: '#0F2628',
+        heroBgTo: '#080A0E',
+        heroAccentGlow: 'rgba(45, 212, 191, 0.30)',
+        heroBadgeText: '#99F6E4',
+        heroBadgeBg: 'rgba(45, 212, 191, 0.18)',
+        avatarGradFrom: '#0D9488',
+        avatarGradTo: '#0F766E',
+        avatarGlow: 'rgba(45, 212, 191, 0.45)',
+        chartBlue: '#2DD4BF',
+    }
+}
+
 export const CURATED_PALETTES = [
     OBSIDIAN_INDIGO,
     LUXE_EMERALD,
     CYBER_VIOLET,
     OCEANIC_AZURE,
     SUNSET_AMBER,
+    CRIMSON_ROSE,
+    NORDIC_TEAL,
 ]
+
+// ── Dynamic Custom Theme Builder ────────────────────────────────
+export function buildCustomPalette(config = {}) {
+    const primary = config.primary || '#6366F1'
+    const name = config.name || 'Custom Theme'
+    const sidebarLight = config.sidebarLight || '#FFFFFF'
+    const sidebarDark = config.sidebarDark || '#0D111D'
+    const isSidebarWhiteLight = sidebarLight.toUpperCase() === '#FFFFFF' || sidebarLight.toUpperCase() === '#FFF'
+
+    return {
+        id: 'custom',
+        name,
+        description: 'Personalized user theme created in Settings',
+        accentColor: primary,
+        isCustom: true,
+        config,
+        light: {
+            ...OBSIDIAN_INDIGO.light,
+            primary: primary,
+            primaryHover: primary,
+            primaryDim: `${primary}22`,
+            primaryFaint: `${primary}0D`,
+            primaryText: primary,
+            sidebar: sidebarLight,
+            sidebarRaised: isSidebarWhiteLight ? '#F8FAFC' : '#1E293B',
+            sidebarBorder: isSidebarWhiteLight ? '#E2E8F0' : 'rgba(255,255,255,0.08)',
+            sidebarText: isSidebarWhiteLight ? '#475569' : '#94A3B8',
+            sidebarTextHover: isSidebarWhiteLight ? '#0F172A' : '#FFFFFF',
+            sidebarActive: primary,
+            sidebarActiveText: isSidebarWhiteLight ? primary : '#FFFFFF',
+            avatarGradFrom: primary,
+            avatarGradTo: primary,
+            avatarGlow: `${primary}60`,
+            chartBlue: primary,
+            heroAccentGlow: `${primary}40`,
+        },
+        dark: {
+            ...OBSIDIAN_INDIGO.dark,
+            primary: primary,
+            primaryHover: primary,
+            primaryDim: `${primary}30`,
+            primaryFaint: `${primary}15`,
+            primaryText: primary,
+            sidebar: sidebarDark,
+            sidebarRaised: '#161F33',
+            sidebarBorder: `${primary}25`,
+            sidebarActive: primary,
+            sidebarActiveText: primary,
+            avatarGradFrom: primary,
+            avatarGradTo: primary,
+            avatarGlow: `${primary}60`,
+            chartBlue: primary,
+            heroAccentGlow: `${primary}35`,
+        }
+    }
+}
+
+export function getCustomThemeConfig() {
+    try {
+        const saved = localStorage.getItem('crm-custom-palette-config')
+        if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+        primary: '#6366F1',
+        sidebarLight: '#FFFFFF',
+        sidebarDark: '#0D111D',
+        name: 'My Custom Theme'
+    }
+}
 
 const PALETTE_MAP = {
     'obsidian-indigo': OBSIDIAN_INDIGO,
@@ -406,6 +592,41 @@ const PALETTE_MAP = {
     'cyber-violet': CYBER_VIOLET,
     'oceanic-azure': OCEANIC_AZURE,
     'sunset-amber': SUNSET_AMBER,
+    'crimson-rose': CRIMSON_ROSE,
+    'nordic-teal': NORDIC_TEAL,
+}
+
+// Initialize custom theme from localStorage if present
+try {
+    const savedCustom = localStorage.getItem('crm-custom-palette-config')
+    if (savedCustom) {
+        PALETTE_MAP['custom'] = buildCustomPalette(JSON.parse(savedCustom))
+    }
+} catch {}
+
+export function saveCustomTheme(config) {
+    localStorage.setItem('crm-custom-palette-config', JSON.stringify(config))
+    const customPalette = buildCustomPalette(config)
+    PALETTE_MAP['custom'] = customPalette
+    currentPaletteId = 'custom'
+    localStorage.setItem('crm-palette', 'custom')
+    window.dispatchEvent(new CustomEvent('crm-theme-changed', {
+        detail: { mode: currentMode, palette: 'custom' }
+    }))
+}
+
+export function resetCustomTheme() {
+    localStorage.removeItem('crm-custom-palette-config')
+    delete PALETTE_MAP['custom']
+    setPaletteName('obsidian-indigo')
+}
+
+export function getAllPalettes() {
+    const list = [...CURATED_PALETTES]
+    if (PALETTE_MAP['custom']) {
+        list.push(PALETTE_MAP['custom'])
+    }
+    return list
 }
 
 // ── State Persistence & Live Broadcast ─────────────────────────

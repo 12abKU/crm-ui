@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { T, NAV_GROUPS } from '../constants/theme'
+import { T, NAV_GROUPS, getThemeName } from '../constants/theme'
 import { usePermissions } from '../hooks/usePermission'
 import api from '../api'
 
@@ -10,6 +10,16 @@ export default function Sidebar() {
     const { pathname } = useLocation()
     const [overdue, setOverdue] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
+    const [, setTick] = useState(0)
+
+    // Listen to theme & palette changes for instant reactivity
+    useEffect(() => {
+        const handleThemeChange = () => setTick(t => t + 1)
+        window.addEventListener('crm-theme-changed', handleThemeChange)
+        return () => window.removeEventListener('crm-theme-changed', handleThemeChange)
+    }, [])
+
+    const isDark = getThemeName() === 'dark'
 
     // Collapsible group state with persistence in localStorage
     const [collapsedGroups, setCollapsedGroups] = useState(() => {
@@ -146,17 +156,27 @@ export default function Sidebar() {
                 className={({ isActive }) =>
                     `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 select-none ${
                         isActive
-                            ? 'text-white font-bold shadow-sm'
-                            : 'text-slate-400 hover:text-white hover:bg-white/[0.05] hover:translate-x-0.5 font-medium border border-transparent'
+                            ? 'font-bold shadow-xs'
+                            : isDark
+                            ? 'text-slate-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-0.5 font-medium border border-transparent'
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/80 hover:translate-x-0.5 font-semibold border border-transparent'
                     }`
                 }
                 style={({ isActive }) =>
                     isActive
-                        ? {
-                              background: `linear-gradient(90deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`,
-                              border: `1px solid ${T.primary}45`,
-                              boxShadow: `0 4px 16px -2px ${T.primary}30, inset 0 1px 0 rgba(255,255,255,0.15)`,
-                          }
+                        ? isDark
+                            ? {
+                                  background: `linear-gradient(90deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`,
+                                  border: `1px solid ${T.primary}45`,
+                                  boxShadow: `0 4px 16px -2px ${T.primary}30, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                                  color: '#FFFFFF',
+                              }
+                            : {
+                                  background: `linear-gradient(90deg, ${T.primaryDim} 0%, ${T.primaryFaint || 'rgba(79,70,229,0.04)'} 100%)`,
+                                  border: `1px solid ${T.primary}45`,
+                                  boxShadow: `0 2px 10px -2px ${T.primary}25`,
+                                  color: T.primary,
+                              }
                         : {}
                 }
             >
@@ -165,7 +185,7 @@ export default function Sidebar() {
                         {/* Glowing Left Indicator for active item */}
                         {isActive && (
                             <div
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5.5 rounded-r-full"
                                 style={{
                                     background: T.primary,
                                     boxShadow: `0 0 12px ${T.primary}`,
@@ -178,7 +198,9 @@ export default function Sidebar() {
                             className={`material-symbols-outlined text-[19px] shrink-0 transition-transform duration-200 ${
                                 isActive
                                     ? 'filled scale-110'
-                                    : 'text-slate-400 group-hover:text-slate-100 group-hover:scale-105'
+                                    : isDark
+                                    ? 'text-slate-400 group-hover:text-slate-100 group-hover:scale-105'
+                                    : 'text-slate-500 group-hover:text-slate-900 group-hover:scale-105'
                             }`}
                             style={{
                                 color: isActive ? T.primary : undefined,
@@ -195,8 +217,12 @@ export default function Sidebar() {
                             <span
                                 className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full min-w-5 text-center shadow-xs ${
                                     badgeColor === 'emerald'
-                                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]'
-                                        : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.25)]'
+                                        ? isDark
+                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]'
+                                            : 'bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs'
+                                        : isDark
+                                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.25)]'
+                                        : 'bg-rose-50 text-rose-700 border border-rose-300 shadow-xs'
                                 }`}
                             >
                                 {badgeCount > 99 ? '99+' : badgeCount}
@@ -220,10 +246,14 @@ export default function Sidebar() {
 
             {/* Sidebar container */}
             <aside
-                className={`crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50 select-none transition-transform duration-300 ease-in-out border-r border-white/[0.08] shadow-2xl ${
+                className={`crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50 select-none transition-transform duration-300 ease-in-out border-r ${
                     isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}
-                style={{ background: T.sidebar }}
+                style={{
+                    background: T.sidebar,
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+                    boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.5)' : '4px 0 24px rgba(0, 0, 0, 0.04)',
+                }}
             >
                 {/* ── Brand / Workspace Header ────────────────────── */}
                 <div className="px-4 pt-5 pb-3 shrink-0">
@@ -234,17 +264,21 @@ export default function Sidebar() {
                         >
                             {/* Logo with ambient glow */}
                             <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ring-1 ring-white/20 shadow-md transition-transform duration-200 group-hover:scale-105"
+                                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ring-1 shadow-md transition-transform duration-200 group-hover:scale-105"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     boxShadow: `0 0 16px ${T.avatarGlow}`,
+                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.20)' : 'rgba(0, 0, 0, 0.10)',
                                 }}
                             >
                                 <span className="material-symbols-outlined filled text-white text-[19px]">dataset</span>
                             </div>
 
                             <div className="min-w-0">
-                                <h1 className="text-[15px] font-extrabold tracking-tight text-white leading-tight truncate group-hover:text-white">
+                                <h1
+                                    className="text-[15px] font-black tracking-tight leading-tight truncate transition-colors"
+                                    style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+                                >
                                     Iinventive CRM
                                 </h1>
                             </div>
@@ -254,7 +288,11 @@ export default function Sidebar() {
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+                            className={`md:hidden flex items-center justify-center w-7 h-7 rounded-lg transition-colors cursor-pointer ${
+                                isDark
+                                    ? 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                            }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">close</span>
                         </button>
@@ -262,14 +300,23 @@ export default function Sidebar() {
                 </div>
 
                 {/* Sleek Fading Hairline Divider */}
-                <div className="mx-4 my-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent shrink-0" />
+                <div
+                    className="mx-4 my-1 h-px shrink-0"
+                    style={{
+                        background: isDark
+                            ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)'
+                            : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)',
+                    }}
+                />
 
                 {/* ── Navigation Scroll Area ───────────────────────── */}
                 <nav className="flex-1 flex flex-col gap-1 px-3 py-2 overflow-y-auto overflow-x-hidden scrollbar-none">
                     {isSuperAdmin ? (
                         // SUPER_ADMIN Navigation
                         <>
-                            <div className="px-2 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.09em] text-slate-400/70">
+                            <div className={`px-2 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.09em] ${
+                                isDark ? 'text-slate-400/70' : 'text-slate-500'
+                            }`}>
                                 Platform Administration
                             </div>
                             {renderNavItem('/platform', 'domain', 'Companies', 0, 'rose', true)}
@@ -318,29 +365,51 @@ export default function Sidebar() {
                                 return (
                                     <div
                                         key={group.id}
-                                        className={index > 0 ? 'pt-2 mt-1 border-t border-white/[0.04]' : 'pt-1'}
+                                        className={index > 0 ? (isDark ? 'pt-2 mt-1 border-t border-white/[0.05]' : 'pt-2 mt-1 border-t border-slate-100') : 'pt-1'}
                                     >
                                         {/* Category Collapsible Header */}
                                         <button
                                             type="button"
                                             onClick={() => toggleGroup(group.id)}
-                                            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.14em] transition-all select-none group cursor-pointer text-slate-400/80 hover:text-slate-100 hover:bg-white/[0.04]"
+                                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10.5px] font-black uppercase tracking-[0.14em] transition-all select-none group cursor-pointer ${
+                                                isDark
+                                                    ? 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
+                                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/70'
+                                            }`}
                                         >
                                             <span className="flex items-center gap-2 truncate">
-                                                <span className="w-1 h-1 rounded-full bg-white/30 group-hover:bg-white/60 transition-colors" />
+                                                <span
+                                                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                                                        isDark
+                                                            ? 'bg-white/30 group-hover:bg-white/70'
+                                                            : 'bg-slate-400 group-hover:bg-slate-700'
+                                                    }`}
+                                                />
                                                 <span>{group.label}</span>
-                                                <span className="text-[9px] font-bold text-slate-500 lowercase tracking-normal">
+                                                <span
+                                                    className={`text-[9.5px] font-bold lowercase tracking-normal ${
+                                                        isDark ? 'text-slate-500' : 'text-slate-400'
+                                                    }`}
+                                                >
                                                     ({visibleItems.length})
                                                 </span>
                                             </span>
                                             <div className="flex items-center gap-1.5 shrink-0">
                                                 {isCollapsed && groupBadgeCount > 0 && (
-                                                    <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs">
+                                                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center shadow-xs ${
+                                                        isDark
+                                                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                                            : 'bg-rose-50 text-rose-700 border border-rose-300'
+                                                    }`}>
                                                         {groupBadgeCount > 99 ? '99+' : groupBadgeCount}
                                                     </span>
                                                 )}
                                                 <span
-                                                    className="material-symbols-outlined text-[14px] transition-transform duration-200 text-slate-500 group-hover:text-slate-300"
+                                                    className={`material-symbols-outlined text-[14px] transition-transform duration-200 ${
+                                                        isDark
+                                                            ? 'text-slate-500 group-hover:text-slate-300'
+                                                            : 'text-slate-400 group-hover:text-slate-700'
+                                                    }`}
                                                     style={{
                                                         transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                                                     }}
@@ -375,41 +444,71 @@ export default function Sidebar() {
                 </nav>
 
                 {/* ── User Profile Footer Card ────────────────────── */}
-                <div className="p-3 shrink-0 border-t border-white/[0.06] bg-black/10">
+                <div
+                    className="p-3 shrink-0 border-t"
+                    style={{
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+                        background: isDark ? 'rgba(0, 0, 0, 0.20)' : '#F8FAFC',
+                    }}
+                >
                     <button
                         type="button"
                         onClick={() => navigate(isSuperAdmin ? '/platform/profile' : '/settings')}
-                        className="w-full flex items-center gap-2.5 p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 text-left group shadow-xs cursor-pointer"
+                        className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all duration-200 text-left group shadow-xs cursor-pointer border ${
+                            isDark
+                                ? 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.06] hover:border-white/[0.12]'
+                                : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300'
+                        }`}
                     >
                         {/* Avatar */}
                         <div className="relative shrink-0">
                             <div
-                                className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs text-white ring-1 ring-white/15 shadow-sm"
+                                className="w-8.5 h-8.5 rounded-xl flex items-center justify-center font-black text-xs text-white ring-1 shadow-sm"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     boxShadow: `0 0 10px ${T.avatarGlow}`,
+                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
                                 }}
                             >
                                 {name ? name.charAt(0).toUpperCase() : 'U'}
                             </div>
                             {/* Online Status Dot */}
-                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0A0D14] shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                            <div
+                                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 shadow-[0_0_6px_rgba(52,211,153,0.8)] ${
+                                    isDark ? 'ring-[#0D111D]' : 'ring-white'
+                                }`}
+                            />
                         </div>
 
                         {/* User Meta */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-[12.5px] font-bold text-white truncate leading-tight group-hover:text-white transition-colors">
+                            <p
+                                className="text-[12.5px] font-bold truncate leading-tight transition-colors"
+                                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+                            >
                                 {name}
                             </p>
                             <div className="flex items-center gap-1 mt-0.5">
-                                <span className="inline-block px-1.5 py-0.2 rounded text-[9.5px] font-extrabold uppercase tracking-wider text-slate-300 bg-white/[0.06] border border-white/[0.08] truncate max-w-[130px]">
+                                <span
+                                    className={`inline-block px-1.5 py-0.2 rounded text-[9.5px] font-extrabold uppercase tracking-wider truncate max-w-[130px] border ${
+                                        isDark
+                                            ? 'text-slate-300 bg-white/[0.06] border-white/[0.08]'
+                                            : 'text-slate-600 bg-slate-100 border-slate-200'
+                                    }`}
+                                >
                                     {displayRole}
                                 </span>
                             </div>
                         </div>
 
                         {/* Action Icon */}
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-white group-hover:rotate-45 transition-all duration-200 shrink-0">
+                        <span
+                            className={`material-symbols-outlined text-[16px] group-hover:rotate-45 transition-all duration-200 shrink-0 ${
+                                isDark
+                                    ? 'text-slate-400 group-hover:text-white'
+                                    : 'text-slate-500 group-hover:text-slate-900'
+                            }`}
+                        >
                             {isSuperAdmin ? 'manage_accounts' : 'settings'}
                         </span>
                     </button>
