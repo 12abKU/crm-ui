@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
-import { T, getThemeName, getPaletteName } from './constants/theme'
+import { T, getThemeName, getPaletteName, applyAppearanceConfig } from './constants/theme'
 import ApiErrorToast from './components/ui/ApiErrorToast'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -226,14 +226,20 @@ export default function App() {
   }))
 
   useEffect(() => {
+    applyAppearanceConfig()
     const handler = () => {
       setThemeState({
         mode: getThemeName(),
         palette: getPaletteName()
       })
+      applyAppearanceConfig()
     }
     window.addEventListener('crm-theme-changed', handler)
-    return () => window.removeEventListener('crm-theme-changed', handler)
+    window.addEventListener('crm-appearance-changed', handler)
+    return () => {
+      window.removeEventListener('crm-theme-changed', handler)
+      window.removeEventListener('crm-appearance-changed', handler)
+    }
   }, [])
 
   useEffect(() => {

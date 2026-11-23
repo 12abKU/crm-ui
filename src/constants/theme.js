@@ -672,6 +672,158 @@ export const T = new Proxy({}, {
     }
 })
 
+// ── Enterprise Typography & Appearance Customization Engine ────
+export const AVAILABLE_FONTS = [
+    {
+        id: 'manrope',
+        name: 'Manrope',
+        category: 'Modern Geometric Sans',
+        value: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+        sample: 'The quick brown fox jumps over the lazy dog',
+        badge: 'Default Flagship',
+    },
+    {
+        id: 'inter',
+        name: 'Inter',
+        category: 'Clean Corporate Sans',
+        value: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+        sample: 'Clean, legible corporate design standard',
+        badge: 'Stripe & GitHub',
+    },
+    {
+        id: 'plus-jakarta-sans',
+        name: 'Plus Jakarta Sans',
+        category: 'Vibrant SaaS Tech',
+        value: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+        sample: 'Modern geometric curves and punchy titles',
+        badge: 'Supabase & Linear',
+    },
+    {
+        id: 'outfit',
+        name: 'Outfit',
+        category: 'Executive & Editorial',
+        value: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif",
+        sample: 'Sophisticated luxury and refined fintech style',
+        badge: 'FinTech Modern',
+    },
+    {
+        id: 'space-grotesk',
+        name: 'Space Grotesk',
+        category: 'Cyber Tech & Bold',
+        value: "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+        sample: 'High-tech engineering and distinctive tech personality',
+        badge: 'Cyber Tech',
+    },
+    {
+        id: 'system',
+        name: 'System UI',
+        category: 'Native OS',
+        value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        sample: 'Native platform performance and familiar look',
+        badge: 'Native OS',
+    },
+    {
+        id: 'jetbrains-mono',
+        name: 'JetBrains Mono',
+        category: 'Developer & Data',
+        value: "'JetBrains Mono', monospace",
+        sample: 'Precision technical font for data analytics',
+        badge: 'Code & Data',
+    },
+]
+
+export const FONT_SCALES = [
+    { id: 'compact', name: 'Compact Density', scale: '13px', percentage: '92%', description: 'High information density for lists, pipelines, and tables' },
+    { id: 'default', name: 'Balanced (Default)', scale: '14px', percentage: '100%', description: 'Standard enterprise readability and proportion' },
+    { id: 'comfortable', name: 'Comfortable', scale: '15px', percentage: '108%', description: 'Larger text and breathing room for relaxed reading' },
+    { id: 'large', name: 'Large & Accessible', scale: '16px', percentage: '115%', description: 'High legibility and enhanced accessibility' },
+]
+
+export const LETTER_SPACINGS = [
+    { id: 'tight', name: 'Tight (-0.02em)', value: '-0.02em', description: 'Punchy modern SaaS tracking' },
+    { id: 'normal', name: 'Balanced (-0.01em)', value: '-0.01em', description: 'Standard balanced kerning' },
+    { id: 'relaxed', name: 'Relaxed (0.01em)', value: '0.01em', description: 'Open, clean breathing room' },
+]
+
+export const BORDER_RADII = [
+    { id: 'sharp', name: 'Sharp (6px)', value: '6px', description: 'Bloomberg Terminal & AWS console style' },
+    { id: 'balanced', name: 'Balanced (12px)', value: '12px', description: 'Modern enterprise SaaS standard' },
+    { id: 'rounded', name: 'Soft Rounded (18px)', value: '18px', description: 'Friendly modern fintech curves' },
+    { id: 'pill', name: 'Ultra Pill (24px)', value: '24px', description: 'Maximum smooth rounded aesthetic' },
+]
+
+export const ELEVATION_MODES = [
+    { id: 'flat', name: 'Clean & Flat', description: 'Hairline borders with minimal shadows' },
+    { id: 'modern', name: 'Modern Layered (Default)', description: 'Soft ambient depth with balanced shadows' },
+    { id: 'high-contrast', name: 'High Contrast', description: 'Prominent borders and clear component separation' },
+]
+
+export function getAppearanceConfig() {
+    try {
+        const saved = localStorage.getItem('crm-appearance-config')
+        if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+        fontFamily: 'manrope',
+        fontSize: 'default',
+        letterSpacing: 'normal',
+        borderRadius: 'balanced',
+        elevation: 'modern',
+    }
+}
+
+export function saveAppearanceConfig(config) {
+    localStorage.setItem('crm-appearance-config', JSON.stringify(config))
+    applyAppearanceConfig(config)
+    window.dispatchEvent(new CustomEvent('crm-appearance-changed', { detail: config }))
+}
+
+export function applyAppearanceConfig(config) {
+    if (!config) config = getAppearanceConfig()
+    const root = document.documentElement
+
+    // Font Family
+    const fontObj = AVAILABLE_FONTS.find(f => f.id === config.fontFamily) || AVAILABLE_FONTS[0]
+    root.style.setProperty('--crm-font-family', fontObj.value)
+
+    // Font Size
+    const scaleObj = FONT_SCALES.find(s => s.id === config.fontSize) || FONT_SCALES[1]
+    root.style.setProperty('--crm-font-size-base', scaleObj.scale)
+
+    // Letter Spacing
+    const letterObj = LETTER_SPACINGS.find(l => l.id === config.letterSpacing) || LETTER_SPACINGS[1]
+    root.style.setProperty('--crm-letter-spacing', letterObj.value)
+
+    // Border Radius
+    const radiusObj = BORDER_RADII.find(r => r.id === config.borderRadius) || BORDER_RADII[1]
+    root.style.setProperty('--crm-radius-base', radiusObj.value)
+
+    // Elevation / Contrast class on root
+    root.classList.remove('elevation-flat', 'elevation-modern', 'elevation-high-contrast')
+    root.classList.add(`elevation-${config.elevation || 'modern'}`)
+}
+
+export function resetAppearanceConfig() {
+    localStorage.removeItem('crm-appearance-config')
+    const defaults = {
+        fontFamily: 'manrope',
+        fontSize: 'default',
+        letterSpacing: 'normal',
+        borderRadius: 'balanced',
+        elevation: 'modern',
+    }
+    applyAppearanceConfig(defaults)
+    window.dispatchEvent(new CustomEvent('crm-appearance-changed', { detail: defaults }))
+    return defaults
+}
+
+// Automatically apply saved appearance on initial module load
+if (typeof document !== 'undefined') {
+    try {
+        applyAppearanceConfig(getAppearanceConfig())
+    } catch {}
+}
+
 // ── Typography ──────────────────────────────────────────────
 export const FONT = {
     base: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
