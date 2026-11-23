@@ -758,6 +758,36 @@ export const ELEVATION_MODES = [
     { id: 'high-contrast', name: 'High Contrast', description: 'Prominent borders and clear component separation' },
 ]
 
+export const TABLE_DENSITIES = [
+    { id: 'compact', name: 'Compact Density (34px)', py: '6px', description: 'Maximum rows visible on screen for high-volume sales reps' },
+    { id: 'standard', name: 'Standard (44px)', py: '10px', description: 'Balanced row height and clear legibility' },
+    { id: 'comfortable', name: 'Comfortable (54px)', py: '14px', description: 'Spacious layout with generous touch targets' },
+]
+
+export const MOTION_SPEEDS = [
+    { id: 'instant', name: 'Instant (0ms)', description: 'Zero animations for high-speed power users (Linear style)' },
+    { id: 'snappy', name: 'Snappy (120ms)', description: 'Crisp micro-interactions and quick transitions' },
+    { id: 'smooth', name: 'Smooth (250ms)', description: 'Fluid physics-based spring curves (Default)' },
+]
+
+export const FOCUS_RING_STYLES = [
+    { id: 'standard', name: 'Standard Accent Ring (2px)', description: 'Clean modern primary accent focus outline' },
+    { id: 'high-contrast', name: 'High-Visibility (4px WCAG)', description: 'Dual-ring high contrast halo for accessibility' },
+]
+
+export const SIDEBAR_TREATMENTS = [
+    { id: 'solid', name: 'Solid Opaque', description: 'Clean flat enterprise background' },
+    { id: 'glass', name: 'Frosted Glass Blur', description: 'Acrylic translucency with backdrop blur (Raycast/Arc style)' },
+    { id: 'tinted', name: 'Brand Tinted Gradient', description: 'Subtle ambient primary brand tint' },
+]
+
+export const THEME_MODES = [
+    { id: 'light', name: 'Light Mode', icon: 'light_mode', description: 'Clean daytime high clarity' },
+    { id: 'dark', name: 'Dark Mode', icon: 'dark_mode', description: 'Deep obsidian carbon contrast' },
+    { id: 'system', name: 'Follow System (OS)', icon: 'settings_brightness', description: 'Automatically matches your computer / phone OS mode' },
+    { id: 'schedule', name: 'Sunrise / Sunset', icon: 'schedule', description: 'Light during daytime (7 AM - 7 PM), Dark at night' },
+]
+
 export function getAppearanceConfig() {
     try {
         const saved = localStorage.getItem('crm-appearance-config')
@@ -769,6 +799,16 @@ export function getAppearanceConfig() {
         letterSpacing: 'normal',
         borderRadius: 'balanced',
         elevation: 'modern',
+        themeMode: 'light',
+        tableDensity: 'standard',
+        tableZebra: false,
+        tableGridlines: 'horizontal',
+        tabularNumbers: true,
+        motionSpeed: 'smooth',
+        focusRing: 'standard',
+        cursorStyle: 'default',
+        sidebarTreatment: 'solid',
+        underlineLinks: false,
     }
 }
 
@@ -798,9 +838,57 @@ export function applyAppearanceConfig(config) {
     const radiusObj = BORDER_RADII.find(r => r.id === config.borderRadius) || BORDER_RADII[1]
     root.style.setProperty('--crm-radius-base', radiusObj.value)
 
+    // Table Density
+    const tableDensityObj = TABLE_DENSITIES.find(d => d.id === config.tableDensity) || TABLE_DENSITIES[1]
+    root.style.setProperty('--crm-table-py', tableDensityObj.py)
+
+    // Tabular Numbers
+    if (config.tabularNumbers !== false) {
+        root.style.setProperty('--crm-numeric-features', 'tabular-nums lining-nums')
+        root.style.setProperty('--crm-font-features', '"tnum" 1, "lnum" 1')
+    } else {
+        root.style.setProperty('--crm-numeric-features', 'normal')
+        root.style.setProperty('--crm-font-features', 'normal')
+    }
+
+    // Motion Speed
+    root.classList.toggle('crm-no-motion', config.motionSpeed === 'instant')
+
+    // Table Zebra Striping
+    root.classList.toggle('table-zebra', Boolean(config.tableZebra))
+
+    // Table Gridlines
+    root.classList.toggle('table-gridlines-full', config.tableGridlines === 'full')
+
+    // Focus Ring
+    root.classList.toggle('focus-high-contrast', config.focusRing === 'high-contrast')
+
+    // Underline Links
+    root.classList.toggle('underline-links', Boolean(config.underlineLinks))
+
+    // Sidebar Treatment
+    root.classList.toggle('sidebar-glass', config.sidebarTreatment === 'glass')
+    root.classList.toggle('sidebar-tinted', config.sidebarTreatment === 'tinted')
+
     // Elevation / Contrast class on root
     root.classList.remove('elevation-flat', 'elevation-modern', 'elevation-high-contrast')
     root.classList.add(`elevation-${config.elevation || 'modern'}`)
+
+    // Theme Mode Automation (System / Schedule)
+    if (config.themeMode === 'system') {
+        if (typeof window !== 'undefined' && window.matchMedia) {
+            const isDarkOS = window.matchMedia('(prefers-color-scheme: dark)').matches
+            if (getThemeName() !== (isDarkOS ? 'dark' : 'light')) {
+                setThemeName(isDarkOS ? 'dark' : 'light')
+            }
+        }
+    } else if (config.themeMode === 'schedule') {
+        const hour = new Date().getHours()
+        const isNight = hour < 7 || hour >= 19
+        if (getThemeName() !== (isNight ? 'dark' : 'light')) {
+            setThemeName(isNight ? 'dark' : 'light')
+        }
+    }
 }
 
 export function resetAppearanceConfig() {
@@ -811,10 +899,56 @@ export function resetAppearanceConfig() {
         letterSpacing: 'normal',
         borderRadius: 'balanced',
         elevation: 'modern',
+        themeMode: 'light',
+        tableDensity: 'standard',
+        tableZebra: false,
+        tableGridlines: 'horizontal',
+        tabularNumbers: true,
+        motionSpeed: 'smooth',
+        focusRing: 'standard',
+        cursorStyle: 'default',
+        sidebarTreatment: 'solid',
+        underlineLinks: false,
     }
     applyAppearanceConfig(defaults)
     window.dispatchEvent(new CustomEvent('crm-appearance-changed', { detail: defaults }))
     return defaults
+}
+
+// ── Theme JSON Export & Import Engine ───────────────────────────
+export function exportThemePackage() {
+    const appearance = getAppearanceConfig()
+    const custom = getCustomThemeConfig()
+    const mode = getThemeName()
+    const palette = getPaletteName()
+
+    return {
+        schema: 'crm-theme-v1',
+        exportedAt: new Date().toISOString(),
+        mode,
+        palette,
+        customColors: custom,
+        appearance,
+    }
+}
+
+export function importThemePackage(themeJsonOrString) {
+    try {
+        let pkg = null
+        if (typeof themeJsonOrString === 'string') {
+            pkg = JSON.parse(themeJsonOrString.trim())
+        } else {
+            pkg = themeJsonOrString
+        }
+
+        if (pkg.mode) setThemeName(pkg.mode)
+        if (pkg.customColors) saveCustomTheme(pkg.customColors)
+        if (pkg.palette && pkg.palette !== 'custom') setPaletteName(pkg.palette)
+        if (pkg.appearance) saveAppearanceConfig(pkg.appearance)
+        return { success: true }
+    } catch (e) {
+        return { success: false, error: e.message }
+    }
 }
 
 // Automatically apply saved appearance on initial module load

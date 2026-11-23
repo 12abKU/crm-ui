@@ -308,3 +308,76 @@ button {
 .whatsapp-tick {
     font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20 !important;
 }
+
+/* ── Enterprise Appearance Customization Rules ── */
+.tabular-nums,
+table td,
+.metric-number,
+.stat-value {
+    font-variant-numeric: var(--crm-numeric-features, tabular-nums lining-nums);
+    font-feature-settings: var(--crm-font-features, "tnum" 1, "lnum" 1);
+}
+
+.crm-table td {
+    padding-top: var(--crm-table-py, 10px);
+    padding-bottom: var(--crm-table-py, 10px);
+}
+
+/* Table Zebra Striping */
+.table-zebra .crm-table tbody tr:nth-child(even) td {
+    background-color: var(--crm-surface-high, rgba(0, 0, 0, 0.02));
+}
+
+.dark.table-zebra .crm-table tbody tr:nth-child(even) td {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Full Gridlines Mode */
+.table-gridlines-full .crm-table td,
+.table-gridlines-full .crm-table th {
+    border: 1px solid var(--crm-border-subtle, rgba(0, 0, 0, 0.06));
+}
+
+.dark.table-gridlines-full .crm-table td,
+.dark.table-gridlines-full .crm-table th {
+    border: 1px solid var(--crm-border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+/* Instant Motion (Power User Mode) */
+.crm-no-motion *,
+.crm-no-motion *::before,
+.crm-no-motion *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+}
+
+/* High Visibility Focus Ring */
+.focus-high-contrast *:focus-visible {
+    outline: 3px solid var(--crm-primary, #6366F1) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Underline Interactive Links */
+.underline-links a:not(.no-underline) {
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+}
+
+/* Sidebar Glassmorphism Acrylic Blur */
+.sidebar-glass .crm-sidebar {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+.dark.sidebar-glass .crm-sidebar {
+    background: rgba(13, 17, 29, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+/* Sidebar Brand Tinted */
+.sidebar-tinted .crm-sidebar {
+    background: linear-gradient(180deg, var(--crm-sidebar) 0%, var(--crm-primary-faint, rgba(99, 102, 241, 0.04)) 100%) !important;
+}

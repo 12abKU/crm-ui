@@ -14,10 +14,17 @@ import {
     LETTER_SPACINGS,
     BORDER_RADII,
     ELEVATION_MODES,
+    TABLE_DENSITIES,
+    MOTION_SPEEDS,
+    FOCUS_RING_STYLES,
+    SIDEBAR_TREATMENTS,
+    THEME_MODES,
     getAppearanceConfig,
     saveAppearanceConfig,
     resetAppearanceConfig,
-    applyAppearanceConfig
+    applyAppearanceConfig,
+    exportThemePackage,
+    importThemePackage
 } from '../../constants/theme'
 
 // Preset popular brand accent swatches
@@ -54,12 +61,15 @@ export default function ThemeAppearanceSettings() {
 
     const isDark = currentMode === 'dark'
 
-    // Appearance State (Typography & UI Geometry)
+    // Appearance State (Typography, Tables, Motion, Geometry)
     const [appearance, setAppearance] = useState(() => getAppearanceConfig())
     // Custom Color Theme State
     const [customConfig, setCustomConfig] = useState(() => getCustomThemeConfig())
     const [savedSuccess, setSavedSuccess] = useState(false)
-    const [activeSection, setActiveSection] = useState('all') // 'all', 'typography', 'colors', 'geometry'
+    const [statusMessage, setStatusMessage] = useState('')
+    const [activeTab, setActiveTab] = useState('typography') // 'typography', 'colors', 'tables', 'accessibility', 'share'
+    const [importJsonText, setImportJsonText] = useState('')
+    const [importError, setImportError] = useState('')
 
     // Live preview values
     const selectedFont = AVAILABLE_FONTS.find(f => f.id === appearance.fontFamily) || AVAILABLE_FONTS[0]
@@ -69,6 +79,7 @@ export default function ThemeAppearanceSettings() {
 
     const handleModeSwitch = (mode) => {
         setThemeName(mode)
+        handleUpdateAppearance('themeMode', mode)
     }
 
     const handleSelectPalette = (paletteId) => {
@@ -78,7 +89,6 @@ export default function ThemeAppearanceSettings() {
     const handleUpdateAppearance = (key, value) => {
         const updated = { ...appearance, [key]: value }
         setAppearance(updated)
-        // Immediately apply live so user feels the change instantly
         applyAppearanceConfig(updated)
         saveAppearanceConfig(updated)
     }
@@ -87,6 +97,7 @@ export default function ThemeAppearanceSettings() {
         e?.preventDefault()
         saveCustomTheme(customConfig)
         setSavedSuccess(true)
+        setStatusMessage('Custom Theme Applied!')
         setTimeout(() => setSavedSuccess(false), 3000)
     }
 
@@ -101,21 +112,47 @@ export default function ThemeAppearanceSettings() {
             name: 'My Custom Theme'
         })
         setSavedSuccess(true)
+        setStatusMessage('Reset to Enterprise Defaults')
         setTimeout(() => setSavedSuccess(false), 3000)
+    }
+
+    const handleExportTheme = () => {
+        const pkg = exportThemePackage()
+        const jsonStr = JSON.stringify(pkg, null, 2)
+        navigator.clipboard.writeText(jsonStr)
+        setSavedSuccess(true)
+        setStatusMessage('Theme JSON copied to clipboard!')
+        setTimeout(() => setSavedSuccess(false), 3000)
+    }
+
+    const handleImportTheme = () => {
+        setImportError('')
+        if (!importJsonText.trim()) return
+        const res = importThemePackage(importJsonText)
+        if (res.success) {
+            setAppearance(getAppearanceConfig())
+            setCustomConfig(getCustomThemeConfig())
+            setImportJsonText('')
+            setSavedSuccess(true)
+            setStatusMessage('Theme successfully imported!')
+            setTimeout(() => setSavedSuccess(false), 3000)
+        } else {
+            setImportError('Invalid JSON format: ' + res.error)
+        }
     }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-200">
-            {/* ── Top Status & Navigation Bar ─────────────────── */}
+            {/* ── Top Header / Status Overview ─────────────────── */}
             <div
-                className="p-5 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
                 style={{ background: T.surface, borderColor: T.border }}
             >
                 <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
                             style={{ background: T.primaryDim, color: T.primary, borderColor: `${T.primary}40` }}>
-                            Enterprise Theme Engine
+                            Enterprise Theme Studio
                         </span>
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                             style={{ background: T.surfaceHigh, color: T.textSecondary }}>
@@ -123,15 +160,19 @@ export default function ThemeAppearanceSettings() {
                         </span>
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                             style={{ background: T.surfaceHigh, color: T.textSecondary }}>
-                            Mode: {isDark ? 'Obsidian Dark' : 'Crisp Light'}
+                            Motion: {appearance.motionSpeed}
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: T.surfaceHigh, color: T.textSecondary }}>
+                            Density: {appearance.tableDensity}
                         </span>
                     </div>
                     <p className="text-xs" style={{ color: T.textMuted }}>
-                        Full visual control: typography, font families, text scaling, letter spacing, UI geometry, and bespoke color palettes.
+                        Full visual control: typography, font density, tabular numbers, data grid density, glassmorphism, and shareable themes.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                     <button
                         type="button"
                         onClick={handleResetAll}
@@ -143,46 +184,49 @@ export default function ThemeAppearanceSettings() {
                     {savedSuccess && (
                         <span className="text-xs font-bold text-emerald-500 flex items-center gap-1 animate-in fade-in">
                             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                            Saved & Applied
+                            {statusMessage}
                         </span>
                     )}
                 </div>
             </div>
 
-            {/* ── Section Quick Filter Tabs ────────────────────── */}
-            <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none pb-1">
+            {/* ── Enterprise Tab Navigation ───────────────────── */}
+            <div
+                className="flex p-1.5 rounded-2xl border overflow-x-auto whitespace-nowrap scrollbar-none gap-1 sm:gap-2"
+                style={{ background: T.surface, borderColor: T.border }}
+            >
                 {[
-                    { id: 'all', label: 'All Controls', icon: 'dashboard_customize' },
                     { id: 'typography', label: 'Typography & Fonts', icon: 'text_fields' },
                     { id: 'colors', label: 'Color Themes & Palettes', icon: 'palette' },
-                    { id: 'geometry', label: 'UI Geometry & Depth', icon: 'shape_line' },
+                    { id: 'tables', label: 'Data Grid & Tables', icon: 'table_chart' },
+                    { id: 'accessibility', label: 'Motion & Geometry', icon: 'tune' },
+                    { id: 'share', label: 'Shareable Themes', icon: 'share' },
                 ].map(tab => {
-                    const active = activeSection === tab.id
+                    const active = activeTab === tab.id
                     return (
                         <button
                             key={tab.id}
                             type="button"
-                            onClick={() => setActiveSection(tab.id)}
-                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                                active ? 'shadow-xs scale-[1.01]' : 'hover:opacity-80'
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer shrink-0 ${
+                                active ? 'shadow-sm scale-[1.01]' : 'hover:opacity-85'
                             }`}
                             style={{
-                                background: active ? T.primaryDim : T.surface,
-                                color: active ? T.primary : T.textSecondary,
-                                borderColor: active ? T.primary : T.border,
+                                background: active ? T.primary : 'transparent',
+                                color: active ? '#FFFFFF' : T.textSecondary,
                             }}
                         >
-                            <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+                            <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
                             <span>{tab.label}</span>
                         </button>
                     )
                 })}
             </div>
 
-            {/* ── Section 1: Typography & Text Design Studio ──── */}
-            {(activeSection === 'all' || activeSection === 'typography') && (
+            {/* ── TAB 1: Typography & Text Design Studio ───────── */}
+            {activeTab === 'typography' && (
                 <div
-                    className="p-6 rounded-2xl border shadow-xs transition-all duration-200 space-y-6"
+                    className="p-6 rounded-2xl border shadow-xs space-y-6 animate-in fade-in duration-150"
                     style={{ background: T.surface, borderColor: T.border }}
                 >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
@@ -192,12 +236,12 @@ export default function ThemeAppearanceSettings() {
                                 Typography & Font Studio
                             </h2>
                             <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                                Select your primary interface typeface. Tested for crisp clarity, high data density, and effortless reading.
+                                Select your primary typeface. Benchmarked against Stripe, GitHub, Linear, and Supabase for highest legibility.
                             </p>
                         </div>
                         <span className="text-[11px] font-extrabold px-2.5 py-1 rounded-full border self-start sm:self-auto"
                             style={{ background: T.primaryDim, color: T.primary, borderColor: `${T.primary}40` }}>
-                            {AVAILABLE_FONTS.length} Typefaces Available
+                            {AVAILABLE_FONTS.length} Typefaces
                         </span>
                     </div>
 
@@ -240,7 +284,6 @@ export default function ThemeAppearanceSettings() {
                                             </p>
                                         </div>
 
-                                        {/* Live pangram preview in that specific font */}
                                         <div
                                             className="p-2.5 rounded-lg border text-xs leading-snug"
                                             style={{
@@ -264,15 +307,15 @@ export default function ThemeAppearanceSettings() {
                         <div className="flex items-center justify-between mb-3">
                             <div>
                                 <label className="block text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>
-                                    Interface Density & Font Size
+                                    Interface Density & Font Scale
                                 </label>
                                 <p className="text-[11px]" style={{ color: T.textMuted }}>
-                                    Adjust overall UI scaling to pack more data onto the screen or make text larger and easier to read.
+                                    Scales typography proportionally across all dashboards, sidebars, and dialogs.
                                 </p>
                             </div>
                             <span className="text-xs font-black px-2.5 py-1 rounded-lg"
                                 style={{ background: T.primaryDim, color: T.primary }}>
-                                Base: {selectedScale.scale} ({selectedScale.percentage})
+                                Scale: {selectedScale.scale} ({selectedScale.percentage})
                             </span>
                         </div>
 
@@ -306,279 +349,140 @@ export default function ThemeAppearanceSettings() {
                         </div>
                     </div>
 
-                    {/* Letter Spacing (Tracking) */}
-                    <div className="pt-4 border-t" style={{ borderColor: T.border }}>
-                        <div className="flex items-center justify-between mb-3">
-                            <div>
-                                <label className="block text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>
-                                    Letter Spacing & Kerning
-                                </label>
-                                <p className="text-[11px]" style={{ color: T.textMuted }}>
-                                    Controls character tightness across headings and navigation labels.
-                                </p>
+                    {/* Letter Spacing & Tabular Numbers */}
+                    <div className="pt-4 border-t grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ borderColor: T.border }}>
+                        <div>
+                            <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                                Letter Spacing (Tracking)
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {LETTER_SPACINGS.map((spacing) => {
+                                    const isSelected = appearance.letterSpacing === spacing.id
+                                    return (
+                                        <button
+                                            key={spacing.id}
+                                            type="button"
+                                            onClick={() => handleUpdateAppearance('letterSpacing', spacing.id)}
+                                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                                                isSelected ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
+                                            }`}
+                                            style={{
+                                                background: isSelected ? T.primaryFaint : T.surfaceRaised,
+                                                borderColor: isSelected ? T.primary : T.border,
+                                                letterSpacing: spacing.value,
+                                                color: T.textPrimary,
+                                            }}
+                                        >
+                                            <span className="text-xs font-bold">{spacing.name}</span>
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {LETTER_SPACINGS.map((spacing) => {
-                                const isSelected = appearance.letterSpacing === spacing.id
-                                return (
-                                    <button
-                                        key={spacing.id}
-                                        type="button"
-                                        onClick={() => handleUpdateAppearance('letterSpacing', spacing.id)}
-                                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                                            isSelected ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
-                                        }`}
-                                        style={{
-                                            background: isSelected ? T.primaryFaint : T.surfaceRaised,
-                                            borderColor: isSelected ? T.primary : T.border,
-                                        }}
-                                    >
-                                        <div className="text-xs font-bold" style={{ color: T.textPrimary, letterSpacing: spacing.value }}>
-                                            {spacing.name}
-                                        </div>
-                                        <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
-                                            {spacing.description}
-                                        </p>
-                                    </button>
-                                )
-                            })}
+                        {/* Tabular Numbers Feature */}
+                        <div>
+                            <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                                Tabular Numbers (tnum)
+                            </label>
+                            <div
+                                onClick={() => handleUpdateAppearance('tabularNumbers', !appearance.tabularNumbers)}
+                                className="p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all"
+                                style={{
+                                    background: appearance.tabularNumbers ? T.primaryFaint : T.surfaceRaised,
+                                    borderColor: appearance.tabularNumbers ? T.primary : T.border,
+                                }}
+                            >
+                                <div>
+                                    <p className="text-xs font-bold" style={{ color: T.textPrimary }}>
+                                        Monospace Alignment for Numbers
+                                    </p>
+                                    <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
+                                        Prevents horizontal jittering in deal amounts, counters, and table currency columns.
+                                    </p>
+                                </div>
+                                <span className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold ${
+                                    appearance.tabularNumbers ? 'bg-emerald-500 text-white' : 'border'
+                                }`}>
+                                    {appearance.tabularNumbers ? '✓' : ''}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ── Section 2: UI Geometry, Shapes & Depth ──────── */}
-            {(activeSection === 'all' || activeSection === 'geometry') && (
-                <div
-                    className="p-6 rounded-2xl border shadow-xs transition-all duration-200 space-y-6"
-                    style={{ background: T.surface, borderColor: T.border }}
-                >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
-                        <div>
-                            <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
-                                <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>shape_line</span>
-                                Interface Geometry & Card Depth
-                            </h2>
-                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                                Configure component corner roundness, card surface elevations, and visual contrast modes.
-                            </p>
-                        </div>
-                    </div>
+            {/* ── TAB 2: Color Themes, Palettes & Custom Studio ── */}
+            {activeTab === 'colors' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                    {/* Mode Selector (Light, Dark, System, Schedule) */}
+                    <div
+                        className="p-6 rounded-2xl border shadow-xs"
+                        style={{ background: T.surface, borderColor: T.border }}
+                    >
+                        <h2 className="text-base font-extrabold flex items-center gap-2 mb-1" style={{ color: T.textPrimary }}>
+                            <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>contrast</span>
+                            Color Mode Automation
+                        </h2>
+                        <p className="text-xs mb-4" style={{ color: T.textMuted }}>
+                            Choose manual mode, sync automatically with your device OS, or follow a solar sunrise/sunset schedule.
+                        </p>
 
-                    {/* Corner Radius */}
-                    <div>
-                        <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
-                            Corner Roundness (Border Radius)
-                        </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {BORDER_RADII.map((r) => {
-                                const isSelected = appearance.borderRadius === r.id
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {THEME_MODES.map((tm) => {
+                                const isSelected = (appearance.themeMode || 'light') === tm.id
                                 return (
                                     <button
-                                        key={r.id}
+                                        key={tm.id}
                                         type="button"
-                                        onClick={() => handleUpdateAppearance('borderRadius', r.id)}
-                                        className={`p-3.5 border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                                        onClick={() => handleModeSwitch(tm.id)}
+                                        className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer ${
                                             isSelected ? 'shadow-md scale-[1.01]' : 'hover:border-slate-400/50'
                                         }`}
                                         style={{
-                                            borderRadius: r.value,
                                             background: isSelected ? T.primaryFaint : T.surfaceRaised,
                                             borderColor: isSelected ? T.primary : T.border,
                                         }}
                                     >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-black" style={{ color: T.textPrimary }}>{r.name}</span>
-                                            {/* Visual icon demonstrating the corner radius */}
-                                            <div
-                                                className="w-5 h-5 border-2 border-dashed"
-                                                style={{
-                                                    borderRadius: r.value,
-                                                    borderColor: isSelected ? T.primary : T.textMuted,
-                                                }}
-                                            />
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="material-symbols-outlined text-[19px]" style={{ color: T.primary }}>
+                                                {tm.icon}
+                                            </span>
+                                            <span className="text-xs font-bold" style={{ color: T.textPrimary }}>{tm.name}</span>
                                         </div>
-                                        <p className="text-[10.5px]" style={{ color: T.textMuted }}>{r.description}</p>
+                                        <p className="text-[10.5px]" style={{ color: T.textMuted }}>{tm.description}</p>
                                     </button>
                                 )
                             })}
                         </div>
                     </div>
 
-                    {/* Surface Elevation & Depth */}
-                    <div className="pt-4 border-t" style={{ borderColor: T.border }}>
-                        <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
-                            Card Elevation & Shadow Depth
-                        </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {ELEVATION_MODES.map((em) => {
-                                const isSelected = (appearance.elevation || 'modern') === em.id
-                                return (
-                                    <button
-                                        key={em.id}
-                                        type="button"
-                                        onClick={() => handleUpdateAppearance('elevation', em.id)}
-                                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                            isSelected ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
-                                        }`}
-                                        style={{
-                                            background: isSelected ? T.primaryFaint : T.surfaceRaised,
-                                            borderColor: isSelected ? T.primary : T.border,
-                                        }}
-                                    >
-                                        <div className="text-xs font-bold" style={{ color: T.textPrimary }}>
-                                            {em.name}
-                                        </div>
-                                        <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
-                                            {em.description}
-                                        </p>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── Section 3: Color Themes, Palettes & Custom Studio ── */}
-            {(activeSection === 'all' || activeSection === 'colors') && (
-                <>
-                    {/* Color Mode (Light / Dark) */}
+                    {/* Curated Theme Palettes */}
                     <div
-                        className="p-6 rounded-2xl border shadow-xs transition-all duration-200"
+                        className="p-6 rounded-2xl border shadow-xs"
                         style={{ background: T.surface, borderColor: T.border }}
                     >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b" style={{ borderColor: T.border }}>
-                            <div>
-                                <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
-                                    <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>contrast</span>
-                                    Color Mode
-                                </h2>
-                                <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                                    Switch between daytime crisp light mode and deep obsidian night mode.
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => handleModeSwitch('light')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                                        !isDark ? 'shadow-md scale-[1.02]' : 'hover:opacity-80'
-                                    }`}
-                                    style={{
-                                        background: !isDark ? T.primary : T.surfaceHigh,
-                                        color: !isDark ? '#FFFFFF' : T.textSecondary,
-                                        borderColor: !isDark ? T.primary : T.border,
-                                    }}
-                                >
-                                    <span className="material-symbols-outlined text-[17px]">light_mode</span>
-                                    Light Mode
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => handleModeSwitch('dark')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                                        isDark ? 'shadow-md scale-[1.02]' : 'hover:opacity-80'
-                                    }`}
-                                    style={{
-                                        background: isDark ? T.primary : T.surfaceHigh,
-                                        color: isDark ? '#FFFFFF' : T.textSecondary,
-                                        borderColor: isDark ? T.primary : T.border,
-                                    }}
-                                >
-                                    <span className="material-symbols-outlined text-[17px]">dark_mode</span>
-                                    Dark Mode
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5">
-                            <div
-                                onClick={() => handleModeSwitch('light')}
-                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer select-none flex items-center gap-4 ${
-                                    !isDark ? 'shadow-md' : 'opacity-70 hover:opacity-100'
-                                }`}
-                                style={{
-                                    background: !isDark ? T.primaryFaint : T.surfaceRaised,
-                                    borderColor: !isDark ? T.primary : T.border,
-                                }}
-                            >
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
-                                    <span className="material-symbols-outlined text-[22px]">light_mode</span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="text-xs font-bold" style={{ color: T.textPrimary }}>Crisp Light Mode</h3>
-                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
-                                        High contrast white surfaces with clear typography and vibrant primary accents.
-                                    </p>
-                                </div>
-                                {!isDark && (
-                                    <span className="material-symbols-outlined text-[20px] font-bold" style={{ color: T.primary }}>
-                                        check_circle
-                                    </span>
-                                )}
-                            </div>
-
-                            <div
-                                onClick={() => handleModeSwitch('dark')}
-                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer select-none flex items-center gap-4 ${
-                                    isDark ? 'shadow-md' : 'opacity-70 hover:opacity-100'
-                                }`}
-                                style={{
-                                    background: isDark ? T.primaryDim : T.surfaceRaised,
-                                    borderColor: isDark ? T.primary : T.border,
-                                }}
-                            >
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
-                                    <span className="material-symbols-outlined text-[22px]">dark_mode</span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="text-xs font-bold" style={{ color: T.textPrimary }}>Obsidian Dark Mode</h3>
-                                    <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
-                                        Carbon obsidian depth engineered for reduced eye strain during extended work hours.
-                                    </p>
-                                </div>
-                                {isDark && (
-                                    <span className="material-symbols-outlined text-[20px] font-bold" style={{ color: T.primary }}>
-                                        check_circle
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Curated Palettes */}
-                    <div
-                        className="p-6 rounded-2xl border shadow-xs transition-all duration-200"
-                        style={{ background: T.surface, borderColor: T.border }}
-                    >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
+                        <div className="flex items-center justify-between pb-4 border-b mb-4" style={{ borderColor: T.border }}>
                             <div>
                                 <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
                                     <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>palette</span>
                                     Curated Theme Palettes
                                 </h2>
-                                <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                                    Curated SaaS color combinations inspired by Linear, Stripe, Raycast, and Supabase.
+                                <p className="text-xs mt-0.5" style={{ color: T.textMuted }}>
+                                    Engineered SaaS color schemes inspired by Linear, Stripe, Raycast, and Supabase.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                             {CURATED_PALETTES.map((palette) => {
                                 const isSelected = activePaletteId === palette.id
                                 return (
                                     <div
                                         key={palette.id}
                                         onClick={() => handleSelectPalette(palette.id)}
-                                        className={`p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer relative group flex flex-col justify-between ${
-                                            isSelected
-                                                ? 'shadow-lg scale-[1.01]'
-                                                : 'hover:border-slate-400/50 hover:shadow-xs'
+                                        className={`p-4 rounded-xl border-2 transition-all duration-150 cursor-pointer flex flex-col justify-between ${
+                                            isSelected ? 'shadow-lg scale-[1.01]' : 'hover:border-slate-400/50'
                                         }`}
                                         style={{
                                             background: isSelected ? T.primaryFaint : T.surfaceRaised,
@@ -587,33 +491,29 @@ export default function ThemeAppearanceSettings() {
                                     >
                                         <div>
                                             <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div
-                                                        className="w-4.5 h-4.5 rounded-full shrink-0 shadow-sm ring-2 ring-white/20"
-                                                        style={{ background: palette.accentColor }}
-                                                    />
-                                                    <h3 className="text-xs font-black tracking-tight" style={{ color: T.textPrimary }}>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 rounded-full shadow-xs" style={{ background: palette.accentColor }} />
+                                                    <h3 className="text-xs font-black" style={{ color: T.textPrimary }}>
                                                         {palette.name}
                                                     </h3>
                                                 </div>
                                                 {isSelected && (
-                                                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
-                                                        style={{ background: T.primary, color: '#FFFFFF' }}>
+                                                    <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full text-white"
+                                                        style={{ background: T.primary }}>
                                                         Active
                                                     </span>
                                                 )}
                                             </div>
-
-                                            <p className="text-[11px] leading-relaxed mb-4" style={{ color: T.textMuted }}>
+                                            <p className="text-[11px] mb-3" style={{ color: T.textMuted }}>
                                                 {palette.description}
                                             </p>
                                         </div>
 
                                         <div className="flex items-center gap-1.5 pt-2 border-t" style={{ borderColor: T.borderSubtle }}>
                                             <div className="h-2 flex-1 rounded-full" style={{ background: palette.accentColor }} />
-                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.light.surface }} title="Light Surface" />
-                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.dark.surface }} title="Dark Surface" />
-                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.dark.sidebar }} title="Sidebar" />
+                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.light.surface }} />
+                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.dark.surface }} />
+                                            <div className="h-2 w-5 rounded-full" style={{ background: palette.dark.sidebar }} />
                                         </div>
                                     </div>
                                 )
@@ -621,32 +521,21 @@ export default function ThemeAppearanceSettings() {
                         </div>
                     </div>
 
-                    {/* Bespoke Custom Theme Studio */}
+                    {/* Bespoke Custom Studio & Sidebar Treatments */}
                     <div
-                        className="p-6 rounded-2xl border shadow-xs transition-all duration-200"
+                        className="p-6 rounded-2xl border shadow-xs"
                         style={{ background: T.surface, borderColor: T.border }}
                     >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
-                            <div>
-                                <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
-                                    <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>tune</span>
-                                    Bespoke Custom Theme Studio
-                                </h2>
-                                <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                                    Build your company brand theme. Pick any custom accent color, customize sidebar tone, and save with 0ms reload.
-                                </p>
-                            </div>
+                        <h2 className="text-base font-extrabold flex items-center gap-2 mb-1" style={{ color: T.textPrimary }}>
+                            <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>tune</span>
+                            Custom Theme & Sidebar Studio
+                        </h2>
+                        <p className="text-xs mb-5" style={{ color: T.textMuted }}>
+                            Design your bespoke brand colors and sidebar surface style.
+                        </p>
 
-                            {activePaletteId === 'custom' && (
-                                <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border self-start sm:self-auto bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                                    Custom Theme Active
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5">
-                            {/* Controls Column */}
-                            <div className="lg:col-span-7 space-y-5">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div className="lg:col-span-7 space-y-4">
                                 <div>
                                     <label className="block text-[11px] font-black uppercase tracking-wider mb-1.5" style={{ color: T.textSecondary }}>
                                         Theme Name
@@ -655,380 +544,415 @@ export default function ThemeAppearanceSettings() {
                                         type="text"
                                         value={customConfig.name}
                                         onChange={e => setCustomConfig(prev => ({ ...prev, name: e.target.value }))}
-                                        placeholder="e.g. Acme Corporate Navy"
-                                        className="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold border outline-none transition-all"
-                                        style={{
-                                            background: T.surfaceRaised,
-                                            color: T.textPrimary,
-                                            borderColor: T.border,
-                                        }}
+                                        placeholder="e.g. Acme Tech Navy"
+                                        className="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold border outline-none"
+                                        style={{ background: T.surfaceRaised, color: T.textPrimary, borderColor: T.border }}
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-[11px] font-black uppercase tracking-wider mb-1.5" style={{ color: T.textSecondary }}>
-                                        Primary Brand Accent Color
+                                        Brand Primary Color
                                     </label>
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="color"
-                                                value={customConfig.primary}
-                                                onChange={e => setCustomConfig(prev => ({ ...prev, primary: e.target.value }))}
-                                                className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0 overflow-hidden shrink-0 shadow-sm"
-                                            />
-                                        </div>
+                                        <input
+                                            type="color"
+                                            value={customConfig.primary}
+                                            onChange={e => setCustomConfig(prev => ({ ...prev, primary: e.target.value }))}
+                                            className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0 overflow-hidden shrink-0 shadow-xs"
+                                        />
                                         <input
                                             type="text"
                                             value={customConfig.primary}
                                             onChange={e => setCustomConfig(prev => ({ ...prev, primary: e.target.value }))}
-                                            placeholder="#6366F1"
                                             className="w-32 px-3 py-2 rounded-xl text-xs font-mono font-bold uppercase border outline-none"
-                                            style={{
-                                                background: T.surfaceRaised,
-                                                color: T.textPrimary,
-                                                borderColor: T.border,
-                                            }}
+                                            style={{ background: T.surfaceRaised, color: T.textPrimary, borderColor: T.border }}
                                         />
-                                        <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                            Choose any brand hex or pick from quick swatches
-                                        </span>
                                     </div>
 
-                                    <div className="flex flex-wrap gap-2">
-                                        {QUICK_SWATCHES.map(s => {
-                                            const isCurrent = customConfig.primary.toUpperCase() === s.hex.toUpperCase()
-                                            return (
-                                                <button
-                                                    key={s.hex}
-                                                    type="button"
-                                                    onClick={() => setCustomConfig(prev => ({ ...prev, primary: s.hex }))}
-                                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
-                                                        isCurrent ? 'ring-2 shadow-xs' : 'opacity-85 hover:opacity-100'
-                                                    }`}
-                                                    style={{
-                                                        background: T.surfaceRaised,
-                                                        borderColor: isCurrent ? s.hex : T.border,
-                                                        color: T.textPrimary,
-                                                    }}
-                                                >
-                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.hex }} />
-                                                    {s.label}
-                                                </button>
-                                            )
-                                        })}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {QUICK_SWATCHES.map(s => (
+                                            <button
+                                                key={s.hex}
+                                                type="button"
+                                                onClick={() => setCustomConfig(prev => ({ ...prev, primary: s.hex }))}
+                                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 border cursor-pointer hover:opacity-100"
+                                                style={{ background: T.surfaceRaised, borderColor: T.border, color: T.textPrimary }}
+                                            >
+                                                <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.hex }} />
+                                                {s.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-[11px] font-black uppercase tracking-wider mb-1.5" style={{ color: T.textSecondary }}>
-                                        Sidebar Style in Light Mode
+                                {/* Sidebar Surface Treatment */}
+                                <div className="pt-2">
+                                    <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                                        Sidebar Material Treatment
                                     </label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {[
-                                            { label: 'Pure White (Recommended)', value: '#FFFFFF', hint: 'Clean & minimalist' },
-                                            { label: 'Deep Slate', value: '#0F172A', hint: 'High contrast dark' },
-                                            { label: 'Soft Slate', value: '#F8FAFC', hint: 'Subtle elevation' },
-                                        ].map(opt => {
-                                            const isSel = (customConfig.sidebarLight || '#FFFFFF').toUpperCase() === opt.value.toUpperCase()
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                        {SIDEBAR_TREATMENTS.map(st => {
+                                            const isSel = (appearance.sidebarTreatment || 'solid') === st.id
                                             return (
                                                 <button
-                                                    key={opt.value}
+                                                    key={st.id}
                                                     type="button"
-                                                    onClick={() => setCustomConfig(prev => ({ ...prev, sidebarLight: opt.value }))}
-                                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                                                        isSel ? 'ring-2 shadow-xs' : 'opacity-80 hover:opacity-100'
+                                                    onClick={() => handleUpdateAppearance('sidebarTreatment', st.id)}
+                                                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                                                        isSel ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
                                                     }`}
                                                     style={{
-                                                        background: T.surfaceRaised,
-                                                        borderColor: isSel ? customConfig.primary : T.border,
+                                                        background: isSel ? T.primaryFaint : T.surfaceRaised,
+                                                        borderColor: isSel ? T.primary : T.border,
                                                     }}
                                                 >
-                                                    <p className="text-xs font-bold" style={{ color: T.textPrimary }}>{opt.label}</p>
-                                                    <p className="text-[10px] mt-0.5" style={{ color: T.textMuted }}>{opt.hint}</p>
+                                                    <p className="text-xs font-bold" style={{ color: T.textPrimary }}>{st.name}</p>
+                                                    <p className="text-[10px] mt-0.5" style={{ color: T.textMuted }}>{st.description}</p>
                                                 </button>
                                             )
                                         })}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: T.border }}>
+                                <div className="flex items-center gap-3 pt-3">
                                     <button
                                         type="button"
                                         onClick={handleApplyCustomTheme}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg transition-all cursor-pointer hover:opacity-90 active:scale-95"
-                                        style={{
-                                            background: customConfig.primary,
-                                            boxShadow: `0 8px 20px -4px ${customConfig.primary}50`,
-                                        }}
+                                        className="px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md cursor-pointer hover:opacity-90"
+                                        style={{ background: customConfig.primary }}
                                     >
-                                        <span className="material-symbols-outlined text-[18px]">check</span>
                                         Save & Apply Custom Theme
                                     </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleResetAll}
-                                        className="px-4 py-2.5 rounded-xl font-semibold text-xs border transition-all cursor-pointer hover:bg-black/5"
-                                        style={{ borderColor: T.border, color: T.textMuted }}
-                                    >
-                                        Reset to Default
-                                    </button>
                                 </div>
                             </div>
 
-                            {/* Live Preview Panel */}
+                            {/* Live Theme Swatch */}
                             <div className="lg:col-span-5">
                                 <div
-                                    className="p-5 rounded-2xl border shadow-md space-y-4 sticky top-6"
-                                    style={{
-                                        background: isDark ? '#0D111D' : '#F8FAFC',
-                                        borderColor: T.border,
-                                        fontFamily: selectedFont.value,
-                                    }}
+                                    className="p-5 rounded-2xl border shadow-sm space-y-3"
+                                    style={{ background: isDark ? '#0D111D' : '#F8FAFC', borderColor: T.border }}
                                 >
-                                    <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: T.border }}>
-                                        <span className="text-[11px] font-black uppercase tracking-wider" style={{ color: T.textMuted }}>
-                                            Theme Preview
-                                        </span>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                            style={{ background: `${customConfig.primary}20`, color: customConfig.primary }}>
-                                            {isDark ? 'Dark Preview' : 'Light Preview'}
-                                        </span>
-                                    </div>
-
-                                    {/* Sample Active Nav Item */}
-                                    <div className="space-y-1.5">
-                                        <span className="text-[10px] font-bold" style={{ color: T.textMuted }}>Active Navigation Item</span>
-                                        <div
-                                            className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold border shadow-xs"
-                                            style={{
-                                                background: isDark
-                                                    ? `linear-gradient(90deg, ${customConfig.primary}30 0%, rgba(255,255,255,0.02) 100%)`
-                                                    : `linear-gradient(90deg, ${customConfig.primary}18 0%, ${customConfig.primary}08 100%)`,
-                                                borderColor: `${customConfig.primary}50`,
-                                                color: isDark ? '#FFFFFF' : customConfig.primary,
-                                            }}
-                                        >
-                                            <div
-                                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1.2 h-5 rounded-r-full"
-                                                style={{ background: customConfig.primary, boxShadow: `0 0 10px ${customConfig.primary}` }}
-                                            />
-                                            <span className="material-symbols-outlined text-[18px] filled" style={{ color: customConfig.primary }}>
-                                                dashboard
-                                            </span>
-                                            <span>Dashboard (Active)</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Sample Button & Badges */}
-                                    <div className="space-y-1.5">
-                                        <span className="text-[10px] font-bold" style={{ color: T.textMuted }}>Action Buttons</span>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <button
-                                                type="button"
-                                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs"
-                                                style={{ background: customConfig.primary }}
-                                            >
-                                                Primary Action
-                                            </button>
-                                            <span
-                                                className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
-                                                style={{ background: `${customConfig.primary}20`, color: customConfig.primary }}
-                                            >
-                                                Live Badge
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Sample Metric Box */}
+                                    <span className="text-[10.5px] font-black uppercase tracking-wider" style={{ color: T.textMuted }}>
+                                        Accent Sample
+                                    </span>
                                     <div
-                                        className="p-3.5 rounded-xl border shadow-xs"
+                                        className="p-3.5 rounded-xl border flex items-center justify-between"
                                         style={{
-                                            background: isDark ? '#161F33' : '#FFFFFF',
-                                            borderColor: `${customConfig.primary}30`,
+                                            background: `linear-gradient(90deg, ${customConfig.primary}20 0%, ${customConfig.primary}05 100%)`,
+                                            borderColor: `${customConfig.primary}40`,
                                         }}
                                     >
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                                                Sample Revenue Card
-                                            </span>
-                                            <span className="material-symbols-outlined text-[16px]" style={{ color: customConfig.primary }}>
-                                                trending_up
-                                            </span>
-                                        </div>
-                                        <div className="text-lg font-black" style={{ color: customConfig.primary }}>
-                                            ₹ 14,85,000
-                                        </div>
-                                        <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
-                                            +24.8% growth vs last quarter
-                                        </p>
+                                        <span className="text-xs font-bold" style={{ color: isDark ? '#FFFFFF' : customConfig.primary }}>
+                                            Dashboard (Active)
+                                        </span>
+                                        <span className="w-2 h-2 rounded-full" style={{ background: customConfig.primary }} />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
-            {/* ── Section 4: Enterprise Live Component Playground ─ */}
-            <div
-                className="p-6 rounded-2xl border shadow-sm space-y-5"
-                style={{
-                    background: T.surface,
-                    borderColor: T.border,
-                    fontFamily: selectedFont.value,
-                    letterSpacing: selectedSpacing.value,
-                }}
-            >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b" style={{ borderColor: T.border }}>
+            {/* ── TAB 3: Data Grid & Table Appearance ─────────── */}
+            {activeTab === 'tables' && (
+                <div
+                    className="p-6 rounded-2xl border shadow-xs space-y-6 animate-in fade-in duration-150"
+                    style={{ background: T.surface, borderColor: T.border }}
+                >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
+                        <div>
+                            <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
+                                <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>table_chart</span>
+                                Data Grid & Table Density
+                            </h2>
+                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+                                Optimize how large CRM lead lists, deals pipelines, and account records appear on screen.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Table Row Density */}
                     <div>
-                        <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
-                            <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>preview</span>
-                            Live Enterprise Component Playground
-                        </h2>
-                        <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                            Real-time rendering of your active typography, font scaling ({selectedScale.percentage}), corner radius ({selectedRadius.value}), and theme palette.
-                        </p>
+                        <label className="block text-[11px] font-black uppercase tracking-wider mb-2.5" style={{ color: T.textSecondary }}>
+                            Row Density & Height
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {TABLE_DENSITIES.map(td => {
+                                const isSel = (appearance.tableDensity || 'standard') === td.id
+                                return (
+                                    <button
+                                        key={td.id}
+                                        type="button"
+                                        onClick={() => handleUpdateAppearance('tableDensity', td.id)}
+                                        className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                                            isSel ? 'shadow-md scale-[1.01]' : 'hover:border-slate-400/50'
+                                        }`}
+                                        style={{
+                                            background: isSel ? T.primaryFaint : T.surfaceRaised,
+                                            borderColor: isSel ? T.primary : T.border,
+                                        }}
+                                    >
+                                        <p className="text-xs font-bold" style={{ color: T.textPrimary }}>{td.name}</p>
+                                        <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>{td.description}</p>
+                                    </button>
+                                )
+                            })}
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg border"
-                            style={{ background: T.surfaceHigh, borderColor: T.border, color: T.textPrimary }}>
-                            Typeface: {selectedFont.name}
-                        </span>
+                    {/* Zebra Striping & Gridlines */}
+                    <div className="pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ borderColor: T.border }}>
+                        <div
+                            onClick={() => handleUpdateAppearance('tableZebra', !appearance.tableZebra)}
+                            className="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between"
+                            style={{
+                                background: appearance.tableZebra ? T.primaryFaint : T.surfaceRaised,
+                                borderColor: appearance.tableZebra ? T.primary : T.border,
+                            }}
+                        >
+                            <div>
+                                <p className="text-xs font-bold" style={{ color: T.textPrimary }}>Zebra Striping</p>
+                                <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
+                                    Alternating row shading to help your eyes scan across wide tables.
+                                </p>
+                            </div>
+                            <span className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold ${
+                                appearance.tableZebra ? 'bg-emerald-500 text-white' : 'border'
+                            }`}>
+                                {appearance.tableZebra ? '✓' : ''}
+                            </span>
+                        </div>
+
+                        <div
+                            onClick={() => handleUpdateAppearance('tableGridlines', appearance.tableGridlines === 'full' ? 'horizontal' : 'full')}
+                            className="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between"
+                            style={{
+                                background: appearance.tableGridlines === 'full' ? T.primaryFaint : T.surfaceRaised,
+                                borderColor: appearance.tableGridlines === 'full' ? T.primary : T.border,
+                            }}
+                        >
+                            <div>
+                                <p className="text-xs font-bold" style={{ color: T.textPrimary }}>Full Spreadsheet Gridlines</p>
+                                <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>
+                                    Displays vertical column lines between cells for spreadsheet-style scanning.
+                                </p>
+                            </div>
+                            <span className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold ${
+                                appearance.tableGridlines === 'full' ? 'bg-emerald-500 text-white' : 'border'
+                            }`}>
+                                {appearance.tableGridlines === 'full' ? '✓' : ''}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Table Live Preview */}
+                    <div className="pt-2">
+                        <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                            Table Appearance Preview
+                        </label>
+                        <div className="rounded-xl border overflow-hidden" style={{ borderColor: T.border }}>
+                            <table className="w-full text-xs text-left">
+                                <thead style={{ background: T.surfaceHigh, color: T.textMuted }}>
+                                    <tr>
+                                        <th className="px-4 py-2 font-bold uppercase tracking-wider text-[10px]">Deal Name</th>
+                                        <th className="px-4 py-2 font-bold uppercase tracking-wider text-[10px]">Stage</th>
+                                        <th className="px-4 py-2 font-bold uppercase tracking-wider text-[10px] text-right">Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
+                                        <td className="px-4 font-semibold" style={{ color: T.textPrimary }}>Acme Enterprise Cloud</td>
+                                        <td className="px-4"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-400">Proposal</span></td>
+                                        <td className="px-4 font-mono font-bold text-right" style={{ color: T.textPrimary }}>₹ 14,20,000</td>
+                                    </tr>
+                                    <tr style={{ background: appearance.tableZebra ? (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') : 'transparent' }}>
+                                        <td className="px-4 font-semibold" style={{ color: T.textPrimary }}>Global Logistics CRM Renewal</td>
+                                        <td className="px-4"><span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400">Won</span></td>
+                                        <td className="px-4 font-mono font-bold text-right" style={{ color: T.textPrimary }}>₹ 8,90,000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Typography Hierarchy Sample */}
-                <div className="space-y-3">
-                    <h1 className="text-2xl font-black tracking-tight" style={{ color: T.textPrimary }}>
-                        Enterprise Pipeline & Growth Analytics
-                    </h1>
-                    <p className="text-sm leading-relaxed max-w-3xl" style={{ color: T.textSecondary }}>
-                        Every detail of Iinventive CRM adapts dynamically. Font scaling, kerning, and color contrast ensure that high-stakes sales conversations, deal velocity, and pipeline forecasting are readable and crisp on every display.
-                    </p>
+            {/* ── TAB 4: Motion, Geometry & Accessibility ─────── */}
+            {activeTab === 'accessibility' && (
+                <div
+                    className="p-6 rounded-2xl border shadow-xs space-y-6 animate-in fade-in duration-150"
+                    style={{ background: T.surface, borderColor: T.border }}
+                >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
+                        <div>
+                            <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
+                                <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>tune</span>
+                                Animation Speed & Interface Geometry
+                            </h2>
+                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+                                Configure power-user transition speeds, accessibility focus rings, and card roundness.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Animation & Motion Speed */}
+                    <div>
+                        <label className="block text-[11px] font-black uppercase tracking-wider mb-2.5" style={{ color: T.textSecondary }}>
+                            Animation & Transition Latency
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {MOTION_SPEEDS.map(ms => {
+                                const isSel = (appearance.motionSpeed || 'smooth') === ms.id
+                                return (
+                                    <button
+                                        key={ms.id}
+                                        type="button"
+                                        onClick={() => handleUpdateAppearance('motionSpeed', ms.id)}
+                                        className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                                            isSel ? 'shadow-md scale-[1.01]' : 'hover:border-slate-400/50'
+                                        }`}
+                                        style={{
+                                            background: isSel ? T.primaryFaint : T.surfaceRaised,
+                                            borderColor: isSel ? T.primary : T.border,
+                                        }}
+                                    >
+                                        <p className="text-xs font-bold" style={{ color: T.textPrimary }}>{ms.name}</p>
+                                        <p className="text-[10.5px] mt-0.5" style={{ color: T.textMuted }}>{ms.description}</p>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Corner Radius & Focus Ring */}
+                    <div className="pt-4 border-t grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ borderColor: T.border }}>
+                        <div>
+                            <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                                Component Corner Radius
+                            </label>
+                            <div className="grid grid-cols-2 gap-2.5">
+                                {BORDER_RADII.map(r => {
+                                    const isSel = appearance.borderRadius === r.id
+                                    return (
+                                        <button
+                                            key={r.id}
+                                            type="button"
+                                            onClick={() => handleUpdateAppearance('borderRadius', r.id)}
+                                            className={`p-2.5 border text-left transition-all cursor-pointer ${
+                                                isSel ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
+                                            }`}
+                                            style={{
+                                                borderRadius: r.value,
+                                                background: isSel ? T.primaryFaint : T.surfaceRaised,
+                                                borderColor: isSel ? T.primary : T.border,
+                                            }}
+                                        >
+                                            <span className="text-xs font-bold" style={{ color: T.textPrimary }}>{r.name}</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: T.textSecondary }}>
+                                Focus Ring & Accessibility
+                            </label>
+                            <div className="space-y-2">
+                                {FOCUS_RING_STYLES.map(fr => {
+                                    const isSel = (appearance.focusRing || 'standard') === fr.id
+                                    return (
+                                        <button
+                                            key={fr.id}
+                                            type="button"
+                                            onClick={() => handleUpdateAppearance('focusRing', fr.id)}
+                                            className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                                isSel ? 'ring-2 shadow-xs' : 'hover:border-slate-400/50'
+                                            }`}
+                                            style={{
+                                                background: isSel ? T.primaryFaint : T.surfaceRaised,
+                                                borderColor: isSel ? T.primary : T.border,
+                                            }}
+                                        >
+                                            <p className="text-xs font-bold" style={{ color: T.textPrimary }}>{fr.name}</p>
+                                            <p className="text-[10px]" style={{ color: T.textMuted }}>{fr.description}</p>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            )}
 
-                {/* Sample Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                    <div
-                        className="p-4 border transition-all"
-                        style={{
-                            borderRadius: selectedRadius.value,
-                            background: T.surfaceRaised,
-                            borderColor: T.border,
-                        }}
-                    >
-                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            Total Pipeline Value
-                        </span>
-                        <div className="text-xl font-black mt-1" style={{ color: T.primary }}>
-                            ₹ 48,20,000
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400">
-                                +32.4%
-                            </span>
-                            <span className="text-[10.5px]" style={{ color: T.textMuted }}>vs last month</span>
+            {/* ── TAB 5: Shareable Themes (Import & Export JSON) ── */}
+            {activeTab === 'share' && (
+                <div
+                    className="p-6 rounded-2xl border shadow-xs space-y-6 animate-in fade-in duration-150"
+                    style={{ background: T.surface, borderColor: T.border }}
+                >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b" style={{ borderColor: T.border }}>
+                        <div>
+                            <h2 className="text-base font-extrabold flex items-center gap-2" style={{ color: T.textPrimary }}>
+                                <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>share</span>
+                                Shareable Theme Packages (JSON)
+                            </h2>
+                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+                                Export your custom theme configuration as JSON or import themes created by colleagues.
+                            </p>
                         </div>
                     </div>
 
-                    <div
-                        className="p-4 border transition-all"
-                        style={{
-                            borderRadius: selectedRadius.value,
-                            background: T.surfaceRaised,
-                            borderColor: T.border,
-                        }}
-                    >
-                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            Win Rate Velocity
-                        </span>
-                        <div className="text-xl font-black mt-1" style={{ color: T.success }}>
-                            64.2%
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Export Card */}
+                        <div className="p-4 rounded-xl border space-y-3" style={{ background: T.surfaceRaised, borderColor: T.border }}>
+                            <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: T.textPrimary }}>
+                                Export Active Theme
+                            </h3>
+                            <p className="text-xs" style={{ color: T.textMuted }}>
+                                Copies your entire active theme, typography, font scale, and table density settings as a clean JSON package.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={handleExportTheme}
+                                className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer hover:opacity-90 flex items-center gap-2"
+                                style={{ background: T.primary }}
+                            >
+                                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                                Copy Theme JSON to Clipboard
+                            </button>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400">
-                                +8.1%
-                            </span>
-                            <span className="text-[10.5px]" style={{ color: T.textMuted }}>conversion rate</span>
-                        </div>
-                    </div>
 
-                    <div
-                        className="p-4 border transition-all"
-                        style={{
-                            borderRadius: selectedRadius.value,
-                            background: T.surfaceRaised,
-                            borderColor: T.border,
-                        }}
-                    >
-                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                            Active Deal Count
-                        </span>
-                        <div className="text-xl font-black mt-1" style={{ color: T.textPrimary }}>
-                            142 Deals
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-2">
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-400">
-                                18 Closing
-                            </span>
-                            <span className="text-[10.5px]" style={{ color: T.textMuted }}>this week</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sample Form Elements */}
-                <div className="pt-4 border-t space-y-3" style={{ borderColor: T.border }}>
-                    <label className="block text-[11px] font-black uppercase tracking-wider" style={{ color: T.textSecondary }}>
-                        Interactive Form Controls & Badges
-                    </label>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <div className="relative flex-1">
-                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px]" style={{ color: T.textMuted }}>
-                                search
-                            </span>
-                            <input
-                                type="text"
-                                readOnly
-                                value="Search deals, contacts, accounts..."
-                                className="w-full pl-10 pr-4 py-2.5 text-xs font-semibold border outline-none cursor-default"
-                                style={{
-                                    borderRadius: selectedRadius.value,
-                                    background: T.surfaceRaised,
-                                    color: T.textPrimary,
-                                    borderColor: T.border,
-                                }}
+                        {/* Import Card */}
+                        <div className="p-4 rounded-xl border space-y-3" style={{ background: T.surfaceRaised, borderColor: T.border }}>
+                            <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: T.textPrimary }}>
+                                Import Theme Package
+                            </h3>
+                            <textarea
+                                rows={3}
+                                value={importJsonText}
+                                onChange={e => setImportJsonText(e.target.value)}
+                                placeholder="Paste your theme JSON here..."
+                                className="w-full p-2.5 rounded-lg text-xs font-mono border outline-none resize-none"
+                                style={{ background: T.surface, borderColor: T.border, color: T.textPrimary }}
                             />
+                            {importError && (
+                                <p className="text-xs text-rose-500 font-bold">{importError}</p>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleImportTheme}
+                                className="px-4 py-2 rounded-xl text-xs font-bold border cursor-pointer hover:bg-black/5"
+                                style={{ borderColor: T.primary, color: T.primary }}
+                            >
+                                Import & Apply Theme
+                            </button>
                         </div>
-
-                        <button
-                            type="button"
-                            className="px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all cursor-pointer hover:opacity-95"
-                            style={{
-                                borderRadius: selectedRadius.value,
-                                background: T.primary,
-                                boxShadow: `0 4px 14px -2px ${T.primary}40`,
-                            }}
-                        >
-                            + New Deal
-                        </button>
-
-                        <button
-                            type="button"
-                            className="px-4 py-2.5 text-xs font-bold border transition-all cursor-pointer hover:bg-black/5"
-                            style={{
-                                borderRadius: selectedRadius.value,
-                                borderColor: T.border,
-                                color: T.textPrimary,
-                            }}
-                        >
-                            Export CSV
-                        </button>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }
