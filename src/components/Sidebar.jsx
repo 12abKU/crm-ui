@@ -16,40 +16,10 @@ export default function Sidebar() {
     useEffect(() => {
         const handleThemeChange = () => setTick(t => t + 1)
         window.addEventListener('crm-theme-changed', handleThemeChange)
-        window.addEventListener('crm-appearance-changed', handleThemeChange)
-        window.addEventListener('storage', handleThemeChange)
-        return () => {
-            window.removeEventListener('crm-theme-changed', handleThemeChange)
-            window.removeEventListener('crm-appearance-changed', handleThemeChange)
-            window.removeEventListener('storage', handleThemeChange)
-        }
+        return () => window.removeEventListener('crm-theme-changed', handleThemeChange)
     }, [])
 
-    const isModeDark = getThemeName() === 'dark'
-
-    // Perceptual luminance check: accurately detects if the sidebar background itself is dark
-    const isSidebarDark = (() => {
-        const bg = T.sidebar
-        if (!bg) return isModeDark
-        if (typeof bg === 'string') {
-            const trimmed = bg.trim().toLowerCase()
-            if (trimmed === '#ffffff' || trimmed === '#fff' || trimmed === 'white' || trimmed === '#f8fafc' || trimmed === '#f1f5f9') {
-                return false
-            }
-            if (trimmed.startsWith('#')) {
-                let c = trimmed.substring(1)
-                if (c.length === 3) c = c.split('').map(x => x + x).join('')
-                if (c.length === 6) {
-                    const r = parseInt(c.substring(0, 2), 16)
-                    const g = parseInt(c.substring(2, 4), 16)
-                    const b = parseInt(c.substring(4, 6), 16)
-                    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b))
-                    return hsp < 145
-                }
-            }
-        }
-        return isModeDark
-    })()
+    const isDark = getThemeName() === 'dark'
 
     // Collapsible group state with persistence in localStorage
     const [collapsedGroups, setCollapsedGroups] = useState(() => {
@@ -178,11 +148,6 @@ export default function Sidebar() {
 
     // Shared navigation item renderer for clean consistency
     const renderNavItem = (to, icon, label, badgeCount = 0, badgeColor = 'rose', end = false) => {
-        const activeTextColor = isSidebarDark ? '#FFFFFF' : (T.sidebarActiveText || T.primaryText || T.primary)
-        const activeBg = isSidebarDark
-            ? `linear-gradient(90deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`
-            : `linear-gradient(90deg, ${T.primaryDim} 0%, ${T.primaryFaint || 'rgba(79,70,229,0.04)'} 100%)`
-
         return (
             <NavLink
                 key={to}
@@ -192,21 +157,26 @@ export default function Sidebar() {
                     `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 select-none ${
                         isActive
                             ? 'font-bold shadow-xs'
-                            : isSidebarDark
+                            : isDark
                             ? 'text-slate-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-0.5 font-medium border border-transparent'
-                            : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 hover:translate-x-0.5 font-semibold border border-transparent'
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/80 hover:translate-x-0.5 font-semibold border border-transparent'
                     }`
                 }
                 style={({ isActive }) =>
                     isActive
-                        ? {
-                              background: activeBg,
-                              border: `1px solid ${T.primary}45`,
-                              boxShadow: isSidebarDark
-                                  ? `0 4px 16px -2px ${T.primary}30, inset 0 1px 0 rgba(255,255,255,0.15)`
-                                  : `0 2px 10px -2px ${T.primary}25`,
-                              color: activeTextColor,
-                          }
+                        ? isDark
+                            ? {
+                                  background: `linear-gradient(90deg, ${T.primaryDim} 0%, rgba(255,255,255,0.02) 100%)`,
+                                  border: `1px solid ${T.primary}45`,
+                                  boxShadow: `0 4px 16px -2px ${T.primary}30, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                                  color: '#FFFFFF',
+                              }
+                            : {
+                                  background: `linear-gradient(90deg, ${T.primaryDim} 0%, ${T.primaryFaint || 'rgba(79,70,229,0.04)'} 100%)`,
+                                  border: `1px solid ${T.primary}45`,
+                                  boxShadow: `0 2px 10px -2px ${T.primary}25`,
+                                  color: T.primary,
+                              }
                         : {}
                 }
             >
@@ -228,38 +198,31 @@ export default function Sidebar() {
                             className={`material-symbols-outlined text-[19px] shrink-0 transition-transform duration-200 ${
                                 isActive
                                     ? 'filled scale-110'
-                                    : isSidebarDark
+                                    : isDark
                                     ? 'text-slate-400 group-hover:text-slate-100 group-hover:scale-105'
-                                    : 'text-slate-600 group-hover:text-slate-950 group-hover:scale-105'
+                                    : 'text-slate-500 group-hover:text-slate-900 group-hover:scale-105'
                             }`}
                             style={{
-                                color: isActive ? (isSidebarDark ? T.primary : activeTextColor) : undefined,
+                                color: isActive ? T.primary : undefined,
                             }}
                         >
                             {icon}
                         </span>
 
                         {/* Label */}
-                        <span
-                            className="flex-1 truncate tracking-tight"
-                            style={{
-                                color: isActive ? activeTextColor : undefined,
-                            }}
-                        >
-                            {label}
-                        </span>
+                        <span className="flex-1 truncate tracking-tight">{label}</span>
 
                         {/* Notification Badge */}
                         {badgeCount > 0 && (
                             <span
                                 className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full min-w-5 text-center shadow-xs ${
                                     badgeColor === 'emerald'
-                                        ? isSidebarDark
+                                        ? isDark
                                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]'
-                                            : 'bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs'
-                                        : isSidebarDark
+                                            : 'bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs'
+                                        : isDark
                                         ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.25)]'
-                                        : 'bg-rose-50 text-rose-800 border border-rose-300 shadow-xs'
+                                        : 'bg-rose-50 text-rose-700 border border-rose-300 shadow-xs'
                                 }`}
                             >
                                 {badgeCount > 99 ? '99+' : badgeCount}
@@ -287,9 +250,9 @@ export default function Sidebar() {
                     isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}
                 style={{
-                    background: T.sidebar || (isSidebarDark ? '#0D111D' : '#FFFFFF'),
-                    borderColor: isSidebarDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
-                    boxShadow: isSidebarDark ? '0 10px 30px rgba(0,0,0,0.5)' : '4px 0 24px rgba(0, 0, 0, 0.04)',
+                    background: T.sidebar,
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+                    boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.5)' : '4px 0 24px rgba(0, 0, 0, 0.04)',
                 }}
             >
                 {/* ── Brand / Workspace Header ────────────────────── */}
@@ -305,7 +268,7 @@ export default function Sidebar() {
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     boxShadow: `0 0 16px ${T.avatarGlow}`,
-                                    borderColor: isSidebarDark ? 'rgba(255, 255, 255, 0.20)' : 'rgba(0, 0, 0, 0.10)',
+                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.20)' : 'rgba(0, 0, 0, 0.10)',
                                 }}
                             >
                                 <span className="material-symbols-outlined filled text-white text-[19px]">dataset</span>
@@ -314,7 +277,7 @@ export default function Sidebar() {
                             <div className="min-w-0">
                                 <h1
                                     className="text-[15px] font-black tracking-tight leading-tight truncate transition-colors"
-                                    style={{ color: isSidebarDark ? '#FFFFFF' : '#0F172A' }}
+                                    style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
                                 >
                                     Iinventive CRM
                                 </h1>
@@ -326,9 +289,9 @@ export default function Sidebar() {
                             type="button"
                             onClick={() => setIsOpen(false)}
                             className={`md:hidden flex items-center justify-center w-7 h-7 rounded-lg transition-colors cursor-pointer ${
-                                isSidebarDark
+                                isDark
                                     ? 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
-                                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                             }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -340,7 +303,7 @@ export default function Sidebar() {
                 <div
                     className="mx-4 my-1 h-px shrink-0"
                     style={{
-                        background: isSidebarDark
+                        background: isDark
                             ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)'
                             : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)',
                     }}
@@ -352,7 +315,7 @@ export default function Sidebar() {
                         // SUPER_ADMIN Navigation
                         <>
                             <div className={`px-2 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.09em] ${
-                                isSidebarDark ? 'text-slate-400/70' : 'text-slate-600'
+                                isDark ? 'text-slate-400/70' : 'text-slate-500'
                             }`}>
                                 Platform Administration
                             </div>
@@ -402,22 +365,22 @@ export default function Sidebar() {
                                 return (
                                     <div
                                         key={group.id}
-                                        className={index > 0 ? (isSidebarDark ? 'pt-2 mt-1 border-t border-white/[0.05]' : 'pt-2 mt-1 border-t border-slate-100') : 'pt-1'}
+                                        className={index > 0 ? (isDark ? 'pt-2 mt-1 border-t border-white/[0.05]' : 'pt-2 mt-1 border-t border-slate-100') : 'pt-1'}
                                     >
                                         {/* Category Collapsible Header */}
                                         <button
                                             type="button"
                                             onClick={() => toggleGroup(group.id)}
                                             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10.5px] font-black uppercase tracking-[0.14em] transition-all select-none group cursor-pointer ${
-                                                isSidebarDark
+                                                isDark
                                                     ? 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
-                                                    : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100/70'
+                                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/70'
                                             }`}
                                         >
                                             <span className="flex items-center gap-2 truncate">
                                                 <span
                                                     className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                                        isSidebarDark
+                                                        isDark
                                                             ? 'bg-white/30 group-hover:bg-white/70'
                                                             : 'bg-slate-400 group-hover:bg-slate-700'
                                                     }`}
@@ -425,7 +388,7 @@ export default function Sidebar() {
                                                 <span>{group.label}</span>
                                                 <span
                                                     className={`text-[9.5px] font-bold lowercase tracking-normal ${
-                                                        isSidebarDark ? 'text-slate-500' : 'text-slate-400'
+                                                        isDark ? 'text-slate-500' : 'text-slate-400'
                                                     }`}
                                                 >
                                                     ({visibleItems.length})
@@ -434,7 +397,7 @@ export default function Sidebar() {
                                             <div className="flex items-center gap-1.5 shrink-0">
                                                 {isCollapsed && groupBadgeCount > 0 && (
                                                     <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full min-w-4 text-center shadow-xs ${
-                                                        isSidebarDark
+                                                        isDark
                                                             ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                                                             : 'bg-rose-50 text-rose-700 border border-rose-300'
                                                     }`}>
@@ -443,7 +406,7 @@ export default function Sidebar() {
                                                 )}
                                                 <span
                                                     className={`material-symbols-outlined text-[14px] transition-transform duration-200 ${
-                                                        isSidebarDark
+                                                        isDark
                                                             ? 'text-slate-500 group-hover:text-slate-300'
                                                             : 'text-slate-400 group-hover:text-slate-700'
                                                     }`}
@@ -484,15 +447,15 @@ export default function Sidebar() {
                 <div
                     className="p-3 shrink-0 border-t"
                     style={{
-                        borderColor: isSidebarDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
-                        background: isSidebarDark ? 'rgba(0, 0, 0, 0.20)' : '#F8FAFC',
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+                        background: isDark ? 'rgba(0, 0, 0, 0.20)' : '#F8FAFC',
                     }}
                 >
                     <button
                         type="button"
                         onClick={() => navigate(isSuperAdmin ? '/platform/profile' : '/settings')}
                         className={`w-full flex items-center gap-2.5 p-2 rounded-xl transition-all duration-200 text-left group shadow-xs cursor-pointer border ${
-                            isSidebarDark
+                            isDark
                                 ? 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.06] hover:border-white/[0.12]'
                                 : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300'
                         }`}
@@ -504,7 +467,7 @@ export default function Sidebar() {
                                 style={{
                                     background: `linear-gradient(135deg, ${T.avatarGradFrom} 0%, ${T.avatarGradTo} 100%)`,
                                     boxShadow: `0 0 10px ${T.avatarGlow}`,
-                                    borderColor: isSidebarDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
+                                    borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)',
                                 }}
                             >
                                 {name ? name.charAt(0).toUpperCase() : 'U'}
@@ -512,7 +475,7 @@ export default function Sidebar() {
                             {/* Online Status Dot */}
                             <div
                                 className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 shadow-[0_0_6px_rgba(52,211,153,0.8)] ${
-                                    isSidebarDark ? 'ring-[#0D111D]' : 'ring-white'
+                                    isDark ? 'ring-[#0D111D]' : 'ring-white'
                                 }`}
                             />
                         </div>
@@ -521,16 +484,16 @@ export default function Sidebar() {
                         <div className="flex-1 min-w-0">
                             <p
                                 className="text-[12.5px] font-bold truncate leading-tight transition-colors"
-                                style={{ color: isSidebarDark ? '#FFFFFF' : '#0F172A' }}
+                                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
                             >
                                 {name}
                             </p>
                             <div className="flex items-center gap-1 mt-0.5">
                                 <span
                                     className={`inline-block px-1.5 py-0.2 rounded text-[9.5px] font-extrabold uppercase tracking-wider truncate max-w-[130px] border ${
-                                        isSidebarDark
+                                        isDark
                                             ? 'text-slate-300 bg-white/[0.06] border-white/[0.08]'
-                                            : 'text-slate-700 bg-slate-100 border-slate-300 font-bold'
+                                            : 'text-slate-600 bg-slate-100 border-slate-200'
                                     }`}
                                 >
                                     {displayRole}
@@ -541,9 +504,9 @@ export default function Sidebar() {
                         {/* Action Icon */}
                         <span
                             className={`material-symbols-outlined text-[16px] group-hover:rotate-45 transition-all duration-200 shrink-0 ${
-                                isSidebarDark
+                                isDark
                                     ? 'text-slate-400 group-hover:text-white'
-                                    : 'text-slate-600 group-hover:text-slate-950'
+                                    : 'text-slate-500 group-hover:text-slate-900'
                             }`}
                         >
                             {isSuperAdmin ? 'manage_accounts' : 'settings'}

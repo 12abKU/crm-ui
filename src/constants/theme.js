@@ -213,7 +213,7 @@ const LUXE_EMERALD = {
         sidebar: '#0D1514',
         sidebarRaised: '#121E1C',
         sidebarActive: '#10B981',
-        sidebarActiveText: '#A7F3D0',
+        sidebarActiveText: '#047857',
         heroBgFrom: '#0D1514',
         heroBgMid: '#0A1813',
         heroBgTo: '#080A0E',
