@@ -237,9 +237,9 @@ export default function CompanyDetail({
     }, [company.id])
 
     return (
-        <div>
+        <div style={{ background: T.bg, minHeight: '100vh' }}>
             <TopBar />
-            <main className="p-8 max-w-5xl mx-auto">
+            <main className="px-4 py-8 md:px-9 md:py-10">
 
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                     <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
