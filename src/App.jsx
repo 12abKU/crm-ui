@@ -38,6 +38,7 @@ import { useWebSocket } from './hooks/useWebSocket'
 import WebSocketToast from './components/ui/WebSocketToast'
 import ImportProgressToast from './components/ui/ImportProgressToast'
 import TrialUpgradePopup from './components/ui/TrialUpgradePopup'
+import PwaManager from './components/ui/PwaManager'
 import { DialogProvider } from './contexts/DialogContext'
 
 
@@ -269,11 +270,17 @@ export default function App() {
     } else {
       root.classList.remove('dark')
     }
+
+    const themeMeta = document.querySelector('meta[name="theme-color"]')
+    if (themeMeta && T.primary) {
+      themeMeta.setAttribute('content', T.primary)
+    }
   }, [themeState])
 
   return (
     <DialogProvider>
       <BrowserRouter>
+        <PwaManager />
         <ApiErrorToast />
       <WebSocketToast />
       <ImportProgressToast />

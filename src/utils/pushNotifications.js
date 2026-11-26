@@ -7,8 +7,10 @@ export async function registerServiceWorkerAndSubscribe() {
   }
 
   try {
-    // 1. Register service worker
-    const registration = await navigator.serviceWorker.register('/sw.js');
+    // 1. Reuse existing SW registration from pwa.js or register cleanly
+    const existingReg = await navigator.serviceWorker.getRegistration('/');
+    const registration = existingReg || (await navigator.serviceWorker.register('/sw.js', { scope: '/' }));
+    await navigator.serviceWorker.ready;
     console.log('Service Worker registered with scope:', registration.scope);
 
     // 2. Request permission

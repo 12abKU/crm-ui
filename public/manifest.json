@@ -1,0 +1,70 @@
+{
+  "id": "/",
+  "name": "Iinventive CRM",
+  "short_name": "Iinventive",
+  "description": "Enterprise B2B CRM for Sales Pipelines, Leads, Contacts, Omnichannel Messaging, and Tally/BUSY ERP Sync.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#0B0F1A",
+  "theme_color": "#4F46E5",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Deals Pipeline",
+      "short_name": "Deals",
+      "description": "Open Kanban deals pipeline",
+      "url": "/deals?source=pwa-shortcut",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Leads",
+      "short_name": "Leads",
+      "description": "View and qualify incoming leads",
+      "url": "/leads?source=pwa-shortcut",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Contacts",
+      "short_name": "Contacts",
+      "description": "Browse CRM contacts directory",
+      "url": "/contacts?source=pwa-shortcut",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Activities",
+      "short_name": "Activities",
+      "description": "Check calls, meetings, and follow-up tasks",
+      "url": "/activities?source=pwa-shortcut",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    }
+  ]
+}
