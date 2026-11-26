@@ -17,6 +17,7 @@ import DownloadReport from '../Downloadreport'
 import { listCache, listCacheSet, isFresh, LIST_TTL, getCachePrefix } from '../../utils/cacheUtils'
 import CustomSelect from '../ui/CustomSelect'
 import usePermission from '../../hooks/usePermission'
+import OnboardingWizardCard from './OnboardingWizardCard'
 
 // ── Tabs definition ──────────────────
 const TABS = [
@@ -212,6 +213,19 @@ export default function AdminDashboard() {
                         </div>
                     )}
                 </div>
+
+                {/* ── Guided Onboarding & Sample Data Toggle ───────── */}
+                {activeTab === 'summary' && (
+                    <OnboardingWizardCard
+                        onSampleDataChanged={() => {
+                            const prefix = getCachePrefix()
+                            for (const k of listCache.keys()) {
+                                if (k.startsWith(prefix)) listCache.delete(k)
+                            }
+                            api.get('/api/dashboard').then(r => setSummary(r.data)).catch(() => {})
+                        }}
+                    />
+                )}
 
                 {/* ── Tab Content ───────────────────────────────── */}
                 {tabLoading && activeTab !== 'summary' ? <TabSkeleton /> : (

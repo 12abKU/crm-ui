@@ -19,6 +19,13 @@ import EditLeadSlideForm from '../components/leadPanel/EditLeadSlideForm'
 import { IconUserPlus } from '@tabler/icons-react'
 import DynamicFields from '../components/DynamicFields'
 import { usePipelineStages } from '../hooks/usePipelineStages'
+import TableShell from '../components/ui/TableShell'
+import Pagination from '../components/Pagination'
+import EmptyTableRow from '../components/ui/EmptyTableRow'
+import BulkActionBar from '../components/ui/BulkActionBar'
+import SavedViewsBar from '../components/ui/SavedViewsBar'
+import usePaginatedSearch from '../hooks/usePaginatedSearch'
+import { downloadAuthenticatedCsv } from '../utils/csvExport'
 
 // ── Constants ──────────────────────────────────────────────────
 const MAX_KANBAN_CARDS_PER_STAGE = 120
@@ -95,7 +102,37 @@ export default function Leads() {
     const [overStage, setOverStage] = useState(null)
     const [leadToConvert, setLeadToConvert] = useState(null)
     const [editModalLead, setEditModalLead] = useState(null)
+    const [statusFilter, setStatusFilter] = useState('')
+    const [selectedIds, setSelectedIds] = useState([])
+    const [bulkBusy, setBulkBusy] = useState(false)
+    const [exportingCsv, setExportingCsv] = useState(false)
+    const [teamUsers, setTeamUsers] = useState([])
     const dragLead = useRef(null)
+
+    const listBaseUrl = statusFilter ? `/api/leads?status=${encodeURIComponent(statusFilter)}` : '/api/leads'
+    const {
+        items: listLeads,
+        page: listPage,
+        totalPages: listTotalPages,
+        totalElements: listTotalElements,
+        loading: listLoading,
+        setSearch: setListSearch,
+        sort: listSort,
+        setSort: setListSort,
+        toggleSort: toggleListSort,
+        goToPage: goToListPage,
+        reloadCurrentPage: reloadListLeads,
+    } = usePaginatedSearch({ baseUrl: listBaseUrl, pageSize: 20, cacheKey: 'leads-list' })
+
+    useEffect(() => {
+        setListSearch(search)
+    }, [search, setListSearch])
+
+    useEffect(() => {
+        if (isAdminOrAbove || can.LEADS_ASSIGN) {
+            api.get('/api/user/team').then(r => setTeamUsers(r.data ?? [])).catch(() => {})
+        }
+    }, [isAdminOrAbove, can.LEADS_ASSIGN])
 
     const abortControllersRef = useRef({})
 
@@ -358,10 +395,83 @@ export default function Leads() {
         return { stage, label: stageObj.label, count, style: getStageStyle(stage) }
     })
 
+    const refreshCurrentView = () => {
+        if (viewMode === 'list') reloadListLeads()
+        else loadAllStages(search, 0)
+    }
+
+    const handleExportCsv = async () => {
+        setExportingCsv(true)
+        try {
+            await downloadAuthenticatedCsv('/api/leads/export', {
+                status: statusFilter || undefined,
+                search,
+                sort: listSort,
+            }, 'leads.csv')
+        } finally {
+            setExportingCsv(false)
+        }
+    }
+
+    const listIds = listLeads.map(l => l.id)
+    const activeSelectedIds = selectedIds.filter(id => listIds.includes(id))
+    const allListSelected = listIds.length > 0 && listIds.every(id => activeSelectedIds.includes(id))
+    const toggleListSelectAll = (checked) => setSelectedIds(checked ? listIds : [])
+    const toggleListRow = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+
+    const handleBulkDelete = async () => {
+        const ok = await confirm({
+            title: `Delete ${activeSelectedIds.length} Leads?`,
+            message: 'Are you sure you want to delete the selected leads? This action cannot be undone.',
+            confirmText: 'Delete Selected',
+        })
+        if (!ok) return
+        setBulkBusy(true)
+        try {
+            await api.delete('/api/leads/bulk', { data: { ids: activeSelectedIds } })
+            setSelectedIds([])
+            refreshCurrentView()
+        } finally {
+            setBulkBusy(false)
+        }
+    }
+
+    const handleBulkStatus = async (status) => {
+        setBulkBusy(true)
+        try {
+            await api.patch('/api/leads/bulk/status', { ids: activeSelectedIds, status })
+            setSelectedIds([])
+            refreshCurrentView()
+            loadAllStages(search, 0)
+        } finally {
+            setBulkBusy(false)
+        }
+    }
+
+    const handleBulkAssign = async (userIdVal) => {
+        setBulkBusy(true)
+        try {
+            await api.post('/api/leads/bulk/assign', { ids: activeSelectedIds, userIds: [userIdVal] })
+            setSelectedIds([])
+            refreshCurrentView()
+        } finally {
+            setBulkBusy(false)
+        }
+    }
+
+    const listHeaders = [
+        { label: 'Title', sortKey: 'title' },
+        { label: 'Status', sortKey: 'status' },
+        { label: 'Source', sortKey: 'source' },
+        { label: 'Contact', sortKey: 'senderName' },
+        'Assignees',
+        'Actions',
+    ]
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: viewMode === 'kanban' ? '100vh' : 'auto', minHeight: '100vh', overflow: viewMode === 'kanban' ? 'hidden' : 'visible' }}>
             <TopBar />
-            <main className="p-4 sm:p-8 flex-1 overflow-hidden flex flex-col">
+            <main className={`p-4 sm:p-8 flex-1 flex flex-col ${viewMode === 'kanban' ? 'overflow-hidden' : ''}`}>
 
                 {/* ── Ultra-Premium Hero Banner ──────────────────── */}
                 <PageHeroBanner
@@ -371,6 +481,42 @@ export default function Leads() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search leads..." />
+                            <div className="inline-flex rounded-xl p-1 border shrink-0" style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.18)' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('kanban')}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                    style={{
+                                        background: viewMode === 'kanban' ? '#FFFFFF' : 'transparent',
+                                        color: viewMode === 'kanban' ? '#0F172A' : '#E2E8F0',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined text-[15px]">view_kanban</span>
+                                    Kanban
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('list')}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 cursor-pointer transition-all"
+                                    style={{
+                                        background: viewMode === 'list' ? '#FFFFFF' : 'transparent',
+                                        color: viewMode === 'list' ? '#0F172A' : '#E2E8F0',
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined text-[15px]">table_rows</span>
+                                    List
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleExportCsv}
+                                disabled={exportingCsv}
+                                className="crm-btn-ghost whitespace-nowrap shrink-0"
+                                title="Export leads to CSV"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">download</span>
+                                {exportingCsv ? 'Exporting...' : 'Export CSV'}
+                            </button>
                             {canCreateLead && (
                                 <button onClick={openCreateForm}
                                     className="crm-btn-primary whitespace-nowrap shrink-0 w-full sm:w-auto">
@@ -382,14 +528,36 @@ export default function Leads() {
                     }
                 />
 
+                <SavedViewsBar
+                    entityType="LEAD"
+                    currentFilters={{ search, status: statusFilter, viewMode }}
+                    currentSort={listSort}
+                    onApplyView={(view) => {
+                        setSearch(view.filtersJson?.search || '')
+                        setStatusFilter(view.filtersJson?.status || '')
+                        if (view.filtersJson?.viewMode) setViewMode(view.filtersJson.viewMode)
+                        setListSort(Array.isArray(view.sortJson) ? view.sortJson : [])
+                    }}
+                    onResetView={() => {
+                        setSearch('')
+                        setStatusFilter('')
+                        setListSort([])
+                    }}
+                />
+
                 {/* ── Pipeline summary strip ───────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, style }) => (
                         <div key={stage}
-                            className="rounded-2xl p-4 flex flex-col justify-between gap-2 transition-all duration-200 border relative overflow-hidden group hover:scale-[1.01]"
+                            onClick={() => {
+                                if (viewMode === 'list') {
+                                    setStatusFilter(prev => prev === stage ? '' : stage)
+                                }
+                            }}
+                            className={`rounded-2xl p-4 flex flex-col justify-between gap-2 transition-all duration-200 border relative overflow-hidden group hover:scale-[1.01] ${viewMode === 'list' ? 'cursor-pointer' : ''}`}
                             style={{
                                 background: T.surface,
-                                borderColor: T.border,
+                                borderColor: statusFilter === stage && viewMode === 'list' ? style.accent : T.border,
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                             }}>
                             <div className="absolute inset-x-0 top-0 h-[2.5px]" style={{ background: style.accent }} />
@@ -408,8 +576,116 @@ export default function Leads() {
                     ))}
                 </div>
 
-                {/* ── Kanban board — scrollable columns ───── */}
-                <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0 kanban-scroll">
+                {viewMode === 'list' ? (
+                    <div className="pb-16">
+                        <TableShell
+                            headers={listHeaders}
+                            sort={listSort}
+                            onSort={toggleListSort}
+                            selectable={can.LEADS_DELETE || can.LEADS_EDIT || can.LEADS_ASSIGN || isAdminOrAbove}
+                            allSelected={allListSelected}
+                            onToggleAll={toggleListSelectAll}
+                            footer={<Pagination page={listPage} totalPages={listTotalPages} totalElements={listTotalElements} pageSize={20} onPage={goToListPage} />}
+                        >
+                            {listLoading ? (
+                                <tbody>
+                                    <tr>
+                                        <td colSpan={listHeaders.length + 1} className="px-6 py-10 text-center text-sm" style={{ color: T.textMuted }}>
+                                            Loading leads...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            ) : listLeads.length === 0 ? (
+                                <tbody>
+                                    <EmptyTableRow colSpan={listHeaders.length + 1} icon="person_search" title="No leads found" />
+                                </tbody>
+                            ) : (
+                                <tbody>
+                                    {listLeads.map(lead => {
+                                        const st = getStageStyle(lead.status)
+                                        const canSelect = can.LEADS_DELETE || can.LEADS_EDIT || can.LEADS_ASSIGN || isAdminOrAbove
+                                        return (
+                                            <tr
+                                                key={lead.id}
+                                                onClick={() => {
+                                                    navigate(`?leadId=${lead.id}`)
+                                                    setSelectedLead(lead)
+                                                }}
+                                                className="cursor-pointer transition-colors hover:opacity-95"
+                                                style={{ borderBottom: `1px solid ${T.borderSubtle}`, background: T.surface }}
+                                            >
+                                                {canSelect && (
+                                                    <td className="pl-5 pr-2 py-4 w-10" onClick={e => e.stopPropagation()}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedIds.includes(lead.id)}
+                                                            onChange={() => toggleListRow(lead.id)}
+                                                            className="w-4 h-4 rounded accent-indigo-600 cursor-pointer"
+                                                        />
+                                                    </td>
+                                                )}
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm font-bold" style={{ color: T.textPrimary }}>{lead.title || lead.senderName || 'Lead'}</p>
+                                                    {lead.companyName && <p className="text-[11px]" style={{ color: T.textMuted }}>{lead.companyName}</p>}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: st.badgeBg, color: st.badgeColor }}>
+                                                        {lead.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-xs font-semibold" style={{ color: T.textSecondary }}>{lead.source || '—'}</td>
+                                                <td className="px-6 py-4 text-xs" style={{ color: T.textSecondary }}>
+                                                    <div>{lead.senderName || '—'}</div>
+                                                    <div style={{ color: T.textMuted }}>{lead.senderEmail || lead.senderPhone || ''}</div>
+                                                </td>
+                                                <td className="px-6 py-4 text-xs" style={{ color: T.textSecondary }}>
+                                                    {(lead.assignees ?? []).map(u => u.name).join(', ') || 'Unassigned'}
+                                                </td>
+                                                <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        {(isAdminOrAbove || can.LEADS_EDIT) && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditModalLead(lead)}
+                                                                className="px-2 py-1 text-xs font-semibold rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        )}
+                                                        {can.LEADS_DELETE && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeLead(lead.id, lead.status)}
+                                                                className="px-2 py-1 text-xs font-semibold rounded-md bg-red-500/10 border border-red-500/20 text-red-500"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            )}
+                        </TableShell>
+                        <BulkActionBar
+                            selectedCount={activeSelectedIds.length}
+                            onClear={() => setSelectedIds([])}
+                            canDelete={can.LEADS_DELETE || isAdminOrAbove}
+                            onDelete={handleBulkDelete}
+                            users={(can.LEADS_ASSIGN || isAdminOrAbove) ? teamUsers : []}
+                            assignLabel="Assign Lead"
+                            onAssign={(can.LEADS_ASSIGN || isAdminOrAbove) ? handleBulkAssign : undefined}
+                            statusOptions={(can.LEADS_EDIT || isAdminOrAbove) ? leadStages.map(s => ({ value: s.stageKey, label: s.label })) : []}
+                            statusLabel="Change Stage"
+                            onStatusChange={(can.LEADS_EDIT || isAdminOrAbove) ? handleBulkStatus : undefined}
+                            busy={bulkBusy}
+                        />
+                    </div>
+                ) : (
+                    /* ── Kanban board — scrollable columns ───── */
+                    <div className="flex-1 flex gap-4 pb-4 overflow-x-auto min-h-0 kanban-scroll">
                     {leadStages.map(stageObj => {
                         const stage = stageObj.stageKey
                         const stageLeads = leadsByStage[stage] || []
@@ -670,7 +946,8 @@ export default function Leads() {
                             </div>
                         )
                     })}
-                </div>
+                    </div>
+                )}
             </main>
 
             {/* Create Lead slide form */}

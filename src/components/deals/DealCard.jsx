@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import AssignDealModal from './AssignDealModal'
 import TallySyncBadge from './TallySyncBadge'
 import BusySyncBadge from './BusySyncBadge'
+import { formatDealAmount } from '../../utils/currency'
 
 // ── Helpers ───────────────────────────────────────────────────────
 function OwnerAvatar({ user, onClick }) {
@@ -206,12 +207,19 @@ export default function DealCard({
                         </h4>
 
                         {deal.amount != null && (
-                            <p
-                                className="text-sm sm:text-base font-black mt-1 text-left tracking-tight"
-                                style={{ color: stageStyle.accent }}
-                            >
-                                ₹{Number(deal.amount).toLocaleString('en-IN')}
-                            </p>
+                            <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
+                                <p
+                                    className="text-sm sm:text-base font-black text-left tracking-tight"
+                                    style={{ color: stageStyle.accent }}
+                                >
+                                    {formatDealAmount(deal.amount, deal.currency)}
+                                </p>
+                                {deal.currency && deal.currency !== 'INR' && deal.baseAmount != null && (
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: T.surfaceRaised, color: T.textMuted }}>
+                                        {deal.currency} · ≈ ₹{Number(deal.baseAmount).toLocaleString('en-IN')}
+                                    </span>
+                                )}
+                            </div>
                         )}
 
                         {/* Multi-ERP Sync Status Pipeline Badge */}

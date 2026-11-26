@@ -7,6 +7,7 @@ import SearchableSelect from '../SearchableSelect'
 import api from '../../api'
 import { useDialog } from '../../contexts/DialogContext'
 import DynamicFields from '../DynamicFields'
+import { SUPPORTED_CURRENCIES } from '../../utils/currency'
 
 export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
     const { confirm } = useDialog()
@@ -14,6 +15,8 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
     const [form, setForm] = useState({
         title: '',
         amount: '',
+        currency: 'INR',
+        exchangeRate: '1',
         stage: 'NEW',
         expectedCloseDate: '',
         accountId: '',
@@ -61,6 +64,8 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
         setForm({
             title: deal.title || '',
             amount: deal.amount != null ? String(deal.amount) : '',
+            currency: deal.currency || 'INR',
+            exchangeRate: deal.exchangeRate != null ? String(deal.exchangeRate) : '1',
             stage: deal.stage || (stages.length > 0 ? stages[0].stageKey : 'NEW'),
             expectedCloseDate: deal.expectedCloseDate ? String(deal.expectedCloseDate).split('T')[0] : '',
             accountId: accId,
@@ -102,6 +107,8 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
             const payload = {
                 title: form.title,
                 amount: form.amount ? parseFloat(form.amount) : null,
+                currency: form.currency || 'INR',
+                exchangeRate: form.exchangeRate ? parseFloat(form.exchangeRate) : null,
                 stage: form.stage,
                 expectedCloseDate: form.expectedCloseDate || null,
                 accountId: form.accountId ? Number(form.accountId) : null,
@@ -134,7 +141,19 @@ export default function EditDealSlideForm({ open, onClose, deal, onSuccess }) {
                 <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
             )}
             <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
-            <Input label="Amount (₹) *" type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Input label={`Amount (${form.currency || 'INR'}) *`} type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
+                <Select label="Currency" value={form.currency || 'INR'} onChange={e => {
+                    const code = e.target.value
+                    const meta = SUPPORTED_CURRENCIES.find(c => c.code === code)
+                    setForm(f => ({ ...f, currency: code, exchangeRate: String(meta?.rateToInr ?? 1) }))
+                }}>
+                    {SUPPORTED_CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} ({c.symbol.trim()})</option>)}
+                </Select>
+            </div>
+            {form.currency && form.currency !== 'INR' && (
+                <Input label="Rate to INR" type="number" step="0.0001" value={form.exchangeRate} onChange={setEvent('exchangeRate')} />
+            )}
             <Select label="Stage *" value={form.stage} onChange={setEvent('stage')} required error={errors.stage}>
                 {stages.map(s => <option key={s.stageKey} value={s.stageKey}>{s.label}</option>)}
             </Select>

@@ -118,11 +118,50 @@ export default function Support() {
                 <SupportTabs tab={tab} setTab={setTab} badge={badge} isAdmin={isAdmin} />
 
                 {tab === 'faq' && (
-                    <FaqTab
-                        faq={faq} faqSearch={faqSearch} setFaqSearch={setFaqSearch}
-                        openFaq={openFaq} setOpenFaq={setOpenFaq}
-                        onSubmitTicket={goToSubmit}
-                    />
+                    <>
+                        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                {
+                                    icon: 'play_circle',
+                                    title: 'Workspace Setup & Pipeline Tour',
+                                    desc: '5-step onboarding checklist, sample data sandbox toggle, and Kanban stages.',
+                                    href: '/landing/help',
+                                },
+                                {
+                                    icon: 'table_view',
+                                    title: 'Bulk Actions, Multi-Sort & Saved Views',
+                                    desc: 'Shift+Click table headers, save reusable filter presets, and export CSV lists.',
+                                    href: '/landing/help',
+                                },
+                                {
+                                    icon: 'webhook',
+                                    title: 'API Docs, Webhooks & Web-Forms',
+                                    desc: 'Embed lead forms, configure signed webhooks, or inspect interactive Swagger docs.',
+                                    href: '/swagger-ui.html',
+                                },
+                            ].map(card => (
+                                <a
+                                    key={card.title}
+                                    href={card.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-4 rounded-2xl border flex items-start gap-3 hover:scale-[1.01] transition-transform no-underline"
+                                    style={{ background: 'var(--crm-surface, #fff)', borderColor: 'rgba(148,163,184,0.25)' }}
+                                >
+                                    <span className="material-symbols-outlined text-[24px] text-indigo-500 shrink-0">{card.icon}</span>
+                                    <div>
+                                        <h4 className="text-xs font-black text-slate-900 dark:text-white mb-1">{card.title}</h4>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">{card.desc}</p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                        <FaqTab
+                            faq={faq} faqSearch={faqSearch} setFaqSearch={setFaqSearch}
+                            openFaq={openFaq} setOpenFaq={setOpenFaq}
+                            onSubmitTicket={goToSubmit}
+                        />
+                    </>
                 )}
 
                 {tab === 'submit' && (

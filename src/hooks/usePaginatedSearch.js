@@ -5,61 +5,66 @@ import { listCache, listCacheSet, getCachePrefix, isFresh, LIST_TTL } from '../u
 /**
  * usePaginatedSearch
  *
- * Stable paginated-search hook — the API call lives INSIDE the hook so callers
- * never pass an unstable `fetchPage` function reference that would cause
- * dependency-chain re-renders and infinite request loops.
+ * Stable paginated-search hook supporting multi-column server sorting.
  *
- * @param {string}  baseUrl      - The API endpoint prefix, e.g. "/api/accounts"
- *                                 Query params (page, size, search) are appended
- *                                 automatically.  Any *extra* fixed params
- *                                 (e.g. accountId filter) should be baked in here.
- * @param {number}  pageSize     - Items per page (stable number).
- * @param {string}  cacheKey     - Logical cache namespace, e.g. "accounts".
- * @param {number}  [initialPage=0]
+ * @param {string}   baseUrl
+ * @param {number}   pageSize
+ * @param {string}   cacheKey
+ * @param {number}   [initialPage=0]
+ * @param {string[]} [initialSort=[]] - Array of "field,asc" | "field,desc"
  */
-export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initialPage = 0 }) {
+export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initialPage = 0, initialSort = [] }) {
     const [items, setItems] = useState([])
     const [page, setPage] = useState(initialPage)
     const [totalPages, setTotalPages] = useState(0)
     const [totalElements, setTotalElements] = useState(0)
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState('')
+    const [sort, setSort] = useState(initialSort)
 
-    // Track first mount so the search-debounce effect skips its initial run
-    const didMount = useRef(false)
+    const didMountSearch = useRef(false)
+    const didMountSort = useRef(false)
 
-    // Keep a ref to the latest baseUrl so the loadPage callback never
-    // needs baseUrl in its own dependency array (avoids re-creation when
-    // the caller rebuilds the URL string on every render).
     const baseUrlRef = useRef(baseUrl)
     useEffect(() => { baseUrlRef.current = baseUrl }, [baseUrl])
 
-    const loadPage = useCallback(async (pageNum, q = '') => {
+    const sortRef = useRef(sort)
+    useEffect(() => { sortRef.current = sort }, [sort])
+
+    const invalidateCacheForKey = useCallback(() => {
+        const prefix = `${getCachePrefix()}:${cacheKey}:`
+        for (const key of listCache.keys()) {
+            if (key.startsWith(prefix)) listCache.delete(key)
+        }
+    }, [cacheKey])
+
+    const loadPage = useCallback(async (pageNum, q = '', sortOverride = null) => {
         const url = baseUrlRef.current
         if (!url) return
 
+        const activeSort = Array.isArray(sortOverride) ? sortOverride : sortRef.current
+        const sortKeyStr = activeSort.join('|')
         const prefix = `${getCachePrefix()}:${cacheKey}`
-        const key    = `${prefix}:${pageNum}:${q}`
+        const key    = `${prefix}:${pageNum}:${q}:${sortKeyStr}`
 
         const cached = listCache.get(key)
         const fresh  = isFresh(cached, LIST_TTL)
 
-        // Show cached data immediately (stale-while-revalidate)
         if (cached) {
             setItems(cached.value.content)
             setTotalPages(cached.value.totalPages)
             setTotalElements(cached.value.totalElements)
         }
 
-        if (fresh) return // Cache is fresh — skip network
+        if (fresh) return
 
         if (!cached) setLoading(true)
 
         try {
-            // Build final URL — append page/size/search to whatever baseUrl has
             const separator = url.includes('?') ? '&' : '?'
             const params    = new URLSearchParams({ page: pageNum, size: pageSize })
             if (q.trim()) params.set('search', q.trim())
+            activeSort.forEach(s => { if (s) params.append('sort', s) })
             const finalUrl = `${url}${separator}${params}`
 
             const r      = await api.get(finalUrl)
@@ -77,75 +82,79 @@ export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initia
         } finally {
             setLoading(false)
         }
-    }, [cacheKey, pageSize]) // ← stable deps only; baseUrl is read via ref
+    }, [cacheKey, pageSize])
 
-    // ── Initial load ─────────────────────────────────────────────
+    // Initial load
     useEffect(() => {
-        loadPage(initialPage, '')
+        loadPage(initialPage, '', initialSort)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loadPage, initialPage])
 
-    // ── Re-fetch when baseUrl changes (e.g. filterAccountId toggle) ──
-    // We watch baseUrl directly in a separate effect so the reload is explicit
-    // and not tangled with loadPage's own dependency chain.
+    // Re-fetch when baseUrl changes
     const prevBaseUrl = useRef(baseUrl)
     useEffect(() => {
-        if (prevBaseUrl.current === baseUrl) return  // no change
+        if (prevBaseUrl.current === baseUrl) return
         prevBaseUrl.current = baseUrl
-
-        // Invalidate all cache entries for this cacheKey
-        const prefix = `${getCachePrefix()}:${cacheKey}:`
-        for (const key of listCache.keys()) {
-            if (key.startsWith(prefix)) listCache.delete(key)
-        }
-
+        invalidateCacheForKey()
         setPage(0)
         loadPage(0, search)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [baseUrl]) // intentionally narrow — only re-run when the URL string itself changes
+    }, [baseUrl])
 
-    // ── Search debounce ─────────────────────────────────────────
+    // Search debounce
     useEffect(() => {
-        if (!didMount.current) { didMount.current = true; return }
-
-        // Invalidate all page cache entries for this cacheKey prefix on search change
-        const prefix = `${getCachePrefix()}:${cacheKey}:`
-        for (const key of listCache.keys()) {
-            if (key.startsWith(prefix)) listCache.delete(key)
-        }
-
+        if (!didMountSearch.current) { didMountSearch.current = true; return }
+        invalidateCacheForKey()
         const timer = setTimeout(() => {
             setPage(0)
             loadPage(0, search)
         }, 350)
         return () => clearTimeout(timer)
-    }, [search, loadPage, cacheKey])
+    }, [search, loadPage, invalidateCacheForKey])
 
-    // ── Public helpers ───────────────────────────────────────────
+    // Sort change triggers immediate reload on page 0
+    useEffect(() => {
+        if (!didMountSort.current) { didMountSort.current = true; return }
+        invalidateCacheForKey()
+        setPage(0)
+        loadPage(0, search, sort)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sort])
+
+    const toggleSort = useCallback((field, isMulti = false) => {
+        setSort(prev => {
+            const existingIdx = prev.findIndex(entry => entry.split(',')[0] === field)
+            if (!isMulti) {
+                if (existingIdx === -1) return [`${field},asc`]
+                const currentDir = prev[existingIdx].split(',')[1] || 'asc'
+                if (currentDir === 'asc') return [`${field},desc`]
+                return prev.length > 1 ? [`${field},asc`] : []
+            }
+            const next = [...prev]
+            if (existingIdx === -1) {
+                next.push(`${field},asc`)
+            } else {
+                const currentDir = next[existingIdx].split(',')[1] || 'asc'
+                if (currentDir === 'asc') next[existingIdx] = `${field},desc`
+                else next.splice(existingIdx, 1)
+            }
+            return next
+        })
+    }, [])
+
     const goToPage = (nextPage) => {
         setPage(nextPage)
         loadPage(nextPage, search)
     }
 
     const reloadCurrentPage = () => {
-        const prefix = `${getCachePrefix()}:${cacheKey}`
-        const key    = `${prefix}:${page}:${search}`
-        listCache.delete(key)
+        invalidateCacheForKey()
         return loadPage(page, search)
     }
 
-    const invalidateCacheForKey = useCallback(() => {
-        const prefix = `${getCachePrefix()}:${cacheKey}:`
-        for (const key of listCache.keys()) {
-            if (key.startsWith(prefix)) listCache.delete(key)
-        }
-    }, [cacheKey])
-
     const updateItemInCache = useCallback((predicate, updater) => {
-        // 1. Update React state
         setItems(prev => prev.map(item => predicate(item) ? updater(item) : item))
 
-        // 2. Update all matching listCache entries for this cacheKey prefix
         const prefix = `${getCachePrefix()}:${cacheKey}:`
         const targets = []
         for (const [key, cached] of listCache.entries()) {
@@ -171,6 +180,9 @@ export default function usePaginatedSearch({ baseUrl, pageSize, cacheKey, initia
         loading,
         search,
         setSearch,
+        sort,
+        setSort,
+        toggleSort,
         loadPage,
         goToPage,
         reloadCurrentPage,

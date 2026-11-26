@@ -8,6 +8,9 @@ import './index.css'
 import App from './App.jsx'
 import SkeletonTheme from './components/skeletons/SkeletonTheme.jsx'
 import { Provider } from 'react-redux'
+import { initTelemetry } from './utils/telemetry'
+
+initTelemetry()
 
 // ── Impersonation — must run before store initializes ──────────────────────
 // PlatformDashboard writes to sessionStorage then opens a new tab.

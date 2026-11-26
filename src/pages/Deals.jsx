@@ -21,9 +21,11 @@ import api, { extractApiErrorMessage } from '../api'
 import { profileCache, getCachePrefix } from '../utils/cacheUtils'
 import { useDialog } from '../contexts/DialogContext'
 import DynamicFields from '../components/DynamicFields'
+import SavedViewsBar from '../components/ui/SavedViewsBar'
+import { SUPPORTED_CURRENCIES } from '../utils/currency'
 
 // ── Constants ──────────────────────────────────────────────────
-const EMPTY_FORM = { title: '', amount: '', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
+const EMPTY_FORM = { title: '', amount: '', currency: 'INR', exchangeRate: '1', stage: '', expectedCloseDate: '', accountId: '', contactId: '', pipelineId: '', lostReason: LOST_DEAL_REASONS[0], lostReasonNote: '' }
 const MAX_KANBAN_CARDS_PER_STAGE = 120
 const DEALS_PER_PAGE = 30
 
@@ -358,6 +360,8 @@ export default function Deals() {
         setForm({
             title: '',
             amount: '',
+            currency: 'INR',
+            exchangeRate: '1',
             stage: activeStages[0]?.stageKey || 'NEW',
             expectedCloseDate: '',
             accountId: '',
@@ -374,6 +378,8 @@ export default function Deals() {
         setForm({
             title: '',
             amount: '',
+            currency: 'INR',
+            exchangeRate: '1',
             stage: activeStages[0]?.stageKey || 'NEW',
             expectedCloseDate: '',
             accountId: '',
@@ -412,6 +418,8 @@ export default function Deals() {
             await api.post('/api/deals', {
                 title: form.title,
                 amount: form.amount ? parseFloat(form.amount) : null,
+                currency: form.currency || 'INR',
+                exchangeRate: form.exchangeRate ? parseFloat(form.exchangeRate) : null,
                 stage: form.stage,
                 expectedCloseDate: form.expectedCloseDate || null,
                 accountId: form.accountId || null,
@@ -637,6 +645,19 @@ export default function Deals() {
                     }
                 />
 
+                <SavedViewsBar
+                    entityType="DEAL"
+                    currentFilters={{ search, pipelineId: selectedPipelineId }}
+                    currentSort={[]}
+                    onApplyView={(view) => {
+                        setSearch(view.filtersJson?.search || '')
+                        if (view.filtersJson?.pipelineId) {
+                            setSelectedPipelineId(Number(view.filtersJson.pipelineId))
+                        }
+                    }}
+                    onResetView={() => setSearch('')}
+                />
+
                 {/* ── Pipeline summary strip ───────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                     {pipelineTotals.map(({ stage, label, count, value, style }) => (
@@ -823,7 +844,19 @@ export default function Deals() {
                     <div className="mb-4 text-xs font-semibold" style={{ color: T.error }}>{errors.general}</div>
                 )}
                 <Input label="Deal Title *" value={form.title} onChange={setEvent('title')} required error={errors.title} />
-                <Input label="Amount (₹) *" type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Input label={`Amount (${form.currency || 'INR'}) *`} type="number" value={form.amount} onChange={setEvent('amount')} required error={errors.amount} />
+                    <Select label="Currency" value={form.currency || 'INR'} onChange={e => {
+                        const code = e.target.value
+                        const meta = SUPPORTED_CURRENCIES.find(c => c.code === code)
+                        setForm(f => ({ ...f, currency: code, exchangeRate: String(meta?.rateToInr ?? 1) }))
+                    }}>
+                        {SUPPORTED_CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code} ({c.symbol.trim()})</option>)}
+                    </Select>
+                </div>
+                {form.currency && form.currency !== 'INR' && (
+                    <Input label="Exchange Rate to INR" type="number" step="0.0001" value={form.exchangeRate} onChange={setEvent('exchangeRate')} />
+                )}
                 
                 {pipelines.length > 0 && (
                     <Select label="Pipeline *" value={form.pipelineId || ''} onChange={e => {

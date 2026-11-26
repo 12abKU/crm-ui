@@ -15,6 +15,9 @@ import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
 import DuplicateModal from '../components/ui/DuplicateModal'
+import BulkActionBar from '../components/ui/BulkActionBar'
+import SavedViewsBar from '../components/ui/SavedViewsBar'
+import { downloadAuthenticatedCsv } from '../utils/csvExport'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
@@ -72,6 +75,16 @@ export default function Accounts() {
 
     const can = usePermissions(['ACCOUNTS_CREATE', 'ACCOUNTS_EDIT', 'ACCOUNTS_DELETE'])
     const { confirm } = useDialog()
+    const [selectedIds, setSelectedIds] = useState([])
+    const [bulkBusy, setBulkBusy] = useState(false)
+    const [exportingCsv, setExportingCsv] = useState(false)
+    const [teamUsers, setTeamUsers] = useState([])
+
+    useEffect(() => {
+        if (can.ACCOUNTS_EDIT) {
+            api.get('/api/user/team').then(r => setTeamUsers(r.data ?? [])).catch(() => {})
+        }
+    }, [can.ACCOUNTS_EDIT])
 
     const {
         items: accounts,
@@ -83,8 +96,12 @@ export default function Accounts() {
         loading,
         search,
         setSearch,
+        sort,
+        setSort,
+        toggleSort,
         loadPage,
         goToPage,
+        reloadCurrentPage,
         invalidateCacheForKey,
         updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/accounts', pageSize: PAGE_SIZE, cacheKey: 'accounts' })
@@ -180,7 +197,68 @@ export default function Accounts() {
         updateItemInCache(item => item.id === id, item => ({ ...item, [field]: value }))
     }
 
-    const headers = ['Company', 'Phone', 'Industry', 'Tag', 'Open Deals', 'Actions']
+    const headers = [
+        { label: 'Company', sortKey: 'name' },
+        { label: 'Phone', sortKey: 'phone' },
+        { label: 'Industry', sortKey: 'industry' },
+        { label: 'Tag', sortKey: 'tag' },
+        'Open Deals',
+        'Actions',
+    ]
+
+    const pageIds = accounts.map(a => a.id)
+    const activeSelectedIds = selectedIds.filter(id => pageIds.includes(id))
+    const allSelected = pageIds.length > 0 && pageIds.every(id => activeSelectedIds.includes(id))
+    const toggleSelectAll = (checked) => setSelectedIds(checked ? pageIds : [])
+    const toggleRowSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+
+    const handleExportCsv = async () => {
+        setExportingCsv(true)
+        try {
+            await downloadAuthenticatedCsv('/api/accounts/export', { search, sort }, 'accounts.csv')
+        } finally {
+            setExportingCsv(false)
+        }
+    }
+
+    const handleBulkDelete = async () => {
+        const ok = await confirm({
+            title: `Delete ${activeSelectedIds.length} Accounts?`,
+            message: 'Are you sure you want to delete the selected accounts? This action cannot be undone.',
+            confirmText: 'Delete Selected',
+        })
+        if (!ok) return
+        setBulkBusy(true)
+        try {
+            await api.delete('/api/accounts/bulk', { data: { ids: activeSelectedIds } })
+            setSelectedIds([])
+            reloadCurrentPage()
+        } finally {
+            setBulkBusy(false)
+        }
+    }
+
+    const handleBulkAssign = async (ownerId) => {
+        setBulkBusy(true)
+        try {
+            await api.post('/api/accounts/bulk/assign', { ids: activeSelectedIds, ownerId })
+            setSelectedIds([])
+            reloadCurrentPage()
+        } finally {
+            setBulkBusy(false)
+        }
+    }
+
+    const handleBulkTag = async (tag) => {
+        setBulkBusy(true)
+        try {
+            await api.patch('/api/accounts/bulk/tag', { ids: activeSelectedIds, tag })
+            setSelectedIds([])
+            reloadCurrentPage()
+        } finally {
+            setBulkBusy(false)
+        }
+    }
 
     return (
         <div>
@@ -195,6 +273,16 @@ export default function Accounts() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search accounts..." />
+                            <button
+                                type="button"
+                                onClick={handleExportCsv}
+                                disabled={exportingCsv}
+                                className="crm-btn-ghost whitespace-nowrap shrink-0"
+                                title="Export filtered accounts to CSV"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">download</span>
+                                {exportingCsv ? 'Exporting...' : 'Export CSV'}
+                            </button>
                             {can.ACCOUNTS_CREATE && (
                                 <button onClick={handleOpenModal}
                                     className="crm-btn-primary whitespace-nowrap shrink-0 w-full sm:w-auto">
@@ -206,16 +294,36 @@ export default function Accounts() {
                     }
                 />
 
+                <SavedViewsBar
+                    entityType="ACCOUNT"
+                    currentFilters={{ search }}
+                    currentSort={sort}
+                    onApplyView={(view) => {
+                        setSearch(view.filtersJson?.search || '')
+                        setSort(Array.isArray(view.sortJson) ? view.sortJson : [])
+                    }}
+                    onResetView={() => {
+                        setSearch('')
+                        setSort([])
+                    }}
+                />
+
                 {/* -- Table ------------------------------------- */}
                 <TableShell
                     headers={headers}
                     colWidths={['25%', '13%', '17%', '13%', '12%', '20%']}
+                    sort={sort}
+                    onSort={toggleSort}
+                    selectable={can.ACCOUNTS_DELETE || can.ACCOUNTS_EDIT}
+                    allSelected={allSelected}
+                    onToggleAll={toggleSelectAll}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
                         <tbody>
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <tr key={i} style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
+                                    {(can.ACCOUNTS_DELETE || can.ACCOUNTS_EDIT) && <td className="pl-5 pr-2 py-4"><Skeleton width={16} height={16} /></td>}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <Skeleton circle width={40} height={40} />
@@ -232,7 +340,7 @@ export default function Accounts() {
                         </tbody>
                     ) : accounts.length === 0 ? (
                         <tbody>
-                            <EmptyTableRow colSpan={headers.length} icon="business" title="No accounts yet" />
+                            <EmptyTableRow colSpan={headers.length + ((can.ACCOUNTS_DELETE || can.ACCOUNTS_EDIT) ? 1 : 0)} icon="business" title="No accounts yet" />
                         </tbody>
                     ) : (
                         <tbody>
@@ -251,6 +359,17 @@ export default function Accounts() {
                                             e.currentTarget.style.background = rowBg
                                             e.currentTarget.style.transform = 'none'
                                         }}>
+
+                                    {(can.ACCOUNTS_DELETE || can.ACCOUNTS_EDIT) && (
+                                        <td className="pl-5 pr-2 py-4 w-10" onClick={e => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.includes(a.id)}
+                                                onChange={() => toggleRowSelect(a.id)}
+                                                className="w-4 h-4 rounded accent-indigo-600 cursor-pointer"
+                                            />
+                                        </td>
+                                    )}
 
                                     {/* Company name + avatar */}
                                     <td className="px-6 py-4" style={{ width: colWidths[0] }}>
@@ -332,6 +451,18 @@ export default function Accounts() {
                         </tbody>
                     )}
                 </TableShell>
+                <BulkActionBar
+                    selectedCount={activeSelectedIds.length}
+                    onClear={() => setSelectedIds([])}
+                    canDelete={can.ACCOUNTS_DELETE}
+                    onDelete={handleBulkDelete}
+                    users={can.ACCOUNTS_EDIT ? teamUsers : []}
+                    onAssign={can.ACCOUNTS_EDIT ? handleBulkAssign : undefined}
+                    statusOptions={can.ACCOUNTS_EDIT ? TAGS : []}
+                    statusLabel="Set Tag"
+                    onStatusChange={can.ACCOUNTS_EDIT ? handleBulkTag : undefined}
+                    busy={bulkBusy}
+                />
             </main>
 
             {/* -- Slide Form --------------------------------- */}

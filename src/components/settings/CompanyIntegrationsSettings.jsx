@@ -24,6 +24,9 @@ import { T } from '../../constants/theme'
 import { companyIntegrationsAPI } from '../../api/integrations'
 import { extractApiErrorMessage } from '../../api'
 import ConfirmModal from '../ui/ConfirmModal'
+import WebFormBuilderSection from './WebFormBuilderSection'
+import OutboundWebhooksSection from './OutboundWebhooksSection'
+import OutlookMetaIntegrationsSection from './OutlookMetaIntegrationsSection'
 
 // Safe copy-to-clipboard helper with fallback
 async function copyToClipboard(text) {
@@ -756,6 +759,19 @@ curl_close($ch);
                     </div>
                 </div>
             </div>
+
+            {/* Embeddable HTML Web-Form Builder */}
+            <WebFormBuilderSection webhookUrl={getResolvedWebhookUrl()} />
+
+            {/* Outbound Webhooks with HMAC Signing & Logs */}
+            <OutboundWebhooksSection />
+
+            {/* Microsoft 365 Outlook & Facebook/Meta Lead Ads */}
+            <OutlookMetaIntegrationsSection
+                key={`${integrations?.outlookClientId || ''}-${integrations?.metaPageId || ''}`}
+                integrations={integrations}
+                onUpdated={setIntegrations}
+            />
 
             {/* Confirmation Modal */}
             {confirmModal && (

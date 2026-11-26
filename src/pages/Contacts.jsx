@@ -16,6 +16,9 @@ import EmptyTableRow from '../components/ui/EmptyTableRow'
 import DeleteIconButton from '../components/ui/DeleteIconButton'
 import EntityAvatar from '../components/ui/EntityAvatar'
 import DuplicateModal from '../components/ui/DuplicateModal'
+import BulkActionBar from '../components/ui/BulkActionBar'
+import SavedViewsBar from '../components/ui/SavedViewsBar'
+import { downloadAuthenticatedCsv } from '../utils/csvExport'
 import usePaginatedSearch from '../hooks/usePaginatedSearch'
 import { usePermissions } from '../hooks/usePermission'
 import api, { extractApiErrorMessage } from '../api'
@@ -80,6 +83,16 @@ export default function Contacts() {
     }, [])
 
     const can = usePermissions(['CONTACTS_CREATE', 'CONTACTS_EDIT', 'CONTACTS_DELETE'])
+    const [selectedIds, setSelectedIds] = useState([])
+    const [bulkBusy, setBulkBusy] = useState(false)
+    const [exportingCsv, setExportingCsv] = useState(false)
+    const [teamUsers, setTeamUsers] = useState([])
+
+    useEffect(() => {
+        if (can.CONTACTS_EDIT) {
+            api.get('/api/user/team').then(r => setTeamUsers(r.data ?? [])).catch(() => {})
+        }
+    }, [can.CONTACTS_EDIT])
 
     const {
         items: contacts,
@@ -91,8 +104,12 @@ export default function Contacts() {
         loading,
         search,
         setSearch,
+        sort,
+        setSort,
+        toggleSort,
         loadPage,
         goToPage,
+        reloadCurrentPage,
         invalidateCacheForKey,
         updateItemInCache,
     } = usePaginatedSearch({ baseUrl: '/api/contacts', pageSize: PAGE_SIZE, cacheKey: 'contacts' })
@@ -259,7 +276,27 @@ export default function Contacts() {
         document.body.removeChild(link)
     }
 
-    const headers = ['Name', 'Phone', 'Account', 'Actions']
+    const headers = [
+        { label: 'Name', sortKey: 'firstName' },
+        { label: 'Phone', sortKey: 'phone' },
+        'Account',
+        'Actions',
+    ]
+
+    const pageIds = contacts.map(c => c.id)
+    const activeSelectedIds = selectedIds.filter(id => pageIds.includes(id))
+    const allSelected = pageIds.length > 0 && pageIds.every(id => activeSelectedIds.includes(id))
+    const toggleSelectAll = (checked) => setSelectedIds(checked ? pageIds : [])
+    const toggleRowSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+
+    const handleExportCsv = async () => {
+        setExportingCsv(true)
+        try {
+            await downloadAuthenticatedCsv('/api/contacts/export', { search, sort }, 'contacts.csv')
+        } finally {
+            setExportingCsv(false)
+        }
+    }
 
     return (
         <div>
@@ -274,6 +311,16 @@ export default function Contacts() {
                     actions={
                         <>
                             <SearchInput value={search} onChange={setSearch} placeholder="Search contacts..." />
+                            <button
+                                type="button"
+                                onClick={handleExportCsv}
+                                disabled={exportingCsv}
+                                className="crm-btn-ghost whitespace-nowrap shrink-0"
+                                title="Export filtered contacts to CSV"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">download</span>
+                                {exportingCsv ? 'Exporting...' : 'Export CSV'}
+                            </button>
                             {can.CONTACTS_CREATE && (
                                 <>
                                     <button onClick={() => setImportOpen(true)}
@@ -292,16 +339,36 @@ export default function Contacts() {
                     }
                 />
 
+                <SavedViewsBar
+                    entityType="CONTACT"
+                    currentFilters={{ search }}
+                    currentSort={sort}
+                    onApplyView={(view) => {
+                        setSearch(view.filtersJson?.search || '')
+                        setSort(Array.isArray(view.sortJson) ? view.sortJson : [])
+                    }}
+                    onResetView={() => {
+                        setSearch('')
+                        setSort([])
+                    }}
+                />
+
                 {/* -- Table --------------------------------------- */}
                 <TableShell
                     headers={headers}
                     colWidths={['30%', '23%', '22%', '25%']}
+                    sort={sort}
+                    onSort={toggleSort}
+                    selectable={can.CONTACTS_DELETE || can.CONTACTS_EDIT}
+                    allSelected={allSelected}
+                    onToggleAll={toggleSelectAll}
                     footer={<Pagination page={page} totalPages={totalPages} totalElements={totalElements} pageSize={PAGE_SIZE} onPage={goToPage} />}
                 >
                     {loading ? (
                         <tbody>
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <tr key={i} style={{ borderBottom: `1px solid ${T.borderSubtle}` }}>
+                                    {(can.CONTACTS_DELETE || can.CONTACTS_EDIT) && <td className="pl-5 pr-2 py-4"><Skeleton width={16} height={16} /></td>}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <Skeleton circle width={40} height={40} />
@@ -318,7 +385,7 @@ export default function Contacts() {
                         </tbody>
                     ) : contacts.length === 0 ? (
                         <tbody>
-                            <EmptyTableRow colSpan={headers.length} icon="groups" title="No contacts yet" />
+                            <EmptyTableRow colSpan={headers.length + ((can.CONTACTS_DELETE || can.CONTACTS_EDIT) ? 1 : 0)} icon="groups" title="No contacts yet" />
                         </tbody>
                     ) : (
                         <tbody>
@@ -336,6 +403,16 @@ export default function Contacts() {
                                             e.currentTarget.style.background = rowBg
                                             e.currentTarget.style.transform = 'none'
                                         }}>
+                                        {(can.CONTACTS_DELETE || can.CONTACTS_EDIT) && (
+                                            <td className="pl-5 pr-2 py-4 w-10" onClick={e => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(c.id)}
+                                                    onChange={() => toggleRowSelect(c.id)}
+                                                    className="w-4 h-4 rounded accent-indigo-600 cursor-pointer"
+                                                />
+                                            </td>
+                                        )}
                                         <td className="px-6 py-4" style={{ width: colWidths[0] }}>
                                             <div className="flex items-center gap-3">
                                                 <EntityAvatar label={c.firstName} index={i} />
@@ -392,6 +469,39 @@ export default function Contacts() {
                         </tbody>
                     )}
                 </TableShell>
+                <BulkActionBar
+                    selectedCount={activeSelectedIds.length}
+                    onClear={() => setSelectedIds([])}
+                    canDelete={can.CONTACTS_DELETE}
+                    onDelete={async () => {
+                        const ok = await confirm({
+                            title: `Delete ${activeSelectedIds.length} Contacts?`,
+                            message: 'Are you sure you want to delete the selected contacts? This action cannot be undone.',
+                            confirmText: 'Delete Selected',
+                        })
+                        if (!ok) return
+                        setBulkBusy(true)
+                        try {
+                            await api.delete('/api/contacts/bulk', { data: { ids: activeSelectedIds } })
+                            setSelectedIds([])
+                            reloadCurrentPage()
+                        } finally {
+                            setBulkBusy(false)
+                        }
+                    }}
+                    users={can.CONTACTS_EDIT ? teamUsers : []}
+                    onAssign={can.CONTACTS_EDIT ? async (ownerId) => {
+                        setBulkBusy(true)
+                        try {
+                            await api.post('/api/contacts/bulk/assign', { ids: activeSelectedIds, ownerId })
+                            setSelectedIds([])
+                            reloadCurrentPage()
+                        } finally {
+                            setBulkBusy(false)
+                        }
+                    } : undefined}
+                    busy={bulkBusy}
+                />
             </main>
 
             {/* -- Slide Form ----------------------------------- */}
