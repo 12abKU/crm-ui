@@ -64,11 +64,11 @@ export default function Login() {
             <div className="hidden lg:flex lg:w-[55%] relative flex-col justify-between p-16 overflow-hidden select-none"
                  style={{ background: `linear-gradient(135deg, ${T.heroBgFrom} 0%, ${T.heroBgMid} 50%, ${T.heroBgTo} 100%)` }}>
                 
-                {/* Background animations / orbs */}
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none opacity-30 animate-pulse duration-[8000ms]"
-                     style={{ background: T.heroAccentGlow }} />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[150px] pointer-events-none opacity-15"
-                     style={{ background: T.heroOrb2 }} />
+                {/* Background animations / soft radial glows (avoid heavy CSS blur filters on iOS WebKit) */}
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-25"
+                     style={{ background: `radial-gradient(circle, ${T.heroAccentGlow} 0%, transparent 70%)` }} />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-15"
+                     style={{ background: `radial-gradient(circle, ${T.heroOrb2} 0%, transparent 70%)` }} />
 
                 {/* Cyber Grid pattern */}
                 <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -181,9 +181,9 @@ export default function Login() {
 
             {/* Right Column (Login Form Section) */}
             <div className="w-full lg:w-[45%] flex items-center justify-center p-6 md:p-16 relative overflow-hidden">
-                {/* Background warm aesthetic soft glow */}
-                <div className="absolute top-1/2 left-1/2 w-[550px] h-[550px] rounded-full blur-[140px] pointer-events-none opacity-20 -translate-x-1/2 -translate-y-1/2"
-                     style={{ background: `radial-gradient(circle, ${T.primary} 0%, transparent 60%)` }} />
+                {/* Background warm aesthetic soft glow (radial gradient only — avoids iOS WebKit Metal OOM) */}
+                <div className="absolute top-1/2 left-1/2 w-[520px] h-[520px] rounded-full pointer-events-none opacity-15 -translate-x-1/2 -translate-y-1/2"
+                     style={{ background: `radial-gradient(circle, ${T.primary} 0%, transparent 68%)` }} />
 
                 <div className="w-full max-w-md relative z-10 animate-fade-in-up">
                     {/* Header Logo for Mobile views */}

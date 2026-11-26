@@ -2,6 +2,7 @@ const DISMISS_STORAGE_KEY = 'crm_pwa_install_dismissed_until'
 const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 let swRegistered = false
+let userRequestedUpdate = false
 
 export function isRunningStandalone() {
   if (typeof window === 'undefined') return false
@@ -32,6 +33,7 @@ export function dismissInstallBanner() {
 /**
  * Registers /sw.js early at app boot and broadcasts update notifications
  * whenever a newer build enters the waiting state.
+ * Never auto-reloads on initial SW claim to avoid iOS WebKit reload loops.
  */
 export function registerPwaServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
@@ -40,12 +42,12 @@ export function registerPwaServiceWorker() {
 
   let refreshing = false
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return
+    if (!userRequestedUpdate || refreshing) return
     refreshing = true
     window.location.reload()
   })
 
-  window.addEventListener('load', async () => {
+  const register = async () => {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
 
@@ -70,12 +72,19 @@ export function registerPwaServiceWorker() {
     } catch (err) {
       console.warn('Service worker registration skipped:', err?.message || err)
     }
-  })
+  }
+
+  if (document.readyState === 'complete') {
+    register()
+  } else {
+    window.addEventListener('load', register, { once: true })
+  }
 }
 
 export function applyServiceWorkerUpdate(registration) {
   const waiting = registration?.waiting
   if (waiting) {
+    userRequestedUpdate = true
     waiting.postMessage({ type: 'SKIP_WAITING' })
   } else {
     window.location.reload()

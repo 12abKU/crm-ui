@@ -20,24 +20,14 @@ function crmPwaPlugin() {
       if (!fs.existsSync(swPath) || !fs.existsSync(htmlPath)) return
 
       const html = fs.readFileSync(htmlPath, 'utf8')
-      const entryAssets = []
-      for (const match of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
-        entryAssets.push(match[1])
-      }
-
       const precacheList = [
-        '/',
-        '/index.html',
         '/offline.html',
         '/manifest.json',
         '/favicon.ico',
         '/icons/icon-96.png',
         '/icons/icon-192.png',
         '/icons/icon-512.png',
-        '/icons/icon-maskable-512.png',
-        '/icons/apple-touch-icon.png',
         '/icons/brand-icon.svg',
-        ...new Set(entryAssets),
       ]
 
       const swSource = fs.readFileSync(swPath, 'utf8')

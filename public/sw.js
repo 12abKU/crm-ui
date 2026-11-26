@@ -25,10 +25,10 @@ self.addEventListener('install', (event) => {
     caches.open(SHELL_CACHE).then(async (cache) => {
       await Promise.allSettled(
         PRECACHE_ASSETS.map((url) =>
-          cache.add(new Request(url, { cache: 'reload' })).catch(() => undefined)
+          cache.add(url).catch(() => undefined)
         )
       );
-    })
+    }).catch(() => undefined)
   );
 });
 
@@ -96,8 +96,10 @@ async function handleNavigation(request) {
   try {
     const response = await fetch(request);
     if (response && response.ok && response.type === 'basic') {
-      const cache = await caches.open(SHELL_CACHE);
-      cache.put('/index.html', response.clone()).catch(() => undefined);
+      const copy = response.clone();
+      caches.open(SHELL_CACHE)
+        .then((cache) => cache.put('/index.html', copy))
+        .catch(() => undefined);
     }
     return response;
   } catch {
