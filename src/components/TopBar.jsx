@@ -157,11 +157,12 @@ export default function TopBar() {
     const typeColors = { CALL: T.primary, EMAIL: T.activityEmail, MEETING: T.activityMeeting, NOTE: T.activityNote }
 
     return (
-        <header className="h-16 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 gap-3"
+        <header className="flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 gap-3 shrink-0"
             style={{
                 background: T.bg,
                 borderBottom: `1px solid ${T.border}`,
-                backdropFilter: 'blur(8px)',
+                paddingTop: 'env(safe-area-inset-top, 0px)',
+                minHeight: 'calc(4rem + env(safe-area-inset-top, 0px))',
             }}>
 
             {/* Hamburger Menu Toggle Button on Mobile */}

@@ -69,7 +69,10 @@ export default function PwaManager() {
   if (isOnline && !swRegistration && !showInstall) return null
 
   return (
-    <div className="fixed bottom-4 right-4 z-[70] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2rem)] sm:w-auto pointer-events-none">
+    <div
+      className="fixed bottom-4 right-4 z-[70] flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2rem)] sm:w-auto pointer-events-none"
+      style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       {!isOnline && (
         <div
           className="pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-xl border shadow-xl text-xs font-semibold backdrop-blur-md"

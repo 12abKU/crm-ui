@@ -246,13 +246,15 @@ export default function Sidebar() {
 
             {/* Sidebar container */}
             <aside
-                className={`crm-sidebar flex flex-col h-screen w-64 fixed left-0 top-0 z-50 select-none transition-transform duration-300 ease-in-out border-r ${
+                className={`crm-sidebar flex flex-col h-dvh w-64 fixed left-0 top-0 z-50 select-none transition-transform duration-300 ease-in-out border-r ${
                     isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}
                 style={{
                     background: T.sidebar,
                     borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
                     boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.5)' : '4px 0 24px rgba(0, 0, 0, 0.04)',
+                    paddingTop: 'env(safe-area-inset-top, 0px)',
+                    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
                 }}
             >
                 {/* ── Brand / Workspace Header ────────────────────── */}

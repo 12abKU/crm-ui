@@ -189,7 +189,7 @@ const CrmLayout = ({ children }) => {
   if (!token) return <Navigate to="/login" />
   if (role === 'SUPER_ADMIN') return <Navigate to="/platform" />
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
+    <div className="flex h-dvh overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
       <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">
         {children}
@@ -205,7 +205,7 @@ const PlatformLayout = ({ children }) => {
   if (!token) return <Navigate to="/login" />
   if (role !== 'SUPER_ADMIN') return <Navigate to="/" />
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
+    <div className="flex h-dvh overflow-hidden" style={{ background: T.bg }}>
       <Sidebar />
       <div className="pl-0 md:pl-64 flex-1 flex flex-col min-h-0 overflow-auto">{children}</div>
     </div>
