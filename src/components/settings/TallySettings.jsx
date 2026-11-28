@@ -199,7 +199,7 @@ export default function TallySettings() {
             setDlqMessages(prev => prev.filter(m => m.id !== dlqId))
             setFeedback({
                 type: 'success',
-                message: `Message #${dlqId} successfully re-enqueued to AWS SQS FIFO queue!`,
+                message: `Message #${dlqId} successfully re-enqueued to Cloud Sync Queue!`,
             })
         } catch (err) {
             console.error('Failed to retry DLQ message:', err)
@@ -218,7 +218,7 @@ export default function TallySettings() {
                 <span className="material-symbols-outlined text-[28px] animate-spin block mb-2" style={{ color: T.primary }}>
                     sync
                 </span>
-                Loading TallyPrime configuration and SQS queue health...
+                Loading TallyPrime configuration and sync queue health...
             </div>
         )
     }
@@ -259,7 +259,7 @@ export default function TallySettings() {
                             <TallyConnectionBadge />
                         </div>
                         <p className="text-xs sm:text-sm mt-0.5 leading-relaxed" style={{ color: T.textMuted }}>
-                            Connect your Tally company, configure Indian GST tax ledgers, and monitor AWS SQS FIFO queues.
+                            Connect your Tally company, configure Indian GST tax ledgers, and monitor your Cloud Sync Queue.
                         </p>
                     </div>
                 </div>
@@ -773,7 +773,7 @@ export default function TallySettings() {
                         <div>
                             <span className="text-xs font-bold block" style={{ color: T.textPrimary }}>Master Synchronization Active</span>
                             <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                Enable outbound voucher publishing to AWS SQS FIFO queue.
+                                Enable outbound voucher publishing to the Cloud Sync Queue.
                             </span>
                         </div>
                     </label>
@@ -837,7 +837,7 @@ export default function TallySettings() {
                 <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: T.borderSubtle }}>
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[20px]" style={{ color: T.primary }}>dns</span>
-                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>4. AWS SQS FIFO Queue & DLQ Monitor</h4>
+                        <h4 className="text-sm font-bold" style={{ color: T.textPrimary }}>4. Cloud Sync Queue & Failed Jobs Monitor</h4>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: T.successDim, color: T.success }}>

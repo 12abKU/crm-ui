@@ -38,8 +38,8 @@ export default function ErpPage() {
                     subtitle="Connect TallyPrime and BUSY ERP 21, manage material centers, and automate order-to-cash fulfillment"
                     badge={badge.label}
                     stats={[
-                        { label: 'Protocols', value: 'Port 9000 / 981', icon: 'hub', color: '#818CF8' },
-                        { label: 'Pipeline Engine', value: 'AWS SQS FIFO', icon: 'sync_alt', color: '#34D399' },
+                        { label: 'Connectors', value: 'Tally & BUSY', icon: 'hub', color: '#818CF8' },
+                        { label: 'Sync Engine', value: 'Real-Time Cloud', icon: 'sync_alt', color: '#34D399' },
                     ]}
                 />
 

@@ -46,6 +46,7 @@ export default function PlatformDashboard() {
     const { name } = useSelector(state => state.auth)
 
     const [stats, setStats] = useState(null)
+    const [billingOverview, setBillingOverview] = useState(null)
     const [companies, setCompanies] = useState([])
     const [expiringTrials, setExpiringTrials] = useState([])
     const [loading, setLoading] = useState(true)
@@ -82,12 +83,14 @@ export default function PlatformDashboard() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const [statsRes, companiesRes, expiringRes] = await Promise.all([
+            const [statsRes, companiesRes, expiringRes, billingRes] = await Promise.all([
                 api.get('/api/platform/stats'),
                 api.get('/api/platform/companies?page=0&size=100'),
                 api.get('/api/platform/companies/expiring-trials?days=7'),
+                api.get('/api/platform/billing/overview').catch(() => ({ data: null })),
             ])
             setStats(statsRes.data)
+            setBillingOverview(billingRes.data)
             setCompanies(companiesRes.data.content ?? [])
             setExpiringTrials(expiringRes.data ?? [])
         } finally { setLoading(false) }
@@ -450,6 +453,41 @@ export default function PlatformDashboard() {
 
             {/* MAIN CONTENT */}
             <main className="px-4 py-8 md:px-9 md:py-10">
+
+                {billingOverview && (
+                    <div className="mb-6 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        style={{
+                            background: T.surface,
+                            border: `1px solid ${billingOverview.razorpayConfigured ? T.border : '#F59E0B'}`,
+                        }}>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textPrimary }}>
+                                    Platform Billing Gateway (Razorpay)
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase"
+                                    style={{
+                                        background: billingOverview.razorpayConfigured ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.14)',
+                                        color: billingOverview.razorpayConfigured ? '#10B981' : '#D97706',
+                                    }}>
+                                    {billingOverview.razorpayMode || 'NOT_CONFIGURED'}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                    style={{
+                                        background: billingOverview.webhookSecretConfigured ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                                        color: billingOverview.webhookSecretConfigured ? '#10B981' : '#EF4444',
+                                    }}>
+                                    Webhook Secret: {billingOverview.webhookSecretConfigured ? 'Set' : 'Missing'}
+                                </span>
+                            </div>
+                            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+                                {billingOverview.razorpayConfigured
+                                    ? `Invoices issued: ${billingOverview.totalIssuedInvoices ?? 0} · Webhooks processed: ${billingOverview.totalWebhookEvents ?? 0} · Seller GSTIN: ${billingOverview.sellerGstin || 'N/A'}`
+                                    : 'Set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and RAZORPAY_WEBHOOK_SECRET in backend .env on EC2 to enable tenant self-serve payments.'}
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 

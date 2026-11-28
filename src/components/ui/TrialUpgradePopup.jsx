@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { T } from '../../constants/theme'
-import { CRM_LANDING_URL } from '../../constants/config'
 import { luxeSurface, luxeShadow } from '../dashboard/dashboardDesign'
 
 export default function TrialUpgradePopup() {
-    const { companyStatus, trialEndsAt, companyId, companyName, email, role } = useSelector(state => state.auth)
+    const navigate = useNavigate()
+    const { companyStatus, trialEndsAt, role } = useSelector(state => state.auth)
+    const isAdmin = role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN'
     const [isOpen, setIsOpen] = useState(false)
 
     const getTrialDaysLeft = () => {
@@ -17,22 +19,21 @@ export default function TrialUpgradePopup() {
     const daysLeft = getTrialDaysLeft()
 
     useEffect(() => {
-        if (companyStatus === 'TRIAL' && trialEndsAt) {
+        if (isAdmin && companyStatus === 'TRIAL' && trialEndsAt) {
             const days = getTrialDaysLeft()
             const dismissed = sessionStorage.getItem('dismissed_trial_upgrade_popup')
             if (days <= 3 && !dismissed) {
                 setIsOpen(true)
             }
         }
-    }, [companyStatus, trialEndsAt])
+    }, [isAdmin, companyStatus, trialEndsAt])
 
-    if (!isOpen) return null
+    if (!isOpen || !isAdmin) return null
 
     const handleUpgrade = () => {
         sessionStorage.setItem('dismissed_trial_upgrade_popup', 'true')
         setIsOpen(false)
-        const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`
-        window.location.href = `${CRM_LANDING_URL}/pricing${params}`
+        navigate('/settings?tab=billing')
     }
 
     const handleClose = () => {

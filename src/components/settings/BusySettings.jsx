@@ -240,7 +240,7 @@ export default function BusySettings() {
             setDlqMessages(prev => prev.filter(m => m.id !== dlqId))
             setFeedback({
                 type: 'success',
-                message: `Message #${dlqId} successfully re-enqueued to AWS SQS FIFO queue!`,
+                message: `Message #${dlqId} successfully re-enqueued to Cloud Sync Queue!`,
             })
         } catch (err) {
             console.error('Failed to retry DLQ message:', err)
@@ -330,7 +330,7 @@ export default function BusySettings() {
                             <BusyConnectionBadge />
                         </div>
                         <p className="text-xs sm:text-sm mt-0.5 leading-relaxed" style={{ color: T.textMuted }}>
-                            Connect your BUSY ERP instance on Port 981, configure Material Centers, and manage AWS SQS FIFO fulfillment.
+                            Connect your BUSY ERP instance, configure Material Centers, and manage Cloud Sync Queue fulfillment.
                         </p>
                     </div>
                 </div>
@@ -939,7 +939,7 @@ export default function BusySettings() {
                         <div>
                             <span className="text-xs font-bold block" style={{ color: T.textPrimary }}>Master Synchronization Active</span>
                             <span className="text-[11px]" style={{ color: T.textMuted }}>
-                                Enable outbound voucher publishing to AWS SQS FIFO queue for BUSY ERP.
+                                Enable outbound voucher publishing to the Cloud Sync Queue for BUSY ERP.
                             </span>
                         </div>
                     </label>
@@ -1093,7 +1093,7 @@ export default function BusySettings() {
                     <div className="flex items-center gap-3">
                         <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: T.primaryDim, color: T.primary }}>05</span>
                         <div>
-                            <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>AWS SQS FIFO Queue &amp; DLQ Monitor</h4>
+                            <h4 className="text-sm font-extrabold tracking-tight" style={{ color: T.textPrimary }}>Cloud Sync Queue &amp; Failed Jobs Monitor</h4>
                             <p className="text-[11px]" style={{ color: T.textMuted }}>Guaranteed message ordering, deduplication, and failure diagnostics</p>
                         </div>
                     </div>

@@ -20,9 +20,9 @@ import {
 const STATUS_BADGE = {
   ACTIVE: { bg: 'rgba(16,185,129,0.12)', color: '#10B981', label: 'Active' },
   TRIAL: { bg: 'rgba(59,130,246,0.12)', color: '#3B82F6', label: '14-Day Trial' },
-  AUTHENTICATED: { bg: 'rgba(59,130,246,0.12)', color: '#3B82F6', label: 'Trial Mandate Ready' },
+  AUTHENTICATED: { bg: 'rgba(59,130,246,0.12)', color: '#3B82F6', label: 'Trial Mandate Active' },
   PAST_DUE: { bg: 'rgba(245,158,11,0.14)', color: '#F59E0B', label: 'Past Due (Grace)' },
-  HALTED: { bg: 'rgba(239,68,68,0.14)', color: '#EF4444', label: 'Halted (Read-Only)' },
+  HALTED: { bg: 'rgba(239,68,68,0.14)', color: '#EF4444', label: 'Read-Only Lock' },
   PAUSED: { bg: 'rgba(100,116,139,0.16)', color: '#64748B', label: 'Paused' },
   CANCELLED: { bg: 'rgba(100,116,139,0.16)', color: '#64748B', label: 'Cancelled' },
 }
@@ -42,7 +42,7 @@ const INDIAN_STATES = [
 
 export default function BillingSettings() {
   const { role } = useSelector((state) => state.auth)
-  const isAdmin = role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN' || role === 'SUPER_ADMIN'
+  const isAdmin = role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN'
 
   const [status, setStatus] = useState(null)
   const [plans, setPlans] = useState([])
@@ -50,9 +50,8 @@ export default function BillingSettings() {
   const [interval, setInterval] = useState('MONTHLY')
   const [loading, setLoading] = useState(true)
   const [busyAction, setBusyAction] = useState('')
-  const [feedback, setFeedback] = useState(null) // { type: 'success'|'error', text }
+  const [feedback, setFeedback] = useState(null)
 
-  // GST form
   const [gstin, setGstin] = useState('')
   const [billingStateCode, setBillingStateCode] = useState('27')
   const [legalEntityName, setLegalEntityName] = useState('')
@@ -74,7 +73,7 @@ export default function BillingSettings() {
       setLegalEntityName(s.legalEntityName || s.companyName || '')
       setBillingAddress(s.billingAddress || '')
     } catch (e) {
-      setFeedback({ type: 'error', text: e?.userMessage || 'Unable to load billing information' })
+      setFeedback({ type: 'error', text: e?.userMessage || 'Unable to load subscription details' })
     } finally {
       setLoading(false)
     }
@@ -84,17 +83,17 @@ export default function BillingSettings() {
     loadAll()
   }, [loadAll])
 
-  const openRazorpaySubscriptionModal = async (checkout) => {
+  const openSubscriptionCheckout = async (checkout) => {
     const ok = await loadRazorpayScript()
     if (!ok || !window.Razorpay) {
-      throw new Error('Could not load Razorpay Checkout JS')
+      throw new Error('Unable to open payment checkout. Please retry in a moment.')
     }
     return new Promise((resolve, reject) => {
       const rzp = new window.Razorpay({
         key: checkout.keyId,
         subscription_id: checkout.subscriptionId,
         name: 'IInventive CRM',
-        description: checkout.planName || checkout.planCode,
+        description: checkout.planName || 'Subscription Plan',
         prefill: {
           email: checkout.prefillEmail || '',
           contact: checkout.prefillContact || '',
@@ -110,15 +109,15 @@ export default function BillingSettings() {
         },
         modal: { ondismiss: () => reject(new Error('Checkout dismissed')) },
       })
-      rzp.on('payment.failed', (err) => reject(new Error(err?.error?.description || 'Payment failed')))
+      rzp.on('payment.failed', (err) => reject(new Error(err?.error?.description || 'Payment declined')))
       rzp.open()
     })
   }
 
-  const openRazorpayOrderModal = async (order) => {
+  const openOrderCheckout = async (order) => {
     const ok = await loadRazorpayScript()
     if (!ok || !window.Razorpay) {
-      throw new Error('Could not load Razorpay Checkout JS')
+      throw new Error('Unable to open payment checkout. Please retry in a moment.')
     }
     return new Promise((resolve, reject) => {
       const rzp = new window.Razorpay({
@@ -127,7 +126,7 @@ export default function BillingSettings() {
         amount: order.amountPaise,
         currency: order.currency || 'INR',
         name: 'IInventive CRM',
-        description: `Plan upgrade differential (${order.targetPlanCode})`,
+        description: 'Plan Upgrade Differential',
         theme: { color: T.primary || '#0A66FF' },
         handler: async (res) => {
           try {
@@ -147,27 +146,26 @@ export default function BillingSettings() {
     setFeedback(null)
     setBusyAction(planCode)
     try {
-      const hasSub = Boolean(status?.razorpaySubscriptionId)
-      if (!hasSub) {
+      if (!status?.hasActiveSubscription) {
         const checkout = await createSubscriptionCheckout(planCode, 1)
-        await openRazorpaySubscriptionModal(checkout)
-        setFeedback({ type: 'success', text: 'Subscription authorized and verified.' })
+        await openSubscriptionCheckout(checkout)
+        setFeedback({ type: 'success', text: 'Your subscription is active.' })
       } else {
         const res = await changePlanOrSeats(planCode, status?.seatQuantity || 1, 'now')
         if (res.flow === 'NEW_SUBSCRIPTION' && res.checkout) {
-          await openRazorpaySubscriptionModal(res.checkout)
+          await openSubscriptionCheckout(res.checkout)
           setFeedback({ type: 'success', text: 'Subscription activated.' })
         } else if (res.flow === 'DELTA_ORDER') {
-          await openRazorpayOrderModal(res)
-          setFeedback({ type: 'success', text: 'Mid-cycle upgrade payment verified and activated.' })
+          await openOrderCheckout(res)
+          setFeedback({ type: 'success', text: 'Plan upgrade verified and activated.' })
         } else {
-          setFeedback({ type: 'success', text: 'Plan updated via Razorpay subscription schedule.' })
+          setFeedback({ type: 'success', text: 'Your plan has been updated.' })
         }
       }
       await loadAll()
     } catch (err) {
       if (err?.message !== 'Checkout dismissed' && err?.message !== 'Upgrade checkout dismissed') {
-        setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Billing action failed' })
+        setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Unable to process plan change' })
       }
     } finally {
       setBusyAction('')
@@ -194,10 +192,10 @@ export default function BillingSettings() {
     setBusyAction('gst')
     try {
       await updateGstProfile({ gstin, billingStateCode, legalEntityName, billingAddress })
-      setFeedback({ type: 'success', text: 'GST tax profile saved. Applied automatically on next invoice.' })
+      setFeedback({ type: 'success', text: 'GST details saved for future tax invoices.' })
       await loadAll()
     } catch (err) {
-      setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Could not update GST profile' })
+      setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Could not save GST details' })
     } finally {
       setBusyAction('')
     }
@@ -206,7 +204,7 @@ export default function BillingSettings() {
   if (loading) {
     return (
       <div className="p-8 rounded-2xl border text-sm font-semibold" style={{ background: T.surface, borderColor: T.border, color: T.textMuted }}>
-        Loading billing status and license quotas...
+        Loading subscription and usage details...
       </div>
     )
   }
@@ -222,6 +220,7 @@ export default function BillingSettings() {
   ]
 
   const visiblePlans = plans.filter((p) => p.tier !== 'FREE' && p.billingInterval === interval)
+  const selfServeAvailable = Boolean(status?.selfServeBillingAvailable)
 
   return (
     <div className="space-y-6">
@@ -239,29 +238,18 @@ export default function BillingSettings() {
         </div>
       )}
 
-      {/* Missing Key Notice */}
-      {!status?.razorpayConfigured && (
-        <div className="p-4 rounded-2xl border" style={{ background: 'rgba(245,158,11,0.08)', borderColor: '#F59E0B', color: '#B45309' }}>
-          <p className="text-sm font-bold">Razorpay API Keys Not Configured Yet</p>
-          <p className="text-xs mt-1">
-            Add <code className="font-mono">RAZORPAY_KEY_ID</code>, <code className="font-mono">RAZORPAY_KEY_SECRET</code>, and{' '}
-            <code className="font-mono">RAZORPAY_WEBHOOK_SECRET</code> to your backend <code className="font-mono">.env</code> to enable live checkout.
-          </p>
-        </div>
-      )}
-
-      {/* Dunning / Unpaid Invoice Recovery Callout */}
+      {/* Payment overdue notice (customer-facing) */}
       {(subState === 'PAST_DUE' || subState === 'HALTED') && (
         <div className="p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           style={{ background: 'rgba(239,68,68,0.08)', borderColor: '#EF4444' }}>
           <div>
             <p className="text-sm font-extrabold" style={{ color: '#EF4444' }}>
               {subState === 'HALTED'
-                ? 'Subscription Halted — Workspace in Read-Only Mode'
-                : 'Auto-Charge Failed — Active 5-Day Grace Period'}
+                ? 'Workspace in Read-Only Mode — Payment Required'
+                : 'Renewal Payment Pending — Grace Period Active'}
             </p>
             <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-              Update your card or settle any unpaid cycle invoice directly. Skipped invoices are not auto-charged after card updates.
+              Please complete your overdue invoice payment to keep uninterrupted write access for your team.
             </p>
           </div>
           {status?.unpaidShortUrl && (
@@ -274,33 +262,41 @@ export default function BillingSettings() {
         </div>
       )}
 
-      {/* Current Subscription Summary + Resource Usage */}
+      {/* Current Subscription Summary + Usage Meters */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 p-6 rounded-2xl border space-y-4" style={{ background: T.surface, borderColor: T.border }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Current License</span>
+            <span className="text-xs font-black uppercase tracking-wider" style={{ color: T.textMuted }}>Current Plan</span>
             <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold" style={{ background: badge.bg, color: badge.color }}>
               {badge.label}
             </span>
           </div>
           <div>
             <h3 className="text-2xl font-black" style={{ color: T.textPrimary }}>{status?.companyPlan || 'FREE'}</h3>
-            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-              Code: <span className="font-mono font-bold">{status?.planCode}</span>
-              {status?.paymentMethod && <> · Method: <span className="uppercase font-bold">{status.paymentMethod}</span></>}
-            </p>
+            {status?.paymentMethodLabel && (
+              <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+                Payment method: <span className="font-bold" style={{ color: T.textPrimary }}>{status.paymentMethodLabel}</span>
+              </p>
+            )}
           </div>
           {status?.currentEnd && (
             <p className="text-xs" style={{ color: T.textMuted }}>
               Current cycle ends: <strong>{new Date(status.currentEnd).toLocaleDateString()}</strong>
             </p>
           )}
-          <div className="pt-2 border-t text-xs" style={{ borderColor: T.border, color: T.textMuted }}>
-            <span>ERP Bridge License Key:</span>
-            <div className="font-mono font-bold mt-1" style={{ color: T.textPrimary }}>{status?.licenseKeyMasked || 'N/A'}</div>
-          </div>
+          {status?.trialEndsAt && subState === 'TRIAL' && (
+            <p className="text-xs" style={{ color: T.textMuted }}>
+              Trial ends: <strong>{new Date(status.trialEndsAt).toLocaleDateString()}</strong>
+            </p>
+          )}
+          {status?.licenseKeyMasked && (
+            <div className="pt-2 border-t text-xs" style={{ borderColor: T.border, color: T.textMuted }}>
+              <span>Accounting Bridge License:</span>
+              <div className="font-mono font-bold mt-1" style={{ color: T.textPrimary }}>{status.licenseKeyMasked}</div>
+            </div>
+          )}
 
-          {isAdmin && status?.razorpaySubscriptionId && (
+          {isAdmin && status?.hasActiveSubscription && (
             <div className="flex flex-wrap gap-2 pt-2">
               {subState === 'ACTIVE' && (
                 <button
@@ -312,7 +308,7 @@ export default function BillingSettings() {
                   Pause
                 </button>
               )}
-              {subState === 'PAUSED' && (
+              {subState === 'PAUSED' && !status?.pausedByCustomer && (
                 <button
                   disabled={Boolean(busyAction)}
                   onClick={() => handleLifecycle(resumeSubscription, 'Subscription resumed.', 'resume')}
@@ -337,7 +333,7 @@ export default function BillingSettings() {
         </div>
 
         <div className="lg:col-span-2 p-6 rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
-          <h4 className="text-sm font-extrabold mb-4" style={{ color: T.textPrimary }}>Live Plan Quotas &amp; Entitlements</h4>
+          <h4 className="text-sm font-extrabold mb-4" style={{ color: T.textPrimary }}>Workspace Usage &amp; Plan Limits</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {meters.map((m) => {
               const unlimited = m.max >= 999999
@@ -364,9 +360,11 @@ export default function BillingSettings() {
         <div className="p-6 rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <h4 className="text-base font-extrabold" style={{ color: T.textPrimary }}>Upgrade or Switch Plan</h4>
+              <h4 className="text-base font-extrabold" style={{ color: T.textPrimary }}>Available Subscription Plans</h4>
               <p className="text-xs" style={{ color: T.textMuted }}>
-                Razorpay supports Cards SI, UPI AutoPay (≤ ₹15k), and eNACH mandates. Prices exclude 18% GST.
+                {selfServeAvailable
+                  ? 'Supports Credit/Debit Cards, UPI AutoPay, and eNACH mandates. Prices exclude 18% GST.'
+                  : 'Need to upgrade seats or change plans? Contact your account manager or support team.'}
               </p>
             </div>
             <div className="inline-flex p-1 rounded-xl border" style={{ background: T.surfaceHigh, borderColor: T.border }}>
@@ -402,18 +400,28 @@ export default function BillingSettings() {
                     </div>
                     <p className="text-xs" style={{ color: T.textMuted }}>{p.description}</p>
                   </div>
-                  <button
-                    disabled={isCurrent || Boolean(busyAction) || !status?.razorpayConfigured}
-                    onClick={() => handleSelectPlan(p.code)}
-                    className="w-full py-2.5 rounded-xl font-extrabold text-xs text-white cursor-pointer disabled:opacity-50"
-                    style={{ background: isCurrent ? '#10B981' : T.primary }}
-                  >
-                    {busyAction === p.code
-                      ? 'Opening Razorpay...'
-                      : isCurrent
-                        ? 'Current Active Plan'
-                        : `Select ${p.name}`}
-                  </button>
+                  {selfServeAvailable ? (
+                    <button
+                      disabled={isCurrent || Boolean(busyAction)}
+                      onClick={() => handleSelectPlan(p.code)}
+                      className="w-full py-2.5 rounded-xl font-extrabold text-xs text-white cursor-pointer disabled:opacity-50"
+                      style={{ background: isCurrent ? '#10B981' : T.primary }}
+                    >
+                      {busyAction === p.code
+                        ? 'Opening Checkout...'
+                        : isCurrent
+                          ? 'Current Active Plan'
+                          : `Select ${p.name}`}
+                    </button>
+                  ) : (
+                    <a
+                      href="/support"
+                      className="w-full py-2.5 rounded-xl font-extrabold text-xs text-center border block"
+                      style={{ borderColor: T.border, color: isCurrent ? '#10B981' : T.primary }}
+                    >
+                      {isCurrent ? 'Current Active Plan' : 'Request Plan Change via Support'}
+                    </a>
+                  )}
                 </div>
               )
             })}
@@ -424,7 +432,7 @@ export default function BillingSettings() {
       {/* GST Profile + Invoices History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <form onSubmit={handleSaveGst} className="p-6 rounded-2xl border space-y-4" style={{ background: T.surface, borderColor: T.border }}>
-          <h4 className="text-sm font-extrabold" style={{ color: T.textPrimary }}>Indian GST Tax Invoice Profile (SAC 998315)</h4>
+          <h4 className="text-sm font-extrabold" style={{ color: T.textPrimary }}>GST Tax Invoice Details</h4>
           <div>
             <label className="block text-xs font-bold mb-1" style={{ color: T.textMuted }}>Legal Entity Name</label>
             <input value={legalEntityName} onChange={(e) => setLegalEntityName(e.target.value)}
@@ -460,9 +468,9 @@ export default function BillingSettings() {
         </form>
 
         <div className="p-6 rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
-          <h4 className="text-sm font-extrabold mb-4" style={{ color: T.textPrimary }}>GST Tax Invoices</h4>
+          <h4 className="text-sm font-extrabold mb-4" style={{ color: T.textPrimary }}>Tax Invoices &amp; Receipts</h4>
           {invoices.length === 0 ? (
-            <p className="text-xs" style={{ color: T.textMuted }}>No settled GST invoices issued yet.</p>
+            <p className="text-xs" style={{ color: T.textMuted }}>No settled invoices issued yet.</p>
           ) : (
             <div className="space-y-2.5">
               {invoices.map((inv) => (

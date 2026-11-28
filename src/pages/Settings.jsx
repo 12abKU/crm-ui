@@ -106,6 +106,15 @@ export default function Settings() {
             return <AgentManagementSettings />
         }
         if (activeTab === 'billing') {
+            if (role !== 'ADMIN' && role !== 'COMPANY_SUPER_ADMIN') {
+                return (
+                    <div className="p-8 text-center rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
+                        <p className="text-sm font-bold" style={{ color: T.error }}>
+                            Access Denied: Subscription and billing management is restricted to Company Administrators.
+                        </p>
+                    </div>
+                )
+            }
             return <BillingSettings />
         }
         if (activeTab === 'integrations') {
@@ -153,12 +162,14 @@ export default function Settings() {
                         { id: 'appearance', label: 'Theme & Appearance', icon: 'palette' },
                         { id: 'templates', label: 'Email Templates', icon: 'mail' },
                         { id: 'sequences', label: 'Automated Sequences', icon: 'bolt' },
+                        ...((role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') ? [
+                            { id: 'billing', label: 'Billing & License', icon: 'credit_card' },
+                        ] : []),
                         ...((role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'COMPANY_SUPER_ADMIN') ? [
                             { id: 'custom_fields', label: 'Custom Fields', icon: 'extension' },
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
                             { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
-                            { id: 'billing', label: 'Billing & License', icon: 'credit_card' },
                         ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id
