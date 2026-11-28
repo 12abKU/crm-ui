@@ -70,6 +70,16 @@ api.interceptors.response.use(
             return Promise.reject(err) // ← return early, no toast
         }
 
+        // 402 — billing read-only lock or Pro/Enterprise feature gate (keep user signed in so they can pay in Billing Settings)
+        if (status === 402 && !isAuthEndpoint) {
+            if (!err.config?.suppressErrorToast && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('crm-api-error', {
+                    detail: { message, status }
+                }))
+            }
+            return Promise.reject(err)
+        }
+
         // 403 — company suspended/trial expired → sign out with reason shown on login page
         // Regular RBAC permission error → dispatch standard modal event and suppress transient toast
         if (status === 403 && !isAuthEndpoint) {

@@ -349,15 +349,30 @@ export default function TopBar() {
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         <span>{daysLeft} {daysLeft === 1 ? 'day' : 'days'} trial</span>
                         {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
-                            <button onClick={() => {
-                                const params = `?companyId=${companyId}&companyName=${encodeURIComponent(companyName || '')}&email=${encodeURIComponent(email || '')}`;
-                                window.location.href = `${CRM_LANDING_URL}/pricing${params}`;
-                            }}
+                            <button onClick={() => navigate('/settings?tab=billing')}
                                 className="ml-1 px-2.5 py-0.5 rounded-lg text-[10.5px] font-extrabold uppercase tracking-wider text-white transition-all duration-150 cursor-pointer shadow-xs hover:scale-105"
                                 style={{
                                     background: `linear-gradient(135deg, ${T.primary} 0%, ${T.primaryHover} 100%)`,
                                 }}>
                                 Upgrade
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!isSuperAdmin && (companyStatus === 'PAST_DUE' || companyStatus === 'HALTED') && (
+                    <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl mr-2 font-bold text-xs"
+                        style={{
+                            background: companyStatus === 'HALTED' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)',
+                            border: `1px solid ${companyStatus === 'HALTED' ? '#EF4444' : '#F59E0B'}`,
+                            color: companyStatus === 'HALTED' ? '#EF4444' : '#D97706',
+                        }}>
+                        <span>{companyStatus === 'HALTED' ? 'Read-Only Lock' : 'Payment Past Due'}</span>
+                        {(role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN') && (
+                            <button onClick={() => navigate('/settings?tab=billing')}
+                                className="ml-1 px-2.5 py-0.5 rounded-lg text-[10.5px] font-extrabold uppercase tracking-wider text-white cursor-pointer"
+                                style={{ background: companyStatus === 'HALTED' ? '#EF4444' : '#D97706' }}>
+                                Pay Now
                             </button>
                         )}
                     </div>

@@ -13,6 +13,7 @@ import AgentManagementSettings from '../components/settings/AgentManagementSetti
 import CustomFieldsSettings from '../components/settings/CustomFieldsSettings'
 import CompanyIntegrationsSettings from '../components/settings/CompanyIntegrationsSettings'
 import ThemeAppearanceSettings from '../components/settings/ThemeAppearanceSettings'
+import BillingSettings from '../components/settings/BillingSettings'
 import PageHeroBanner from '../components/ui/PageHeroBanner'
 import { T } from '../constants/theme'
 
@@ -104,6 +105,9 @@ export default function Settings() {
         if (activeTab === 'agents') {
             return <AgentManagementSettings />
         }
+        if (activeTab === 'billing') {
+            return <BillingSettings />
+        }
         if (activeTab === 'integrations') {
             if (role === 'AGENT') {
                 return (
@@ -154,6 +158,7 @@ export default function Settings() {
                             { id: 'agents', label: 'Team Management', icon: 'manage_accounts' },
                             { id: 'pipeline', label: 'Pipeline Stages', icon: 'linear_scale' },
                             { id: 'integrations', label: 'Webhooks & Integrations', icon: 'hub' },
+                            { id: 'billing', label: 'Billing & License', icon: 'credit_card' },
                         ] : [])
                     ].map(tab => {
                         const active = activeTab === tab.id
