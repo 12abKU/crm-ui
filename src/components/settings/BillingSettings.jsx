@@ -1,20 +1,16 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { T } from '../../constants/theme'
+import PlanCheckoutModal from './PlanCheckoutModal'
 import {
   getBillingPlans,
   getBillingStatus,
-  createSubscriptionCheckout,
-  verifySubscriptionPayment,
-  changePlanOrSeats,
-  verifyDeltaOrderPayment,
   pauseSubscription,
   resumeSubscription,
   cancelSubscription,
   updateGstProfile,
   getBillingInvoices,
   downloadGstInvoicePdf,
-  loadRazorpayScript,
 } from '../../api/billing'
 
 const STATUS_BADGE = {
@@ -40,6 +36,9 @@ const INDIAN_STATES = [
   ['08', '08 - Rajasthan'],
 ]
 
+const formatLimit = (val, unit = '') =>
+  val >= 999999 ? 'Unlimited' : `${Number(val || 0).toLocaleString('en-IN')}${unit ? ` ${unit}` : ''}`
+
 export default function BillingSettings() {
   const { role } = useSelector((state) => state.auth)
   const isAdmin = role === 'ADMIN' || role === 'COMPANY_SUPER_ADMIN'
@@ -50,6 +49,8 @@ export default function BillingSettings() {
   const [interval, setInterval] = useState('MONTHLY')
   const [loading, setLoading] = useState(true)
   const [busyAction, setBusyAction] = useState('')
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [selectedPlanForModal, setSelectedPlanForModal] = useState(null)
   const [feedback, setFeedback] = useState(null)
 
   const [gstin, setGstin] = useState('')
@@ -72,6 +73,9 @@ export default function BillingSettings() {
       setBillingStateCode(s.billingStateCode || '27')
       setLegalEntityName(s.legalEntityName || s.companyName || '')
       setBillingAddress(s.billingAddress || '')
+      if (s.planInterval === 'ANNUAL') {
+        setInterval('ANNUAL')
+      }
     } catch (e) {
       setFeedback({ type: 'error', text: e?.userMessage || 'Unable to load subscription details' })
     } finally {
@@ -83,104 +87,16 @@ export default function BillingSettings() {
     loadAll()
   }, [loadAll])
 
-  const openSubscriptionCheckout = async (checkout) => {
-    const ok = await loadRazorpayScript()
-    if (!ok || !window.Razorpay) {
-      throw new Error('Unable to open payment checkout. Please retry in a moment.')
-    }
-    return new Promise((resolve, reject) => {
-      const rzp = new window.Razorpay({
-        key: checkout.keyId,
-        subscription_id: checkout.subscriptionId,
-        name: 'IInventive CRM',
-        description: checkout.planName || 'Subscription Plan',
-        prefill: {
-          email: checkout.prefillEmail || '',
-          contact: checkout.prefillContact || '',
-        },
-        theme: { color: T.primary || '#0A66FF' },
-        handler: async (res) => {
-          try {
-            await verifySubscriptionPayment(res.razorpay_payment_id, res.razorpay_signature)
-            resolve()
-          } catch (err) {
-            reject(err)
-          }
-        },
-        modal: { ondismiss: () => reject(new Error('Checkout dismissed')) },
-      })
-      rzp.on('payment.failed', (err) => reject(new Error(err?.error?.description || 'Payment declined')))
-      rzp.open()
-    })
-  }
-
-  const openOrderCheckout = async (order) => {
-    const ok = await loadRazorpayScript()
-    if (!ok || !window.Razorpay) {
-      throw new Error('Unable to open payment checkout. Please retry in a moment.')
-    }
-    return new Promise((resolve, reject) => {
-      const rzp = new window.Razorpay({
-        key: order.keyId,
-        order_id: order.orderId,
-        amount: order.amountPaise,
-        currency: order.currency || 'INR',
-        name: 'IInventive CRM',
-        description: 'Plan Upgrade Differential',
-        theme: { color: T.primary || '#0A66FF' },
-        handler: async (res) => {
-          try {
-            await verifyDeltaOrderPayment(res.razorpay_payment_id, res.razorpay_signature)
-            resolve()
-          } catch (err) {
-            reject(err)
-          }
-        },
-        modal: { ondismiss: () => reject(new Error('Upgrade checkout dismissed')) },
-      })
-      rzp.open()
-    })
-  }
-
-  const handleSelectPlan = async (planCode) => {
-    setFeedback(null)
-    setBusyAction(planCode)
-    try {
-      if (!status?.hasActiveSubscription) {
-        const checkout = await createSubscriptionCheckout(planCode, 1)
-        await openSubscriptionCheckout(checkout)
-        setFeedback({ type: 'success', text: 'Your subscription is active.' })
-      } else {
-        const res = await changePlanOrSeats(planCode, status?.seatQuantity || 1, 'now')
-        if (res.flow === 'NEW_SUBSCRIPTION' && res.checkout) {
-          await openSubscriptionCheckout(res.checkout)
-          setFeedback({ type: 'success', text: 'Subscription activated.' })
-        } else if (res.flow === 'DELTA_ORDER') {
-          await openOrderCheckout(res)
-          setFeedback({ type: 'success', text: 'Plan upgrade verified and activated.' })
-        } else {
-          setFeedback({ type: 'success', text: 'Your plan has been updated.' })
-        }
-      }
-      await loadAll()
-    } catch (err) {
-      if (err?.message !== 'Checkout dismissed' && err?.message !== 'Upgrade checkout dismissed') {
-        setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Unable to process plan change' })
-      }
-    } finally {
-      setBusyAction('')
-    }
-  }
-
   const handleLifecycle = async (fn, successMsg, key) => {
     setFeedback(null)
     setBusyAction(key)
     try {
       await fn()
+      setConfirmCancel(false)
       setFeedback({ type: 'success', text: successMsg })
       await loadAll()
     } catch (err) {
-      setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Action failed' })
+      setFeedback({ type: 'error', text: err?.userMessage || err?.response?.data?.message || err?.message || 'Action failed' })
     } finally {
       setBusyAction('')
     }
@@ -192,19 +108,32 @@ export default function BillingSettings() {
     setBusyAction('gst')
     try {
       await updateGstProfile({ gstin, billingStateCode, legalEntityName, billingAddress })
-      setFeedback({ type: 'success', text: 'GST details saved for future tax invoices.' })
+      setFeedback({ type: 'success', text: 'GST details saved for future tax invoices and live quotes.' })
       await loadAll()
     } catch (err) {
-      setFeedback({ type: 'error', text: err?.userMessage || err?.message || 'Could not save GST details' })
+      setFeedback({ type: 'error', text: err?.userMessage || err?.response?.data?.message || err?.message || 'Could not save GST details' })
     } finally {
       setBusyAction('')
     }
   }
 
+  const tierCards = useMemo(() => {
+    if (!plans.length) return []
+    const freePlan = plans.find((p) => p.tier === 'FREE')
+    const proPlan = plans.find((p) => p.tier === 'PRO' && p.billingInterval === interval) || plans.find((p) => p.tier === 'PRO')
+    const entPlan = plans.find((p) => p.tier === 'ENTERPRISE' && p.billingInterval === interval) || plans.find((p) => p.tier === 'ENTERPRISE')
+    return [freePlan, proPlan, entPlan].filter(Boolean)
+  }, [plans, interval])
+
+  const annualSavings = useMemo(
+    () => plans.find((x) => x.billingInterval === 'ANNUAL' && x.annualSavingsPercent > 0)?.annualSavingsPercent,
+    [plans],
+  )
+
   if (loading) {
     return (
       <div className="p-8 rounded-2xl border text-sm font-semibold" style={{ background: T.surface, borderColor: T.border, color: T.textMuted }}>
-        Loading subscription and usage details...
+        Loading centralized subscription catalog and usage details...
       </div>
     )
   }
@@ -212,18 +141,36 @@ export default function BillingSettings() {
   const subState = status?.subscriptionStatus || status?.companyStatus || 'TRIAL'
   const badge = STATUS_BADGE[subState] || STATUS_BADGE.TRIAL
   const usage = status?.usage || {}
+  const usedStorageGb = ((usage.storageBytes || 0) / (1024 * 1024 * 1024)).toFixed(2)
+  const maxStorageGb = Math.max(1, Math.round((usage.maxStorageBytes || 5368709120) / (1024 * 1024 * 1024)))
   const meters = [
     { label: 'Team Seats', used: usage.users || 0, max: usage.maxUsers || 5 },
     { label: 'Contacts', used: usage.contacts || 0, max: usage.maxContacts || 50 },
     { label: 'Accounts', used: usage.accounts || 0, max: usage.maxAccounts || 10 },
     { label: 'Deals', used: usage.deals || 0, max: usage.maxDeals || 20 },
+    { label: 'Storage', used: Number(usedStorageGb), max: maxStorageGb, unit: 'GB' },
   ]
 
-  const visiblePlans = plans.filter((p) => p.tier !== 'FREE' && p.billingInterval === interval)
-  const selfServeAvailable = Boolean(status?.selfServeBillingAvailable)
+  const currentCatalogPlan = plans.find((p) => p.code === status?.planCode) || plans.find((p) => p.tier === status?.companyPlan)
+  const upiPausedInApp = Boolean(status?.pausedByCustomer && String(status?.paymentMethodLabel || '').toUpperCase().includes('UPI'))
 
   return (
     <div className="space-y-6">
+      {selectedPlanForModal && (
+        <PlanCheckoutModal
+          plan={selectedPlanForModal}
+          status={status}
+          gstin={gstin}
+          billingStateCode={billingStateCode}
+          onClose={() => setSelectedPlanForModal(null)}
+          onSuccess={async (msg) => {
+            setSelectedPlanForModal(null)
+            setFeedback({ type: 'success', text: msg })
+            await loadAll()
+          }}
+        />
+      )}
+
       {feedback && (
         <div
           className="px-4 py-3 rounded-xl border text-sm font-semibold flex items-center justify-between"
@@ -238,7 +185,6 @@ export default function BillingSettings() {
         </div>
       )}
 
-      {/* Payment overdue notice (customer-facing) */}
       {(subState === 'PAST_DUE' || subState === 'HALTED') && (
         <div className="p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           style={{ background: 'rgba(239,68,68,0.08)', borderColor: '#EF4444' }}>
@@ -249,7 +195,7 @@ export default function BillingSettings() {
                 : 'Renewal Payment Pending — Grace Period Active'}
             </p>
             <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-              Please complete your overdue invoice payment to keep uninterrupted write access for your team.
+              Complete your overdue invoice payment to restore full write access across the workspace.
             </p>
           </div>
           {status?.unpaidShortUrl && (
@@ -271,16 +217,32 @@ export default function BillingSettings() {
               {badge.label}
             </span>
           </div>
+
           <div>
             <h3 className="text-2xl font-black" style={{ color: T.textPrimary }}>
-              {status?.planName || status?.companyPlan || 'FREE'}
+              {status?.planName || status?.companyPlan || 'Free'}
             </h3>
-            {status?.paymentMethodLabel && (
-              <p className="text-xs mt-1" style={{ color: T.textMuted }}>
-                Payment method: <span className="font-bold" style={{ color: T.textPrimary }}>{status.paymentMethodLabel}</span>
-              </p>
-            )}
+            <p className="text-xs mt-1" style={{ color: T.textMuted }}>
+              Licensed seats: <strong style={{ color: T.textPrimary }}>{status?.seatQuantity || 1}</strong>
+              {status?.paymentMethodLabel ? (
+                <> · Method: <strong style={{ color: T.textPrimary }}>{status.paymentMethodLabel}</strong></>
+              ) : null}
+            </p>
           </div>
+
+          {status?.pendingPlanCode && (
+            <div className="p-3 rounded-xl border text-xs font-semibold" style={{ borderColor: '#3B82F6', background: 'rgba(59,130,246,0.08)', color: '#60A5FA' }}>
+              Scheduled switch to <strong>{status.pendingPlanName || status.pendingPlanCode}</strong> on{' '}
+              {status.currentEnd ? new Date(status.currentEnd).toLocaleDateString() : 'next cycle'}.
+            </div>
+          )}
+
+          {status?.cancelAtCycleEnd && (
+            <div className="p-3 rounded-xl border text-xs font-semibold" style={{ borderColor: '#F59E0B', background: 'rgba(245,158,11,0.08)', color: '#F59E0B' }}>
+              Cancellation scheduled for {status.currentEnd ? new Date(status.currentEnd).toLocaleDateString() : 'end of cycle'}.
+            </div>
+          )}
+
           {status?.isTrialing && status?.trialEndsAt ? (
             <p className="text-xs" style={{ color: T.textMuted }}>
               Trial ends: <strong>{new Date(status.trialEndsAt).toLocaleDateString()}</strong>
@@ -293,6 +255,7 @@ export default function BillingSettings() {
               </p>
             )
           )}
+
           {status?.licenseKeyMasked && (
             <div className="pt-2 border-t text-xs" style={{ borderColor: T.border, color: T.textMuted }}>
               <span>Accounting Bridge License:</span>
@@ -300,44 +263,94 @@ export default function BillingSettings() {
             </div>
           )}
 
-          {isAdmin && status?.hasActiveSubscription && (
+          {isAdmin && (
             <div className="flex flex-wrap gap-2 pt-2">
-              {subState === 'ACTIVE' && (
+              {currentCatalogPlan && currentCatalogPlan.tier !== 'FREE' && (
                 <button
+                  type="button"
                   disabled={Boolean(busyAction)}
-                  onClick={() => handleLifecycle(pauseSubscription, 'Subscription paused.', 'pause')}
+                  onClick={() => setSelectedPlanForModal(currentCatalogPlan)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white cursor-pointer"
+                  style={{ background: T.primary }}
+                >
+                  Manage Seats
+                </button>
+              )}
+              {status?.hasActiveSubscription && subState === 'ACTIVE' && (
+                <button
+                  type="button"
+                  disabled={Boolean(busyAction)}
+                  onClick={() => handleLifecycle(pauseSubscription, 'Subscription paused cleanly.', 'pause')}
                   className="px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer"
                   style={{ borderColor: T.border, color: T.textPrimary }}
                 >
                   Pause
                 </button>
               )}
-              {subState === 'PAUSED' && !status?.pausedByCustomer && (
+              {status?.hasActiveSubscription && subState === 'PAUSED' && !upiPausedInApp && (
                 <button
+                  type="button"
                   disabled={Boolean(busyAction)}
-                  onClick={() => handleLifecycle(resumeSubscription, 'Subscription resumed.', 'resume')}
+                  onClick={() => handleLifecycle(resumeSubscription, 'Subscription resumed cleanly.', 'resume')}
                   className="px-3 py-1.5 rounded-lg text-xs font-bold text-white cursor-pointer"
-                  style={{ background: T.primary }}
+                  style={{ background: '#10B981' }}
                 >
                   Resume
                 </button>
               )}
-              {subState !== 'CANCELLED' && !status?.cancelAtCycleEnd && (
+              {status?.hasActiveSubscription && subState !== 'CANCELLED' && !status?.cancelAtCycleEnd && !confirmCancel && (
                 <button
+                  type="button"
                   disabled={Boolean(busyAction)}
-                  onClick={() => handleLifecycle(() => cancelSubscription(true), 'Scheduled cancellation at cycle end.', 'cancel')}
+                  onClick={() => setConfirmCancel(true)}
                   className="px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer"
                   style={{ borderColor: '#FCA5A5', color: '#EF4444' }}
                 >
-                  Cancel at Cycle End
+                  Cancel Subscription
                 </button>
               )}
+            </div>
+          )}
+
+          {upiPausedInApp && (
+            <p className="text-[11px]" style={{ color: T.textMuted }}>
+              This UPI AutoPay mandate was paused in your UPI app. Please resume it inside your UPI app.
+            </p>
+          )}
+
+          {confirmCancel && (
+            <div className="p-3 rounded-xl border space-y-2 text-xs" style={{ borderColor: '#EF4444', background: 'rgba(239,68,68,0.06)' }}>
+              <p className="font-bold" style={{ color: T.textPrimary }}>Cancel subscription at end of billing cycle?</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={Boolean(busyAction)}
+                  onClick={() => handleLifecycle(() => cancelSubscription(true), 'Scheduled cancellation at cycle end.', 'cancel')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white cursor-pointer"
+                  style={{ background: '#EF4444' }}
+                >
+                  Confirm Cancel at Cycle End
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmCancel(false)}
+                  className="px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer"
+                  style={{ borderColor: T.border, color: T.textMuted }}
+                >
+                  Keep Plan
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         <div className="lg:col-span-2 p-6 rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
-          <h4 className="text-sm font-extrabold mb-4" style={{ color: T.textPrimary }}>Workspace Usage &amp; Plan Limits</h4>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-extrabold" style={{ color: T.textPrimary }}>Workspace Usage &amp; Plan Limits</h4>
+            <span className="text-[11px] font-semibold" style={{ color: T.textMuted }}>
+              Centralized quotas enforced live
+            </span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {meters.map((m) => {
               const unlimited = m.max >= 999999
@@ -346,7 +359,9 @@ export default function BillingSettings() {
                 <div key={m.label} className="p-3.5 rounded-xl border" style={{ borderColor: T.border }}>
                   <div className="flex justify-between text-xs font-bold mb-1.5" style={{ color: T.textPrimary }}>
                     <span>{m.label}</span>
-                    <span>{m.used.toLocaleString()} / {unlimited ? '∞' : m.max.toLocaleString()}</span>
+                    <span>
+                      {m.used.toLocaleString()} {m.unit || ''} / {unlimited ? '∞' : `${m.max.toLocaleString()}${m.unit ? ` ${m.unit}` : ''}`}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: T.surfaceHigh }}>
                     <div className="h-full rounded-full transition-all"
@@ -359,58 +374,92 @@ export default function BillingSettings() {
         </div>
       </div>
 
-      {/* Plan Upgrade Grid */}
+      {/* Self-Serve Plan Upgrade / Downgrade Catalog */}
       {isAdmin && (
         <div className="p-6 rounded-2xl border" style={{ background: T.surface, borderColor: T.border }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <h4 className="text-base font-extrabold" style={{ color: T.textPrimary }}>Available Subscription Plans</h4>
+              <h4 className="text-base font-extrabold" style={{ color: T.textPrimary }}>Self-Serve Plans &amp; Upgrades</h4>
               <p className="text-xs" style={{ color: T.textMuted }}>
-                {selfServeAvailable
-                  ? 'Supports Credit/Debit Cards, UPI AutoPay, and eNACH mandates. Prices exclude 18% GST.'
-                  : 'Need to upgrade seats or change plans? Contact your account manager or support team.'}
+                Upgrade, switch billing cycles, adjust team seats, or downgrade anytime. Supports Cards, UPI AutoPay &amp; eNACH with GST tax invoices.
               </p>
             </div>
             <div className="inline-flex p-1 rounded-xl border" style={{ background: T.surfaceHigh, borderColor: T.border }}>
-              {['MONTHLY', 'ANNUAL'].map((iv) => {
-                const savings = plans.find((x) => x.billingInterval === 'ANNUAL' && x.annualSavingsPercent > 0)?.annualSavingsPercent
-                return (
-                  <button key={iv} type="button" onClick={() => setInterval(iv)}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
-                    style={{
-                      background: interval === iv ? T.primary : 'transparent',
-                      color: interval === iv ? '#FFFFFF' : T.textMuted,
-                    }}>
-                    {iv === 'MONTHLY' ? 'Monthly' : (savings ? `Annual (-${savings}%)` : 'Annual')}
-                  </button>
-                )
-              })}
+              {['MONTHLY', 'ANNUAL'].map((iv) => (
+                <button key={iv} type="button" onClick={() => setInterval(iv)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                  style={{
+                    background: interval === iv ? T.primary : 'transparent',
+                    color: interval === iv ? '#FFFFFF' : T.textMuted,
+                  }}>
+                  {iv === 'MONTHLY' ? 'Monthly' : (annualSavings ? `Annual (-${annualSavings}%)` : 'Annual')}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {visiblePlans.map((p) => {
-              const isCurrent = status?.planCode === p.code && subState === 'ACTIVE'
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {tierCards.map((p) => {
+              const isFreeCard = p.tier === 'FREE' || (p.amountPaise || 0) <= 0
+              const isCurrent = isFreeCard
+                ? status?.companyPlan === 'FREE' && !status?.hasActiveSubscription
+                : status?.planCode === p.code && (subState === 'ACTIVE' || subState === 'AUTHENTICATED')
+              const isHigherTier =
+                (status?.companyPlan === 'FREE' && !isFreeCard) ||
+                (status?.companyPlan === 'PRO' && p.tier === 'ENTERPRISE')
+
+              const ctaText = isCurrent
+                ? isFreeCard
+                  ? 'Current Active Plan'
+                  : 'Current Plan · Manage Seats'
+                : isFreeCard
+                  ? 'Downgrade to Free'
+                  : isHigherTier
+                    ? `Upgrade to ${p.name}`
+                    : `Switch to ${p.name}`
+
               return (
                 <div key={p.code} className="p-5 rounded-2xl border flex flex-col justify-between gap-4"
-                  style={{ borderColor: isCurrent ? T.primary : T.border }}>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
+                  style={{ borderColor: isCurrent ? '#10B981' : p.highlighted ? T.primary : T.border }}>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-black" style={{ color: T.textPrimary }}>{p.name}</span>
-                      <span className="text-xs font-bold uppercase" style={{ color: T.primary }}>{p.badge || p.tier}</span>
+                      {(p.badge || p.tier) && (
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full"
+                          style={{ background: isCurrent ? 'rgba(16,185,129,0.12)' : T.surfaceHigh, color: isCurrent ? '#10B981' : T.primary }}>
+                          {isCurrent ? 'Active' : (p.badge || p.tier)}
+                        </span>
+                      )}
                     </div>
-                    <div className="text-2xl font-black mb-1" style={{ color: T.textPrimary }}>
-                      ₹{(p.amountInr || 0).toLocaleString('en-IN')}
-                      <span className="text-xs font-semibold ml-1" style={{ color: T.textMuted }}>
-                        /{p.billingInterval === 'ANNUAL' ? 'yr' : 'mo'} + {p.gstRatePercent ?? 18}% GST
-                      </span>
+
+                    <div>
+                      <div className="text-2xl font-black" style={{ color: T.textPrimary }}>
+                        ₹{(p.amountInr || 0).toLocaleString('en-IN')}
+                        {!isFreeCard && (
+                          <span className="text-xs font-semibold ml-1" style={{ color: T.textMuted }}>
+                            /{p.billingInterval === 'ANNUAL' ? 'yr' : 'mo'} {p.gstInclusive ? `(Incl. ${p.gstRatePercent ?? 18}% GST)` : `+ ${p.gstRatePercent ?? 18}% GST`}
+                          </span>
+                        )}
+                      </div>
+                      {p.totalAmountInr > 0 && (
+                        <p className="text-[11px] font-bold mt-0.5" style={{ color: T.textSecondary }}>
+                          Total: ₹{Number(p.totalAmountInr).toLocaleString('en-IN')} · SAC {p.sacCode}
+                        </p>
+                      )}
                     </div>
-                    {p.totalAmountInr > 0 && (
-                      <p className="text-[11px] font-bold mb-2" style={{ color: T.textSecondary }}>
-                        Total payable: ₹{Number(p.totalAmountInr).toLocaleString('en-IN')} (SAC {p.sacCode})
-                      </p>
-                    )}
-                    <p className="text-xs mb-3" style={{ color: T.textMuted }}>{p.tagline || p.description}</p>
+
+                    <p className="text-xs" style={{ color: T.textMuted }}>{p.tagline || p.description}</p>
+
+                    {/* Authoritative Centralized Quotas directly from BillingPlan */}
+                    <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold p-2.5 rounded-xl border"
+                      style={{ borderColor: T.border, background: T.surfaceHigh, color: T.textPrimary }}>
+                      <span>Users: {formatLimit(p.maxUsers)}</span>
+                      <span>Contacts: {formatLimit(p.maxContacts)}</span>
+                      <span>Accounts: {formatLimit(p.maxAccounts)}</span>
+                      <span>Deals: {formatLimit(p.maxDeals)}</span>
+                      <span className="col-span-2">Storage: {formatLimit(p.maxStorageGb, 'GB')}</span>
+                    </div>
+
                     {Array.isArray(p.features) && p.features.length > 0 && (
                       <ul className="space-y-1.5 text-xs" style={{ color: T.textSecondary }}>
                         {p.features.slice(0, 5).map((f) => (
@@ -422,28 +471,24 @@ export default function BillingSettings() {
                       </ul>
                     )}
                   </div>
-                  {selfServeAvailable ? (
-                    <button
-                      disabled={isCurrent || Boolean(busyAction)}
-                      onClick={() => handleSelectPlan(p.code)}
-                      className="w-full py-2.5 rounded-xl font-extrabold text-xs text-white cursor-pointer disabled:opacity-50"
-                      style={{ background: isCurrent ? '#10B981' : T.primary }}
-                    >
-                      {busyAction === p.code
-                        ? 'Opening Checkout...'
-                        : isCurrent
-                          ? 'Current Active Plan'
-                          : `Select ${p.name}`}
-                    </button>
-                  ) : (
-                    <a
-                      href="/support"
-                      className="w-full py-2.5 rounded-xl font-extrabold text-xs text-center border block"
-                      style={{ borderColor: T.border, color: isCurrent ? '#10B981' : T.primary }}
-                    >
-                      {isCurrent ? 'Current Active Plan' : 'Request Plan Change via Support'}
-                    </a>
-                  )}
+
+                  <button
+                    type="button"
+                    disabled={(isCurrent && isFreeCard) || Boolean(busyAction)}
+                    onClick={() => setSelectedPlanForModal(p)}
+                    className="w-full py-2.5 rounded-xl font-extrabold text-xs cursor-pointer disabled:opacity-50"
+                    style={{
+                      background: isCurrent
+                        ? isFreeCard ? 'rgba(16,185,129,0.14)' : T.surfaceHigh
+                        : isFreeCard ? 'transparent' : T.primary,
+                      color: isCurrent
+                        ? isFreeCard ? '#10B981' : T.textPrimary
+                        : isFreeCard ? '#EF4444' : '#FFFFFF',
+                      border: `1px solid ${isCurrent ? '#10B981' : isFreeCard ? '#FCA5A5' : T.primary}`,
+                    }}
+                  >
+                    {ctaText}
+                  </button>
                 </div>
               )
             })}
@@ -495,25 +540,29 @@ export default function BillingSettings() {
             <p className="text-xs" style={{ color: T.textMuted }}>No settled invoices issued yet.</p>
           ) : (
             <div className="space-y-2.5">
-              {invoices.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl border text-xs"
-                  style={{ borderColor: T.border }}>
-                  <div>
-                    <div className="font-mono font-bold" style={{ color: T.textPrimary }}>{inv.invoiceNumber}</div>
-                    <div style={{ color: T.textMuted }}>
-                      {inv.planCode} · ₹{((inv.amountPaise || 0) / 100).toLocaleString('en-IN')} ·{' '}
-                      {inv.igstPaise > 0 ? 'IGST 18%' : 'CGST+SGST 18%'}
+              {invoices.map((inv) => {
+                const gstTotalPaise = (inv.cgstPaise || 0) + (inv.sgstPaise || 0) + (inv.igstPaise || 0)
+                const taxLabel = inv.igstPaise > 0 ? 'IGST' : 'CGST+SGST'
+                return (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl border text-xs"
+                    style={{ borderColor: T.border }}>
+                    <div>
+                      <div className="font-mono font-bold" style={{ color: T.textPrimary }}>{inv.invoiceNumber}</div>
+                      <div style={{ color: T.textMuted }}>
+                        {inv.planCode} · ₹{((inv.amountPaise || 0) / 100).toLocaleString('en-IN')} ·{' '}
+                        {taxLabel} ₹{(gstTotalPaise / 100).toLocaleString('en-IN')}
+                      </div>
                     </div>
+                    <button
+                      onClick={() => downloadGstInvoicePdf(inv.id, inv.invoiceNumber)}
+                      className="px-3 py-1.5 rounded-lg border font-bold cursor-pointer"
+                      style={{ borderColor: T.border, color: T.primary }}
+                    >
+                      PDF
+                    </button>
                   </div>
-                  <button
-                    onClick={() => downloadGstInvoicePdf(inv.id, inv.invoiceNumber)}
-                    className="px-3 py-1.5 rounded-lg border font-bold cursor-pointer"
-                    style={{ borderColor: T.border, color: T.primary }}
-                  >
-                    PDF
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
