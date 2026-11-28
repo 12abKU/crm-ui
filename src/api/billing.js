@@ -39,6 +39,9 @@ export const cancelSubscription = (cancelAtCycleEnd = true) =>
 export const updateGstProfile = (payload) =>
   api.put('/api/billing/gst-profile', payload).then((r) => r.data)
 export const getBillingInvoices = () => api.get('/api/billing/invoices').then((r) => r.data)
+export const getPlatformBillingPlans = () => api.get('/api/platform/billing/plans').then((r) => r.data)
+export const updatePlatformBillingPlan = (code, payload) =>
+  api.put(`/api/platform/billing/plans/${encodeURIComponent(code)}`, payload).then((r) => r.data)
 
 export const downloadGstInvoicePdf = async (invoiceId, invoiceNumber) => {
   const res = await api.get(`/api/billing/invoices/${invoiceId}/pdf`, { responseType: 'blob' })

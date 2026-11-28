@@ -8,6 +8,7 @@ import { IconPlus, IconBuilding, IconUsers, IconCircleCheck, IconClock, IconBan,
 import CompanyDetail from '../components/platform/CompanyDetail'
 import CompaniesTable from '../components/platform/CompaniesTable'
 import ExpiringTrialsBanner from '../components/platform/ExpiringTrialsBanner'
+import PlatformPlanCatalogPanel from '../components/platform/PlatformPlanCatalogPanel'
 import { AddCompanyModal } from '../components/platform/CompanyModals'
 
 const DOT_GRID = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.07)'/%3E%3C/svg%3E")`
@@ -488,6 +489,8 @@ export default function PlatformDashboard() {
                         </div>
                     </div>
                 )}
+
+                <PlatformPlanCatalogPanel />
 
                 <ExpiringTrialsBanner trials={expiringTrials} onManage={loadCompanyDetail} />
 
