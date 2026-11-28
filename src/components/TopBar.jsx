@@ -178,12 +178,13 @@ export default function TopBar() {
 
             {/* ── Search bar — hidden for SUPER_ADMIN ─────── */}
             {!isSuperAdmin && (
-            <div className="relative flex-1 max-w-[180px] min-[400px]:max-w-[240px] sm:max-w-xs md:max-w-md lg:max-w-lg" ref={ref}>
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] pointer-events-none"
+            <div className="relative flex-1 min-w-[140px] max-w-[230px] sm:max-w-xs md:max-w-md lg:max-w-lg" ref={ref}>
+                <span aria-hidden="true" className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] pointer-events-none"
                     style={{ color: open ? T.primary : T.textMuted }}>search</span>
                 <input
                     ref={inputRef}
-                    className="w-full pl-9 pr-10 py-2 text-xs sm:text-[13px] font-medium outline-none rounded-xl"
+                    aria-label="Global search"
+                    className="w-full pl-9 pr-4 sm:pr-10 py-2 text-xs sm:text-[13px] font-medium outline-none rounded-xl"
                     style={{
                         background: T.surface,
                         color: T.textPrimary,

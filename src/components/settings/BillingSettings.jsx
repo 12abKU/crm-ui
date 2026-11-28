@@ -272,22 +272,26 @@ export default function BillingSettings() {
             </span>
           </div>
           <div>
-            <h3 className="text-2xl font-black" style={{ color: T.textPrimary }}>{status?.companyPlan || 'FREE'}</h3>
+            <h3 className="text-2xl font-black" style={{ color: T.textPrimary }}>
+              {status?.planName || status?.companyPlan || 'FREE'}
+            </h3>
             {status?.paymentMethodLabel && (
               <p className="text-xs mt-1" style={{ color: T.textMuted }}>
                 Payment method: <span className="font-bold" style={{ color: T.textPrimary }}>{status.paymentMethodLabel}</span>
               </p>
             )}
           </div>
-          {status?.currentEnd && (
-            <p className="text-xs" style={{ color: T.textMuted }}>
-              Current cycle ends: <strong>{new Date(status.currentEnd).toLocaleDateString()}</strong>
-            </p>
-          )}
-          {status?.trialEndsAt && subState === 'TRIAL' && (
+          {status?.isTrialing && status?.trialEndsAt ? (
             <p className="text-xs" style={{ color: T.textMuted }}>
               Trial ends: <strong>{new Date(status.trialEndsAt).toLocaleDateString()}</strong>
+              {status.trialDaysLeft > 0 ? ` (${status.trialDaysLeft}d left)` : ''}
             </p>
+          ) : (
+            status?.currentEnd && (
+              <p className="text-xs" style={{ color: T.textMuted }}>
+                Current cycle ends: <strong>{new Date(status.currentEnd).toLocaleDateString()}</strong>
+              </p>
+            )
           )}
           {status?.licenseKeyMasked && (
             <div className="pt-2 border-t text-xs" style={{ borderColor: T.border, color: T.textMuted }}>
@@ -368,16 +372,19 @@ export default function BillingSettings() {
               </p>
             </div>
             <div className="inline-flex p-1 rounded-xl border" style={{ background: T.surfaceHigh, borderColor: T.border }}>
-              {['MONTHLY', 'ANNUAL'].map((iv) => (
-                <button key={iv} type="button" onClick={() => setInterval(iv)}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
-                  style={{
-                    background: interval === iv ? T.primary : 'transparent',
-                    color: interval === iv ? '#FFFFFF' : T.textMuted,
-                  }}>
-                  {iv === 'MONTHLY' ? 'Monthly' : 'Annual (-20%)'}
-                </button>
-              ))}
+              {['MONTHLY', 'ANNUAL'].map((iv) => {
+                const savings = plans.find((x) => x.billingInterval === 'ANNUAL' && x.annualSavingsPercent > 0)?.annualSavingsPercent
+                return (
+                  <button key={iv} type="button" onClick={() => setInterval(iv)}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all"
+                    style={{
+                      background: interval === iv ? T.primary : 'transparent',
+                      color: interval === iv ? '#FFFFFF' : T.textMuted,
+                    }}>
+                    {iv === 'MONTHLY' ? 'Monthly' : (savings ? `Annual (-${savings}%)` : 'Annual')}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -390,15 +397,30 @@ export default function BillingSettings() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-black" style={{ color: T.textPrimary }}>{p.name}</span>
-                      <span className="text-xs font-bold uppercase" style={{ color: T.primary }}>{p.tier}</span>
+                      <span className="text-xs font-bold uppercase" style={{ color: T.primary }}>{p.badge || p.tier}</span>
                     </div>
-                    <div className="text-2xl font-black mb-2" style={{ color: T.textPrimary }}>
+                    <div className="text-2xl font-black mb-1" style={{ color: T.textPrimary }}>
                       ₹{(p.amountInr || 0).toLocaleString('en-IN')}
                       <span className="text-xs font-semibold ml-1" style={{ color: T.textMuted }}>
-                        /{p.billingInterval === 'ANNUAL' ? 'yr' : 'mo'} + 18% GST
+                        /{p.billingInterval === 'ANNUAL' ? 'yr' : 'mo'} + {p.gstRatePercent ?? 18}% GST
                       </span>
                     </div>
-                    <p className="text-xs" style={{ color: T.textMuted }}>{p.description}</p>
+                    {p.totalAmountInr > 0 && (
+                      <p className="text-[11px] font-bold mb-2" style={{ color: T.textSecondary }}>
+                        Total payable: ₹{Number(p.totalAmountInr).toLocaleString('en-IN')} (SAC {p.sacCode})
+                      </p>
+                    )}
+                    <p className="text-xs mb-3" style={{ color: T.textMuted }}>{p.tagline || p.description}</p>
+                    {Array.isArray(p.features) && p.features.length > 0 && (
+                      <ul className="space-y-1.5 text-xs" style={{ color: T.textSecondary }}>
+                        {p.features.slice(0, 5).map((f) => (
+                          <li key={f} className="flex items-start gap-1.5">
+                            <span style={{ color: '#10B981', fontWeight: 900 }}>✓</span>
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   {selfServeAvailable ? (
                     <button

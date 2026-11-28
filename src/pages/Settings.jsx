@@ -76,10 +76,10 @@ export default function Settings() {
             navigate('/erp', { replace: true })
             return
         }
-        if (tabParam && tabParam !== activeTab) {
+        if (tabParam) {
             setActiveTab(tabParam)
         }
-    }, [tabParam, activeTab, navigate])
+    }, [tabParam, navigate])
 
     const handleTabClick = (tabId) => {
         setActiveTab(tabId)

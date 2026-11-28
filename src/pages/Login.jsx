@@ -122,9 +122,9 @@ export default function Login() {
                         {/* Interactive Stats Grid */}
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5">
-                                <p className="text-[10px] text-gray-400 uppercase font-semibold">Active Value</p>
+                                <p className="text-[10px] text-gray-400 uppercase font-semibold">Active Pipeline</p>
                                 <div className="flex items-baseline gap-2 mt-1">
-                                    <h4 className="text-xl sm:text-2xl font-black text-white">$142,850</h4>
+                                    <h4 className="text-xl sm:text-2xl font-black text-white">₹14,28,500</h4>
                                     <span className="text-xs text-emerald-400 font-bold flex items-center">↑12%</span>
                                 </div>
                             </div>
@@ -139,31 +139,31 @@ export default function Login() {
 
                         {/* Live Activity Feeds */}
                         <div className="space-y-3">
-                            <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest pl-1 mb-2">Live Agent Streams</p>
+                            <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest pl-1 mb-2">Live Team Streams</p>
                             
                             <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative shadow-sm" style={{ background: '#7C3AED' }}>
-                                        JD
+                                        PN
                                         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 bg-emerald-500" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-white">Jane Doe (Admin)</p>
-                                        <p className="text-[10px] text-gray-400">Closed Deal: TechCorp Enterprise</p>
+                                        <p className="text-xs font-bold text-white">Priya Nair (Admin)</p>
+                                        <p className="text-[10px] text-gray-400">Closed Deal: Bharat Precision Enterprise</p>
                                     </div>
                                 </div>
-                                <span className="text-[10px] font-bold text-emerald-400">+$25,000</span>
+                                <span className="text-[10px] font-bold text-emerald-400">+₹2,50,000</span>
                             </div>
 
                             <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative shadow-sm" style={{ background: T.primary }}>
-                                        AS
+                                        VM
                                         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 bg-emerald-500" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-white">Agent Smith</p>
-                                        <p className="text-[10px] text-gray-400">Logged a call with Acme Corp</p>
+                                        <p className="text-xs font-bold text-white">Vikram Mehta</p>
+                                        <p className="text-[10px] text-gray-400">Synced invoice with Indus Corp</p>
                                     </div>
                                 </div>
                                 <span className="text-[10px] text-gray-500">2m ago</span>
@@ -226,16 +226,19 @@ export default function Login() {
                         <form onSubmit={submit} className="flex flex-col gap-6">
                             {/* Input: Email */}
                             <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-extrabold uppercase tracking-widest pl-1" style={{ color: T.textMuted }}>
+                                <label htmlFor="login-email" className="text-[10px] font-extrabold uppercase tracking-widest pl-1" style={{ color: T.textMuted }}>
                                     Email Address
                                 </label>
                                 <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] transition-colors"
+                                    <span aria-hidden="true" className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] transition-colors"
                                           style={{ color: focusedField === 'email' ? T.primary : T.textSecondary }}>
                                         mail
                                     </span>
                                     <input
+                                        id="login-email"
+                                        name="email"
                                         type="email"
+                                        autoComplete="email"
                                         value={form.email}
                                         onChange={e => setForm({ ...form, email: e.target.value })}
                                         className="w-full border rounded-2xl px-5 py-4 pl-11 text-sm outline-none transition-all duration-200"
@@ -256,17 +259,20 @@ export default function Login() {
                             {/* Input: Password */}
                             <div className="flex flex-col gap-2">
                                 <div className="flex justify-between items-center pl-1">
-                                    <label className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: T.textMuted }}>
+                                    <label htmlFor="login-password" className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: T.textMuted }}>
                                         Password
                                     </label>
                                 </div>
                                 <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] transition-colors"
+                                    <span aria-hidden="true" className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] transition-colors"
                                           style={{ color: focusedField === 'password' ? T.primary : T.textSecondary }}>
                                         lock
                                     </span>
                                     <input
+                                        id="login-password"
+                                        name="password"
                                         type={showPassword ? "text" : "password"}
+                                        autoComplete="current-password"
                                         value={form.password}
                                         onChange={e => setForm({ ...form, password: e.target.value })}
                                         className="w-full border rounded-2xl px-5 py-4 pl-11 pr-12 text-sm outline-none transition-all duration-200"
@@ -283,10 +289,11 @@ export default function Login() {
                                     />
                                     <button
                                          type="button"
+                                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                                          onClick={() => setShowPassword(!showPassword)}
-                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                                     >
-                                         <span className="material-symbols-outlined text-[20px]">
+                                         <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
                                              {showPassword ? "visibility_off" : "visibility"}
                                          </span>
                                     </button>

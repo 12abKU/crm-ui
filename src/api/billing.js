@@ -22,6 +22,8 @@ export function loadRazorpayScript() {
 
 export const getBillingPlans = () => api.get('/api/billing/plans').then((r) => r.data)
 export const getBillingStatus = () => api.get('/api/billing/status').then((r) => r.data)
+export const calculateBillingQuote = (payload) =>
+  api.post('/api/billing/quote', payload).then((r) => r.data)
 export const createSubscriptionCheckout = (planCode, quantity = 1) =>
   api.post('/api/billing/subscribe', { planCode, quantity }).then((r) => r.data)
 export const verifySubscriptionPayment = (razorpayPaymentId, razorpaySignature) =>

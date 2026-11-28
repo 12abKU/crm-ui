@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { IconBuilding, IconBook, IconCurrencyRupee, IconUsers, IconDatabase } from '@tabler/icons-react'
 import { T } from '../../constants/theme'
+import { getBillingPlans } from '../../api/billing'
 
 function formatBytes(bytes) {
     if (bytes == null || bytes === 0) return '0 B';
@@ -10,23 +12,30 @@ function formatBytes(bytes) {
 }
 
 export default function CompanyStatsGrid({ stats, plan, planConfig }) {
+    const [catalogPlan, setCatalogPlan] = useState(null)
+
+    useEffect(() => {
+        if (planConfig) return
+        let mounted = true
+        getBillingPlans()
+            .then((plans) => {
+                if (!mounted || !Array.isArray(plans)) return
+                const tier = (plan || 'FREE').toUpperCase()
+                setCatalogPlan(plans.find((p) => (p.tier || '').toUpperCase() === tier) || plans[0] || null)
+            })
+            .catch(() => {})
+        return () => { mounted = false }
+    }, [plan, planConfig])
+
     if (!stats) return null
 
-    // Use dynamic plan config if available, fall back to plan-tier defaults
-    const defaultStorageBytes = 5 * 1024 * 1024 * 1024; // 5 GB
-    const fallbackLimits = {
-        FREE: { Accounts: 10, Contacts: 50, Deals: 20, Users: 5, Storage: defaultStorageBytes },
-        PRO: { Accounts: 200, Contacts: 1000, Deals: 500, Users: 25, Storage: defaultStorageBytes },
-        ENTERPRISE: { Accounts: Infinity, Contacts: Infinity, Deals: Infinity, Users: Infinity, Storage: defaultStorageBytes }
-    }
-    const fallback = fallbackLimits[plan] || fallbackLimits.FREE
-
+    const effective = planConfig || catalogPlan || {}
     const resolvedLimits = {
-        Accounts: planConfig?.maxAccounts ?? fallback.Accounts,
-        Contacts: planConfig?.maxContacts ?? fallback.Contacts,
-        Deals:    planConfig?.maxDeals    ?? fallback.Deals,
-        Users:    planConfig?.maxUsers    ?? fallback.Users,
-        Storage:  planConfig?.maxStorageBytes ?? fallback.Storage,
+        Accounts: effective.maxAccounts ?? 0,
+        Contacts: effective.maxContacts ?? 0,
+        Deals:    effective.maxDeals    ?? 0,
+        Users:    effective.maxUsers    ?? 0,
+        Storage:  effective.maxStorageBytes ?? 0,
     }
 
     const cards = [

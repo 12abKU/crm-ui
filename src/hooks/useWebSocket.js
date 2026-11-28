@@ -4,6 +4,11 @@ import { WS_BROKER_URL } from '../constants/config'
 
 export function useWebSocket(token, onNotification) {
     const clientRef = useRef(null)
+    const onNotificationRef = useRef(onNotification)
+
+    useEffect(() => {
+        onNotificationRef.current = onNotification
+    }, [onNotification])
 
     useEffect(() => {
         if (!token) {
@@ -29,8 +34,8 @@ export function useWebSocket(token, onNotification) {
                     if (message.body) {
                         try {
                             const notif = JSON.parse(message.body)
-                            if (onNotification) {
-                                onNotification(notif)
+                            if (onNotificationRef.current) {
+                                onNotificationRef.current(notif)
                             }
                             // Dispatch custom DOM event for notification bell
                             window.dispatchEvent(new CustomEvent('crm-notification', { detail: notif }))
@@ -133,5 +138,5 @@ export function useWebSocket(token, onNotification) {
                 clientRef.current = null
             }
         }
-    }, [token, onNotification])
+    }, [token])
 }
