@@ -21,6 +21,7 @@ const PRECACHE_ASSETS = [
 const BYPASS_PREFIXES = ['/api/', '/ws', '/landing/', '/actuator/', '/BusyBridge.zip', '/TallyBridge.zip'];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(SHELL_CACHE).then(async (cache) => {
       await Promise.allSettled(
@@ -70,8 +71,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strictly bypass authenticated APIs, WebSockets, actuator, and bridge downloads
-  if (BYPASS_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
+  // Strictly bypass authenticated APIs, WebSockets, landing pages (/landing & /landing/*), actuator, and bridge downloads
+  if (url.pathname === '/landing' || BYPASS_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
     return;
   }
 
